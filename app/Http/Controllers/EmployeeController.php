@@ -302,7 +302,7 @@ class EmployeeController extends Controller
             'S.Pd.',
             'budi@example.com',
             'employee',
-            'sd',
+            'paud',
             'Male',
             'Malang',
             '1985-01-01',
@@ -438,8 +438,8 @@ class EmployeeController extends Controller
                 continue;
             }
 
-            if (!in_array($unit, ['paud', 'sd', 'smp'])) {
-                $errors[] = "Baris " . ($index + 2) . ": Unit sekolah harus 'paud', 'sd', atau 'smp'.";
+            if (!in_array($unit, ['paud', 'paud', 'smp'])) {
+                $errors[] = "Baris " . ($index + 2) . ": Unit sekolah harus 'paud', 'paud', atau 'smp'.";
                 continue;
             }
 
@@ -602,6 +602,7 @@ class EmployeeController extends Controller
         return back()->with('success', "Akun untuk {$employee->name} berhasil dibuat dengan password default: sans1234");
     }
 }
+
 
 
 
