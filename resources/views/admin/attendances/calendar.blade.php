@@ -212,7 +212,7 @@
 
                     <div class="mt-4 space-y-3.5">
                         <div class="flex items-start gap-3">
-                            <span class="mt-0.5 inline-flex h-2.5 w-2.5 rounded-full bg-slate-955 dark:bg-slate-100"></span>
+                            <span class="mt-0.5 inline-flex h-2.5 w-2.5 rounded-full bg-slate-950 dark:bg-slate-100"></span>
                             <div>
                                 <p class="text-xs font-medium text-slate-900 dark:text-slate-50">Tanggal hari ini</p>
                                 <p class="text-[11px] leading-5 text-slate-500 dark:text-slate-400">Ditandai dengan blok gelap seperti pada template.</p>
