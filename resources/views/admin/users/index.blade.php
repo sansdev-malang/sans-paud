@@ -42,16 +42,16 @@
                 <div style="flex: 0 0 250px;">
                     <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Cari Pengguna</label>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Nama atau email..." 
-                        class="w-full h-9 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-100 dark:focus:ring-slate-800">
+                        class="w-full text-xs h-9 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-100 dark:focus:ring-slate-800">
                 </div>
 
                 <!-- Filter Role -->
                 <div style="flex: 0 0 180px;">
                     <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Hak Akses / Role</label>
-                    <select name="role" class="w-full h-9 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-100 dark:focus:ring-slate-800 cursor-pointer">
+                    <select name="role" class="w-full text-xs h-9 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-100 dark:focus:ring-slate-800 cursor-pointer">
                         <option value="">Semua Role</option>
                         <option value="super_admin" {{ request('role') === 'super_admin' ? 'selected' : '' }}>Super Admin</option>
-                        <option value="admin_paud" {{ request('role') === 'admin_paud' ? 'selected' : '' }}>Admin PAUD</option>
+                        <option value="admin_sd" {{ request('role') === 'admin_sd' ? 'selected' : '' }}>Admin SD</option>
                         <option value="kepala_sekolah" {{ request('role') === 'kepala_sekolah' ? 'selected' : '' }}>Kepala Sekolah</option>
                         <option value="waka" {{ request('role') === 'waka' ? 'selected' : '' }}>Waka</option>
                         <option value="employee" {{ request('role') === 'employee' ? 'selected' : '' }}>Pegawai (Employee)</option>
@@ -76,7 +76,7 @@
                 <!-- Per Page -->
                 <div style="margin-left: auto; flex: 0 0 110px;">
                     <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Tampilkan</label>
-                    <select name="per_page" onchange="this.form.submit()" class="w-full h-9 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-100 dark:focus:ring-slate-800 cursor-pointer">
+                    <select name="per_page" onchange="this.form.submit()" class="w-full text-xs h-9 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-100 dark:focus:ring-slate-800 cursor-pointer">
                         <option value="10" {{ request('per_page', '10') == '10' ? 'selected' : '' }}>10 baris</option>
                         <option value="25" {{ request('per_page') == '25' ? 'selected' : '' }}>25 baris</option>
                         <option value="50" {{ request('per_page') == '50' ? 'selected' : '' }}>50 baris</option>
@@ -185,7 +185,7 @@
             <div x-show="showAddModal" @click.self="showAddModal = false" class="fixed inset-0 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs text-left" style="display: none; margin-top: 0px !important; z-index: 9999;">
             <div @click.outside="showAddModal = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl max-w-md w-full overflow-hidden text-xs">
                 <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
-                    <h3 class="text-sm font-bold text-slate-900 dark:text-slate-50 font-nasalization">Tambah User Baru</h3>
+                    <h3 class="text-sm font-bold text-slate-905 dark:text-slate-50 font-nasalization">Tambah User Baru</h3>
                     <button @click="showAddModal = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-300">
                         <i data-lucide="x" class="w-4 h-4"></i>
                     </button>
@@ -221,7 +221,7 @@
                                 <option value="employee">Pegawai (Employee)</option>
                                 <option value="kepala_sekolah">Kepala Sekolah</option>
                                 <option value="waka">Waka</option>
-                                <option value="admin_paud">Admin PAUD</option>
+                                <option value="admin_sd">Admin SD</option>
                                 <option value="super_admin">Super Admin</option>
                             </select>
                         </div>
@@ -264,7 +264,10 @@
                         <div class="space-y-1.5">
                             <label class="block font-bold text-slate-700 dark:text-slate-300">Nama Lengkap</label>
                             <input type="text" name="name" x-model="editUser.name" required 
-                                class="w-full h-9 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-100 dark:focus:ring-slate-800">
+                                :readonly="editUser.employee_id !== null"
+                                :class="editUser.employee_id !== null ? 'bg-slate-100 dark:bg-slate-800/50 cursor-not-allowed border-slate-200 text-slate-500 dark:text-slate-400' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100'"
+                                class="w-full h-9 px-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-100 dark:focus:ring-slate-800">
+                            <p x-show="editUser.employee_id !== null" class="text-[10px] text-slate-400 mt-1">Nama lengkap disinkronkan dari data pegawai/guru yang terhubung.</p>
                         </div>
 
                         <!-- Email -->
@@ -284,11 +287,11 @@
                         <!-- Role -->
                         <div class="space-y-1.5">
                             <label class="block font-bold text-slate-700 dark:text-slate-300">Hak Akses (Role)</label>
-                            <select name="role" x-model="editUser.role" class="w-full h-9 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-100 dark:focus:ring-slate-800 cursor-pointer">
+                            <select name="role" x-model="editUser.role" class="w-full h-9 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-805 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-100 dark:focus:ring-slate-800 cursor-pointer">
                                 <option value="employee">Pegawai (Employee)</option>
                                 <option value="kepala_sekolah">Kepala Sekolah</option>
                                 <option value="waka">Waka</option>
-                                <option value="admin_paud">Admin PAUD</option>
+                                <option value="admin_sd">Admin SD</option>
                                 <option value="super_admin">Super Admin</option>
                             </select>
                         </div>
