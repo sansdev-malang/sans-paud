@@ -36,6 +36,7 @@
                     'absensi_bonus_denda' => 'Bonus & Denda',
                     'absensi_karyawan' => 'Data Karyawan',
                     'homebase_leaderboard' => 'Homebase Leaderboard',
+                    'spmb.candidates.index' => 'Siswa Baru SPMB',
                 ];
                 $title = $routeTitles[$routeName] ?? 'Dashboard';
             }
@@ -64,6 +65,11 @@
             }
             #nprogress .peg {
                 box-shadow: 0 0 10px #4f46e5, 0 0 5px #4f46e5 !important;
+            }
+
+            /* Alpine.js x-cloak to prevent DOM flash/flicker */
+            [x-cloak] {
+                display: none !important;
             }
 
             /* Global Search Container Hover and Button Styles */

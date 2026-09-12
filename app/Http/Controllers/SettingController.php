@@ -32,6 +32,10 @@ class SettingController extends Controller
             'app_favicon' => 'nullable|mimes:ico,png,jpg,jpeg,svg|max:1024',
             'hrd_api_url' => 'nullable|url|max:255',
             'hrd_api_token' => 'nullable|string|max:255',
+            'spmb_api_url' => 'nullable|url|max:255',
+            'spmb_api_token' => 'nullable|string|max:255',
+            'spmb_webhook_secret' => 'nullable|string|max:255',
+            'spmb_auto_sync' => 'nullable|boolean',
         ]);
 
         // Save text fields
@@ -44,6 +48,10 @@ class SettingController extends Controller
             'app_address',
             'hrd_api_url',
             'hrd_api_token',
+            'spmb_api_url',
+            'spmb_api_token',
+            'spmb_webhook_secret',
+            'spmb_auto_sync',
         ];
 
         foreach ($fields as $field) {

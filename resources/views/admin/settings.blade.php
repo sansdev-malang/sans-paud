@@ -106,6 +106,65 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Integrasi API SPMB Card -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden mt-6">
+                    <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                        <div>
+                            <h3 class="text-sm font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                Integrasi API SPMB Pusat
+                            </h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Koneksi data pendaftar & calon murid baru dari aplikasi SPMB.</p>
+                        </div>
+                        <span class="px-2 py-0.5 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-md border border-emerald-200 dark:border-emerald-800">
+                            Unit PAUD
+                        </span>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <!-- SPMB API URL -->
+                        <div>
+                            <label for="spmb_api_url" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">URL Aplikasi SPMB</label>
+                            <input type="url" name="spmb_api_url" id="spmb_api_url" value="{{ old('spmb_api_url', setting('spmb_api_url', 'http://sans-spmb.test')) }}" placeholder="contoh: https://spmb.anakshaleh.sch.id"
+                                class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-50 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 transition-colors font-mono">
+                        </div>
+
+                        <!-- SPMB API Token -->
+                        <div>
+                            <label for="spmb_api_token" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Token Kunci API SPMB (Bearer Token)</label>
+                            <input type="text" name="spmb_api_token" id="spmb_api_token" value="{{ old('spmb_api_token', setting('spmb_api_token')) }}" placeholder="spmb_tok_xxxxxxxxxxxx"
+                                class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-50 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 transition-colors font-mono">
+                            <p class="text-[11px] text-slate-400 mt-1">Dapatkan token ini dari Menu <i>Integrasi API</i> di SPMB untuk Klien PAUD.</p>
+                        </div>
+
+                        <!-- SPMB Webhook Secret -->
+                        <div>
+                            <label for="spmb_webhook_secret" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Webhook Secret (HMAC SHA-256)</label>
+                            <input type="text" name="spmb_webhook_secret" id="spmb_webhook_secret" value="{{ old('spmb_webhook_secret', setting('spmb_webhook_secret')) }}" placeholder="spmb_sec_xxxxxxxxxxxx"
+                                class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-50 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 transition-colors font-mono">
+                        </div>
+
+                        <!-- Webhook Receiver URL (Readonly Info) -->
+                        <div class="p-3 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-lg space-y-1">
+                            <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400">URL Endpoint Webhook Receiver di PAUD (Salin ke SPMB):</label>
+                            <div class="flex items-center gap-2">
+                                <code id="webhook-receiver-url" class="text-[11px] text-indigo-600 dark:text-indigo-400 font-mono select-all flex-1 truncate">{{ url('/api/spmb-webhook') }}</code>
+                                <button type="button" onclick="navigator.clipboard.writeText('{{ url('/api/spmb-webhook') }}'); alert('URL Webhook berhasil disalin!');" class="p-1 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 text-xs font-semibold">
+                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Test Connection Button -->
+                        <div class="pt-2 flex items-center justify-between">
+                            <button type="button" id="btn-test-spmb" onclick="testSpmbConnection()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-2 cursor-pointer shadow-xs">
+                                <i data-lucide="activity" class="w-3.5 h-3.5"></i>
+                                <span>Tes Koneksi API SPMB</span>
+                            </button>
+                            <div id="spmb-test-result" class="text-xs font-semibold"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- RIGHT SIDE: BRANDING (LOGO & FAVICON) -->
@@ -188,7 +247,7 @@
         </form>
     </div>
 
-    <!-- JAVASCRIPT FOR LIVE IMAGE PREVIEWS -->
+    <!-- JAVASCRIPT FOR LIVE IMAGE PREVIEWS & SPMB TEST -->
     <script>
         function previewImage(input, previewId, placeholderId, isFavicon = false) {
             const preview = document.getElementById(previewId);
@@ -208,6 +267,43 @@
                 
                 reader.readAsDataURL(input.files[0]);
             }
+        }
+
+        function testSpmbConnection() {
+            const btn = document.getElementById('btn-test-spmb');
+            const resultBox = document.getElementById('spmb-test-result');
+            const originalHtml = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-3.5 w-3.5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memeriksa...`;
+            resultBox.innerHTML = `<span class="text-slate-400 font-normal">Menghubungi server SPMB...</span>`;
+
+            fetch("{{ route('spmb.test-connection') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                    "Accept": "application/json"
+                }
+            })
+            .then(res => res.json().then(data => ({ status: res.status, ok: res.ok, data })))
+            .then(res => {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                if (window.lucide) lucide.createIcons();
+
+                if (res.ok && res.data.success) {
+                    resultBox.innerHTML = `<span class="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">✓ ${res.data.message}</span>`;
+                } else {
+                    resultBox.innerHTML = `<span class="text-red-500 dark:text-red-400 flex items-center gap-1">✕ ${res.data.message || 'Gagal terhubung ke SPMB'}</span>`;
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                if (window.lucide) lucide.createIcons();
+                resultBox.innerHTML = `<span class="text-red-500 dark:text-red-400">✕ Terjadi kesalahan jaringan (${err.message})</span>`;
+            });
         }
     </script>
 

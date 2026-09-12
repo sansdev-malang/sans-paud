@@ -171,6 +171,18 @@ Route::middleware('hrd.api')->prefix('api/v1/hrd')->group(function () {
     Route::post('leave-requests/decision', [\App\Http\Controllers\Api\HrdApiController::class, 'leaveDecision']);
 });
 
+// SPMB Webhook Receiver (CSRF exempted in bootstrap/app.php)
+Route::post('/api/spmb-webhook', [\App\Http\Controllers\Api\SpmbWebhookController::class, 'handle'])->name('api.spmb-webhook');
+
+// SPMB Candidate Management (Admin & Staff)
+Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,admin_smp,kepala_sekolah,waka'])->group(function () {
+    Route::get('/spmb/pendaftar', [\App\Http\Controllers\SpmbCandidateController::class, 'index'])->name('spmb.candidates.index');
+    Route::get('/spmb/pendaftar/{id}', [\App\Http\Controllers\SpmbCandidateController::class, 'show'])->name('spmb.candidates.show');
+    Route::post('/spmb/pendaftar/sync', [\App\Http\Controllers\SpmbCandidateController::class, 'sync'])->name('spmb.candidates.sync');
+    Route::post('/spmb/pendaftar/{id}/toggle-enroll', [\App\Http\Controllers\SpmbCandidateController::class, 'toggleEnroll'])->name('spmb.candidates.toggle-enroll');
+    Route::post('/spmb/test-connection', [\App\Http\Controllers\SpmbCandidateController::class, 'testConnection'])->name('spmb.test-connection');
+});
+
 Route::middleware(['auth', 'role:super_admin'])->group(function () {
     Route::post('zkteco-devices/{zktecoDevice}/ping', [ZktecoDeviceController::class, 'ping'])->name('zkteco-devices.ping');
     Route::resource('zkteco-devices', ZktecoDeviceController::class);
