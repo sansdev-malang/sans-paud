@@ -1,13 +1,33 @@
 <x-admin-layout>
-    <div class="p-6 space-y-6">
+    <div class="p-6 space-y-6" x-data="{ activeTab: localStorage.getItem('sans_settings_tab') || 'general' }" x-init="$watch('activeTab', val => localStorage.setItem('sans_settings_tab', val))">
 
         <!-- PAGE HEADER -->
         <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div class="flex flex-col gap-0.5">
                 <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">Pengaturan Sistem</h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Konfigurasi identitas sistem, informasi unit kerja, dan aset visual (logo/favicon).</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Konfigurasi identitas sistem, informasi unit kerja, dan integrasi API eksternal.</p>
             </div>
         </section>
+
+        <!-- MODERN TAB NAVIGATION -->
+        <div class="border-b border-slate-200 dark:border-slate-800 flex items-center gap-2">
+            <button type="button" @click="activeTab = 'general'" 
+                :class="activeTab === 'general' ? 'border-slate-900 text-slate-900 dark:border-slate-100 dark:text-slate-100 font-bold' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:border-slate-300 font-semibold'"
+                class="pb-3 px-4 text-xs border-b-2 flex items-center gap-2 transition-all cursor-pointer">
+                <i data-lucide="building-2" class="w-4 h-4"></i>
+                <span>Identitas & Branding</span>
+            </button>
+
+            <button type="button" @click="activeTab = 'integrations'" 
+                :class="activeTab === 'integrations' ? 'border-slate-900 text-slate-900 dark:border-slate-100 dark:text-slate-100 font-bold' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:border-slate-300 font-semibold'"
+                class="pb-3 px-4 text-xs border-b-2 flex items-center gap-2 transition-all cursor-pointer">
+                <i data-lucide="cpu" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
+                <span>Integrasi API (HRD & SPMB)</span>
+                <span class="px-1.5 py-0.5 text-[9px] font-bold rounded-md bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                    2 Aktif
+                </span>
+            </button>
+        </div>
 
         <!-- FORM SETTINGS -->
         <form action="{{ route('settings.update') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
@@ -24,14 +44,15 @@
                 </div>
             @endif
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- TAB 1: IDENTITAS & BRANDING -->
+            <div x-show="activeTab === 'general'" x-cloak class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                 <!-- LEFT SIDE: GENERAL SETTINGS -->
                 <div class="lg:col-span-2 space-y-6">
                     <!-- General Settings Card -->
-                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden">
                         <div class="p-6 border-b border-slate-200 dark:border-slate-800">
-                            <h3 class="text-sm font-bold tracking-tight text-slate-900 dark:text-slate-50">Informasi Umum</h3>
+                            <h3 class="text-sm font-bold tracking-tight text-slate-900 dark:text-slate-50">Informasi Umum Instansi</h3>
                             <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Konfigurasi nama aplikasi, nama instansi unit, dan detail kontak sistem.</p>
                         </div>
                         <div class="p-6 space-y-4">
@@ -84,95 +105,12 @@
                     </div>
                 </div>
 
-                <!-- Integrasi API HRD Card -->
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden mt-6">
-                    <div class="p-6 border-b border-slate-200 dark:border-slate-800">
-                        <h3 class="text-sm font-bold tracking-tight text-slate-900 dark:text-slate-50">Integrasi API HRD</h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Pengaturan koneksi API untuk tersambung ke aplikasi pusat HRD.</p>
-                    </div>
-                    <div class="p-6 space-y-4">
-                        <!-- API URL -->
-                        <div>
-                            <label for="hrd_api_url" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">URL Aplikasi HRD</label>
-                            <input type="url" name="hrd_api_url" id="hrd_api_url" value="{{ old('hrd_api_url', setting('hrd_api_url', config('app.hrd_url', 'http://sans-hrd.test'))) }}" placeholder="contoh: https://hrd.sekolahanaksaleh.sch.id"
-                                class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-50 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 transition-colors">
-                        </div>
-
-                        <!-- API Token -->
-                        <div>
-                            <label for="hrd_api_token" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Token API HRD</label>
-                            <input type="text" name="hrd_api_token" id="hrd_api_token" value="{{ old('hrd_api_token', setting('hrd_api_token', config('app.hrd_api_token'))) }}"
-                                class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-50 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 transition-colors">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Integrasi API SPMB Card -->
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden mt-6">
-                    <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                        <div>
-                            <h3 class="text-sm font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                                Integrasi API SPMB Pusat
-                            </h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Koneksi data pendaftar & calon murid baru dari aplikasi SPMB.</p>
-                        </div>
-                        <span class="px-2 py-0.5 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-md border border-emerald-200 dark:border-emerald-800">
-                            Unit PAUD
-                        </span>
-                    </div>
-                    <div class="p-6 space-y-4">
-                        <!-- SPMB API URL -->
-                        <div>
-                            <label for="spmb_api_url" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">URL Aplikasi SPMB</label>
-                            <input type="url" name="spmb_api_url" id="spmb_api_url" value="{{ old('spmb_api_url', setting('spmb_api_url', 'http://sans-spmb.test')) }}" placeholder="contoh: https://spmb.anakshaleh.sch.id"
-                                class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-50 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 transition-colors font-mono">
-                        </div>
-
-                        <!-- SPMB API Token -->
-                        <div>
-                            <label for="spmb_api_token" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Token Kunci API SPMB (Bearer Token)</label>
-                            <input type="text" name="spmb_api_token" id="spmb_api_token" value="{{ old('spmb_api_token', setting('spmb_api_token')) }}" placeholder="spmb_tok_xxxxxxxxxxxx"
-                                class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-50 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 transition-colors font-mono">
-                            <p class="text-[11px] text-slate-400 mt-1">Dapatkan token ini dari Menu <i>Integrasi API</i> di SPMB untuk Klien PAUD.</p>
-                        </div>
-
-                        <!-- SPMB Webhook Secret -->
-                        <div>
-                            <label for="spmb_webhook_secret" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Webhook Secret (HMAC SHA-256)</label>
-                            <input type="text" name="spmb_webhook_secret" id="spmb_webhook_secret" value="{{ old('spmb_webhook_secret', setting('spmb_webhook_secret')) }}" placeholder="spmb_sec_xxxxxxxxxxxx"
-                                class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-50 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 transition-colors font-mono">
-                        </div>
-
-                        <!-- Webhook Receiver URL (Readonly Info) -->
-                        <div class="p-3 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-lg space-y-1">
-                            <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400">URL Endpoint Webhook Receiver di PAUD (Salin ke SPMB):</label>
-                            <div class="flex items-center gap-2">
-                                <code id="webhook-receiver-url" class="text-[11px] text-indigo-600 dark:text-indigo-400 font-mono select-all flex-1 truncate">{{ url('/api/spmb-webhook') }}</code>
-                                <button type="button" onclick="navigator.clipboard.writeText('{{ url('/api/spmb-webhook') }}'); alert('URL Webhook berhasil disalin!');" class="p-1 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 text-xs font-semibold">
-                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Test Connection Button -->
-                        <div class="pt-2 flex items-center justify-between">
-                            <button type="button" id="btn-test-spmb" onclick="testSpmbConnection()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-2 cursor-pointer shadow-xs">
-                                <i data-lucide="activity" class="w-3.5 h-3.5"></i>
-                                <span>Tes Koneksi API SPMB</span>
-                            </button>
-                            <div id="spmb-test-result" class="text-xs font-semibold"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- RIGHT SIDE: BRANDING (LOGO & FAVICON) -->
+                <!-- RIGHT SIDE: BRANDING (LOGO & FAVICON) -->
                 <div class="space-y-6">
-                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden">
                         <div class="p-6 border-b border-slate-200 dark:border-slate-800">
                             <h3 class="text-sm font-bold tracking-tight text-slate-900 dark:text-slate-50">Visual & Branding</h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Sesuaikan logo dan ikon situs web Anda.</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Sesuaikan logo dan ikon favicon situs web Anda.</p>
                         </div>
                         <div class="p-6 space-y-6">
 
@@ -197,7 +135,7 @@
                                             class="px-3 py-1.5 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold rounded-lg cursor-pointer transition-colors flex items-center gap-1.5">
                                             <i data-lucide="upload" class="w-3.5 h-3.5"></i> Unggah Logo
                                         </button>
-                                        <p class="text-[10px] text-slate-500 dark:text-slate-400">Format: PNG, JPG, atau SVG. Maks 1MB.</p>
+                                        <p class="text-[10px] text-slate-500 dark:text-slate-400">Format: PNG, JPG, SVG. Maks 1MB.</p>
                                     </div>
                                 </div>
                             </div>
@@ -234,12 +172,116 @@
 
             </div>
 
+            <!-- TAB 2: INTEGRASI API (HRD & SPMB) -->
+            <div x-show="activeTab === 'integrations'" x-cloak class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                <!-- Card 1: Integrasi API HRD Pusat -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden flex flex-col justify-between">
+                    <div>
+                        <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                            <div>
+                                <h3 class="text-sm font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                                    Integrasi API HRD Pusat
+                                </h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Koneksi data absensi, cuti, dan kepegawaian ke aplikasi HRD pusat.</p>
+                            </div>
+                            <span class="px-2 py-0.5 text-[10px] font-bold bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-md border border-blue-200 dark:border-blue-800">
+                                Layanan HRD
+                            </span>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <!-- HRD URL -->
+                            <div>
+                                <label for="hrd_api_url" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">URL Aplikasi HRD</label>
+                                <input type="url" name="hrd_api_url" id="hrd_api_url" value="{{ old('hrd_api_url', setting('hrd_api_url', config('app.hrd_url', 'http://sans-hrd.test'))) }}" placeholder="contoh: https://hrd.sekolahanaksaleh.sch.id"
+                                    class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-50 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 transition-colors font-mono">
+                            </div>
+
+                            <!-- HRD Token -->
+                            <div>
+                                <label for="hrd_api_token" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Token API HRD</label>
+                                <input type="text" name="hrd_api_token" id="hrd_api_token" value="{{ old('hrd_api_token', setting('hrd_api_token', config('app.hrd_api_token'))) }}"
+                                    class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-50 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 transition-colors font-mono">
+                            </div>
+
+                            <!-- Info Box -->
+                            <div class="p-3 bg-blue-50/60 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 rounded-lg text-[11px] text-blue-700 dark:text-blue-300 leading-relaxed">
+                                <i data-lucide="info" class="w-3.5 h-3.5 inline mr-1 text-blue-600"></i>
+                                Pengaturan ini digunakan untuk sinkronisasi data presensi mesin, cuti pegawai, dan slip gaji secara otomatis ke pusat.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Integrasi API SPMB Pusat -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden flex flex-col justify-between">
+                    <div>
+                        <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                            <div>
+                                <h3 class="text-sm font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                    Integrasi API SPMB Pusat
+                                </h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Koneksi data pendaftar & calon murid baru dari aplikasi SPMB.</p>
+                            </div>
+                            <span class="px-2 py-0.5 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-md border border-emerald-200 dark:border-emerald-800">
+                                Unit PAUD
+                            </span>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <!-- SPMB API URL -->
+                            <div>
+                                <label for="spmb_api_url" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">URL Aplikasi SPMB</label>
+                                <input type="url" name="spmb_api_url" id="spmb_api_url" value="{{ old('spmb_api_url', setting('spmb_api_url', 'http://sans-spmb.test')) }}" placeholder="contoh: https://spmb.anakshaleh.sch.id"
+                                    class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-50 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 transition-colors font-mono">
+                            </div>
+
+                            <!-- SPMB API Token -->
+                            <div>
+                                <label for="spmb_api_token" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Token Kunci API SPMB (Bearer Token)</label>
+                                <input type="text" name="spmb_api_token" id="spmb_api_token" value="{{ old('spmb_api_token', setting('spmb_api_token')) }}" placeholder="spmb_tok_xxxxxxxxxxxx"
+                                    class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-50 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 transition-colors font-mono">
+                            </div>
+
+                            <!-- SPMB Webhook Secret -->
+                            <div>
+                                <label for="spmb_webhook_secret" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Webhook Secret (HMAC SHA-256)</label>
+                                <input type="text" name="spmb_webhook_secret" id="spmb_webhook_secret" value="{{ old('spmb_webhook_secret', setting('spmb_webhook_secret')) }}" placeholder="spmb_sec_xxxxxxxxxxxx"
+                                    class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-50 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 transition-colors font-mono">
+                            </div>
+
+                            <!-- Webhook Receiver URL (Readonly Info) -->
+                            <div class="p-3 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-lg space-y-1">
+                                <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400">URL Endpoint Webhook Receiver di PAUD (Salin ke SPMB):</label>
+                                <div class="flex items-center gap-2">
+                                    <code id="webhook-receiver-url" class="text-[11px] text-indigo-600 dark:text-indigo-400 font-mono select-all flex-1 truncate">{{ url('/api/spmb-webhook') }}</code>
+                                    <button type="button" onclick="navigator.clipboard.writeText('{{ url('/api/spmb-webhook') }}'); alert('URL Webhook berhasil disalin!');" class="p-1 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 text-xs font-semibold">
+                                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Test Connection Button -->
+                            <div class="pt-2 flex items-center justify-between">
+                                <button type="button" id="btn-test-spmb" onclick="testSpmbConnection()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-2 cursor-pointer shadow-xs">
+                                    <i data-lucide="activity" class="w-3.5 h-3.5"></i>
+                                    <span>Tes Koneksi API SPMB</span>
+                                </button>
+                                <div id="spmb-test-result" class="text-xs font-semibold"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
             <!-- ACTIONS BUTTONS -->
-            <div class="flex justify-end items-center gap-3">
+            <div class="flex justify-end items-center gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
                 <a href="{{ route('dashboard') }}" class="px-4 py-2 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-900 text-xs font-bold rounded-lg cursor-pointer transition-colors">
                     Batalkan
                 </a>
-                <button type="submit" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-slate-50 dark:hover:bg-slate-200 text-white dark:text-slate-900 text-xs font-bold rounded-lg cursor-pointer transition-colors flex items-center gap-2">
+                <button type="submit" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-slate-50 dark:hover:bg-slate-200 text-white dark:text-slate-900 text-xs font-bold rounded-lg cursor-pointer transition-colors flex items-center gap-2 shadow-xs">
                     <i data-lucide="save" class="w-4 h-4"></i> Simpan Perubahan
                 </button>
             </div>
@@ -318,7 +360,6 @@
                         toastText.textContent = "{{ session('success') }}";
                     }
                     
-                    // Show notification with anim
                     toast.classList.remove('hidden');
                     toast.style.opacity = '0';
                     toast.style.transform = 'translateY(20px)';
@@ -329,7 +370,6 @@
                         toast.style.transform = 'translateY(0)';
                     }, 50);
 
-                    // Auto hide
                     setTimeout(() => {
                         toast.style.opacity = '0';
                         toast.style.transform = 'translateY(20px)';
