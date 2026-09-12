@@ -129,6 +129,7 @@ class SpmbIntegrationService
 
         $endpoint = "{$baseUrl}/api/v1/candidates";
         $page = 1;
+        $syncedIds = [];
         $syncedCount = 0;
         $errors = [];
 
@@ -163,7 +164,11 @@ class SpmbIntegrationService
 
                 foreach ($items as $item) {
                     try {
-                        SpmbCandidate::syncFromPayload($item);
+                        $candidate = SpmbCandidate::syncFromPayload($item);
+                        $regId = $candidate->spmb_registration_id ?? ($item['id'] ?? null);
+                        if ($regId) {
+                            $syncedIds[] = (int) $regId;
+                        }
                         $syncedCount++;
                     } catch (\Exception $ex) {
                         $errors[] = "No. Reg " . ($item['registration_number'] ?? '?') . ": " . $ex->getMessage();
@@ -174,10 +179,28 @@ class SpmbIntegrationService
                 $page++;
             } while ($page <= $lastPage);
 
+            // Full Mirroring (Prune data yang tidak lagi diizinkan / tidak ada di SPMB)
+            $syncedIds = array_values(array_filter(array_unique($syncedIds)));
+            
+            $pruneQuery = SpmbCandidate::query();
+            if ($period && $period !== 'all') {
+                $pruneQuery->where('academic_year', $period);
+            }
+            if (!empty($syncedIds)) {
+                $pruneQuery->whereNotIn('spmb_registration_id', $syncedIds);
+            }
+            $prunedCount = $pruneQuery->delete();
+
+            $msg = "Berhasil menyinkronkan {$syncedCount} calon murid dari SPMB.";
+            if ($prunedCount > 0) {
+                $msg .= " ({$prunedCount} data lama yang tidak lagi masuk izin SPMB telah dibersihkan).";
+            }
+
             return [
                 'success' => true,
-                'message' => "Berhasil menyinkronkan {$syncedCount} calon murid dari SPMB.",
+                'message' => $msg,
                 'synced_count' => $syncedCount,
+                'pruned_count' => $prunedCount,
                 'errors' => $errors,
             ];
         } catch (\Exception $e) {

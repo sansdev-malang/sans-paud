@@ -349,8 +349,8 @@
         </section>
 
         <!-- DETAIL MODAL -->
-        <div x-show="modalOpen" x-cloak style="display: none;"
-            class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div x-show="modalOpen" x-cloak style="display: none; z-index: 9999; margin-top: 0px !important;"
+            class="fixed inset-0 z-[9999] overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
             <div @click.outside="modalOpen = false"
                 class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
                 
@@ -408,7 +408,7 @@
                             <div><span class="text-slate-400">NIK:</span> <span class="font-semibold text-slate-800 dark:text-slate-200 font-mono" x-text="selectedCandidate?.nik || '-'"></span></div>
                             <div><span class="text-slate-400">NISN:</span> <span class="font-semibold text-slate-800 dark:text-slate-200 font-mono" x-text="selectedCandidate?.nisn || '-'"></span></div>
                             <div><span class="text-slate-400">Jenis Kelamin:</span> <span class="font-semibold text-slate-800 dark:text-slate-200" x-text="selectedCandidate?.gender || '-'"></span></div>
-                            <div><span class="text-slate-400">Tempat, Tgl Lahir:</span> <span class="font-semibold text-slate-800 dark:text-slate-200" x-text="(selectedCandidate?.birth_place || '') + ', ' + (selectedCandidate?.birth_date || '-')"></span></div>
+                            <div><span class="text-slate-400">Tempat, Tgl Lahir:</span> <span class="font-semibold text-slate-800 dark:text-slate-200" x-text="(selectedCandidate?.birth_place ? selectedCandidate.birth_place + ', ' : '') + (selectedCandidate?.formatted_birth_date || selectedCandidate?.birth_date || '-')"></span></div>
                             <div><span class="text-slate-400">Agama:</span> <span class="font-semibold text-slate-800 dark:text-slate-200" x-text="selectedCandidate?.religion || 'Islam'"></span></div>
                             <div><span class="text-slate-400">Sekolah Asal:</span> <span class="font-semibold text-slate-800 dark:text-slate-200" x-text="selectedCandidate?.previous_school || '-'"></span></div>
                             <div class="sm:col-span-2"><span class="text-slate-400">Alamat Lengkap:</span> <span class="font-semibold text-slate-800 dark:text-slate-200" x-text="selectedCandidate?.address || '-'"></span></div>
@@ -438,18 +438,18 @@
                     </div>
 
                     <!-- Dokumen Lampiran Section -->
-                    <template x-if="selectedCandidate?.documents && Object.keys(selectedCandidate.documents).length > 0">
+                    <template x-if="formattedDocuments.length > 0">
                         <div class="space-y-3">
                             <h5 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
                                 <i data-lucide="paperclip" class="w-3.5 h-3.5"></i>
                                 Berkas & Lampiran Dokumen
                             </h5>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                <template x-for="(docUrl, docName) in selectedCandidate.documents" :key="docName">
-                                    <a :href="docUrl" target="_blank" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-850 flex items-center justify-between gap-2 transition-colors group">
+                                <template x-for="(doc, idx) in formattedDocuments" :key="idx">
+                                    <a :href="doc.url" target="_blank" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-850 flex items-center justify-between gap-2 transition-colors group">
                                         <div class="flex items-center gap-2 truncate">
                                             <i data-lucide="file-text" class="w-4 h-4 text-slate-400 group-hover:text-emerald-600 shrink-0"></i>
-                                            <span class="capitalize font-semibold text-slate-700 dark:text-slate-300 truncate" x-text="docName.replace('_', ' ')"></span>
+                                            <span class="font-semibold text-slate-700 dark:text-slate-300 truncate text-xs" x-text="doc.name"></span>
                                         </div>
                                         <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 shrink-0 flex items-center gap-1">
                                             <i data-lucide="external-link" class="w-3 h-3"></i> Buka
@@ -483,6 +483,42 @@
                 syncing: false,
                 selectedCandidate: null,
                 modalWaUrl: null,
+
+                get formattedDocuments() {
+                    if (!this.selectedCandidate) return [];
+                    if (this.selectedCandidate.formatted_documents && Array.isArray(this.selectedCandidate.formatted_documents) && this.selectedCandidate.formatted_documents.length > 0) {
+                        return this.selectedCandidate.formatted_documents;
+                    }
+                    const docs = this.selectedCandidate.documents;
+                    if (!docs) return [];
+                    if (Array.isArray(docs)) {
+                        return docs.map(d => ({
+                            name: d.name || d.label || d.key || 'Berkas Dokumen',
+                            url: d.url || '#'
+                        }));
+                    }
+                    if (typeof docs === 'object') {
+                        const labelMap = {
+                            'student_photo': 'Pas Foto Calon Murid (Foto Formal)',
+                            'student_photo_path': 'Pas Foto Calon Murid (Foto Formal)',
+                            'birth_certificate': 'Akta Kelahiran',
+                            'birth_certificate_path': 'Akta Kelahiran',
+                            'family_card': 'Kartu Keluarga (KK)',
+                            'family_card_path': 'Kartu Keluarga (KK)',
+                            'diploma_certificate': 'Ijazah / Surat Keterangan Aktif Sekolah',
+                            'diploma_certificate_path': 'Ijazah / Surat Keterangan Aktif Sekolah',
+                            'student_card': 'NISN / KIA / Kartu Pelajar (Opsional)',
+                            'student_card_path': 'NISN / KIA / Kartu Pelajar (Opsional)',
+                            'special_needs_assessment_path': 'Asesmen Kebutuhan Khusus (Jika Ada)',
+                            'payment_receipt_path': 'Bukti Pembayaran Pendaftaran',
+                        };
+                        return Object.entries(docs).filter(([k, v]) => v && typeof v === 'string' && v.trim() !== '').map(([k, v]) => ({
+                            name: labelMap[k] || (k.includes('_') ? k.replace(/_/g, ' ') : k),
+                            url: v
+                        }));
+                    }
+                    return [];
+                },
 
                 isImageUrl(url) {
                     if (!url) return false;
