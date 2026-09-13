@@ -183,19 +183,23 @@
                     <span class="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50" style="font-family: 'Nasalization Rg', sans-serif; font-weight: 400;">{{ setting('app_name', 'SANS') }}</span>
                 </a>
 
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2 sm:gap-3">
                     <!-- Light / Dark Switch Button -->
                     <button id="theme-toggle"
                         class="p-1.5 text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md cursor-pointer transition-colors"
-                        title="Toggle Tema">
+                        title="Toggle Tema"
+                        aria-label="Toggle Tema">
                         <i data-lucide="sun" class="w-4 h-4 hidden dark:block"></i>
                         <i data-lucide="moon" class="w-4 h-4 block dark:hidden"></i>
                     </button>
 
-                    <!-- Back to Home link -->
-                    <a href="https://sans.sch.id" class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-50 transition-colors">
+                    <!-- Back to Home link (Responsive: Icon on mobile, Icon+Text on desktop) -->
+                    <a href="https://sans.sch.id"
+                        class="flex items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-50 hover:bg-slate-100 dark:hover:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md transition-colors"
+                        title="Kembali ke Portal Utama SANS"
+                        aria-label="Back to Portal">
                         <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
-                        Back to Portal
+                        <span class="hidden sm:inline">Back to Portal</span>
                     </a>
                 </div>
             </div>
