@@ -18,6 +18,8 @@ Route::get('/', function () {
     return redirect('/login');
 });
 
+Route::view('/offline', 'errors.offline')->name('offline');
+
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 // Academic Master & Student Management (English Resource Standard)
