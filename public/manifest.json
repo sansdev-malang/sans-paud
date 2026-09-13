@@ -1,43 +1,42 @@
 {
-    "name": "SANS PAUD - Sistem Informasi Manajemen Akademik",
+    "name": "SANS PAUD",
     "short_name": "SANS PAUD",
-    "description": "Sistem Informasi Manajemen Akademik & Administrasi Terpadu SANS PAUD",
+    "description": "Sistem Informasi Manajemen Terpadu SANS PAUD",
     "start_url": "/",
     "scope": "/",
     "display": "standalone",
     "orientation": "portrait-primary",
     "background_color": "#ffffff",
     "theme_color": "#4f46e5",
-    "categories": ["education", "productivity", "management"],
+    "categories": [
+        "education",
+        "productivity",
+        "management"
+    ],
     "icons": [
         {
-            "src": "/icons/icon-192x192.png",
+            "src": "/icons/icon-192x192.png?v=1789330379",
             "sizes": "192x192",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "/icons/icon-maskable-192x192.png",
+            "src": "/icons/icon-maskable-192x192.png?v=1789330379",
             "sizes": "192x192",
             "type": "image/png",
             "purpose": "maskable"
         },
         {
-            "src": "/icons/icon-512x512.png",
+            "src": "/icons/icon-512x512.png?v=1789330379",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "/icons/icon-maskable-512x512.png",
+            "src": "/icons/icon-maskable-512x512.png?v=1789330379",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable"
-        },
-        {
-            "src": "/icons/icon.svg",
-            "sizes": "any",
-            "type": "image/svg+xml"
         }
     ]
 }
