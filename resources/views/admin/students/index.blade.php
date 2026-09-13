@@ -359,7 +359,7 @@
         </section>
 
         <!-- MODAL DETAIL SISWA -->
-        <div x-show="detailModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);">
+        <div x-show="detailModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);">
             <div @click.outside="detailModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
                 
                 <!-- Modal Header -->
@@ -534,7 +534,7 @@
         </div>
 
         <!-- MODAL TAMBAH / EDIT SISWA -->
-        <div x-show="formModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);">
+        <div x-show="formModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);">
             <div @click.outside="formModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
                 
                 <form @submit.prevent="submitForm">

@@ -46,7 +46,7 @@
                     'absensi_karyawan' => 'Data Karyawan',
                     'students.index' => 'Data Siswa',
                     'classrooms.index' => 'Rombongan Belajar',
-                    'spmb.candidates.index' => 'Siswa Baru SPMB',
+                    'spmb.candidates.index' => 'SPMB',
                 ];
                 $title = $routeTitles[$routeName] ?? 'Dashboard';
             }
