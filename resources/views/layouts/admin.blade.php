@@ -35,7 +35,8 @@
                     'absensi_libur' => 'Kelola Hari Libur',
                     'absensi_bonus_denda' => 'Bonus & Denda',
                     'absensi_karyawan' => 'Data Karyawan',
-                    'homebase_leaderboard' => 'Homebase Leaderboard',
+                    'students.index' => 'Data Siswa',
+                    'classrooms.index' => 'Rombongan Belajar',
                     'spmb.candidates.index' => 'Siswa Baru SPMB',
                 ];
                 $title = $routeTitles[$routeName] ?? 'Dashboard';

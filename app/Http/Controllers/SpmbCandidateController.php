@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AcademicYear;
+use App\Models\Classroom;
 use App\Models\SpmbCandidate;
+use App\Models\Student;
 use App\Services\SpmbIntegrationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -33,7 +36,7 @@ class SpmbCandidateController extends Controller
         $selectedYear = $request->get('period', $academicYears[0] ?? 'all');
 
         // 2. Base Query
-        $query = SpmbCandidate::query();
+        $query = SpmbCandidate::with('student.classroom');
 
         if ($selectedYear && $selectedYear !== 'all') {
             $query->where('academic_year', $selectedYear);
@@ -91,7 +94,7 @@ class SpmbCandidateController extends Controller
 
         $candidates = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
 
-        return view('admin.spmb_candidates', compact('candidates', 'academicYears', 'selectedYear', 'stats', 'availableWaves'));
+        return view('admin.spmb-candidates.index', compact('candidates', 'academicYears', 'selectedYear', 'stats', 'availableWaves'));
     }
 
     /**
@@ -99,7 +102,7 @@ class SpmbCandidateController extends Controller
      */
     public function show($id): JsonResponse
     {
-        $candidate = SpmbCandidate::findOrFail($id);
+        $candidate = SpmbCandidate::with('student.classroom.classLevel')->findOrFail($id);
         return response()->json([
             'success' => true,
             'candidate' => $candidate,
@@ -131,21 +134,152 @@ class SpmbCandidateController extends Controller
     }
 
     /**
-     * Toggle enrollment status to active student.
+     * Get data prefilled for enrollment modal.
      */
-    public function toggleEnroll($id): JsonResponse
+    public function getEnrollData($id): JsonResponse
+    {
+        $candidate = SpmbCandidate::with('student.classroom')->findOrFail($id);
+
+        $academicYears = AcademicYear::orderBy('name', 'desc')->get();
+
+        // Match academic year from candidate's period
+        $matchedYear = null;
+        if ($candidate->academic_year) {
+            $cleanYear = str_replace('-', '/', $candidate->academic_year);
+            $matchedYear = AcademicYear::where('name', $cleanYear)->first();
+        }
+        if (!$matchedYear) {
+            $matchedYear = AcademicYear::where('is_active', true)->first();
+        }
+
+        // Get active classrooms
+        $classrooms = Classroom::with(['classLevel', 'homeroomTeacher'])
+            ->withCount(['students as active_students_count' => function ($q) {
+                $q->where('status', 'aktif');
+            }])
+            ->where('is_active', true)
+            ->when($matchedYear, function ($q) use ($matchedYear) {
+                $q->where('academic_year_id', $matchedYear->id);
+            })
+            ->orderBy('class_level_id')
+            ->orderBy('name')
+            ->get();
+
+        // Generate suggested NIS
+        $yearDigits = $matchedYear ? substr(explode('/', $matchedYear->name)[0] ?? '2027', -2) : date('y');
+        $prefix = "{$yearDigits}.PAUD.";
+
+        $latestStudent = Student::where('nis', 'like', "{$prefix}%")
+            ->orderBy('nis', 'desc')
+            ->first();
+
+        $nextSeq = 1;
+        if ($latestStudent && preg_match('/(\d+)$/', $latestStudent->nis, $matches)) {
+            $nextSeq = intval($matches[1]) + 1;
+        }
+        $suggestedNis = $prefix . str_pad($nextSeq, 3, '0', STR_PAD_LEFT);
+
+        return response()->json([
+            'success' => true,
+            'candidate' => $candidate,
+            'student' => $candidate->student,
+            'suggested_nis' => $suggestedNis,
+            'academic_years' => $academicYears,
+            'selected_year_id' => $matchedYear?->id,
+            'classrooms' => $classrooms,
+        ]);
+    }
+
+    /**
+     * Enroll candidate into active students.
+     */
+    public function enroll(Request $request, $id): JsonResponse
     {
         $candidate = SpmbCandidate::findOrFail($id);
-        $candidate->is_enrolled = !$candidate->is_enrolled;
-        $candidate->enrolled_at = $candidate->is_enrolled ? now() : null;
+
+        $validated = $request->validate([
+            'nis' => 'required|string|max:50|unique:students,nis,' . ($candidate->student_id ?? 'NULL'),
+            'classroom_id' => 'required|exists:classrooms,id',
+            'academic_year_id' => 'required|exists:academic_years,id',
+            'enrolled_date' => 'nullable|date',
+            'notes' => 'nullable|string',
+        ]);
+
+        $studentData = [
+            'nis' => $validated['nis'],
+            'nisn' => $candidate->nisn,
+            'nik' => $candidate->nik,
+            'spmb_candidate_id' => $candidate->id,
+            'classroom_id' => $validated['classroom_id'],
+            'academic_year_id' => $validated['academic_year_id'],
+            'full_name' => $candidate->full_name,
+            'nickname' => $candidate->nickname,
+            'gender' => $candidate->gender,
+            'birth_place' => $candidate->birth_place,
+            'birth_date' => $candidate->birth_date,
+            'religion' => $candidate->religion ?: 'Islam',
+            'address' => $candidate->address,
+            'city' => $candidate->city,
+            'province' => $candidate->province,
+            'previous_school' => $candidate->previous_school,
+            'student_photo_url' => $candidate->student_photo_url,
+            'father_name' => $candidate->father_name,
+            'father_phone' => $candidate->father_phone,
+            'father_job' => $candidate->father_job,
+            'mother_name' => $candidate->mother_name,
+            'mother_phone' => $candidate->mother_phone,
+            'mother_job' => $candidate->mother_job,
+            'guardian_name' => $candidate->guardian_name,
+            'guardian_phone' => $candidate->guardian_phone,
+            'parent_phone' => $candidate->parent_phone,
+            'parent_email' => $candidate->parent_email,
+            'documents' => $candidate->documents,
+            'status' => 'aktif',
+            'enrolled_date' => $validated['enrolled_date'] ?? now()->toDateString(),
+            'notes' => $validated['notes'] ?? "Terdaftar via integrasi SPMB ({$candidate->registration_number})",
+        ];
+
+        if ($candidate->student_id && $existingStudent = Student::find($candidate->student_id)) {
+            $existingStudent->update($studentData);
+            $student = $existingStudent;
+        } else {
+            $student = Student::create($studentData);
+        }
+
+        $candidate->is_enrolled = true;
+        $candidate->enrolled_at = now();
+        $candidate->student_id = $student->id;
         $candidate->save();
 
         return response()->json([
             'success' => true,
-            'is_enrolled' => $candidate->is_enrolled,
-            'message' => $candidate->is_enrolled 
-                ? "Calon murid {$candidate->full_name} berhasil ditandai sebagai Siswa Aktif." 
-                : "Status Siswa Aktif untuk {$candidate->full_name} dibatalkan.",
+            'message' => "Ananda {$candidate->full_name} berhasil resmi terdaftar sebagai Siswa Aktif SANS PAUD (NIS: {$student->nis}).",
+            'student' => $student,
+        ]);
+    }
+
+    /**
+     * Cancel enrollment status and remove student record.
+     */
+    public function unenroll($id): JsonResponse
+    {
+        $candidate = SpmbCandidate::findOrFail($id);
+
+        if ($candidate->student_id) {
+            $student = Student::find($candidate->student_id);
+            if ($student) {
+                $student->delete();
+            }
+        }
+
+        $candidate->is_enrolled = false;
+        $candidate->enrolled_at = null;
+        $candidate->student_id = null;
+        $candidate->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => "Status Siswa Aktif untuk {$candidate->full_name} berhasil dibatalkan.",
         ]);
     }
 }

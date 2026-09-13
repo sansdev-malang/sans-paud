@@ -8,25 +8,36 @@ use App\Http\Controllers\EmployeeTypeController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ZktecoDeviceController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\AcademicYearController;
+use App\Http\Controllers\ClassLevelController;
+use App\Http\Controllers\ClassroomController;
+use App\Http\Controllers\StudentController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect('/login');
 });
 
-Route::get('/siswa', function () {
-    return view('admin.siswa');
-})->middleware(['auth', 'verified'])->name('siswa');
-
-Route::get('/guru', function () {
-    return view('admin.guru');
-})->middleware(['auth', 'verified'])->name('guru');
-
-Route::get('/rombel', function () {
-    return view('admin.rombel');
-})->middleware(['auth', 'verified'])->name('rombel');
-
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
+
+// Academic Master & Student Management (English Resource Standard)
+Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,admin_smp,kepala_sekolah,waka'])->group(function () {
+    // Academic Years (Tahun Ajaran)
+    Route::post('academic-years/{id}/set-active', [AcademicYearController::class, 'setActive'])->name('academic-years.set-active');
+    Route::resource('academic-years', AcademicYearController::class);
+
+    // Class Levels (Tingkat Kelas)
+    Route::resource('class-levels', ClassLevelController::class);
+
+    // Classrooms (Rombongan Belajar)
+    Route::get('/classrooms/{id}/students', [ClassroomController::class, 'students'])->name('classrooms.students');
+    Route::resource('classrooms', ClassroomController::class);
+    Route::get('/rombel', fn() => redirect()->route('classrooms.index'));
+
+    // Students (Data Siswa)
+    Route::resource('students', StudentController::class);
+    Route::get('/siswa', fn() => redirect()->route('students.index'));
+});
 
 
 
@@ -176,11 +187,16 @@ Route::post('/api/spmb-webhook', [\App\Http\Controllers\Api\SpmbWebhookControlle
 
 // SPMB Candidate Management (Admin & Staff)
 Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,admin_smp,kepala_sekolah,waka'])->group(function () {
-    Route::get('/spmb/pendaftar', [\App\Http\Controllers\SpmbCandidateController::class, 'index'])->name('spmb.candidates.index');
-    Route::get('/spmb/pendaftar/{id}', [\App\Http\Controllers\SpmbCandidateController::class, 'show'])->name('spmb.candidates.show');
-    Route::post('/spmb/pendaftar/sync', [\App\Http\Controllers\SpmbCandidateController::class, 'sync'])->name('spmb.candidates.sync');
-    Route::post('/spmb/pendaftar/{id}/toggle-enroll', [\App\Http\Controllers\SpmbCandidateController::class, 'toggleEnroll'])->name('spmb.candidates.toggle-enroll');
+    Route::get('/spmb/candidates', [\App\Http\Controllers\SpmbCandidateController::class, 'index'])->name('spmb.candidates.index');
+    Route::get('/spmb/candidates/{id}', [\App\Http\Controllers\SpmbCandidateController::class, 'show'])->name('spmb.candidates.show');
+    Route::get('/spmb/candidates/{id}/enroll-data', [\App\Http\Controllers\SpmbCandidateController::class, 'getEnrollData'])->name('spmb.candidates.enroll-data');
+    Route::post('/spmb/candidates/{id}/enroll', [\App\Http\Controllers\SpmbCandidateController::class, 'enroll'])->name('spmb.candidates.enroll');
+    Route::post('/spmb/candidates/{id}/unenroll', [\App\Http\Controllers\SpmbCandidateController::class, 'unenroll'])->name('spmb.candidates.unenroll');
+    Route::post('/spmb/candidates/sync', [\App\Http\Controllers\SpmbCandidateController::class, 'sync'])->name('spmb.candidates.sync');
     Route::post('/spmb/test-connection', [\App\Http\Controllers\SpmbCandidateController::class, 'testConnection'])->name('spmb.test-connection');
+    
+    // Legacy Alias Redirect
+    Route::get('/spmb/pendaftar', fn() => redirect()->route('spmb.candidates.index'));
 });
 
 Route::middleware(['auth', 'role:super_admin'])->group(function () {

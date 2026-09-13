@@ -48,6 +48,7 @@ class SpmbCandidate extends Model
         'documents',
         'payments',
         'raw_payload',
+        'student_id',
         'is_enrolled',
         'enrolled_at',
         'synced_at',
@@ -63,6 +64,11 @@ class SpmbCandidate extends Model
         'raw_payload' => 'array',
         'is_enrolled' => 'boolean',
     ];
+
+    public function student()
+    {
+        return $this->belongsTo(Student::class, 'student_id');
+    }
 
     protected $appends = [
         'whatsapp_url', 
