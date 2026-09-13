@@ -4,14 +4,17 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ setting('app_name', 'SANS') }}</title>
+    <meta name="description" content="Sistem Informasi Manajemen Akademik & Administrasi Terpadu SANS PAUD">
+    <title>{{ setting('app_name', 'SANS PAUD') }}</title>
     @if(setting('app_favicon'))
         <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . setting('app_favicon')) }}">
     @else
         <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%236366f1'/><stop offset='100%' stop-color='%23a855f7'/></linearGradient></defs><rect width='100' height='100' rx='25' fill='url(%23g)'/><text x='50' y='75' font-family='Arial, sans-serif' font-size='65' font-weight='bold' fill='white' text-anchor='middle'>{{ substr(setting('app_name', 'SANS'), 0, 1) }}</text></svg>">
     @endif
 
-    <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+    <!-- DNS Prefetch & Google Fonts: Inter, Plus Jakarta Sans -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
