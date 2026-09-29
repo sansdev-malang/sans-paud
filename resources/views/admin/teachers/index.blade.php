@@ -1,6 +1,6 @@
 <x-admin-layout>
 <div x-data="{ showCreateModal: {{ $errors->any() && !old('edit_id') ? 'true' : 'false' }}, showEditModal: {{ $errors->any() && old('edit_id') ? 'true' : 'false' }}, selectedTeacher: null }">
-    <div class="p-6 space-y-6" x-data="{ showEmpDetailModal: false, selectedEmp: null }">
+    <div class="p-6 space-y-6" x-data="{ showEmpDetailModal: false, selectedEmp: null, showTeacherStudentsModal: false, selectedTeacherStudents: null }">
 
         <!-- HEADER -->
         <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full text-left">
@@ -139,28 +139,50 @@
                 </div>
 
                 <!-- Filters -->
-                <div class="flex items-center gap-2 w-full md:w-auto">
+                <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
 
-                      <select name="per_page" onchange="this.form.submit()"
-                          class="h-9 px-2 flex-1 sm:flex-initial sm:w-28 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer appearance-none" style="padding-right: 1.5rem; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.5rem top 50%; background-size: 0.65rem auto;">
-                          <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10 Data</option>
-                          <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25 Data</option>
-                          <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 Data</option>
-                          <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100 Data</option>
-                          <option value="99999" {{ request('per_page') == 99999 ? 'selected' : '' }}>Semua</option>
-                      </select>
+                    <!-- Filter Sub-Unit -->
+                    <select name="sub_unit" onchange="this.form.submit()"
+                        class="h-9 px-2 flex-1 sm:flex-initial sm:w-32 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
+                        <option value="">Semua Sub-Unit</option>
+                        <option value="PG" {{ request('sub_unit') == 'PG' ? 'selected' : '' }}>Playgroup (KB)</option>
+                        <option value="TK" {{ request('sub_unit') == 'TK' ? 'selected' : '' }}>TK</option>
+                        <option value="DAYCARE" {{ request('sub_unit') == 'DAYCARE' ? 'selected' : '' }}>Daycare</option>
+                        <option value="TPQ" {{ request('sub_unit') == 'TPQ' ? 'selected' : '' }}>TPQ</option>
+                    </select>
+
+                    <!-- Filter Kelompok -->
+                    <select name="classroom_id" onchange="this.form.submit()"
+                        class="h-9 px-2 flex-1 sm:flex-initial sm:w-36 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
+                        <option value="">Semua Kelompok</option>
+                        @foreach($classrooms as $c)
+                            <option value="{{ $c->id }}" {{ request('classroom_id') == $c->id ? 'selected' : '' }}>
+                                [{{ $c->sub_unit }}] {{ $c->name }}
+                            </option>
+                        @endforeach
+                    </select>
+
                     <!-- Filter Status -->
                     <select name="status" onchange="this.form.submit()"
-                        class="h-9 px-2 flex-1 sm:flex-initial sm:w-36 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
+                        class="h-9 px-2 flex-1 sm:flex-initial sm:w-28 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
                         <option value="">Semua Status</option>
                         <option value="Active" {{ request('status') == 'Active' ? 'selected' : '' }}>Aktif</option>
                         <option value="Leave" {{ request('status') == 'Leave' ? 'selected' : '' }}>Cuti</option>
                         <option value="Inactive" {{ request('status') == 'Inactive' ? 'selected' : '' }}>Nonaktif</option>
                     </select>
 
-                    @if(request()->anyFilled(['search', 'status']))
+                    <select name="per_page" onchange="this.form.submit()"
+                        class="h-9 px-2 flex-1 sm:flex-initial sm:w-24 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer appearance-none" style="padding-right: 1.5rem; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.5rem top 50%; background-size: 0.65rem auto;">
+                        <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10 Data</option>
+                        <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25 Data</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 Data</option>
+                        <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100 Data</option>
+                        <option value="99999" {{ request('per_page') == 99999 ? 'selected' : '' }}>Semua</option>
+                    </select>
+
+                    @if(request()->anyFilled(['search', 'status', 'sub_unit', 'classroom_id']))
                         <a href="{{ route('teachers.index') }}" class="h-9 px-3 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 rounded-lg transition-colors" title="Reset Filter">
-                            <i data-lucide="x" class="w-4 h-4"></i>
+                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
                         </a>
                     @endif
                 </div>
@@ -171,22 +193,23 @@
         <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden transition-all w-full">
             <div class="overflow-x-auto overflow-y-auto" style="max-height: calc(100vh - 240px);">
                 <table class="w-full text-xs border-collapse">
-                                        <thead class="sticky top-0 z-10 shadow-sm">
+                    <thead class="sticky top-0 z-10 shadow-sm">
                         <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
                             <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-14">No</th>
                             <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[200px]">Nama Guru & Email</th>
-                            @if(!config('app.school_unit'))
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28">Unit</th>
-                            @endif
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-56">Jabatan</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28">Jenis Kelamin</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-36">Kepegawaian</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-24">Status</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[200px]">Kelompok & Murid Diampu</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-40">Jabatan</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-24">Gender</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28">Status</th>
                             <th class="px-6 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-24">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-900">
                         @forelse($teachers as $index => $teacher)
+                            @php
+                                $assignedClassrooms = $teacher->classrooms;
+                                $totalMuridAsuhan = $assignedClassrooms->sum(fn($cl) => $cl->students->count());
+                            @endphp
                             <tr class="hover:bg-slate-50/40 dark:hover:bg-slate-900/20 transition-colors">
                                 <td class="px-6 py-4 text-slate-900 dark:text-slate-50 font-medium">
                                     {{ $teachers->firstItem() + $index }}
@@ -208,33 +231,76 @@
                                                 $empData['unit_name'] = 'PAUD';
                                             @endphp
                                             <span @click='selectedEmp = @json($empData); showEmpDetailModal = true' class="text-slate-900 dark:text-slate-50 font-bold tracking-tight block cursor-pointer hover:underline hover:text-indigo-600 dark:hover:text-indigo-400">{{ $teacher->name }}</span>
-                                            <span class="text-[10px] text-slate-405 font-mono">{{ $teacher->email }}</span>
+                                            <span class="text-[10px] text-slate-400 font-mono">{{ $teacher->email }}</span>
                                         </div>
                                     </div>
                                 </td>
+
+                                <!-- Kelompok & Murid Diampu -->
                                 <td class="px-6 py-4">
-                                    <span class="block text-slate-700 dark:text-slate-300 font-medium">{{ $teacher->position ?? '-' }}</span>
+                                    @if($assignedClassrooms->count() > 0)
+                                        @php
+                                            $teacherModalData = [
+                                                'teacher_name' => $teacher->name,
+                                                'teacher_photo' => $teacher->photo ? (str_contains($teacher->photo, 'photos/') ? asset('storage/' . $teacher->photo) : asset('storage/photos/' . $teacher->photo)) : null,
+                                                'position' => $teacher->position ?? 'Guru Kelas',
+                                                'total_murid' => $totalMuridAsuhan,
+                                                'classrooms' => $assignedClassrooms->map(function($c) {
+                                                    return [
+                                                        'id' => $c->id,
+                                                        'name' => $c->name,
+                                                        'sub_unit' => $c->sub_unit,
+                                                        'class_level' => $c->classLevel ? $c->classLevel->name : $c->sub_unit,
+                                                        'students' => $c->students,
+                                                    ];
+                                                })->values(),
+                                            ];
+                                        @endphp
+                                        <div class="flex flex-col gap-1.5 items-start">
+                                            <div class="flex flex-wrap gap-1">
+                                                @foreach($assignedClassrooms as $cls)
+                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold
+                                                        {{ $cls->sub_unit === 'PG' ? 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border border-amber-200/60' : '' }}
+                                                        {{ $cls->sub_unit === 'TK' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200/60' : '' }}
+                                                        {{ $cls->sub_unit === 'DAYCARE' ? 'bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 border border-purple-200/60' : '' }}
+                                                        {{ $cls->sub_unit === 'TPQ' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200/60' : '' }}">
+                                                        <span>[{{ $cls->sub_unit }}] {{ $cls->name }}</span>
+                                                        <span class="opacity-75">({{ $cls->students->count() }})</span>
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                            <button type="button" 
+                                                @click="selectedTeacherStudents = @js($teacherModalData); showTeacherStudentsModal = true;"
+                                                class="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer">
+                                                <i data-lucide="users" class="w-3.5 h-3.5"></i>
+                                                Daftar {{ $totalMuridAsuhan }} Murid Asuhan
+                                            </button>
+                                        </div>
+                                    @else
+                                        <span class="text-slate-400 text-xs italic">Belum ada kelompok</span>
+                                    @endif
+                                </td>
+
+                                <td class="px-6 py-4">
+                                    <span class="block text-slate-700 dark:text-slate-300 font-medium">{{ $teacher->position ?? 'Guru Kelas' }}</span>
                                     @if(!empty($teacher->additional_position))
                                         <span class="block text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{{ $teacher->additional_position }}</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 text-slate-600 dark:text-slate-400">
-                                    {{ $teacher->gender == 'Male' ? 'Laki-laki' : 'Perempuan' }}
-                                </td>
-                                <td class="px-6 py-4 text-slate-600 dark:text-slate-400">
-                                    {{ $teacher->employment_status ?? '-' }}
+                                    {{ $teacher->gender == 'Male' ? 'L' : 'P' }}
                                 </td>
                                 <td class="px-6 py-4">
                                     @if($teacher->status == 'Active')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/40 shadow-sm">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/40">
                                             Aktif
                                         </span>
                                     @elseif($teacher->status == 'Leave')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200/30 dark:border-amber-900/30 shadow-sm">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200/30 dark:border-amber-900/30">
                                             Cuti
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border border-rose-200/30 dark:border-rose-900/30 shadow-sm">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border border-rose-200/30 dark:border-rose-900/30">
                                             Nonaktif
                                         </span>
                                     @endif
@@ -247,7 +313,7 @@
                                         <form action="{{ route('teachers.destroy', $teacher->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data guru ini?')" class="inline-block">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="p-1.5 hover:bg-red-55 dark:hover:bg-red-900/20 rounded-lg text-red-600 dark:text-red-400 hover:text-red-700 transition-colors cursor-pointer" title="Hapus Data">
+                                            <button type="submit" class="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-red-600 dark:text-red-400 hover:text-red-700 transition-colors cursor-pointer" title="Hapus Data">
                                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                                             </button>
                                         </form>
@@ -256,7 +322,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-6 py-12 text-center text-slate-400">
+                                <td colspan="7" class="px-6 py-12 text-center text-slate-400">
                                     <div class="flex flex-col items-center justify-center gap-2">
                                         <i data-lucide="users-2" class="w-8 h-8 text-slate-300 dark:text-slate-700"></i>
                                         <p class="text-xs">Tidak ada data guru yang dapat ditampilkan.</p>
@@ -548,9 +614,115 @@
                 </div>
             </div>
         </div>
+        </template>
 
-        </template></div>
-        @include('admin.teachers.modals')
+        <!-- MODAL: DAFTAR MURID ASUHAN GURU -->
+        <template x-teleport="body">
+            <div x-show="showTeacherStudentsModal" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="teacher-students-modal-title" role="dialog" aria-modal="true">
+                <div x-show="showTeacherStudentsModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" @click="showTeacherStudentsModal = false"></div>
+                <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+                    <div x-show="showTeacherStudentsModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-slate-900 text-left shadow-2xl transition-all sm:my-8 w-full sm:max-w-3xl border border-slate-200 dark:border-slate-800 flex flex-col max-h-[85vh]">
+                        
+                        <!-- Modal Header -->
+                        <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-900/70 shrink-0">
+                            <div class="flex items-center gap-3">
+                                <template x-if="selectedTeacherStudents?.teacher_photo">
+                                    <img :src="selectedTeacherStudents.teacher_photo" class="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700">
+                                </template>
+                                <template x-if="!selectedTeacherStudents?.teacher_photo">
+                                    <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 flex items-center justify-center font-bold text-sm">
+                                        <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+                                    </div>
+                                </template>
+                                <div>
+                                    <h3 class="text-sm font-bold text-slate-900 dark:text-slate-50" x-text="selectedTeacherStudents?.teacher_name"></h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                                        Wali Kelas / Pendidik &bull; Total: <span class="font-bold text-indigo-600 dark:text-indigo-400" x-text="selectedTeacherStudents?.total_murid + ' Murid'"></span>
+                                    </p>
+                                </div>
+                            </div>
+                            <button type="button" @click="showTeacherStudentsModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+
+                        <!-- Modal Body: Classrooms & Students List -->
+                        <div class="p-5 overflow-y-auto space-y-6 flex-1 text-xs">
+                            <template x-for="(cls, cIdx) in (selectedTeacherStudents?.classrooms || [])" :key="cls.id || cIdx">
+                                <div class="bg-slate-50/60 dark:bg-slate-800/40 rounded-xl border border-slate-200/80 dark:border-slate-800 p-4 space-y-3">
+                                    <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700/60 pb-2">
+                                        <div class="flex items-center gap-2">
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold"
+                                                :class="{
+                                                    'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400': cls.sub_unit === 'PG',
+                                                    'bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-400': cls.sub_unit === 'TK',
+                                                    'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-400': cls.sub_unit === 'DAYCARE',
+                                                    'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400': cls.sub_unit === 'TPQ'
+                                                }"
+                                                x-text="cls.sub_unit">
+                                            </span>
+                                            <h4 class="font-bold text-sm text-slate-900 dark:text-slate-100" x-text="cls.name"></h4>
+                                            <span class="text-[11px] text-slate-400" x-text="'(' + cls.class_level + ')'"></span>
+                                        </div>
+                                        <span class="text-xs font-semibold text-slate-600 dark:text-slate-400" x-text="cls.students.length + ' Murid Aktif'"></span>
+                                    </div>
+
+                                    <!-- Table / List of Students -->
+                                    <div class="divide-y divide-slate-200/60 dark:divide-slate-700/60">
+                                        <template x-for="(s, sIdx) in cls.students" :key="s.id">
+                                            <div class="py-2.5 flex items-center justify-between gap-3 first:pt-0 last:pb-0">
+                                                <div class="flex items-center gap-3">
+                                                    <span class="w-5 text-slate-400 font-mono text-center" x-text="sIdx + 1"></span>
+                                                    <div>
+                                                        <h5 class="font-bold text-slate-900 dark:text-slate-100" x-text="s.full_name"></h5>
+                                                        <p class="text-[11px] text-slate-500 font-mono">
+                                                            NIS: <span x-text="s.nis"></span> &bull; 
+                                                            Panggilan: <span x-text="s.nickname || '-'"></span>
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                <div class="flex items-center gap-2 shrink-0">
+                                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold"
+                                                        :class="s.gender === 'L' || s.gender === 'Male' ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400' : 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-400'"
+                                                        x-text="s.gender === 'L' || s.gender === 'Male' ? 'L' : 'P'">
+                                                    </span>
+                                                    
+                                                    <template x-if="s.parent_phone">
+                                                        <a :href="'https://wa.me/' + (s.parent_phone.startsWith('0') ? '62' + s.parent_phone.substring(1) : s.parent_phone).replace(/[^0-9]/g, '')" target="_blank"
+                                                            class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 rounded-lg border border-emerald-200/60 dark:border-emerald-800 hover:bg-emerald-100 transition-colors"
+                                                            title="Hubungi WhatsApp Orang Tua">
+                                                            <i data-lucide="phone" class="w-3 h-3"></i>
+                                                            <span x-text="s.parent_phone"></span>
+                                                        </a>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </template>
+
+                                        <template x-if="cls.students.length === 0">
+                                            <p class="py-4 text-center text-slate-400 italic">Belum ada murid aktif di kelompok ini.</p>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Modal Footer -->
+                        <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex justify-end shrink-0">
+                            <button type="button" @click="showTeacherStudentsModal = false"
+                                class="px-4 py-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-xs font-semibold rounded-lg">
+                                Tutup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+    </div>
+    @include('admin.teachers.modals')
 </div>
 </x-admin-layout>
+
 

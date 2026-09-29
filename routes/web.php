@@ -37,9 +37,51 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,adm
     Route::resource('classrooms', ClassroomController::class);
     Route::get('/rombel', fn() => redirect()->route('classrooms.index'))->name('rombel');
 
-    // Students (Data Siswa)
+    // Students (Data Murid)
+    Route::get('students/download-template', [StudentController::class, 'downloadTemplate'])->name('students.download-template');
+    Route::post('students/import', [StudentController::class, 'import'])->name('students.import');
+    Route::get('students/export/excel', [StudentController::class, 'exportExcel'])->name('students.export.excel');
     Route::resource('students', StudentController::class);
     Route::get('/siswa', fn() => redirect()->route('students.index'))->name('siswa');
+
+    // Rekapitulasi Rombel & Kesiswaan (Student Reports)
+    Route::get('student-reports', [\App\Http\Controllers\StudentReportController::class, 'index'])->name('student-reports.index');
+    Route::get('student-reports/print', [\App\Http\Controllers\StudentReportController::class, 'print'])->name('student-reports.print');
+    Route::get('student-reports/export/excel', [\App\Http\Controllers\StudentReportController::class, 'exportExcel'])->name('student-reports.export.excel');
+
+    // Class Promotions & Graduation (Kenaikan Kelas & Kelulusan)
+    Route::get('class-promotions', [\App\Http\Controllers\ClassPromotionController::class, 'index'])->name('promotions.index');
+    Route::get('class-promotions/students', [\App\Http\Controllers\ClassPromotionController::class, 'getStudents'])->name('promotions.students');
+    Route::post('class-promotions/process', [\App\Http\Controllers\ClassPromotionController::class, 'promote'])->name('promotions.process');
+    Route::post('class-promotions/graduate', [\App\Http\Controllers\ClassPromotionController::class, 'graduate'])->name('promotions.graduate');
+
+    // Alumni (Buku Induk Alumni KB & TK)
+    Route::get('alumni/export/excel', [\App\Http\Controllers\AlumniController::class, 'exportExcel'])->name('alumni.export.excel');
+    Route::post('alumni/{id}/restore', [\App\Http\Controllers\AlumniController::class, 'restoreToActive'])->name('alumni.restore');
+    Route::resource('alumni', \App\Http\Controllers\AlumniController::class);
+
+    // E-Rapor PAUD & Penilaian (Kurikulum Merdeka)
+    Route::get('report-cards/batch-print', [\App\Http\Controllers\ReportCardController::class, 'batchPrint'])->name('report-cards.batch-print');
+    Route::post('report-cards/batch-approve', [\App\Http\Controllers\ReportCardController::class, 'batchApprove'])->name('report-cards.batch-approve');
+    Route::post('report-cards/batch-publish', [\App\Http\Controllers\ReportCardController::class, 'batchPublish'])->name('report-cards.batch-publish');
+    Route::get('report-cards/templates', [\App\Http\Controllers\ReportCardController::class, 'getTemplates'])->name('report-cards.templates');
+    Route::post('report-cards/{student}/upload-pdf', [\App\Http\Controllers\ReportCardController::class, 'uploadPdf'])->name('report-cards.upload-pdf');
+    Route::post('report-cards/{id}/approve', [\App\Http\Controllers\ReportCardController::class, 'approve'])->name('report-cards.approve');
+    Route::post('report-cards/{id}/publish', [\App\Http\Controllers\ReportCardController::class, 'publish'])->name('report-cards.publish');
+    Route::post('report-cards/{id}/request-revision', [\App\Http\Controllers\ReportCardController::class, 'requestRevision'])->name('report-cards.request-revision');
+    Route::get('report-cards/{student}/edit', [\App\Http\Controllers\ReportCardController::class, 'edit'])->name('report-cards.edit');
+    Route::put('report-cards/{student}', [\App\Http\Controllers\ReportCardController::class, 'update'])->name('report-cards.update');
+    Route::get('report-cards/{id}', [\App\Http\Controllers\ReportCardController::class, 'show'])->name('report-cards.show');
+    Route::get('report-cards', [\App\Http\Controllers\ReportCardController::class, 'index'])->name('report-cards.index');
+    Route::get('/rapor', fn() => redirect()->route('report-cards.index'))->name('rapor');
+});
+
+// Portal E-Rapor Akses Orang Tua (Publik via NIS & PIN Akses)
+Route::prefix('portal-rapor')->group(function () {
+    Route::get('/', [\App\Http\Controllers\ParentReportPortalController::class, 'index'])->name('portal.report-cards.index');
+    Route::post('/check', [\App\Http\Controllers\ParentReportPortalController::class, 'check'])->name('portal.report-cards.check');
+    Route::get('/{id}/print', [\App\Http\Controllers\ParentReportPortalController::class, 'print'])->name('portal.report-cards.print');
+    Route::get('/{id}', [\App\Http\Controllers\ParentReportPortalController::class, 'view'])->name('portal.report-cards.view');
 });
 
 

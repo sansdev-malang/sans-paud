@@ -16,6 +16,11 @@ class Student extends Model
         'nik',
         'spmb_candidate_id',
         'classroom_id',
+        'daycare_classroom_id',
+        'is_tpq',
+        'tpq_classroom_id',
+        'class_level_id',
+        'sub_unit',
         'academic_year_id',
         'full_name',
         'nickname',
@@ -38,6 +43,7 @@ class Student extends Model
         'guardian_phone',
         'parent_phone',
         'parent_email',
+        'pin_access',
         'documents',
         'status',
         'enrolled_date',
@@ -47,6 +53,7 @@ class Student extends Model
     protected $casts = [
         'birth_date' => 'date',
         'enrolled_date' => 'date',
+        'is_tpq' => 'boolean',
         'documents' => 'array',
     ];
 
@@ -61,6 +68,31 @@ class Student extends Model
     public function classroom(): BelongsTo
     {
         return $this->belongsTo(Classroom::class);
+    }
+
+    public function daycareClassroom(): BelongsTo
+    {
+        return $this->belongsTo(Classroom::class, 'daycare_classroom_id');
+    }
+
+    public function tpqClassroom(): BelongsTo
+    {
+        return $this->belongsTo(Classroom::class, 'tpq_classroom_id');
+    }
+
+    public function classLevel(): BelongsTo
+    {
+        return $this->belongsTo(ClassLevel::class);
+    }
+
+    public function classroomHistories()
+    {
+        return $this->hasMany(StudentClassroomHistory::class);
+    }
+
+    public function reportCards()
+    {
+        return $this->hasMany(ReportCard::class);
     }
 
     public function academicYear(): BelongsTo

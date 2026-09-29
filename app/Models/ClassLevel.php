@@ -13,6 +13,7 @@ class ClassLevel extends Model
     protected $fillable = [
         'code',
         'name',
+        'sub_unit',
         'order',
         'description',
     ];

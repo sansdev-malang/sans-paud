@@ -35,8 +35,8 @@ class DashboardController extends Controller
             $masterCounts = Cache::remember('dashboard_master_counts_' . $schoolUnitId, 300, function () {
                 return [
                     'employeeCount' => \App\Models\Employee::count(),
-                    'studentCount' => \App\Models\Student::where('status', 'active')->count() ?: \App\Models\Student::count(),
-                    'classroomCount' => \App\Models\Classroom::count(),
+                    'studentCount' => \App\Models\Student::whereIn('status', ['aktif', 'active'])->count() ?: \App\Models\Student::count(),
+                    'classroomCount' => \App\Models\Classroom::where('is_active', true)->count(),
                 ];
             });
 

@@ -251,6 +251,27 @@ class SpmbCandidateController extends Controller
         $candidate->student_id = $student->id;
         $candidate->save();
 
+        // Record initial classroom history with snapshots
+        if ($student->classroom_id) {
+            $student->load(['classroom.classLevel', 'classroom.homeroomTeacher']);
+            \App\Models\StudentClassroomHistory::updateOrCreate(
+                [
+                    'student_id' => $student->id,
+                    'academic_year_id' => $student->academic_year_id,
+                    'classroom_id' => $student->classroom_id,
+                ],
+                [
+                    'sub_unit' => $student->classroom?->sub_unit ?? 'TK',
+                    'classroom_name' => $student->classroom?->name,
+                    'grade_level' => $student->classroom?->classLevel?->name,
+                    'homeroom_teacher_name' => $student->classroom?->homeroomTeacher?->name,
+                    'status' => 'aktif',
+                    'start_date' => $student->enrolled_date ?? now()->toDateString(),
+                    'notes' => "Pendaftaran Siswa Baru via SPMB ({$candidate->registration_number})",
+                ]
+            );
+        }
+
         return response()->json([
             'success' => true,
             'message' => "Ananda {$candidate->full_name} berhasil resmi terdaftar sebagai Siswa Aktif SANS PAUD (NIS: {$student->nis}).",

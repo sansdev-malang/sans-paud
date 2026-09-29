@@ -66,6 +66,7 @@ class ClassLevelController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:100',
             'code' => 'required|string|max:50|unique:class_levels,code',
+            'sub_unit' => 'nullable|string|in:PG,TK,DAYCARE,TPQ',
             'order' => 'required|integer|min:1|max:99',
             'description' => 'nullable|string',
         ]);
@@ -74,7 +75,7 @@ class ClassLevelController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Tingkat Kelas {$classLevel->name} berhasil ditambahkan.",
+            'message' => "Jenjang {$classLevel->name} berhasil ditambahkan.",
             'class_level' => $classLevel,
         ]);
     }
@@ -89,6 +90,7 @@ class ClassLevelController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:100',
             'code' => 'required|string|max:50|unique:class_levels,code,' . $classLevel->id,
+            'sub_unit' => 'nullable|string|in:PG,TK,DAYCARE,TPQ',
             'order' => 'required|integer|min:1|max:99',
             'description' => 'nullable|string',
         ]);
@@ -97,7 +99,7 @@ class ClassLevelController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Tingkat Kelas {$classLevel->name} berhasil diperbarui.",
+            'message' => "Jenjang {$classLevel->name} berhasil diperbarui.",
             'class_level' => $classLevel,
         ]);
     }
@@ -113,7 +115,7 @@ class ClassLevelController extends Controller
         if ($classroomsCount > 0) {
             return response()->json([
                 'success' => false,
-                'message' => "Tingkat Kelas tidak dapat dihapus karena masih digunakan oleh {$classroomsCount} rombel.",
+                'message' => "Jenjang tidak dapat dihapus karena masih digunakan oleh {$classroomsCount} kelompok.",
             ], 422);
         }
 
@@ -122,7 +124,7 @@ class ClassLevelController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Tingkat Kelas {$name} berhasil dihapus.",
+            'message' => "Jenjang {$name} berhasil dihapus.",
         ]);
     }
 }

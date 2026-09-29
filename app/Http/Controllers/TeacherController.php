@@ -31,12 +31,31 @@ class TeacherController extends Controller
     public function index(Request $request)
     {
         $teacherType = $this->getTeacherType();
-        $query = Employee::where('employee_type_id', $teacherType->id);
+        $query = Employee::where('employee_type_id', $teacherType->id)
+            ->with(['classrooms.classLevel', 'classrooms.students' => function ($q) {
+                $q->where('status', 'aktif');
+            }]);
 
         // Filter by school unit if configured
         $schoolUnit = config('app.school_unit');
         if ($schoolUnit) {
             $query->where('unit', $schoolUnit);
+        }
+
+        // Filter by Sub-Unit diampu
+        if ($request->filled('sub_unit') && $request->sub_unit !== 'all') {
+            $subUnit = $request->sub_unit;
+            $query->whereHas('classrooms', function ($q) use ($subUnit) {
+                $q->where('sub_unit', $subUnit);
+            });
+        }
+
+        // Filter by Kelompok
+        if ($request->filled('classroom_id') && $request->classroom_id !== 'all') {
+            $classroomId = $request->classroom_id;
+            $query->whereHas('classrooms', function ($q) use ($classroomId) {
+                $q->where('id', $classroomId);
+            });
         }
 
         // Apply Search
@@ -73,8 +92,9 @@ class TeacherController extends Controller
             $perPage = $query->count() > 0 ? $query->count() : 1;
         }
         $teachers = $query->orderBy('name', 'asc')->paginate($perPage)->withQueryString();
+        $classrooms = \App\Models\Classroom::where('is_active', true)->orderBy('sub_unit')->orderBy('name')->get();
 
-        return view('admin.teachers.index', compact('teachers', 'totalGuru', 'guruMale', 'guruFemale', 'certifiedPercent'));
+        return view('admin.teachers.index', compact('teachers', 'totalGuru', 'guruMale', 'guruFemale', 'certifiedPercent', 'classrooms'));
     }
 
     /**

@@ -92,6 +92,11 @@ class Employee extends Model
         return $this->hasMany(LeaveRequest::class);
     }
 
+    public function classrooms(): HasMany
+    {
+        return $this->hasMany(Classroom::class, 'homeroom_teacher_id');
+    }
+
     protected static function booted()
     {
         static::saving(function ($employee) {
