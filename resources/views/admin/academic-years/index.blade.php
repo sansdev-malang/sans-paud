@@ -309,7 +309,8 @@
                 
                 <div class="w-12 h-12 rounded-full mx-auto flex items-center justify-center mb-4"
                     :class="confirmModal.type === 'delete' ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400' : 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400'">
-                    <i :data-lucide="confirmModal.type === 'delete' ? 'trash-2' : 'check-circle'" class="w-6 h-6"></i>
+                    <i data-lucide="trash-2" class="w-6 h-6" x-show="confirmModal.type === 'delete'"></i>
+                    <i data-lucide="check-circle" class="w-6 h-6" x-show="confirmModal.type !== 'delete'"></i>
                 </div>
 
                 <h3 class="text-base font-bold text-slate-900 dark:text-slate-50" x-text="confirmModal.title"></h3>
@@ -339,6 +340,7 @@
                 modalOpen: false,
                 isEdit: false,
                 saving: false,
+                academicYearsList: @json($academicYears),
                 formData: {
                     id: null,
                     name: '',
@@ -376,57 +378,84 @@
                 },
 
                 openEditModal(id) {
-                    fetch(`/academic-years/${id}`, {
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        }
-                    })
-                    .then(res => res.json())
-                    .then(res => {
-                        if (res.success) {
-                            const y = res.academic_year;
-                            this.isEdit = true;
-                            const semStr = (y.semester || '').toString().toLowerCase();
-                            this.formData = {
-                                id: y.id,
-                                name: y.name || '',
-                                semester: semStr === 'genap' ? 'Genap' : 'Ganjil',
-                                start_date: y.start_date ? y.start_date.substring(0, 10) : '',
-                                end_date: y.end_date ? y.end_date.substring(0, 10) : '',
-                                is_active: Boolean(y.is_active),
-                                description: y.description || '',
-                            };
-                            this.modalOpen = true;
-                            this.$nextTick(() => {
-                                if (window.lucide) lucide.createIcons();
-                            });
-                        }
-                    })
-                    .catch(err => {
-                        if (window.showToastNotification) {
-                            window.showToastNotification("Gagal mengambil data: " + err.message, "error");
-                        } else {
-                            alert("Gagal mengambil data: " + err.message);
-                        }
-                    });
+                    const y = this.academicYearsList.find(item => item.id == id);
+                    if (y) {
+                        this.isEdit = true;
+                        const semStr = (y.semester || '').toString().toLowerCase();
+                        this.formData = {
+                            id: y.id,
+                            name: y.name || '',
+                            semester: semStr === 'genap' ? 'Genap' : 'Ganjil',
+                            start_date: y.start_date ? y.start_date.substring(0, 10) : '',
+                            end_date: y.end_date ? y.end_date.substring(0, 10) : '',
+                            is_active: Boolean(y.is_active),
+                            description: y.description || '',
+                        };
+                        this.modalOpen = true;
+                        this.$nextTick(() => {
+                            if (window.lucide) lucide.createIcons();
+                        });
+                    } else {
+                        // Fallback network fetch if not found in list
+                        fetch(`/academic-years/${id}`, {
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(res => {
+                            if (res.success && res.academic_year) {
+                                const y = res.academic_year;
+                                this.isEdit = true;
+                                const semStr = (y.semester || '').toString().toLowerCase();
+                                this.formData = {
+                                    id: y.id,
+                                    name: y.name || '',
+                                    semester: semStr === 'genap' ? 'Genap' : 'Ganjil',
+                                    start_date: y.start_date ? y.start_date.substring(0, 10) : '',
+                                    end_date: y.end_date ? y.end_date.substring(0, 10) : '',
+                                    is_active: Boolean(y.is_active),
+                                    description: y.description || '',
+                                };
+                                this.modalOpen = true;
+                                this.$nextTick(() => {
+                                    if (window.lucide) lucide.createIcons();
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            if (window.showToastNotification) {
+                                window.showToastNotification("Gagal mengambil data: " + err.message, "error");
+                            } else {
+                                alert("Gagal mengambil data: " + err.message);
+                            }
+                        });
+                    }
                 },
 
                 submitForm() {
                     if (this.saving) return;
                     this.saving = true;
 
-                    const url = this.isEdit ? `/academic-years/${this.formData.id}` : '/academic-years';
-                    const method = this.isEdit ? 'PUT' : 'POST';
+                    const isEditMode = Boolean(this.isEdit && this.formData.id);
+                    const url = isEditMode ? `/academic-years/${this.formData.id}` : '/academic-years';
+                    const methodOverride = isEditMode ? 'PUT' : 'POST';
+
+                    const payload = {
+                        ...this.formData,
+                        _method: methodOverride
+                    };
 
                     fetch(url, {
-                        method: method,
+                        method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'X-HTTP-Method-Override': methodOverride
                         },
-                        body: JSON.stringify(this.formData)
+                        body: JSON.stringify(payload)
                     })
                     .then(async (res) => {
                         this.saving = false;
@@ -436,9 +465,12 @@
                             if (window.showToastNotification) {
                                 window.showToastNotification(data.message || 'Tahun ajaran berhasil disimpan!', 'success');
                             }
-                            setTimeout(() => window.location.reload(), 500);
+                            setTimeout(() => window.location.reload(), 400);
                         } else {
-                            const errMsg = data.message || (data.errors ? Object.values(data.errors).flat().join(', ') : 'Terjadi kesalahan saat menyimpan.');
+                            let errMsg = data.message || 'Terjadi kesalahan saat menyimpan.';
+                            if (data.errors) {
+                                errMsg = Object.values(data.errors).flat().join(', ');
+                            }
                             if (window.showToastNotification) {
                                 window.showToastNotification(errMsg, 'error');
                             } else {
@@ -506,7 +538,7 @@
                                 if (window.showToastNotification) {
                                     window.showToastNotification(data.message || 'Tahun ajaran berhasil diaktifkan!', 'success');
                                 }
-                                setTimeout(() => window.location.reload(), 500);
+                                setTimeout(() => window.location.reload(), 400);
                             } else {
                                 if (window.showToastNotification) {
                                     window.showToastNotification(data.message || 'Gagal mengubah status aktif.', 'error');
@@ -524,12 +556,15 @@
                             }
                         });
                     } else if (this.confirmModal.type === 'delete') {
-                        fetch(`/academic-years/${this.confirmModal.id}`, {
-                            method: 'DELETE',
+                        fetch(`/academic-years/${this.confirmModal.id}/delete`, {
+                            method: 'POST',
                             headers: {
+                                'Content-Type': 'application/json',
                                 'Accept': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            }
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'X-HTTP-Method-Override': 'DELETE'
+                            },
+                            body: JSON.stringify({ _method: 'DELETE' })
                         })
                         .then(async (res) => {
                             this.confirmModal.loading = false;
@@ -539,7 +574,7 @@
                                 if (window.showToastNotification) {
                                     window.showToastNotification(data.message || 'Tahun ajaran berhasil dihapus!', 'success');
                                 }
-                                setTimeout(() => window.location.reload(), 500);
+                                setTimeout(() => window.location.reload(), 400);
                             } else {
                                 if (window.showToastNotification) {
                                     window.showToastNotification(data.message || 'Gagal menghapus tahun ajaran.', 'error');

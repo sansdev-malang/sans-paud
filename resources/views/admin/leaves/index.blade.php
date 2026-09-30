@@ -28,7 +28,7 @@
         <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full text-left ">
             <div class="flex flex-col gap-0.5">
                 <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-200 font-nasalization">Riwayat Izin Pegawai</h2>
-                <p class="text-xs text-slate-550 dark:text-slate-400 font-medium">Daftar riwayat izin, sakit, dan cuti pegawai di unit sekolah.</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Daftar riwayat izin, sakit, dan cuti pegawai di unit sekolah.</p>
             </div>
             <div>
                 <button @click="showAddModal = true" class="h-9 px-4 bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-slate-200 text-white dark:text-slate-900 text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer flex items-center gap-2">
@@ -269,11 +269,11 @@
                                                 $statusCode = $leave->leaveType ? $leave->leaveType->status_code : 'I';
                                                 $badgeClasses = 'bg-slate-50 text-slate-700 border-slate-100 dark:bg-slate-900 dark:text-slate-300 dark:border-slate-800';
                                                 if ($statusCode === 'S') {
-                                                    $badgeClasses = 'bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-900/30 dark:text-rose-455 dark:border-rose-900/50';
+                                                    $badgeClasses = 'bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-900/30 dark:text-rose-400 dark:border-rose-900/50';
                                                 } elseif ($statusCode === 'I') {
-                                                    $badgeClasses = 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-900/30 dark:text-amber-450 dark:border-amber-900/50';
+                                                    $badgeClasses = 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-900/50';
                                                 } elseif ($statusCode === 'C') {
-                                                    $badgeClasses = 'bg-sky-50 text-sky-700 border-sky-100 dark:bg-sky-900/30 dark:text-sky-450 dark:border-sky-900/50';
+                                                    $badgeClasses = 'bg-sky-50 text-sky-700 border-sky-100 dark:bg-sky-900/30 dark:text-sky-400 dark:border-sky-900/50';
                                                 } elseif ($statusCode === 'H') {
                                                     $badgeClasses = 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-900/50';
                                                 }
@@ -281,11 +281,11 @@
                                             <span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-black border uppercase {{ $badgeClasses }}" title="Kode Status: {{ $statusCode }}">
                                                 {{ $statusCode }}
                                             </span>
-                                            <span class="text-xs text-slate-700 dark:text-slate-355 font-bold capitalize tracking-tight">{{ $leave->leaveType ? $leave->leaveType->name : $leave->type }}</span>
+                                            <span class="text-xs text-slate-700 dark:text-slate-300 font-bold capitalize tracking-tight">{{ $leave->leaveType ? $leave->leaveType->name : $leave->type }}</span>
                                         </div>
                                         @if($leave->attachment)
                                             <div class="mt-1">
-                                                <a href="{{ asset('storage/' . $leave->attachment) }}" target="_blank" class="inline-flex items-center gap-1 text-[9px] text-indigo-700 hover:text-indigo-855 dark:text-indigo-400 dark:hover:text-indigo-300 font-bold bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30 px-1.5 py-0.5 rounded transition-all shadow-2xs hover:shadow-xs">
+                                                <a href="{{ asset('storage/' . $leave->attachment) }}" target="_blank" class="inline-flex items-center gap-1 text-[9px] text-indigo-700 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 font-bold bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30 px-1.5 py-0.5 rounded transition-all shadow-2xs hover:shadow-xs">
                                                     <i data-lucide="paperclip" class="w-3.5 h-3.5"></i>
                                                     Lampiran
                                                 </a>
@@ -315,50 +315,50 @@
                                 <td class="px-6 py-3 text-center">
                                     <div class="flex flex-col items-center gap-1">
                                         @if($leave->status === 'Pending')
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-955/30 text-amber-700 dark:text-amber-400 border border-amber-200/30 dark:border-amber-900/30 uppercase">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-200/30 dark:border-amber-900/30 uppercase">
                                                 Pending
                                             </span>
                                         @elseif($leave->status === 'Approved')
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-955/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200/30 dark:border-emerald-900/30 uppercase">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200/30 dark:border-emerald-900/30 uppercase">
                                                 Disetujui
                                             </span>
                                         @else
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 dark:bg-rose-955/30 text-rose-700 dark:text-rose-455 border border-rose-200/30 dark:border-rose-900/30 uppercase">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border border-rose-200/30 dark:border-rose-900/30 uppercase">
                                                 Ditolak
                                             </span>
                                         @endif
 
                                         @if($leave->status !== 'Pending' && $processedBy !== '-')
-                                            <div class="text-[9px] text-slate-405 dark:text-slate-500 font-semibold mt-0.5 leading-tight">oleh: {{ $processedBy }}</div>
+                                            <div class="text-[9px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5 leading-tight">oleh: {{ $processedBy }}</div>
                                         @endif
                                     </div>
                                 </td>
                                 <td class="px-6 py-3 text-center">
                                     <div class="flex items-center justify-center gap-1.5">
-                                        <button @click="selectedEmp = {{ json_encode($leaveData) }}; showEmpDetailModal = true" class="inline-flex items-center justify-center w-6 h-6 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-655 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-800 transition-all cursor-pointer shadow-2xs hover:shadow-xs" title="Lihat Detail">
+                                        <button @click="selectedEmp = {{ json_encode($leaveData) }}; showEmpDetailModal = true" class="inline-flex items-center justify-center w-6 h-6 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-800 transition-all cursor-pointer shadow-2xs hover:shadow-xs" title="Lihat Detail">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z"/><circle cx="12" cy="12" r="3"/></svg>
                                         </button>
                                         @if($leave->status === 'Pending')
                                             <form action="{{ route('leaves.approve', $leave->id) }}" method="POST" class="inline">
                                                 @csrf
-                                                <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-955/30 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold rounded-lg border border-emerald-200/30 dark:border-emerald-900/30 transition-all cursor-pointer shadow-2xs hover:shadow-xs">
+                                                <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold rounded-lg border border-emerald-200/30 dark:border-emerald-900/30 transition-all cursor-pointer shadow-2xs hover:shadow-xs">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
                                                     Setujui
                                                 </button>
                                             </form>
-                                            <button @click="selectedLeaveId = '{{ $leave->id }}'; selectedLeaveEmployee = '{{ $empName }}'; showRejectModal = true" class="inline-flex items-center gap-1 px-2.5 py-1 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/30 dark:hover:bg-rose-900/40 text-rose-700 dark:text-rose-455 text-[10px] font-bold rounded-lg border border-rose-200/30 dark:border-rose-900/30 transition-all cursor-pointer shadow-2xs hover:shadow-xs">
+                                            <button @click="selectedLeaveId = '{{ $leave->id }}'; selectedLeaveEmployee = '{{ $empName }}'; showRejectModal = true" class="inline-flex items-center gap-1 px-2.5 py-1 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/30 dark:hover:bg-rose-900/40 text-rose-700 dark:text-rose-400 text-[10px] font-bold rounded-lg border border-rose-200/30 dark:border-rose-900/30 transition-all cursor-pointer shadow-2xs hover:shadow-xs">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                                                 Tolak
                                             </button>
                                         @else
-                                            <button @click="editLeave = { id: '{{ $leave->id }}', status: '{{ $leave->status }}', notes: {{ json_encode($displayNotes) }}, name: {{ json_encode($empName) }}, leave_type_id: '{{ $leave->leave_type_id }}' }; showEditModal = true" class="inline-flex items-center justify-center w-6 h-6 bg-amber-50/60 hover:bg-amber-100/60 dark:bg-amber-955/20 dark:hover:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-lg border border-amber-200/30 dark:border-amber-900/30 transition-all cursor-pointer shadow-2xs hover:shadow-xs" title="Edit Keputusan">
+                                            <button @click="editLeave = { id: '{{ $leave->id }}', status: '{{ $leave->status }}', notes: {{ json_encode($displayNotes) }}, name: {{ json_encode($empName) }}, leave_type_id: '{{ $leave->leave_type_id }}' }; showEditModal = true" class="inline-flex items-center justify-center w-6 h-6 bg-amber-50/60 hover:bg-amber-100/60 dark:bg-amber-950/20 dark:hover:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-lg border border-amber-200/30 dark:border-amber-900/30 transition-all cursor-pointer shadow-2xs hover:shadow-xs" title="Edit Keputusan">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                                             </button>
                                         @endif
                                         <form action="{{ route('leaves.destroy', $leave->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data izin ini?')" class="inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="inline-flex items-center justify-center w-6 h-6 bg-rose-50/50 hover:bg-rose-100/60 dark:bg-rose-955/20 dark:hover:bg-rose-900/30 text-rose-600 dark:text-rose-455 rounded-lg border border-rose-200/30 dark:border-rose-900/30 transition-all cursor-pointer shadow-2xs hover:shadow-xs" title="Hapus Izin">
+                                            <button type="submit" class="inline-flex items-center justify-center w-6 h-6 bg-rose-50/50 hover:bg-rose-100/60 dark:bg-rose-950/20 dark:hover:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg border border-rose-200/30 dark:border-rose-900/30 transition-all cursor-pointer shadow-2xs hover:shadow-xs" title="Hapus Izin">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
                                             </button>
                                         </form>
@@ -379,7 +379,7 @@
             <!-- PAGINATION -->
             @if($paginatedLeaves instanceof \Illuminate\Pagination\LengthAwarePaginator && $paginatedLeaves->total() > 0)
                 <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div class="text-xs text-slate-550 dark:text-slate-400">
+                    <div class="text-xs text-slate-500 dark:text-slate-400">
                         Menampilkan
                         <span class="font-bold text-slate-700 dark:text-slate-300">{{ $paginatedLeaves->firstItem() }}</span>
                         sampai
@@ -390,7 +390,7 @@
                     </div>
                     <div class="flex items-center gap-2 text-xs">
                         @if ($paginatedLeaves->onFirstPage())
-                            <span class="h-8 px-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-400 dark:text-slate-655 flex items-center justify-center cursor-not-allowed select-none">Sebelumnya</span>
+                            <span class="h-8 px-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-400 dark:text-slate-600 flex items-center justify-center cursor-not-allowed select-none">Sebelumnya</span>
                         @else
                             <a href="{{ $paginatedLeaves->appends(request()->query())->previousPageUrl() }}" class="h-8 px-3 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-700 dark:text-slate-300 flex items-center justify-center transition-all bg-white dark:bg-slate-900">Sebelumnya</a>
                         @endif
@@ -402,7 +402,7 @@
                         @if ($paginatedLeaves->hasMorePages())
                             <a href="{{ $paginatedLeaves->appends(request()->query())->nextPageUrl() }}" class="h-8 px-3 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-700 dark:text-slate-300 flex items-center justify-center transition-all bg-white dark:bg-slate-900">Berikutnya</a>
                         @else
-                            <span class="h-8 px-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-955 text-slate-400 dark:text-slate-655 flex items-center justify-center cursor-not-allowed select-none">Berikutnya</span>
+                            <span class="h-8 px-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-400 dark:text-slate-600 flex items-center justify-center cursor-not-allowed select-none">Berikutnya</span>
                         @endif
                     </div>
                 </div>
@@ -440,7 +440,7 @@
                             </div>
                             <div class="space-y-1 text-left flex-1 min-w-0">
                                 <h4 class="text-sm font-bold text-slate-900 dark:text-slate-200 font-nasalization truncate" x-text="selectedEmp ? selectedEmp.name : ''"></h4>
-                                <p class="text-[10px] text-slate-550 dark:text-slate-400 truncate" x-text="selectedEmp ? selectedEmp.email : ''"></p>
+                                <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate" x-text="selectedEmp ? selectedEmp.email : ''"></p>
                                 <p class="text-[10px] text-slate-600 dark:text-slate-400 font-semibold truncate mt-0.5" x-text="selectedEmp ? selectedEmp.subject_position : ''"></p>
                             </div>
                         </div>
@@ -450,7 +450,7 @@
                             <div class="rounded-lg p-3 border text-[11px] font-medium flex items-center gap-2 animate-fade-in"
                                 :class="{
                                     'bg-emerald-50/50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/40': selectedEmp.leave_status === 'Approved',
-                                    'bg-rose-50/50 dark:bg-rose-950/20 text-rose-800 dark:text-rose-450 border-rose-100 dark:border-rose-900/40': selectedEmp.leave_status === 'Rejected',
+                                    'bg-rose-50/50 dark:bg-rose-950/20 text-rose-800 dark:text-rose-400 border-rose-100 dark:border-rose-900/40': selectedEmp.leave_status === 'Rejected',
                                     'bg-amber-50/50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-400 border-amber-100 dark:border-amber-900/40': selectedEmp.leave_status === 'Pending'
                                 }">
                                 <span class="w-2 h-2 rounded-full"
@@ -476,8 +476,8 @@
                                             <!-- SICH Code Badge -->
                                             <span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-black border uppercase"
                                                 :class="{
-                                                    'bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-900/30 dark:text-rose-455 dark:border-rose-900/50': selectedEmp.status_code === 'S',
-                                                    'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-900/30 dark:text-amber-450 dark:border-amber-900/50': selectedEmp.status_code === 'I',
+                                                    'bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-900/30 dark:text-rose-400 dark:border-rose-900/50': selectedEmp.status_code === 'S',
+                                                    'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-900/50': selectedEmp.status_code === 'I',
                                                     'bg-sky-50 text-sky-700 border-sky-100 dark:bg-sky-900/30 dark:text-sky-400 dark:border-sky-900/50': selectedEmp.status_code === 'C',
                                                     'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-900/50': selectedEmp.status_code === 'H'
                                                 }"
@@ -508,7 +508,7 @@
                             <template x-if="selectedEmp && selectedEmp.leave_attachment">
                                 <div class="col-span-2 pt-1">
                                     <span class="block text-slate-400 dark:text-slate-500 text-[9px] uppercase font-bold tracking-tight mb-1">Berkas Lampiran</span>
-                                    <a :href="selectedEmp.leave_attachment" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] text-indigo-750 hover:text-indigo-855 dark:text-indigo-400 dark:hover:text-indigo-300 font-bold bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30 transition-all shadow-2xs hover:shadow-xs">
+                                    <a :href="selectedEmp.leave_attachment" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] text-indigo-700 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 font-bold bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30 transition-all shadow-2xs hover:shadow-xs">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
                                         Lihat Lampiran Dokumen
                                     </a>
@@ -556,7 +556,7 @@
         <template x-teleport="body">
             <div x-show="showRejectModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" style="display: none; margin-top: 0px !important; z-index: 9999;">
             <div @click.outside="showRejectModal = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl w-full max-w-sm p-6 text-left animate-in fade-in duration-200">
-                <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-850 pb-3 mb-4">
+                <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
                     <div>
                         <h3 class="text-sm font-bold text-slate-900 dark:text-slate-50 font-nasalization">Tolak Pengajuan Izin</h3>
                         <p class="text-[10px] text-slate-400 dark:text-slate-50 mt-0.5" x-text="selectedLeaveEmployee"></p>
@@ -574,7 +574,7 @@
                     </div>
 
                     <div class="flex gap-2.5 pt-4 border-t border-slate-100 dark:border-slate-800 justify-end">
-                        <button type="button" @click="showRejectModal = false" class="h-9 px-4 bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-850 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 transition-all cursor-pointer">
+                        <button type="button" @click="showRejectModal = false" class="h-9 px-4 bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 transition-all cursor-pointer">
                             Batal
                         </button>
                         <button type="submit" class="h-9 px-4 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs font-semibold rounded-lg shadow-xs hover:shadow-sm transition-all cursor-pointer">
@@ -638,10 +638,10 @@
                         </div>
 
                         <div class="flex gap-2.5 pt-4 border-t border-slate-100 dark:border-slate-800 justify-end">
-                            <button type="button" @click="showEditModal = false" class="h-9 px-4 bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-850 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 transition-all cursor-pointer">
+                            <button type="button" @click="showEditModal = false" class="h-9 px-4 bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 transition-all cursor-pointer">
                                 Batal
                             </button>
-                            <button type="submit" class="h-9 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-850 text-white text-xs font-bold rounded-lg shadow-xs hover:shadow-sm transition-all cursor-pointer">
+                            <button type="submit" class="h-9 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-bold rounded-lg shadow-xs hover:shadow-sm transition-all cursor-pointer">
                                 Simpan Keputusan
                             </button>
                         </div>
@@ -655,7 +655,7 @@
             <div x-show="showAddModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs text-left" style="display: none; margin-top: 0px !important; z-index: 9999;" x-transition>
                 <div @click.away="showAddModal = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl w-full max-w-md overflow-hidden text-xs flex flex-col">
                     <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                        <h3 class="text-sm font-bold text-slate-900 dark:text-slate-55 flex items-center gap-2">
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-slate-50 flex items-center gap-2">
                             <i data-lucide="plus-circle" class="w-4 h-4 text-slate-500"></i>
                             Input Izin / Cuti Baru
                         </h3>
@@ -700,7 +700,7 @@
                                     if (initial) this.selectedName = initial.name;
                                 }
                             }" class="relative">
-                                <label class="block text-xs font-bold text-slate-455 dark:text-slate-500 uppercase tracking-wider mb-2">Pegawai</label>
+                                <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Pegawai</label>
                                 
                                 <input type="hidden" name="employee_id" :value="selectedId" required>
                                 
@@ -716,7 +716,7 @@
                                     
                                     <div class="p-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20">
                                         <input type="text" x-model="search" placeholder="Cari nama pegawai..."
-                                            class="w-full h-8 px-2.5 text-xs bg-white dark:bg-slate-955 border border-slate-200 dark:border-slate-850 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900 dark:text-slate-100 placeholder-slate-400">
+                                            class="w-full h-8 px-2.5 text-xs bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900 dark:text-slate-100 placeholder-slate-400">
                                     </div>
                                     
                                     <div class="overflow-y-auto flex-1 py-1">
@@ -739,7 +739,7 @@
                                 @error('employee_id') <span class="text-rose-500 text-[10px] mt-1 block">{{ $message }}</span> @enderror
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wider mb-2">Jenis Izin</label>
+                                <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Jenis Izin</label>
                                 <select name="leave_type_id" required class="w-full text-xs h-9 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-100 dark:focus:ring-slate-800 cursor-pointer">
                                     <option value="">Pilih Jenis Izin</option>
                                     @foreach($leaveTypes as $lt)
@@ -750,28 +750,28 @@
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-455 dark:text-slate-500 uppercase tracking-wider mb-2">Tanggal Mulai</label>
+                                    <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Tanggal Mulai</label>
                                     <input type="date" name="start_date" value="{{ old('start_date') }}" required class="w-full text-xs h-9 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-100 dark:focus:ring-slate-800">
                                     @error('start_date') <span class="text-rose-500 text-[10px] mt-1 block">{{ $message }}</span> @enderror
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-455 dark:text-slate-500 uppercase tracking-wider mb-2">Tanggal Selesai</label>
+                                    <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Tanggal Selesai</label>
                                     <input type="date" name="end_date" value="{{ old('end_date') }}" required class="w-full text-xs h-9 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-100 dark:focus:ring-slate-800">
                                     @error('end_date') <span class="text-rose-500 text-[10px] mt-1 block">{{ $message }}</span> @enderror
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-slate-455 dark:text-slate-500 uppercase tracking-wider mb-2">Alasan</label>
+                                <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Alasan</label>
                                 <textarea name="reason" rows="3" class="w-full text-xs p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-100 dark:focus:ring-slate-800 resize-none" placeholder="Tulis alasan izin..."></textarea>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-slate-455 dark:text-slate-500 uppercase tracking-wider mb-2">Berkas Lampiran</label>
+                                <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Berkas Lampiran</label>
                                 <input type="file" name="attachment" class="w-full text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none">
                             </div>
                         </div>
                         <div class="px-6 py-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
                             <button type="button" @click="showAddModal = false" class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer bg-transparent border-0">Batal</button>
-                            <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-slate-900 dark:bg-slate-100 dark:text-slate-900 hover:bg-slate-850 rounded-lg transition-colors cursor-pointer">Simpan Izin</button>
+                            <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-slate-900 dark:bg-slate-100 dark:text-slate-900 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">Simpan Izin</button>
                         </div>
                     </form>
                 </div>

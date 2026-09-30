@@ -441,7 +441,7 @@
                                     @if(!empty($scheduleParts))
                                         <div class="flex items-center gap-1.5 text-[11px] text-slate-600 dark:text-slate-400 font-medium">
                                             <span class="font-bold text-slate-800 dark:text-slate-200">{{ $shift['name'] }}</span>
-                                            <span class="text-slate-450 dark:text-slate-500">({{ implode(', ', $scheduleParts) }})</span>
+                                            <span class="text-slate-400 dark:text-slate-500">({{ implode(', ', $scheduleParts) }})</span>
                                         </div>
                                     @endif
                                     @if($index < count($myActiveShifts) - 1)

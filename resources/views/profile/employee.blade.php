@@ -163,7 +163,7 @@
                     @endif
 
                     @if($employee->email)
-                        <a href="mailto:{{ $employee->email }}" class="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors">
+                        <a href="mailto:{{ $employee->email }}" class="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
                             <i data-lucide="mail" class="w-3.5 h-3.5"></i>
                             <span>Email</span>
                         </a>

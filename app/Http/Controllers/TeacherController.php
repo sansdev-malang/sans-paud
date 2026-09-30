@@ -74,17 +74,22 @@ class TeacherController extends Controller
             $query->where('status', $request->input('status'));
         }
 
-        // Calculate statistics
+        // Fast single query for teacher statistics
         $statsQuery = Employee::where('employee_type_id', $teacherType->id);
         if ($schoolUnit) {
             $statsQuery->where('unit', $schoolUnit);
         }
+        $teacherStats = (clone $statsQuery)->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN gender IN ('Male', 'L', 'Laki-laki') THEN 1 ELSE 0 END) as male,
+            SUM(CASE WHEN gender IN ('Female', 'P', 'Perempuan') THEN 1 ELSE 0 END) as female,
+            SUM(CASE WHEN nuptk IS NOT NULL AND nuptk != '' THEN 1 ELSE 0 END) as certified
+        ")->first();
 
-        $totalGuru = (clone $statsQuery)->count();
-        $guruMale = (clone $statsQuery)->where('gender', 'Male')->count();
-        $guruFemale = (clone $statsQuery)->where('gender', 'Female')->count();
-        
-        $certifiedCount = (clone $statsQuery)->whereNotNull('nuptk')->where('nuptk', '!=', '')->count();
+        $totalGuru = (int) ($teacherStats->total ?? 0);
+        $guruMale = (int) ($teacherStats->male ?? 0);
+        $guruFemale = (int) ($teacherStats->female ?? 0);
+        $certifiedCount = (int) ($teacherStats->certified ?? 0);
         $certifiedPercent = $totalGuru > 0 ? round(($certifiedCount / $totalGuru) * 100) : 0;
 
         $perPage = $request->input('per_page', 10);

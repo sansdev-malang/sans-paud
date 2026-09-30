@@ -27,6 +27,8 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['au
 Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,admin_smp,kepala_sekolah,waka'])->group(function () {
     // Academic Years (Tahun Ajaran)
     Route::post('academic-years/{id}/set-active', [AcademicYearController::class, 'setActive'])->name('academic-years.set-active');
+    Route::match(['post', 'put', 'patch'], 'academic-years/{id}', [AcademicYearController::class, 'update'])->name('academic-years.update-custom');
+    Route::match(['post', 'delete'], 'academic-years/{id}/delete', [AcademicYearController::class, 'destroy'])->name('academic-years.destroy-custom');
     Route::resource('academic-years', AcademicYearController::class);
 
     // Class Levels (Tingkat Kelas)
@@ -60,15 +62,19 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,adm
     Route::post('alumni/{id}/restore', [\App\Http\Controllers\AlumniController::class, 'restoreToActive'])->name('alumni.restore');
     Route::resource('alumni', \App\Http\Controllers\AlumniController::class);
 
-    // E-Rapor PAUD & Penilaian (Kurikulum Merdeka)
+    // E-Rapor Admin Management (Batch Actions, Approvals & Publish)
     Route::get('report-cards/batch-print', [\App\Http\Controllers\ReportCardController::class, 'batchPrint'])->name('report-cards.batch-print');
     Route::post('report-cards/batch-approve', [\App\Http\Controllers\ReportCardController::class, 'batchApprove'])->name('report-cards.batch-approve');
     Route::post('report-cards/batch-publish', [\App\Http\Controllers\ReportCardController::class, 'batchPublish'])->name('report-cards.batch-publish');
-    Route::get('report-cards/templates', [\App\Http\Controllers\ReportCardController::class, 'getTemplates'])->name('report-cards.templates');
-    Route::post('report-cards/{student}/upload-pdf', [\App\Http\Controllers\ReportCardController::class, 'uploadPdf'])->name('report-cards.upload-pdf');
     Route::post('report-cards/{id}/approve', [\App\Http\Controllers\ReportCardController::class, 'approve'])->name('report-cards.approve');
     Route::post('report-cards/{id}/publish', [\App\Http\Controllers\ReportCardController::class, 'publish'])->name('report-cards.publish');
     Route::post('report-cards/{id}/request-revision', [\App\Http\Controllers\ReportCardController::class, 'requestRevision'])->name('report-cards.request-revision');
+});
+
+// E-Rapor PAUD Penilaian & Form (Guru & Wali Kelas Akses)
+Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,admin_smp,kepala_sekolah,waka,employee'])->group(function () {
+    Route::get('report-cards/templates', [\App\Http\Controllers\ReportCardController::class, 'getTemplates'])->name('report-cards.templates');
+    Route::post('report-cards/{student}/upload-pdf', [\App\Http\Controllers\ReportCardController::class, 'uploadPdf'])->name('report-cards.upload-pdf');
     Route::get('report-cards/{student}/edit', [\App\Http\Controllers\ReportCardController::class, 'edit'])->name('report-cards.edit');
     Route::put('report-cards/{student}', [\App\Http\Controllers\ReportCardController::class, 'update'])->name('report-cards.update');
     Route::get('report-cards/{id}', [\App\Http\Controllers\ReportCardController::class, 'show'])->name('report-cards.show');

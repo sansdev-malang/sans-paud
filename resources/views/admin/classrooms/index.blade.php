@@ -5,7 +5,7 @@
         <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full text-left">
             <div class="flex flex-col gap-0.5">
                 <div class="flex items-center gap-2.5">
-                    <div class="p-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl border border-indigo-500/20">
+                    <div class="p-2.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl border border-indigo-500/20 shadow-xs">
                         <i data-lucide="shapes" class="w-5 h-5"></i>
                     </div>
                     <div>
@@ -19,14 +19,14 @@
                     </div>
                 </div>
             </div>
-            <div class="flex items-center gap-3 shrink-0">
+            <div class="flex items-center gap-2.5 shrink-0">
                 <a href="{{ route('class-levels.index') }}"
-                    class="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-all duration-100 cursor-pointer">
+                    class="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-colors cursor-pointer">
                     <i data-lucide="layers" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400"></i>
                     Jenjang
                 </a>
                 <button type="button" @click="openCreateModal()"
-                    class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all duration-100 cursor-pointer">
+                    class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer">
                     <i data-lucide="plus" class="w-3.5 h-3.5"></i>
                     Tambah Kelompok
                 </button>
@@ -36,7 +36,7 @@
         <!-- STATS CARDS GRID -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Stat 1: Total Kelompok -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <div>
                         <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Kelompok</p>
@@ -54,7 +54,7 @@
             </div>
 
             <!-- Stat 2: Total Kapasitas Kuota -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <div>
                         <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Daya Tampung</p>
@@ -72,7 +72,7 @@
             </div>
 
             <!-- Stat 3: Murid Terisi -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <div>
                         <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Murid Terisi</p>
@@ -90,7 +90,7 @@
             </div>
 
             <!-- Stat 4: Persentase Keterisian -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <div>
                         <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tingkat Keterisian</p>
@@ -112,41 +112,45 @@
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs">
             <div class="flex flex-wrap items-center gap-2">
                 <button type="button" @click="activeSubUnit = 'ALL'"
-                    :class="activeSubUnit === 'ALL' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 border border-slate-200 dark:border-slate-700'"
-                    class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer">
-                    Semua Kelompok
+                    :class="activeSubUnit === 'ALL' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'"
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5">
+                    <span>🌟</span> Semua Kelompok
                 </button>
                 <button type="button" @click="activeSubUnit = 'PG'"
-                    :class="activeSubUnit === 'PG' ? 'bg-amber-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 border border-slate-200 dark:border-slate-700'"
-                    class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5">
+                    :class="activeSubUnit === 'PG' ? 'bg-amber-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'"
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5">
                     <span>🧸</span> Playgroup (PG)
                 </button>
                 <button type="button" @click="activeSubUnit = 'TK'"
-                    :class="activeSubUnit === 'TK' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 border border-slate-200 dark:border-slate-700'"
-                    class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5">
+                    :class="activeSubUnit === 'TK' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'"
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5">
                     <span>🎒</span> TK (Taman Kanak-Kanak)
                 </button>
                 <button type="button" @click="activeSubUnit = 'DAYCARE'"
-                    :class="activeSubUnit === 'DAYCARE' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 border border-slate-200 dark:border-slate-700'"
-                    class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5">
+                    :class="activeSubUnit === 'DAYCARE' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'"
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5">
                     <span>👶</span> Daycare (TPA)
                 </button>
                 <button type="button" @click="activeSubUnit = 'TPQ'"
-                    :class="activeSubUnit === 'TPQ' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 border border-slate-200 dark:border-slate-700'"
-                    class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5">
+                    :class="activeSubUnit === 'TPQ' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'"
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5">
                     <span>📖</span> TPQ
                 </button>
             </div>
 
             <!-- Search box -->
-            <div class="w-full md:w-64">
+            <div class="w-full md:w-64 relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400"></i>
+                </span>
                 <input type="text" x-model="searchQuery" placeholder="Cari nama / kode kelompok..."
-                    class="w-full h-9 px-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                    style="padding-left: 2.25rem;"
+                    class="w-full h-9 pr-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
             </div>
         </div>
 
         <!-- TABLE LIST KELOMPOK -->
-        <section class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden transition-all w-full">
+        <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden w-full">
             <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                 <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                     <i data-lucide="list-ordered" class="w-4 h-4 text-indigo-600"></i>
@@ -164,7 +168,7 @@
                             <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Wali Kelas / Pendamping</th>
                             <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28">T.A.</th>
                             <th class="px-5 py-3.5 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-44">Kapasitas & Murid</th>
-                            <th class="px-5 py-3.5 text-right text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-36">Aksi</th>
+                            <th class="px-5 py-3.5 text-right text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-40">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
@@ -176,7 +180,7 @@
                                 $isFull = $c->active_students_count >= $c->capacity;
                             @endphp
                             <tr x-show="(activeSubUnit === 'ALL' || activeSubUnit === '{{ $c->sub_unit }}') && (searchQuery === '' || '{{ strtolower($c->name . ' ' . $c->code) }}'.includes(searchQuery.toLowerCase()))"
-                                class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors group">
+                                class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors group">
                                 
                                 <!-- 1. No -->
                                 <td class="px-5 py-3.5 text-center text-slate-400 font-mono text-[11px]">
@@ -260,12 +264,12 @@
                                             <span class="font-bold text-slate-900 dark:text-slate-100 font-mono">
                                                 {{ $c->active_students_count }} <span class="font-normal text-slate-400">/ {{ $c->capacity }}</span>
                                             </span>
-                                            <span class="font-semibold {{ $isFull ? 'text-rose-600' : ($occupancy > 80 ? 'text-amber-600' : 'text-indigo-600') }}">
+                                            <span class="font-semibold {{ $isFull ? 'text-rose-600' : ($occupancy > 80 ? 'text-amber-600' : 'text-emerald-600') }}">
                                                 {{ $occupancy }}%
                                             </span>
                                         </div>
                                         <div class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                                            <div class="h-full rounded-full transition-all duration-300 {{ $isFull ? 'bg-rose-500' : ($occupancy > 80 ? 'bg-amber-500' : 'bg-indigo-600') }}"
+                                            <div class="h-full rounded-full transition-all duration-300 {{ $isFull ? 'bg-rose-500' : ($occupancy > 80 ? 'bg-amber-500' : 'bg-emerald-500') }}"
                                                 style="width: {{ min($occupancy, 100) }}%"></div>
                                         </div>
                                     </div>
@@ -306,8 +310,8 @@
         </section>
 
         <!-- MODAL DAFTAR MURID PER KELOMPOK -->
-        <div x-show="studentsModalOpen" x-cloak class="fixed inset-0 z-[9999] flex items-center justify-center p-4" style="display: none; margin-top: 0px !important; z-index: 9999; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);">
-            <div @click.outside="studentsModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden shadow-2xl flex flex-col">
+        <div x-show="studentsModalOpen" x-cloak class="fixed inset-0 z-[9999] flex items-center justify-center p-4" style="background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);">
+            <div @click.outside="studentsModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden shadow-2xl flex flex-col text-left">
                 
                 <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-white/95 dark:bg-slate-900/95">
                     <div>
@@ -324,14 +328,20 @@
                     </button>
                 </div>
 
+                <!-- Search inside modal -->
+                <div class="p-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                    <input type="text" x-model="studentFilterQuery" placeholder="Filter nama atau NIS murid..."
+                        class="w-full h-8 px-3 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                </div>
+
                 <div class="p-4 overflow-y-auto flex-1 divide-y divide-slate-100 dark:divide-slate-800">
-                    <template x-if="classroomStudents.length === 0">
+                    <template x-if="filteredStudents.length === 0">
                         <div class="text-center py-8 text-slate-400 text-xs">
-                            Belum ada murid aktif yang ditempatkan di kelompok ini.
+                            Belum ada murid yang sesuai di kelompok ini.
                         </div>
                     </template>
-                    <template x-for="(student, index) in classroomStudents" :key="student.id">
-                        <div class="py-2.5 flex items-center justify-between gap-3 text-xs">
+                    <template x-for="(student, index) in filteredStudents" :key="student.id">
+                        <div class="py-2.5 flex items-center justify-between gap-3 text-xs hover:bg-slate-50/50 dark:hover:bg-slate-800/30 px-2 rounded-lg transition-colors">
                             <div class="flex items-center gap-3">
                                 <span class="w-6 text-center font-mono text-slate-400 text-[11px]" x-text="index + 1"></span>
                                 <div class="w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-100 dark:border-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0"
@@ -340,7 +350,7 @@
                                 <div>
                                     <div class="font-bold text-slate-900 dark:text-slate-100" x-text="student.full_name"></div>
                                     <div class="text-[11px] text-slate-400 flex items-center gap-2">
-                                        <span x-text="'NIS: ' + student.nis"></span>
+                                        <span class="font-mono text-indigo-600 dark:text-indigo-400" x-text="'NIS: ' + student.nis"></span>
                                         <span>&bull;</span>
                                         <span x-text="'Panggilan: ' + (student.nickname || '-')"></span>
                                     </div>
@@ -348,9 +358,10 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <template x-if="student.parent_phone">
-                                    <a :href="'https://wa.me/' + student.parent_phone" target="_blank"
+                                    <a :href="'https://wa.me/' + student.parent_phone.replace(/[^0-9]/g, '')" target="_blank"
                                         class="px-2.5 py-1 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 hover:bg-emerald-100 rounded-lg text-[11px] font-semibold flex items-center gap-1 transition-colors">
-                                        <span>💬 WA Ortu</span>
+                                        <i data-lucide="message-circle" class="w-3 h-3"></i>
+                                        <span>WA Ortu</span>
                                     </a>
                                 </template>
                             </div>
@@ -368,8 +379,8 @@
         </div>
 
         <!-- MODAL TAMBAH / EDIT KELOMPOK -->
-        <div x-show="modalOpen" x-cloak class="fixed inset-0 z-[9999] flex items-center justify-center p-4" style="display: none; margin-top: 0px !important; z-index: 9999; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);">
-            <div @click.outside="modalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
+        <div x-show="modalOpen" x-cloak class="fixed inset-0 z-[9999] flex items-center justify-center p-4" style="background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);">
+            <div @click.outside="modalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col text-left">
                 
                 <form @submit.prevent="submitForm">
                     <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm z-10">
@@ -479,6 +490,7 @@
                 saving: false,
                 activeSubUnit: 'ALL',
                 searchQuery: '',
+                studentFilterQuery: '',
                 selectedClassroom: {},
                 classroomStudents: [],
                 formData: {
@@ -491,6 +503,16 @@
                     homeroom_teacher_id: '',
                     capacity: 20,
                     description: '',
+                },
+
+                get filteredStudents() {
+                    if (!this.studentFilterQuery) return this.classroomStudents;
+                    const q = this.studentFilterQuery.toLowerCase();
+                    return this.classroomStudents.filter(s => 
+                        (s.full_name && s.full_name.toLowerCase().includes(q)) || 
+                        (s.nis && s.nis.toLowerCase().includes(q)) ||
+                        (s.nickname && s.nickname.toLowerCase().includes(q))
+                    );
                 },
 
                 openCreateModal() {
@@ -529,6 +551,7 @@
                 },
 
                 viewStudents(id) {
+                    this.studentFilterQuery = '';
                     fetch(`/classrooms/${id}/students`, {
                         headers: {
                             'Accept': 'application/json',
@@ -541,6 +564,9 @@
                             this.selectedClassroom = res.classroom;
                             this.classroomStudents = res.students;
                             this.studentsModalOpen = true;
+                            this.$nextTick(() => {
+                                if (window.lucide) lucide.createIcons();
+                            });
                         }
                     })
                     .catch(err => alert("Gagal mengambil daftar murid: " + err.message));

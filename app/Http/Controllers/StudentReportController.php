@@ -194,17 +194,13 @@ class StudentReportController extends Controller
 
         $classroomStats = [];
         foreach ($classrooms as $cls) {
-            // If sub-unit is daycare, students might be mapped via daycare_classroom_id
+            // Compute in-memory from $activeStudents collection without extra DB queries
             if ($cls->sub_unit === 'DAYCARE') {
-                $stds = Student::where('status', 'aktif')->where(function ($q) use ($cls) {
-                    $q->where('classroom_id', $cls->id)->orWhere('daycare_classroom_id', $cls->id);
-                })->get();
+                $stds = $activeStudents->filter(fn($s) => $s->classroom_id == $cls->id || $s->daycare_classroom_id == $cls->id);
             } elseif ($cls->sub_unit === 'TPQ') {
-                $stds = Student::where('status', 'aktif')->where(function ($q) use ($cls) {
-                    $q->where('classroom_id', $cls->id)->orWhere('tpq_classroom_id', $cls->id);
-                })->get();
+                $stds = $activeStudents->filter(fn($s) => $s->classroom_id == $cls->id || $s->tpq_classroom_id == $cls->id);
             } else {
-                $stds = $cls->students;
+                $stds = $activeStudents->filter(fn($s) => $s->classroom_id == $cls->id);
             }
 
             $m = $stds->whereIn('gender', ['L', 'Laki-laki', 'Male'])->count();

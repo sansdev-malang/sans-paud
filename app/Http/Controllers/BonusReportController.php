@@ -22,7 +22,7 @@ class BonusReportController extends Controller
         $search = $request->query('search');
         $perPage = $request->query('per_page', 50);
 
-        $schoolUnit = config('app.school_unit', 'smp');
+        $schoolUnit = config('app.school_unit', 'paud');
         $unitStr = strtoupper($schoolUnit);
         $hrdUrl = Setting::get('hrd_api_url', config('app.hrd_url', 'http://sans-hrd.test'));
 
@@ -60,6 +60,9 @@ class BonusReportController extends Controller
                 ->sort()
                 ->values();
 
+            // Preload employee positions for fast in-memory lookup
+            $employeePositions = \App\Models\Employee::pluck('position', 'id')->toArray();
+
             // Apply Role-based filtering
             $user = auth()->user();
             if ($user && $user->role === 'employee' && $user->employee_id) {
@@ -77,13 +80,12 @@ class BonusReportController extends Controller
                     })->values();
                 }
 
-                // Apply Position filter for admins
+                // Apply Position filter for admins using preloaded array lookup
                 $position = $request->query('position');
                 if (!empty($position)) {
-                    $reports = $reports->filter(function ($item) use ($position) {
+                    $reports = $reports->filter(function ($item) use ($position, $employeePositions) {
                         $empId = $item['employee']['id'] ?? 0;
-                        $emp = \App\Models\Employee::find($empId);
-                        return $emp && $emp->position === $position;
+                        return ($employeePositions[$empId] ?? '') === $position;
                     })->values();
                 }
             }

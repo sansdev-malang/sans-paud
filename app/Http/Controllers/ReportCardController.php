@@ -31,10 +31,24 @@ class ReportCardController extends Controller
         $selectedSemester = $request->get('semester', '1');
         $selectedSubUnit = $request->get('sub_unit', 'ALL');
 
+        $user = auth()->user();
+        $isAdmin = $user && in_array($user->role, ['super_admin', 'admin_sd', 'admin_paud', 'admin_smp', 'kepala_sekolah', 'waka']);
+
         // Fetch classrooms in selected academic year
         $classroomsQuery = Classroom::with(['classLevel', 'homeroomTeacher', 'academicYear'])
             ->where('is_active', true)
             ->where('academic_year_id', $selectedYearId);
+
+        // Teacher scoping: If logged in as employee and assigned to classrooms, filter to their classes
+        if (!$isAdmin && $user && $user->employee) {
+            $empClassroomIds = $user->employee->classrooms->pluck('id')->merge(
+                Classroom::where('homeroom_teacher_id', $user->employee->id)->pluck('id')
+            )->unique()->values()->toArray();
+
+            if (!empty($empClassroomIds)) {
+                $classroomsQuery->whereIn('id', $empClassroomIds);
+            }
+        }
 
         if ($selectedSubUnit && $selectedSubUnit !== 'ALL') {
             $classroomsQuery->where('sub_unit', $selectedSubUnit);
@@ -61,12 +75,14 @@ class ReportCardController extends Controller
             })
             ->where('academic_year_id', $selectedYearId)
             ->whereIn('status', ['aktif', 'lulus'])
+            ->select(['id', 'nis', 'nisn', 'full_name', 'nickname', 'gender', 'student_photo_url', 'pin_access', 'birth_date', 'sub_unit', 'classroom_id', 'daycare_classroom_id', 'tpq_classroom_id', 'status', 'academic_year_id'])
             ->orderBy('full_name', 'asc')
             ->get();
 
             $reportCards = ReportCard::whereIn('student_id', $students->pluck('id'))
                 ->where('academic_year_id', $selectedYearId)
                 ->where('semester', $selectedSemester)
+                ->select(['id', 'student_id', 'classroom_id', 'academic_year_id', 'semester', 'status', 'entry_mode', 'pdf_file', 'approved_at', 'revision_notes', 'updated_at'])
                 ->get()
                 ->keyBy('student_id');
         }
@@ -241,9 +257,15 @@ class ReportCardController extends Controller
 
         $reportCard->teacher_notes = $validated['teacher_notes'] ?? null;
         $reportCard->parent_feedback = $validated['parent_feedback'] ?? null;
+
+        $isAdmin = auth()->user() && in_array(auth()->user()->role, ['super_admin', 'admin_sd', 'admin_paud', 'admin_smp', 'kepala_sekolah', 'waka']);
+        if (!$isAdmin && in_array($validated['status'], ['approved', 'published'])) {
+            $validated['status'] = 'submitted';
+        }
+
         $reportCard->status = $validated['status'];
 
-        if ($validated['status'] === 'approved' || $validated['status'] === 'published') {
+        if ($isAdmin && ($validated['status'] === 'approved' || $validated['status'] === 'published')) {
             $reportCard->approved_by = auth()->id();
             $reportCard->approved_at = now();
         }
@@ -317,10 +339,17 @@ class ReportCardController extends Controller
         $reportCard->homeroom_teacher_name = $student->classroom?->homeroomTeacher?->name ?? setting('default_teacher', 'Wali Kelas');
         $reportCard->principal_name = setting('principal_name', 'Ustadzah Kepala Sekolah, S.Pd');
         $reportCard->teacher_notes = $validated['teacher_notes'] ?? 'Berkas Rapor PDF resmi diunggah oleh Wali Kelas';
-        $reportCard->status = $validated['status'] ?? 'published';
+
+        $isAdmin = auth()->user() && in_array(auth()->user()->role, ['super_admin', 'admin_sd', 'admin_paud', 'admin_smp', 'kepala_sekolah', 'waka']);
+        $defaultStatus = $isAdmin ? 'published' : 'submitted';
+        $status = $validated['status'] ?? $defaultStatus;
+        if (!$isAdmin && in_array($status, ['published', 'approved'])) {
+            $status = 'submitted';
+        }
+        $reportCard->status = $status;
         $reportCard->created_by = $reportCard->created_by ?: auth()->id();
 
-        if ($reportCard->status === 'published' || $reportCard->status === 'approved') {
+        if ($isAdmin && ($reportCard->status === 'published' || $reportCard->status === 'approved')) {
             $reportCard->approved_by = auth()->id();
             $reportCard->approved_at = now();
         }

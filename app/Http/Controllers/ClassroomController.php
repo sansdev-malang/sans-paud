@@ -42,14 +42,40 @@ class ClassroomController extends Controller
 
         $classrooms = $query->orderBy('class_level_id')->orderBy('name')->get();
 
-        // Calculate active student counts per classroom considering multi-program (daycare & tpq)
-        foreach ($classrooms as $cls) {
-            $clsId = $cls->id;
-            $cls->active_students_count = Student::where(function ($q) use ($clsId) {
-                $q->where('classroom_id', $clsId)
-                  ->orWhere('daycare_classroom_id', $clsId)
-                  ->orWhere('tpq_classroom_id', $clsId);
-            })->where('status', 'aktif')->count();
+        // Fast Grouped Query to calculate active student counts per classroom without N+1 bottleneck
+        $classroomIds = $classrooms->pluck('id')->toArray();
+        if (!empty($classroomIds)) {
+            $primaryCounts = Student::where('status', 'aktif')
+                ->whereIn('classroom_id', $classroomIds)
+                ->selectRaw('classroom_id, count(*) as total')
+                ->groupBy('classroom_id')
+                ->pluck('total', 'classroom_id')
+                ->toArray();
+
+            $daycareCounts = Student::where('status', 'aktif')
+                ->whereIn('daycare_classroom_id', $classroomIds)
+                ->selectRaw('daycare_classroom_id, count(*) as total')
+                ->groupBy('daycare_classroom_id')
+                ->pluck('total', 'daycare_classroom_id')
+                ->toArray();
+
+            $tpqCounts = Student::where('status', 'aktif')
+                ->whereIn('tpq_classroom_id', $classroomIds)
+                ->selectRaw('tpq_classroom_id, count(*) as total')
+                ->groupBy('tpq_classroom_id')
+                ->pluck('total', 'tpq_classroom_id')
+                ->toArray();
+
+            foreach ($classrooms as $cls) {
+                $id = $cls->id;
+                if ($cls->sub_unit === 'DAYCARE') {
+                    $cls->active_students_count = ($primaryCounts[$id] ?? 0) + ($daycareCounts[$id] ?? 0);
+                } elseif ($cls->sub_unit === 'TPQ') {
+                    $cls->active_students_count = ($primaryCounts[$id] ?? 0) + ($tpqCounts[$id] ?? 0);
+                } else {
+                    $cls->active_students_count = $primaryCounts[$id] ?? 0;
+                }
+            }
         }
 
         // Calculate statistics

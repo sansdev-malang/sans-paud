@@ -88,14 +88,14 @@
             </h4>
             <div class="space-y-3">
                 @foreach($pendingSwapsForMe as $swap)
-                <div class="bg-slate-50 dark:bg-slate-900/50 p-4 border border-slate-100 dark:border-slate-850 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div class="bg-slate-50 dark:bg-slate-900/50 p-4 border border-slate-100 dark:border-slate-800 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div class="text-xs space-y-1">
                         <p class="font-bold text-slate-800 dark:text-slate-200">
                             {{ $swap->requester->name }} mengajak bertukar piket.
                         </p>
                         <p class="text-slate-500">
-                            Jadwal Anda: <span class="font-semibold text-slate-700 dark:text-slate-350">{{ $swap->target_date->translatedFormat('d M Y') }}</span> 
-                            ↔️ Dia: <span class="font-semibold text-slate-700 dark:text-slate-350">{{ $swap->requested_date->translatedFormat('d M Y') }}</span>
+                            Jadwal Anda: <span class="font-semibold text-slate-700 dark:text-slate-300">{{ $swap->target_date->translatedFormat('d M Y') }}</span> 
+                            ↔️ Dia: <span class="font-semibold text-slate-700 dark:text-slate-300">{{ $swap->requested_date->translatedFormat('d M Y') }}</span>
                         </p>
                         @if($swap->notes)
                         <p class="text-[11px] italic text-slate-400">Ket: "{{ $swap->notes }}"</p>
@@ -108,7 +108,7 @@
                         </form>
                         <form action="{{ route('picket-schedules.swap.reject', $swap->id) }}" method="POST" class="inline">
                             @csrf
-                            <button type="submit" class="h-7 px-3 bg-rose-50 hover:bg-rose-600 dark:bg-rose-950/20 dark:hover:bg-rose-900/40 text-rose-700 dark:text-rose-450 hover:text-white rounded-lg text-[10px] font-bold cursor-pointer transition-colors border border-rose-100/10">Tolak</button>
+                            <button type="submit" class="h-7 px-3 bg-rose-50 hover:bg-rose-600 dark:bg-rose-950/20 dark:hover:bg-rose-900/40 text-rose-700 dark:text-rose-400 hover:text-white rounded-lg text-[10px] font-bold cursor-pointer transition-colors border border-rose-100/10">Tolak</button>
                         </form>
                     </div>
                 </div>
@@ -126,7 +126,7 @@
             </h4>
             <div class="space-y-3 max-h-48 overflow-y-auto pr-1">
                 @foreach($mySubmittedSwaps as $swap)
-                <div class="p-3 bg-slate-50 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-850 rounded-xl flex items-center justify-between gap-3 text-xs">
+                <div class="p-3 bg-slate-50 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-800 rounded-xl flex items-center justify-between gap-3 text-xs">
                     <div class="space-y-1">
                         <p class="font-medium text-slate-700 dark:text-slate-300">
                             Tukar dengan: <span class="font-bold text-slate-800 dark:text-slate-100">{{ $swap->targetEmployee->name }}</span>
@@ -143,7 +143,7 @@
                         @elseif($swap->status === 'approved')
                             <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200/20">Selesai/Tukar</span>
                         @else
-                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-450 border border-rose-200/20">Ditolak</span>
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-400 border border-rose-200/20">Ditolak</span>
                         @endif
                     </div>
                 </div>
@@ -197,11 +197,11 @@
                             @endforeach
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-200 dark:divide-slate-850">
+                    <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
                         @forelse($areas as $area)
                         <tr class="hover:bg-slate-50/40 dark:hover:bg-slate-900/10 transition-colors">
                             <!-- AREA & TUPOKSI COLUMN -->
-                            <td class="px-4 py-4 align-top font-medium text-slate-800 dark:text-slate-200 border-r border-slate-100 dark:border-slate-850/50 space-y-3">
+                            <td class="px-4 py-4 align-top font-medium text-slate-800 dark:text-slate-200 border-r border-slate-100 dark:border-slate-800/50 space-y-3">
                                 <div class="flex items-start gap-2.5">
                                     <div class="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-100/10 shadow-3xs mt-0.5 print:hidden">
                                         <i data-lucide="map-pin" class="w-4 h-4"></i>
@@ -233,7 +233,7 @@
 
                             <!-- DAYS COLUMNS -->
                             @foreach($days as $idx => $day)
-                                <td class="px-4 py-4 align-top border-r border-slate-100 dark:border-slate-850/30">
+                                <td class="px-4 py-4 align-top border-r border-slate-100 dark:border-slate-800/30">
                                     <div class="flex flex-col gap-1.5">
                                         @php
                                             $daySchedules = $area->schedules->where('day_of_week', $idx);
@@ -243,10 +243,10 @@
                                             <div class="p-2 border rounded-xl flex items-center gap-2 transition-all shadow-3xs"
                                                 :class="searchQuery.trim() !== '' && '{{ addslashes(strtolower($schedule->employee->name)) }}'.includes(searchQuery.toLowerCase())
                                                     ? 'bg-indigo-500/10 border-indigo-500 dark:border-indigo-500 text-indigo-700 dark:text-indigo-300 scale-[1.02] shadow-xs'
-                                                    : 'bg-slate-50/50 dark:bg-slate-900/30 border-slate-200/50 dark:border-slate-850 text-slate-700 dark:text-slate-350'">
+                                                    : 'bg-slate-50/50 dark:bg-slate-900/30 border-slate-200/50 dark:border-slate-800 text-slate-700 dark:text-slate-300'">
                                                 
                                                 <!-- Teacher avatar inside circle (hidden during print) -->
-                                                <div class="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-655 dark:text-slate-400 font-bold text-[9px] flex items-center justify-center shrink-0 uppercase border border-slate-300/10 print:hidden">
+                                                <div class="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold text-[9px] flex items-center justify-center shrink-0 uppercase border border-slate-300/10 print:hidden">
                                                     @if($schedule->employee->photo)
                                                         <img src="{{ asset('storage/' . $schedule->employee->photo) }}" class="w-full h-full object-cover rounded-full">
                                                     @else
@@ -270,7 +270,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="8" class="text-center py-16 text-slate-455">Belum ada data area dan jadwal piket.</td>
+                            <td colspan="8" class="text-center py-16 text-slate-400">Belum ada data area dan jadwal piket.</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -313,12 +313,12 @@
             <!-- Areas List for Active Day -->
             <div class="space-y-4 mt-2">
                 @foreach($areas as $area)
-                    <div class="bg-slate-50/50 dark:bg-slate-900/30 border border-slate-155 dark:border-slate-850 rounded-2xl p-4 space-y-3">
+                    <div class="bg-slate-50/50 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-800 rounded-2xl p-4 space-y-3">
                         <!-- Area Header -->
                         <div class="flex justify-between items-start border-b border-slate-200/40 dark:border-slate-800 pb-2.5">
                             <div class="space-y-0.5 text-left">
                                 <h4 class="font-bold text-slate-800 dark:text-slate-200 text-xs">{{ $area->name }}</h4>
-                                <p class="text-[10px] text-slate-450 font-medium">⏰ {{ $area->duty_hours }}</p>
+                                <p class="text-[10px] text-slate-400 font-medium">⏰ {{ $area->duty_hours }}</p>
                             </div>
                         </div>
 
@@ -333,9 +333,9 @@
                                         <div class="p-3 border rounded-xl flex items-center justify-between gap-3 transition-all"
                                             :class="searchQuery.trim() !== '' && '{{ addslashes(strtolower($schedule->employee->name)) }}'.includes(searchQuery.toLowerCase())
                                                 ? 'bg-indigo-500/10 border-indigo-500 text-indigo-700 dark:text-indigo-300'
-                                                : 'bg-white dark:bg-slate-950 border-slate-200/80 dark:border-slate-850 text-slate-700 dark:text-slate-350'">
+                                                : 'bg-white dark:bg-slate-950 border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-300'">
                                             <div class="flex items-center gap-3">
-                                                <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-655 dark:text-slate-400 font-bold text-xs flex items-center justify-center shrink-0 uppercase border border-slate-300/10">
+                                                <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold text-xs flex items-center justify-center shrink-0 uppercase border border-slate-300/10">
                                                     @if($schedule->employee->photo)
                                                         <img src="{{ asset('storage/' . $schedule->employee->photo) }}" class="w-full h-full object-cover rounded-full">
                                                     @else
@@ -360,7 +360,7 @@
                         <!-- Jobs (Tupoksi) for this Area -->
                         @if($area->jobs)
                         <div x-data="{ openJobs: false }" class="pt-1.5">
-                            <button @click="openJobs = !openJobs" class="flex items-center justify-between w-full text-[10px] font-bold text-slate-455 hover:text-slate-655 dark:hover:text-slate-200 cursor-pointer border-0 bg-transparent py-1">
+                            <button @click="openJobs = !openJobs" class="flex items-center justify-between w-full text-[10px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer border-0 bg-transparent py-1">
                                 <span>TULISAN TUPOKSI (JOBS)</span>
                                 <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform duration-200" :style="openJobs ? 'transform: rotate(180deg);' : ''"></i>
                             </button>
@@ -368,7 +368,7 @@
                                 @foreach(explode("\n", $area->jobs) as $job)
                                     @if(trim($job))
                                     <div class="flex items-start gap-2">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-450 mt-1.5 shrink-0"></span>
+                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400 mt-1.5 shrink-0"></span>
                                         <p class="leading-normal">{{ trim($job) }}</p>
                                     </div>
                                     @endif
@@ -393,7 +393,7 @@
                 <div x-show="showSwapModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-left shadow-xl overflow-hidden z-10 flex flex-col">
                     <div class="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-950">
                         <h4 class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">Ajukan Permohonan Tukar Piket</h4>
-                        <button @click="showSwapModal = false" class="p-1 rounded-lg text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-850 hover:text-slate-700 cursor-pointer border-0 bg-transparent flex items-center justify-center">
+                        <button @click="showSwapModal = false" class="p-1 rounded-lg text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 cursor-pointer border-0 bg-transparent flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                         </button>
                     </div>

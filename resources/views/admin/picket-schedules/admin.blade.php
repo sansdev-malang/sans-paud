@@ -152,8 +152,8 @@
         <div class="space-y-6">
             <!-- Draggable Teachers List Card -->
             <div class="border border-slate-200 dark:border-slate-800 rounded-2xl p-5 bg-white dark:bg-slate-900/50 shadow-3xs">
-                <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-350 mb-2">Daftar Guru (Seret / Drag)</h4>
-                <p class="text-[10px] text-slate-450 leading-relaxed mb-4">Tarik nama guru di bawah ini dan jatuhkan ke kotak hari pada tabel di sebelah kanan.</p>
+                <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Daftar Guru (Seret / Drag)</h4>
+                <p class="text-[10px] text-slate-400 leading-relaxed mb-4">Tarik nama guru di bawah ini dan jatuhkan ke kotak hari pada tabel di sebelah kanan.</p>
                 
                 <!-- Filter Search -->
                 <div class="mb-3">
@@ -166,7 +166,7 @@
                         <div x-show="teacherSearch === '' || '{{ addslashes(strtolower($emp->name)) }}'.includes(teacherSearch.toLowerCase())"
                             draggable="true"
                             @dragstart="event.dataTransfer.setData('text/plain', JSON.stringify({ employeeId: '{{ $emp->id }}' }))"
-                            class="p-2.5 border border-slate-200 dark:border-slate-800/80 rounded-xl bg-slate-50/50 dark:bg-slate-950 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 hover:border-indigo-300 dark:hover:border-indigo-850 flex items-center gap-2.5 cursor-grab active:cursor-grabbing transition-all select-none">
+                            class="p-2.5 border border-slate-200 dark:border-slate-800/80 rounded-xl bg-slate-50/50 dark:bg-slate-950 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 hover:border-indigo-300 dark:hover:border-indigo-800 flex items-center gap-2.5 cursor-grab active:cursor-grabbing transition-all select-none">
                             
                             <div class="w-6 h-6 rounded-full bg-slate-250 dark:bg-slate-800 text-[10px] font-extrabold flex items-center justify-center text-slate-600 dark:text-slate-400 shrink-0 uppercase border border-slate-300/10">
                                 {{ substr($emp->raw_name, 0, 2) }}
@@ -186,8 +186,8 @@
             <!-- Table/Board Toggles -->
             <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-slate-50 dark:bg-slate-950">
                 <div>
-                    <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-350">Papan Penjadwalan</h4>
-                    <p class="text-[10px] text-slate-455 mt-0.5">Tarik-lepas kartu guru atau kelola penugasan aktif di sini</p>
+                    <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">Papan Penjadwalan</h4>
+                    <p class="text-[10px] text-slate-400 mt-0.5">Tarik-lepas kartu guru atau kelola penugasan aktif di sini</p>
                 </div>
                 <div class="flex items-center gap-2.5">
                     <button @click="showAssignModal = true" class="h-8 px-3 inline-flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100/50 dark:hover:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded-xl text-xs font-semibold cursor-pointer border-0 transition-colors">
@@ -205,7 +205,7 @@
             <div x-show="viewMode === 'board'" class="p-5 overflow-x-auto flex-1">
                 <table class="w-full text-xs border-collapse">
                     <thead>
-                        <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-350 text-left">
+                        <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-left">
                             <th class="pb-3 font-black uppercase tracking-wider w-40">Area Piket</th>
                             @php
                                 $days = [1 => 'Senin', 2 => 'Selasa', 3 => 'Rabu', 4 => 'Kamis', 5 => 'Jumat', 6 => 'Sabtu'];
@@ -215,7 +215,7 @@
                             @endforeach
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-slate-850">
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                         @forelse($areas->where('is_active', true) as $area)
                         <tr>
                             <!-- Area info -->
@@ -237,13 +237,13 @@
                                             <!-- Assigned Teacher Card (Also Draggable to move) -->
                                             <div draggable="true"
                                                 @dragstart="event.dataTransfer.setData('text/plain', JSON.stringify({ employeeId: sched.employee_id }))"
-                                                class="p-2 bg-white dark:bg-slate-950 border border-slate-200/80 dark:border-slate-850 rounded-xl shadow-3xs flex items-center justify-between gap-1.5 hover:border-indigo-300 dark:hover:border-indigo-800 cursor-grab active:cursor-grabbing">
+                                                class="p-2 bg-white dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 rounded-xl shadow-3xs flex items-center justify-between gap-1.5 hover:border-indigo-300 dark:hover:border-indigo-800 cursor-grab active:cursor-grabbing">
                                                 <div class="min-w-0 leading-tight text-left">
                                                     <p class="font-bold text-[10px] text-slate-800 dark:text-slate-200 truncate pr-1" x-text="sched.employee_name"></p>
                                                 </div>
                                                 
                                                 <!-- Delete button via AJAX -->
-                                                <button type="button" @click="removeAssignment(sched.id)" class="h-5 w-5 inline-flex items-center justify-center text-slate-400 hover:text-rose-655 dark:hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-md cursor-pointer border-0 bg-transparent transition-colors">
+                                                <button type="button" @click="removeAssignment(sched.id)" class="h-5 w-5 inline-flex items-center justify-center text-slate-400 hover:text-rose-600 dark:hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-md cursor-pointer border-0 bg-transparent transition-colors">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                                                 </button>
                                             </div>
@@ -260,7 +260,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="text-center py-16 text-slate-455">Belum ada area piket aktif. Aktifkan area terlebih dahulu.</td>
+                            <td colspan="7" class="text-center py-16 text-slate-400">Belum ada area piket aktif. Aktifkan area terlebih dahulu.</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -271,21 +271,21 @@
             <div x-show="viewMode === 'list'" class="flex-1">
                 <table class="w-full text-xs border-collapse">
                     <thead>
-                        <tr class="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-350">
+                        <tr class="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
                             <th class="px-4 py-3.5 text-left font-black uppercase tracking-wider">Area</th>
                             <th class="px-4 py-3.5 text-left font-black uppercase tracking-wider">Hari</th>
                             <th class="px-4 py-3.5 text-left font-black uppercase tracking-wider">Guru/Karyawan</th>
                             <th class="px-4 py-3.5 text-right font-black uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-slate-850">
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                         <template x-for="sched in [...schedules].sort((a, b) => a.picket_area_id - b.picket_area_id || a.day_of_week - b.day_of_week)" :key="sched.id">
                             <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-900/20 transition-colors">
                                 <td class="px-4 py-3.5 font-bold text-slate-800 dark:text-slate-200" x-text="sched.picket_area_name"></td>
                                 <td class="px-4 py-3.5 text-slate-600 dark:text-slate-400 font-semibold" x-text="{1: 'Senin', 2: 'Selasa', 3: 'Rabu', 4: 'Kamis', 5: 'Jumat', 6: 'Sabtu'}[sched.day_of_week] || '-'"></td>
                                 <td class="px-4 py-3.5 text-slate-800 dark:text-slate-100" x-text="sched.employee_name"></td>
                                 <td class="px-4 py-3.5 text-right">
-                                    <button type="button" @click="removeAssignment(sched.id)" class="h-8 w-8 inline-flex items-center justify-center bg-rose-50 hover:bg-rose-600 dark:bg-rose-950/20 dark:hover:bg-rose-900/40 text-rose-700 dark:text-rose-450 hover:text-white rounded-lg border border-rose-100/10 cursor-pointer transition-all shadow-3xs">
+                                    <button type="button" @click="removeAssignment(sched.id)" class="h-8 w-8 inline-flex items-center justify-center bg-rose-50 hover:bg-rose-600 dark:bg-rose-950/20 dark:hover:bg-rose-900/40 text-rose-700 dark:text-rose-400 hover:text-white rounded-lg border border-rose-100/10 cursor-pointer transition-all shadow-3xs">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
                                     </button>
                                 </td>
@@ -311,7 +311,7 @@
     <!-- TAB 2: AREAS CRUD -->
     <div x-show="tab === 'areas'" class="space-y-4">
         <div class="flex justify-between items-center">
-            <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-350">Daftar Area Piket Sekolah</h4>
+            <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">Daftar Area Piket Sekolah</h4>
             <button @click="openAreaCreate()" class="h-8 px-3 inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold cursor-pointer transition-colors shadow-2xs">
                 <i data-lucide="plus" class="w-3.5 h-3.5"></i>
                 Tambah Area
@@ -321,7 +321,7 @@
         <div class="border border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900/10 overflow-hidden shadow-xs">
             <table class="w-full text-xs border-collapse">
                 <thead>
-                    <tr class="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-350">
+                    <tr class="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
                         <th class="px-4 py-3.5 text-left font-black uppercase tracking-wider w-44">Nama Area</th>
                         <th class="px-4 py-3.5 text-left font-black uppercase tracking-wider w-32">Jam Tugas</th>
                         <th class="px-4 py-3.5 text-left font-black uppercase tracking-wider">Tupoksi (Jobs)</th>
@@ -329,12 +329,12 @@
                         <th class="px-4 py-3.5 text-right font-black uppercase tracking-wider w-24">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 dark:divide-slate-850">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                     @forelse($areas as $area)
                     <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-900/20 transition-colors">
                         <td class="px-4 py-3.5 font-bold text-slate-800 dark:text-slate-200">{{ $area->name }}</td>
                         <td class="px-4 py-3.5 text-slate-600 dark:text-slate-400 font-semibold">{{ $area->duty_hours }}</td>
-                        <td class="px-4 py-3.5 text-slate-500 dark:text-slate-455 max-w-md truncate">
+                        <td class="px-4 py-3.5 text-slate-500 dark:text-slate-400 max-w-md truncate">
                             {{ str_replace("\n", ' | ', $area->jobs) ?: '-' }}
                         </td>
                         <td class="px-4 py-3.5 text-center">
@@ -346,14 +346,14 @@
                         </td>
                         <td class="px-4 py-3.5 text-right">
                             <div class="flex items-center justify-end gap-1.5">
-                                <button @click="openAreaEdit({{ json_encode($area) }})" class="h-8 w-8 inline-flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-700 dark:text-slate-350 rounded-lg cursor-pointer transition-all shadow-3xs">
+                                <button @click="openAreaEdit({{ json_encode($area) }})" class="h-8 w-8 inline-flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-700 dark:text-slate-300 rounded-lg cursor-pointer transition-all shadow-3xs">
                                     <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
                                 </button>
                                 <form action="{{ route('picket-schedules.areas.destroy', $area->id) }}" method="POST" 
                                     onsubmit="return confirm('Apakah Anda yakin ingin menghapus area piket ini? Seluruh jadwal terhubung akan ikut terhapus.')" class="inline">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="h-8 w-8 inline-flex items-center justify-center bg-rose-50 hover:bg-rose-600 dark:bg-rose-950/20 dark:hover:bg-rose-900/40 text-rose-700 dark:text-rose-450 hover:text-white rounded-lg border border-rose-100/10 cursor-pointer transition-all shadow-3xs">
+                                    <button type="submit" class="h-8 w-8 inline-flex items-center justify-center bg-rose-50 hover:bg-rose-600 dark:bg-rose-950/20 dark:hover:bg-rose-900/40 text-rose-700 dark:text-rose-400 hover:text-white rounded-lg border border-rose-100/10 cursor-pointer transition-all shadow-3xs">
                                         <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                                     </button>
                                 </form>
@@ -372,12 +372,12 @@
 
     <!-- TAB 3: SWAP APPROVALS -->
     <div x-show="tab === 'swaps'" class="space-y-4">
-        <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-350">Daftar Pengajuan Tukar Jadwal Piket</h4>
+        <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">Daftar Pengajuan Tukar Jadwal Piket</h4>
         
         <div class="border border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900/10 overflow-hidden shadow-xs">
             <table class="w-full text-xs border-collapse">
                 <thead>
-                    <tr class="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-350">
+                    <tr class="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
                         <th class="px-4 py-3.5 text-left font-black uppercase tracking-wider">Guru Pengaju</th>
                         <th class="px-4 py-3.5 text-left font-black uppercase tracking-wider">Tanggal Asal</th>
                         <th class="px-4 py-3.5 text-left font-black uppercase tracking-wider">Guru Target</th>
@@ -387,14 +387,14 @@
                         <th class="px-4 py-3.5 text-right font-black uppercase tracking-wider">Aksi Verifikasi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 dark:divide-slate-850">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                     @forelse($swaps as $swap)
                     <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-900/20 transition-colors">
                         <td class="px-4 py-3.5 font-bold text-slate-800 dark:text-slate-200">{{ $swap->requester->name }}</td>
                         <td class="px-4 py-3.5 text-slate-600 dark:text-slate-400 font-semibold">{{ $swap->requested_date->translatedFormat('d M Y') }}</td>
                         <td class="px-4 py-3.5 text-slate-800 dark:text-slate-100">{{ $swap->targetEmployee->name }}</td>
                         <td class="px-4 py-3.5 text-slate-600 dark:text-slate-400 font-semibold">{{ $swap->target_date->translatedFormat('d M Y') }}</td>
-                        <td class="px-4 py-3.5 text-slate-550 dark:text-slate-455 max-w-xs truncate">{{ $swap->notes ?: '-' }}</td>
+                        <td class="px-4 py-3.5 text-slate-500 dark:text-slate-400 max-w-xs truncate">{{ $swap->notes ?: '-' }}</td>
                         <td class="px-4 py-3.5 text-center">
                             @if($swap->status === 'pending')
                                 <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 border border-amber-200/20">Menunggu Target</span>
@@ -415,7 +415,7 @@
                                 </form>
                                 <form action="{{ route('picket-schedules.swap.reject', $swap->id) }}" method="POST" class="inline">
                                     @csrf
-                                    <button type="submit" class="h-7 px-2.5 bg-rose-50 hover:bg-rose-600 dark:bg-rose-950/20 dark:hover:bg-rose-900/40 text-rose-700 dark:text-rose-455 hover:text-white rounded-lg text-[10px] font-bold cursor-pointer transition-colors border border-rose-100/10">Tolak</button>
+                                    <button type="submit" class="h-7 px-2.5 bg-rose-50 hover:bg-rose-600 dark:bg-rose-950/20 dark:hover:bg-rose-900/40 text-rose-700 dark:text-rose-400 hover:text-white rounded-lg text-[10px] font-bold cursor-pointer transition-colors border border-rose-100/10">Tolak</button>
                                 </form>
                             </div>
                             @else
@@ -444,7 +444,7 @@
                 <div x-show="showAreaModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-left shadow-xl overflow-hidden z-10 flex flex-col">
                     <div class="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-950">
                         <h4 class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200" x-text="editAreaMode ? 'Edit Data Area Piket' : 'Tambah Area Piket Baru'"></h4>
-                        <button @click="showAreaModal = false" class="p-1 rounded-lg text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-850 hover:text-slate-700 cursor-pointer border-0 bg-transparent flex items-center justify-center">
+                        <button @click="showAreaModal = false" class="p-1 rounded-lg text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 cursor-pointer border-0 bg-transparent flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                         </button>
                     </div>
@@ -515,7 +515,7 @@
                 <div x-show="showAssignModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-left shadow-xl overflow-hidden z-10 flex flex-col">
                     <div class="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-950">
                         <h4 class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">Tugaskan Guru Piket (Manual)</h4>
-                        <button @click="showAssignModal = false" class="p-1 rounded-lg text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-850 hover:text-slate-700 cursor-pointer border-0 bg-transparent flex items-center justify-center">
+                        <button @click="showAssignModal = false" class="p-1 rounded-lg text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 cursor-pointer border-0 bg-transparent flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                         </button>
                     </div>
@@ -589,7 +589,7 @@
                                 <p class="text-[10px] text-slate-400">Duplikasi seluruh susunan jadwal piket ke tahun ajaran baru</p>
                             </div>
                         </div>
-                        <button @click="showCloneModal = false" class="p-1 rounded-lg text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-850 hover:text-slate-700 cursor-pointer border-0 bg-transparent flex items-center justify-center">
+                        <button @click="showCloneModal = false" class="p-1 rounded-lg text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 cursor-pointer border-0 bg-transparent flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                         </button>
                     </div>

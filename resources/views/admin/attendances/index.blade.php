@@ -292,10 +292,10 @@
                                                     @php
                                                         $pCode = $detail['pending_leave']['leave_code'];
                                                         $colorMap = [
-                                                            'S' => 'bg-amber-50/40 dark:bg-amber-955/10 text-amber-500 dark:text-amber-500 border border-dashed border-amber-200/50',
-                                                            'I' => 'bg-purple-50/40 dark:bg-purple-955/10 text-purple-500 dark:text-purple-500 border border-dashed border-purple-200/50',
-                                                            'C' => 'bg-blue-50/40 dark:bg-blue-955/10 text-blue-500 dark:text-blue-500 border border-dashed border-blue-200/50',
-                                                            'H' => 'bg-emerald-50/40 dark:bg-emerald-955/10 text-emerald-500 dark:text-emerald-500 border border-dashed border-emerald-200/50'
+                                                            'S' => 'bg-amber-50/40 dark:bg-amber-950/10 text-amber-500 dark:text-amber-500 border border-dashed border-amber-200/50',
+                                                            'I' => 'bg-purple-50/40 dark:bg-purple-950/10 text-purple-500 dark:text-purple-500 border border-dashed border-purple-200/50',
+                                                            'C' => 'bg-blue-50/40 dark:bg-blue-950/10 text-blue-500 dark:text-blue-500 border border-dashed border-blue-200/50',
+                                                            'H' => 'bg-emerald-50/40 dark:bg-emerald-950/10 text-emerald-500 dark:text-emerald-500 border border-dashed border-emerald-200/50'
                                                         ];
                                                         $pColorClass = $colorMap[$pCode] ?? 'bg-slate-50/40 text-slate-500 border border-dashed border-slate-200/50';
                                                     @endphp
@@ -319,10 +319,10 @@
                                                     @php
                                                         $pCode = $detail['pending_leave']['leave_code'];
                                                         $colorMap = [
-                                                            'S' => 'bg-amber-50/40 dark:bg-amber-955/10 text-amber-500 dark:text-amber-500 border border-dashed border-amber-200/50',
-                                                            'I' => 'bg-purple-50/40 dark:bg-purple-955/10 text-purple-500 dark:text-purple-550 border border-dashed border-purple-200/50',
-                                                            'C' => 'bg-blue-50/40 dark:bg-blue-955/10 text-blue-500 dark:text-blue-500 border border-dashed border-blue-200/50',
-                                                            'H' => 'bg-emerald-50/40 dark:bg-emerald-955/10 text-emerald-500 dark:text-emerald-500 border border-dashed border-emerald-200/50'
+                                                            'S' => 'bg-amber-50/40 dark:bg-amber-950/10 text-amber-500 dark:text-amber-500 border border-dashed border-amber-200/50',
+                                                            'I' => 'bg-purple-50/40 dark:bg-purple-950/10 text-purple-500 dark:text-purple-550 border border-dashed border-purple-200/50',
+                                                            'C' => 'bg-blue-50/40 dark:bg-blue-950/10 text-blue-500 dark:text-blue-500 border border-dashed border-blue-200/50',
+                                                            'H' => 'bg-emerald-50/40 dark:bg-emerald-950/10 text-emerald-500 dark:text-emerald-500 border border-dashed border-emerald-200/50'
                                                         ];
                                                         $pColorClass = $colorMap[$pCode] ?? 'bg-slate-50/40 text-slate-500 border border-dashed border-slate-200/50';
                                                     @endphp
@@ -332,7 +332,7 @@
                                                 @endif
                                             </div>
                                         @elseif($detail['status'] === 'Libur')
-                                            <div class="mx-auto w-full h-full min-h-[28px] flex items-center justify-center bg-red-50/50 dark:bg-red-950/20 text-rose-500 dark:text-rose-450 border border-red-100 dark:border-red-900/30 rounded font-bold text-[9px]">OFF</div>
+                                            <div class="mx-auto w-full h-full min-h-[28px] flex items-center justify-center bg-red-50/50 dark:bg-red-950/20 text-rose-500 dark:text-rose-400 border border-red-100 dark:border-red-900/30 rounded font-bold text-[9px]">OFF</div>
                                         @elseif($detail['status'] === 'Off')
                                             <div class="mx-auto w-full h-full min-h-[28px] flex items-center justify-center bg-slate-100 dark:bg-slate-900/40 text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-800/40 rounded font-bold text-[9px]">OFF</div>
                                         @elseif($detail['status'] === 'Cuti/Izin')
@@ -342,17 +342,17 @@
                                                 
                                                 if ($isPending) {
                                                     $colorMap = [
-                                                        'S' => 'bg-amber-50/40 dark:bg-amber-955/10 text-amber-500 dark:text-amber-500 border border-dashed border-amber-200/50',
-                                                        'I' => 'bg-purple-50/40 dark:bg-purple-955/10 text-purple-500 dark:text-purple-550 border border-dashed border-purple-200/50',
-                                                        'C' => 'bg-blue-50/40 dark:bg-blue-955/10 text-blue-500 dark:text-blue-500 border border-dashed border-blue-200/50',
-                                                        'H' => 'bg-emerald-50/40 dark:bg-emerald-955/10 text-emerald-500 dark:text-emerald-500 border border-dashed border-emerald-200/50'
+                                                        'S' => 'bg-amber-50/40 dark:bg-amber-950/20 text-amber-500 dark:text-amber-400 border border-dashed border-amber-200/50',
+                                                        'I' => 'bg-purple-50/40 dark:bg-purple-950/20 text-purple-500 dark:text-purple-400 border border-dashed border-purple-200/50',
+                                                        'C' => 'bg-blue-50/40 dark:bg-blue-950/20 text-blue-500 dark:text-blue-400 border border-dashed border-blue-200/50',
+                                                        'H' => 'bg-emerald-50/40 dark:bg-emerald-950/20 text-emerald-500 dark:text-emerald-400 border border-dashed border-emerald-200/50'
                                                     ];
                                                 } else {
                                                     $colorMap = [
                                                         'S' => 'bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-900/30',
                                                         'I' => 'bg-purple-50 dark:bg-purple-950/20 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-purple-900/30',
                                                         'C' => 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/30',
-                                                        'H' => 'bg-emerald-50 dark:bg-emerald-955/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30'
+                                                        'H' => 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30'
                                                     ];
                                                 }
                                                 $colorClass = $colorMap[$leaveCode] ?? 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400';
@@ -373,12 +373,12 @@
                                                     <div class="w-full flex justify-center scale-90">
                                                         <span class="px-1.5 py-0.5 rounded font-extrabold text-[8px] leading-none uppercase {{ $colorClass }}">{{ $leaveCode }}</span>
                                                     </div>
-                                                    <span class="text-[10px] font-bold text-slate-350 dark:text-slate-655">-</span>
+                                                    <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500">-</span>
                                                 </div>
                                             @elseif(!empty($detail['check_out']) && empty($detail['check_in']))
                                                 <!-- Only Check-Out -->
                                                 <div class="flex flex-col gap-0.5 items-center justify-center">
-                                                    <span class="text-[10px] font-bold text-slate-350 dark:text-slate-655">-</span>
+                                                    <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500">-</span>
                                                     <div class="w-full flex justify-center scale-90">
                                                         <span class="px-1.5 py-0.5 rounded font-extrabold text-[8px] leading-none uppercase {{ $colorClass }}">{{ $leaveCode }}</span>
                                                     </div>
@@ -390,7 +390,7 @@
                                                     <div class="w-full flex justify-center scale-90">
                                                         <span class="px-1.5 py-0.5 rounded font-extrabold text-[8px] leading-none uppercase {{ $colorClass }}">{{ $leaveCode }}</span>
                                                     </div>
-                                                    <span class="text-[10px] font-bold text-slate-355 dark:text-slate-655">-</span>
+                                                    <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500">-</span>
                                                 </div>
                                             @else
                                                 <!-- Approved and Neither -->
@@ -576,7 +576,7 @@
                             <template x-for="day in calendarDays" :key="day.dateStr">
                                 <div class="aspect-square border border-slate-100 dark:border-slate-800/40 rounded-lg p-1 sm:p-1.5 flex flex-col justify-between"
                                      :class="[
-                                         day.isCurrentMonth ? (day.dateStr && new Date(day.dateStr).getDay() === 0 ? 'bg-red-50/50 dark:bg-red-95/15' : 'bg-white dark:bg-slate-900') : 'bg-slate-50/50 dark:bg-slate-955/20 opacity-40'
+                                         day.isCurrentMonth ? (day.dateStr && new Date(day.dateStr).getDay() === 0 ? 'bg-red-50/50 dark:bg-red-950/15' : 'bg-white dark:bg-slate-900') : 'bg-slate-50/50 dark:bg-slate-950/20 opacity-40'
                                      ]">
                                      
                                     <!-- Day Number -->
@@ -618,7 +618,7 @@
   
                                                 <!-- Alfa -->
                                                 <template x-if="selectedReport.daily_details[day.dateStr].status === 'Alfa'">
-                                                    <div class="w-full py-1 text-center bg-rose-50 dark:bg-rose-955/20 text-rose-600 dark:text-rose-404 rounded-md text-[9px] font-extrabold">A</div>
+                                                    <div class="w-full py-1 text-center bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-404 rounded-md text-[9px] font-extrabold">A</div>
                                                 </template>
   
                                                 <!-- Off -->
@@ -650,14 +650,14 @@
                                                                 <div class="w-full py-0.5 text-center rounded text-[9px] font-extrabold"
                                                                      :class="getClassForLeave(selectedReport.daily_details[day.dateStr])"
                                                                      x-text="selectedReport.daily_details[day.dateStr].leave_code"></div>
-                                                                <span class="text-[10px] text-slate-350 dark:text-slate-650">-</span>
+                                                                <span class="text-[10px] text-slate-300 dark:text-slate-650">-</span>
                                                             </div>
                                                         </template>
                                                         
                                                         <!-- Only Check-Out -->
                                                         <template x-if="selectedReport.daily_details[day.dateStr].check_out && !selectedReport.daily_details[day.dateStr].check_in">
                                                             <div class="flex flex-col items-center w-full leading-none">
-                                                                <span class="text-[10px] text-slate-350 dark:text-slate-650">-</span>
+                                                                <span class="text-[10px] text-slate-400 dark:text-slate-500">-</span>
                                                                 <div class="w-full py-0.5 text-center rounded text-[9px] font-extrabold"
                                                                      :class="getClassForLeave(selectedReport.daily_details[day.dateStr])"
                                                                      x-text="selectedReport.daily_details[day.dateStr].leave_code"></div>
@@ -673,7 +673,7 @@
                                                                      :class="getClassForLeave(selectedReport.daily_details[day.dateStr])"
                                                                      x-text="selectedReport.daily_details[day.dateStr].leave_code"></div>
                                                                 <template x-if="selectedReport.daily_details[day.dateStr].is_pending">
-                                                                    <span class="text-[10px] font-bold text-slate-355 dark:text-slate-655 mt-0.5">-</span>
+                                                                    <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-0.5">-</span>
                                                                 </template>
                                                             </div>
                                                         </template>
@@ -696,7 +696,7 @@
                     <div class="border-t border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/30 px-5 py-3 flex flex-row items-center justify-between gap-4">
                         <!-- Stats Grid -->
                         <div class="flex flex-wrap gap-2.5 text-[9px] md:text-xs">
-                            <span class="font-bold text-slate-700 dark:text-slate-350">Ringkasan:</span>
+                            <span class="font-bold text-slate-700 dark:text-slate-300">Ringkasan:</span>
                             <span class="text-slate-600 dark:text-slate-400">Hadir: <strong class="text-emerald-650 dark:text-emerald-405" x-text="stats.hadir"></strong></span>
                             <span class="text-slate-600 dark:text-slate-400">Telat: <strong class="text-amber-500" x-text="stats.telat"></strong></span>
                             <span class="text-slate-600 dark:text-slate-400">Alfa: <strong class="text-rose-500" x-text="stats.alfa"></strong></span>

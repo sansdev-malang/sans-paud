@@ -23,7 +23,7 @@
                 <button type="button" @click.prevent="showCreateModal = true" class="h-9 px-4 bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-slate-200 text-white dark:text-slate-900 text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer flex items-center gap-2">
                     <i data-lucide="user-plus" class="w-4 h-4"></i>
                     Tambah Guru
-                </a>
+                </button>
             </div>
         </section>
 

@@ -111,25 +111,21 @@ class StudentController extends Controller
             }
         }
 
-        // Stats calculation based on selected academic year
-        $statsQuery = Student::query();
+        // Fast Single Aggregation Query for all Student Stats
+        $statsAgg = Student::query();
         if ($selectedYearId) {
-            $statsQuery->where('academic_year_id', $selectedYearId);
+            $statsAgg->where('academic_year_id', $selectedYearId);
         }
-
-        $totalStudents = (clone $statsQuery)->count();
-        $activeStudents = (clone $statsQuery)->where('status', 'aktif')->count();
-        $maleStudents = (clone $statsQuery)->where('status', 'aktif')->whereIn('gender', ['L', 'Laki-laki', 'Male'])->count();
-        $femaleStudents = (clone $statsQuery)->where('status', 'aktif')->whereIn('gender', ['P', 'Perempuan', 'Female'])->count();
-        
-        $countPg = (clone $statsQuery)->where('status', 'aktif')->where('sub_unit', 'PG')->count();
-        $countTk = (clone $statsQuery)->where('status', 'aktif')->where('sub_unit', 'TK')->count();
-        $countDaycare = (clone $statsQuery)->where('status', 'aktif')->where(function ($q) {
-            $q->where('sub_unit', 'DAYCARE')->orWhereNotNull('daycare_classroom_id');
-        })->count();
-        $countTpq = (clone $statsQuery)->where('status', 'aktif')->where(function ($q) {
-            $q->where('sub_unit', 'TPQ')->orWhere('is_tpq', true)->orWhereNotNull('tpq_classroom_id');
-        })->count();
+        $aggregated = $statsAgg->selectRaw("
+            COUNT(*) as total_all,
+            SUM(CASE WHEN status = 'aktif' THEN 1 ELSE 0 END) as total_active,
+            SUM(CASE WHEN status = 'aktif' AND gender IN ('L', 'Laki-laki', 'Male') THEN 1 ELSE 0 END) as male,
+            SUM(CASE WHEN status = 'aktif' AND gender IN ('P', 'Perempuan', 'Female') THEN 1 ELSE 0 END) as female,
+            SUM(CASE WHEN status = 'aktif' AND sub_unit = 'PG' THEN 1 ELSE 0 END) as pg,
+            SUM(CASE WHEN status = 'aktif' AND sub_unit = 'TK' THEN 1 ELSE 0 END) as tk,
+            SUM(CASE WHEN status = 'aktif' AND (sub_unit = 'DAYCARE' OR daycare_classroom_id IS NOT NULL) THEN 1 ELSE 0 END) as daycare,
+            SUM(CASE WHEN status = 'aktif' AND (sub_unit = 'TPQ' OR is_tpq = 1 OR tpq_classroom_id IS NOT NULL) THEN 1 ELSE 0 END) as tpq
+        ")->first();
 
         $rombelQuery = Classroom::where('is_active', true);
         if ($selectedYearId) {
@@ -138,15 +134,15 @@ class StudentController extends Controller
         $totalClassrooms = $rombelQuery->count();
 
         $stats = [
-            'total_active' => $activeStudents,
-            'total_all' => $totalStudents,
-            'male' => $maleStudents,
-            'female' => $femaleStudents,
+            'total_active' => (int) ($aggregated->total_active ?? 0),
+            'total_all' => (int) ($aggregated->total_all ?? 0),
+            'male' => (int) ($aggregated->male ?? 0),
+            'female' => (int) ($aggregated->female ?? 0),
             'classrooms' => $totalClassrooms,
-            'pg' => $countPg,
-            'tk' => $countTk,
-            'daycare' => $countDaycare,
-            'tpq' => $countTpq,
+            'pg' => (int) ($aggregated->pg ?? 0),
+            'tk' => (int) ($aggregated->tk ?? 0),
+            'daycare' => (int) ($aggregated->daycare ?? 0),
+            'tpq' => (int) ($aggregated->tpq ?? 0),
         ];
 
         // Master lists for filter dropdowns & modal selects

@@ -231,7 +231,7 @@
                                                         <span>{{ $shift['name'] }}</span>
                                                     </div>
                                                     @if(!empty($shift['description']))
-                                                        <div class="text-xs text-slate-455 dark:text-slate-500 mb-1.5 leading-snug">{{ $shift['description'] }}</div>
+                                                        <div class="text-xs text-slate-400 dark:text-slate-500 mb-1.5 leading-snug">{{ $shift['description'] }}</div>
                                                     @endif
                                                     
                                                     @php
@@ -342,7 +342,7 @@
                                                                             <div class="font-semibold text-indigo-600 dark:text-indigo-400">{{ $day['shift_name'] }}</div>
                                                                             <div class="text-[8px] text-slate-500 dark:text-slate-400">Jam: {{ $day['shift_start'] }} - {{ $day['shift_end'] }}</div>
                                                                         @else
-                                                                            <div class="text-slate-450 dark:text-slate-500">Libur / Off</div>
+                                                                            <div class="text-slate-400 dark:text-slate-500">Libur / Off</div>
                                                                         @endif
                                                                         <!-- Arrow -->
                                                                         <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white dark:bg-slate-900 border-r border-b border-slate-200 dark:border-slate-800/80 rotate-45"></div>
@@ -435,7 +435,7 @@
                                         <!-- Circles & Tooltips for Admin -->
                                         @foreach($adminChartPoints as $pt)
                                             <g class="group relative cursor-pointer outline-none" tabindex="0">
-                                                <circle cx="{{ $pt['x'] }}" cy="{{ $pt['y'] }}" r="3.5" class="fill-indigo-655 dark:fill-indigo-400 stroke-white dark:stroke-slate-900" stroke-width="1" />
+                                                <circle cx="{{ $pt['x'] }}" cy="{{ $pt['y'] }}" r="3.5" class="fill-indigo-600 dark:fill-indigo-400 stroke-white dark:stroke-slate-900" stroke-width="1" />
                                                 
                                                 <text x="{{ $pt['x'] }}" y="{{ $pt['y'] - 8 }}" text-anchor="middle" class="text-[8px] sm:text-[9px] font-bold fill-slate-600 dark:fill-slate-400">
                                                     {{ $pt['percent'] }}%
@@ -444,14 +444,14 @@
                                                 <circle cx="{{ $pt['x'] }}" cy="{{ $pt['y'] - 10 }}" r="18" fill="transparent" class="cursor-pointer" />
 
                                                 <foreignObject x="{{ $pt['x'] - 65 }}" y="{{ $pt['y'] - 75 }}" width="130" height="65" class="pointer-events-none invisible opacity-0 group-hover:visible group-hover:opacity-100 group-focus:visible group-focus:opacity-100 group-active:visible group-active:opacity-100 transition-all duration-200 overflow-visible z-50">
-                                                    <div class="bg-white/95 dark:bg-slate-955/95 text-slate-800 dark:text-white p-2 rounded-lg shadow-lg text-[9px] sm:text-[10px] leading-snug border border-slate-200 dark:border-slate-800/80 backdrop-blur-sm relative">
+                                                    <div class="bg-white/95 dark:bg-slate-950/95 text-slate-800 dark:text-white p-2 rounded-lg shadow-lg text-[9px] sm:text-[10px] leading-snug border border-slate-200 dark:border-slate-800/80 backdrop-blur-sm relative">
                                                         <div class="font-semibold border-b border-slate-200 dark:border-slate-800/50 pb-0.5 mb-1 flex justify-between">
-                                                            <span class="text-slate-955 dark:text-white">{{ $pt['date'] }}</span>
+                                                            <span class="text-slate-950 dark:text-white">{{ $pt['date'] }}</span>
                                                             <span class="text-indigo-650 dark:text-indigo-400 font-bold">{{ $pt['percent'] }}% Hadir</span>
                                                         </div>
                                                         <div>Pegawai Hadir: <span class="font-semibold text-slate-950 dark:text-white">{{ $pt['count'] }} orang</span></div>
-                                                        <div class="text-[8px] text-slate-550 dark:text-slate-400 mt-0.5">Basis data kepegawaian SANS PAUD</div>
-                                                        <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white dark:bg-slate-955 border-r border-b border-slate-200 dark:border-slate-800/80 rotate-45"></div>
+                                                        <div class="text-[8px] text-slate-500 dark:text-slate-400 mt-0.5">Basis data kepegawaian SANS PAUD</div>
+                                                        <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white dark:bg-slate-950 border-r border-b border-slate-200 dark:border-slate-800/80 rotate-45"></div>
                                                     </div>
                                                 </foreignObject>
                                             </g>
@@ -463,16 +463,16 @@
                                         <path d="{{ $areaD }}" fill="url(#grad-area)" opacity="0.15"></path>
                                         
                                         <!-- Dynamic line path -->
-                                        <path d="{{ $lineD }}" fill="none" stroke="currentColor" class="text-indigo-655 dark:text-indigo-400" stroke-width="2.5" stroke-linecap="round"></path>
+                                        <path d="{{ $lineD }}" fill="none" stroke="currentColor" class="text-indigo-600 dark:text-indigo-400" stroke-width="2.5" stroke-linecap="round"></path>
                                         
                                         <!-- Circles & Text Labels on Points -->
                                         @foreach($chartPoints as $pt)
                                             <g class="group relative cursor-pointer outline-none" tabindex="0">
                                                 <!-- Point Circle -->
-                                                <circle cx="{{ $pt['x'] }}" cy="{{ $pt['y'] }}" r="3.5" class="fill-indigo-655 dark:fill-indigo-400 stroke-white dark:stroke-slate-900" style="{{ !empty($pt['is_late']) ? 'fill: #f59e0b;' : '' }}" stroke-width="1" />
+                                                <circle cx="{{ $pt['x'] }}" cy="{{ $pt['y'] }}" r="3.5" class="fill-indigo-600 dark:fill-indigo-400 stroke-white dark:stroke-slate-900" style="{{ !empty($pt['is_late']) ? 'fill: #f59e0b;' : '' }}" stroke-width="1" />
                                                 
                                                 <!-- Time Text -->
-                                                <text x="{{ $pt['x'] }}" y="{{ $pt['y'] - 8 }}" text-anchor="middle" class="text-[8px] sm:text-[9px] font-bold fill-slate-655 dark:fill-slate-300" style="{{ !empty($pt['is_late']) ? 'fill: #f59e0b;' : '' }}">
+                                                <text x="{{ $pt['x'] }}" y="{{ $pt['y'] - 8 }}" text-anchor="middle" class="text-[8px] sm:text-[9px] font-bold fill-slate-600 dark:fill-slate-300" style="{{ !empty($pt['is_late']) ? 'fill: #f59e0b;' : '' }}">
                                                     {{ $pt['time'] }}
                                                 </text>
 
@@ -481,15 +481,15 @@
 
                                                 <!-- Styled Tooltip using foreignObject -->
                                                 <foreignObject x="{{ $pt['x'] - 65 }}" y="{{ $pt['y'] - 75 }}" width="130" height="65" class="pointer-events-none invisible opacity-0 group-hover:visible group-hover:opacity-100 group-focus:visible group-focus:opacity-100 group-active:visible group-active:opacity-100 transition-all duration-200 overflow-visible z-50">
-                                                    <div class="bg-white/95 dark:bg-slate-955/95 text-slate-800 dark:text-white p-2 rounded-lg shadow-lg text-[9px] sm:text-[10px] leading-snug border border-slate-200 dark:border-slate-800/80 backdrop-blur-sm relative">
+                                                    <div class="bg-white/95 dark:bg-slate-950/95 text-slate-800 dark:text-white p-2 rounded-lg shadow-lg text-[9px] sm:text-[10px] leading-snug border border-slate-200 dark:border-slate-800/80 backdrop-blur-sm relative">
                                                         <div class="font-semibold border-b border-slate-200 dark:border-slate-800/50 pb-0.5 mb-1 flex justify-between">
                                                             <span class="text-slate-950 dark:text-white">{{ $pt['date'] }}</span>
                                                             <span class="{{ !empty($pt['is_late']) ? 'text-amber-500 dark:text-amber-400 font-bold' : 'text-emerald-600 dark:text-emerald-455 font-bold' }}">{{ $pt['status'] }}</span>
                                                         </div>
                                                         <div>Jam Masuk: <span class="font-semibold text-slate-950 dark:text-white">{{ $pt['check_in'] !== '-' ? $pt['check_in'] : 'Belum absen' }}</span></div>
-                                                        <div class="text-[8px] text-slate-550 dark:text-slate-400 mt-0.5">Jadwal: {{ $pt['shift_start'] ? $pt['shift_start'] . ' - ' . ($pt['shift_end'] ?? 'Selesai') : 'Libur/Off' }}</div>
+                                                        <div class="text-[8px] text-slate-500 dark:text-slate-400 mt-0.5">Jadwal: {{ $pt['shift_start'] ? $pt['shift_start'] . ' - ' . ($pt['shift_end'] ?? 'Selesai') : 'Libur/Off' }}</div>
                                                         <!-- Tooltip Arrow -->
-                                                        <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white dark:bg-slate-955 border-r border-b border-slate-200 dark:border-slate-800/80 rotate-45"></div>
+                                                        <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white dark:bg-slate-950 border-r border-b border-slate-200 dark:border-slate-800/80 rotate-45"></div>
                                                     </div>
                                                 </foreignObject>
                                             </g>
@@ -545,7 +545,7 @@
                                     <div class="flex items-center gap-2 mt-1">
                                         <span class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">{{ $announcement->created_at->translatedFormat('d M Y, H:i') }}</span>
                                         @if($announcement->attachment)
-                                            <span class="text-[9px] text-slate-350 dark:text-slate-700 select-none">•</span>
+                                            <span class="text-[9px] text-slate-300 dark:text-slate-700 select-none">•</span>
                                             <a href="{{ Storage::url($announcement->attachment) }}" target="_blank" class="text-[10px] text-blue-500 hover:underline inline-flex items-center gap-0.5"><i data-lucide="paperclip" class="w-3 h-3"></i> Lampiran</a>
                                         @endif
                                     </div>
@@ -651,7 +651,7 @@
 
                             @if($myPicketToday->picketArea->jobs)
                                 <div class="mt-3.5 pt-3.5 border-t border-indigo-100/50 dark:border-indigo-900/30">
-                                    <p class="text-[9px] font-black text-slate-700 dark:text-slate-350 uppercase tracking-widest mb-1.5">TUPOKSI ANDA:</p>
+                                    <p class="text-[9px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-widest mb-1.5">TUPOKSI ANDA:</p>
                                     <div class="space-y-2">
                                         @foreach(explode("\n", $myPicketToday->picketArea->jobs) as $job)
                                             @if(trim($job))
@@ -680,7 +680,7 @@
                                 $daysOfWeek = $schedulesGroup->pluck('day_of_week')->sort()->toArray();
                                 $hasTodayInGroup = in_array($todayDayOfWeek, $daysOfWeek);
                             @endphp
-                            <div class="p-3 border rounded-2xl transition-all duration-200 cursor-pointer {{ $hasTodayInGroup ? 'bg-indigo-500/5 dark:bg-indigo-500/5 border-indigo-200 dark:border-indigo-950' : 'bg-slate-50/50 dark:bg-slate-950/30 border-slate-200/50 dark:border-slate-850 hover:bg-slate-50 dark:hover:bg-slate-950' }}"
+                            <div class="p-3 border rounded-2xl transition-all duration-200 cursor-pointer {{ $hasTodayInGroup ? 'bg-indigo-500/5 dark:bg-indigo-500/5 border-indigo-200 dark:border-indigo-950' : 'bg-slate-50/50 dark:bg-slate-950/30 border-slate-200/50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-950' }}"
                                 @click="openJobs = (openJobs === {{ $areaId }} ? null : {{ $areaId }})">
                                 <div class="flex items-center justify-between gap-3">
                                     <div class="flex items-start gap-2.5 min-w-0">
@@ -754,7 +754,7 @@
                                     </div>
                                     <div class="min-w-0">
                                         <p class="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">{{ $log['title'] }}</p>
-                                        <p class="text-[10px] text-slate-550 mt-0.5 leading-snug break-words pr-2">{{ $log['description'] }}</p>
+                                        <p class="text-[10px] text-slate-500 mt-0.5 leading-snug break-words pr-2">{{ $log['description'] }}</p>
                                         <!-- Time on mobile -->
                                         <span class="mobile-time text-[9px] text-slate-400 dark:text-slate-500 font-medium block mt-1">{{ $log['time']->diffForHumans() }}</span>
                                     </div>
@@ -763,7 +763,7 @@
                                 <span class="desktop-time text-[10px] text-slate-400 dark:text-slate-500 font-medium shrink-0 mt-0.5">{{ $log['time']->diffForHumans() }}</span>
                             </div>
                         @empty
-                            <div class="text-xs text-slate-555 text-center py-6">
+                            <div class="text-xs text-slate-505 text-center py-6">
                                 <i data-lucide="activity" class="w-6 h-6 text-slate-300 dark:text-slate-700 mx-auto mb-2"></i>
                                 Belum ada aktivitas terbaru hari ini.
                             </div>
@@ -775,7 +775,7 @@
                         @forelse($myRecentLeaves as $leave)
                             <div class="flex items-start justify-between gap-3 py-1 border-b border-slate-50 dark:border-slate-900/60 pb-3">
                                 <div class="flex items-center gap-3 min-w-0">
-                                    <div class="w-7 h-7 rounded-lg bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-655 dark:text-slate-400 shrink-0">
+                                    <div class="w-7 h-7 rounded-lg bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-600 dark:text-slate-400 shrink-0">
                                         <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
                                     </div>
                                     <div class="min-w-0">
@@ -788,7 +788,7 @@
                                 <span class="desktop-time text-[10px] text-slate-400 dark:text-slate-500 font-medium shrink-0 mt-0.5">{{ $leave->created_at->translatedFormat('d M Y, H:i') }}</span>
                             </div>
                         @empty
-                            <div class="text-xs text-slate-555 text-center py-4">Belum ada riwayat aktivitas pengajuan cuti/izin.</div>
+                            <div class="text-xs text-slate-505 text-center py-4">Belum ada riwayat aktivitas pengajuan cuti/izin.</div>
                         @endforelse
                     </div>
                 @endif

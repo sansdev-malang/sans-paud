@@ -4,7 +4,7 @@
          <!-- HEADER -->
         <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div class="flex flex-col gap-0.5">
-                <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-55">Rekap Bonus Ketepatan Waktu</h2>
+                <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">Rekap Bonus Ketepatan Waktu</h2>
                 <p class="text-xs text-slate-500 dark:text-slate-400">Evaluasi ketepatan waktu kedatangan pegawai berdasarkan skema bonus aktif.</p>
             </div>
             
@@ -18,10 +18,10 @@
                 
                 <div x-show="open" x-transition.opacity.duration.200ms style="display: none;" class="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg z-50">
                     <a href="{{ route('bonus-reports.export', array_merge(request()->query(), ['format' => 'excel'])) }}" class="flex items-center gap-3 px-4 py-3 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors border-b border-slate-100 dark:border-slate-800">
-                        <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600 dark:text-emerald-555"></i>
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
                         Excel (.xlsx)
                     </a>
-                    <a href="{{ route('bonus-reports.export', array_merge(request()->query(), ['format' => 'pdf'])) }}" class="flex items-center gap-3 px-4 py-3 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-900/30 hover:text-rose-700 dark:hover:text-rose-450 transition-colors">
+                    <a href="{{ route('bonus-reports.export', array_merge(request()->query(), ['format' => 'pdf'])) }}" class="flex items-center gap-3 px-4 py-3 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-900/30 hover:text-rose-700 dark:hover:text-rose-400 transition-colors">
                         <i data-lucide="file-text" class="w-4 h-4 text-rose-600 dark:text-rose-500"></i>
                         PDF (.pdf)
                     </a>
@@ -41,7 +41,7 @@
                         <input type="text" name="search" x-model="searchVal" placeholder="Cari pegawai..."
                             style="border: none !important; outline: none !important; box-shadow: none !important;"
                             class="w-full h-9 px-3 text-xs bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-0">
-                        <button type="submit" class="h-9 px-4 bg-slate-55 dark:bg-slate-855 text-slate-700 dark:text-slate-300 font-bold text-xs transition-all duration-150 cursor-pointer whitespace-nowrap flex items-center justify-center border-l border-slate-200 dark:border-slate-800">
+                        <button type="submit" class="h-9 px-4 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs transition-all duration-150 cursor-pointer whitespace-nowrap flex items-center justify-center border-l border-slate-200 dark:border-slate-800">
                             Cari
                         </button>
                     </div>
@@ -124,7 +124,7 @@
                             <th class="px-4 py-3 bg-slate-50 dark:bg-slate-900 text-left sticky top-0 left-0 z-40 border-r border-slate-200 dark:border-slate-800 min-w-[200px]">
                                 <div class="flex items-center gap-2 justify-between">
                                     <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Profil Pegawai</span>
-                                    <span class="text-[9px] text-slate-400 dark:text-slate-555 font-bold whitespace-nowrap bg-slate-100 dark:bg-slate-800/40 px-1.5 py-0.5 rounded border border-slate-200/40 dark:border-slate-800/50" title="Siklus Cut-off Payroll">
+                                    <span class="text-[9px] text-slate-400 dark:text-slate-500 font-bold whitespace-nowrap bg-slate-100 dark:bg-slate-800/40 px-1.5 py-0.5 rounded border border-slate-200/40 dark:border-slate-800/50" title="Siklus Cut-off Payroll">
                                         {{ \Carbon\Carbon::parse($startDateReq)->format('d M') }} - {{ \Carbon\Carbon::parse($endDateReq)->format('d M') }}
                                     </span>
                                 </div>
@@ -298,14 +298,14 @@
                             
                             <div class="text-left min-w-0">
                                 <h3 class="text-sm font-bold text-slate-900 dark:text-white truncate" x-text="selectedReport ? selectedReport.employee.name : ''"></h3>
-                                <p class="text-[10px] text-slate-500 dark:text-slate-450 truncate">
+                                <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">
                                     <span x-text="selectedReport ? (selectedReport.employee.position || '-') : ''"></span>
                                     &bull;
-                                    <span x-text="selectedReport ? (selectedReport.employee.unit_name || '-') : ''" class="font-semibold text-indigo-650 dark:text-indigo-400"></span>
+                                    <span x-text="selectedReport ? (selectedReport.employee.unit_name || '-') : ''" class="font-semibold text-indigo-600 dark:text-indigo-400"></span>
                                 </p>
                             </div>
                         </div>
-                        <button type="button" @click="showCalendarModal = false" class="rounded-lg p-1 text-slate-400 hover:bg-slate-55 dark:hover:bg-slate-800 hover:text-slate-655 transition-colors">
+                        <button type="button" @click="showCalendarModal = false" class="rounded-lg p-1 text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-600 transition-colors">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                             </svg>
@@ -331,7 +331,7 @@
                             <template x-for="day in calendarDays" :key="day.dateStr">
                                 <div class="aspect-square border border-slate-100 dark:border-slate-800/40 rounded-lg p-1 sm:p-1.5 flex flex-col justify-between"
                                      :class="[
-                                         day.isCurrentMonth ? (day.dateStr && new Date(day.dateStr).getDay() === 0 ? 'bg-red-50/50 dark:bg-red-95/15' : 'bg-white dark:bg-slate-900') : 'bg-slate-50/50 dark:bg-slate-955/20 opacity-40'
+                                         day.isCurrentMonth ? (day.dateStr && new Date(day.dateStr).getDay() === 0 ? 'bg-red-50/50 dark:bg-red-950/15' : 'bg-white dark:bg-slate-900') : 'bg-slate-50/50 dark:bg-slate-950/20 opacity-40'
                                      ]">
                                      
                                     <!-- Day Number -->
@@ -347,7 +347,7 @@
                                         <template x-if="selectedReport && selectedReport.daily_details[day.dateStr]">
                                             <div class="w-full">
                                                 <template x-if="selectedReport.daily_details[day.dateStr].bonus_nominal > 0">
-                                                    <div class="flex flex-col items-center justify-center leading-none py-1 bg-emerald-50 dark:bg-emerald-955/20 text-emerald-600 dark:text-emerald-400 rounded-md">
+                                                    <div class="flex flex-col items-center justify-center leading-none py-1 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-md">
                                                         <span class="text-[9px] font-extrabold">Rp</span>
                                                         <span class="text-[10px] font-black" x-text="formatRupiah(selectedReport.daily_details[day.dateStr].bonus_nominal)"></span>
                                                     </div>
@@ -395,7 +395,7 @@
                                 Total Bonus: <span class="text-emerald-600 dark:text-emerald-400 text-sm font-black">Rp<span x-text="formatRupiah(selectedReport ? selectedReport.bonus_nominal : 0)"></span></span>
                             </div>
                         </div>
-                        <button type="button" @click="showCalendarModal = false" class="w-full sm:w-auto h-8 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-850 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs rounded-lg transition-colors cursor-pointer">
+                        <button type="button" @click="showCalendarModal = false" class="w-full sm:w-auto h-8 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs rounded-lg transition-colors cursor-pointer">
                              Tutup
                         </button>
                     </div>
@@ -429,10 +429,10 @@
                            day.leave_code === 'C' ? 'bg-blue-50/40 text-blue-505 border border-dashed border-blue-200/50' :
                            day.leave_code === 'H' ? 'bg-emerald-50/40 text-emerald-505 border border-dashed border-emerald-200/50' : '';
                 }
-                return day.leave_code === 'S' ? 'bg-amber-50 dark:bg-amber-955/20 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-900/30' :
-                       day.leave_code === 'I' ? 'bg-purple-50 dark:bg-purple-955/20 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-purple-900/30' :
-                       day.leave_code === 'C' ? 'bg-blue-50 dark:bg-blue-955/20 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/30' :
-                       day.leave_code === 'H' ? 'bg-emerald-50 dark:bg-emerald-955/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30' : '';
+                return day.leave_code === 'S' ? 'bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-900/30' :
+                       day.leave_code === 'I' ? 'bg-purple-50 dark:bg-purple-950/20 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-purple-900/30' :
+                       day.leave_code === 'C' ? 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/30' :
+                       day.leave_code === 'H' ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30' : '';
             },
             openCalendarModal(report) {
                 this.selectedReport = report;

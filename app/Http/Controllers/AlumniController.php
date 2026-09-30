@@ -103,7 +103,12 @@ class AlumniController extends Controller
             });
         }
 
-        $totalAlumni = (clone $statsBaseQuery)->count();
+        $statsRow = (clone $statsBaseQuery)->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN gender IN ('L', 'Laki-laki', 'Male') THEN 1 ELSE 0 END) as male,
+            SUM(CASE WHEN gender IN ('P', 'Perempuan', 'Female') THEN 1 ELSE 0 END) as female
+        ")->first();
+
         $alumniTk = (clone $statsBaseQuery)->where(function ($q) {
             $q->where('sub_unit', 'TK')
               ->orWhereHas('classroomHistories', function ($hq) {
@@ -118,15 +123,12 @@ class AlumniController extends Controller
               });
         })->count();
 
-        $maleAlumni = (clone $statsBaseQuery)->whereIn('gender', ['L', 'Laki-laki', 'Male'])->count();
-        $femaleAlumni = (clone $statsBaseQuery)->whereIn('gender', ['P', 'Perempuan', 'Female'])->count();
-
         $stats = [
-            'total' => $totalAlumni,
+            'total' => (int) ($statsRow->total ?? 0),
             'tk' => $alumniTk,
             'pg' => $alumniPg,
-            'male' => $maleAlumni,
-            'female' => $femaleAlumni,
+            'male' => (int) ($statsRow->male ?? 0),
+            'female' => (int) ($statsRow->female ?? 0),
         ];
 
         $alumniList = $query->orderBy('updated_at', 'desc')->orderBy('full_name', 'asc')->paginate(20)->withQueryString();

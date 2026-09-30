@@ -5,7 +5,7 @@
         <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full text-left">
             <div class="flex flex-col gap-0.5">
                 <div class="flex items-center gap-2.5">
-                    <div class="p-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-500/20">
+                    <div class="p-2.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-500/20 shadow-xs">
                         <i data-lucide="book-open-check" class="w-5 h-5"></i>
                     </div>
                     <div>
@@ -21,8 +21,12 @@
             </div>
 
             <!-- ACTION BUTTONS -->
-            <div class="flex flex-wrap items-center gap-2 shrink-0">
+            @php
+                $isAdmin = auth()->user() && in_array(auth()->user()->role, ['super_admin', 'admin_sd', 'admin_paud', 'admin_smp', 'kepala_sekolah', 'waka']);
+            @endphp
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
                 @if($selectedClassroom && $students->isNotEmpty())
+                    @if($isAdmin)
                     <!-- Batch Approve 1 Kelompok (Khusus KS / Admin) -->
                     <form method="POST" action="{{ route('report-cards.batch-approve') }}" onsubmit="return confirm('Apakah Anda yakin ingin menyetujui seluruh rapor kelompok {{ $selectedClassroom->name }}?')">
                         @csrf
@@ -48,10 +52,11 @@
                             Terbitkan Semua ke Portal
                         </button>
                     </form>
+                    @endif
 
                     <!-- Batch Print Rapor 1 Kelompok -->
                     <a href="{{ route('report-cards.batch-print', ['classroom_id' => $selectedClassroomId, 'academic_year_id' => $selectedYearId, 'semester' => $selectedSemester]) }}" target="_blank"
-                        class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-all duration-100 cursor-pointer">
+                        class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-colors cursor-pointer">
                         <i data-lucide="printer" class="w-3.5 h-3.5 text-slate-600 dark:text-slate-400"></i>
                         Cetak Batch
                     </a>
@@ -59,7 +64,7 @@
 
                 <!-- Portal Akses Wali Murid Link -->
                 <a href="{{ route('portal.report-cards.index') }}" target="_blank"
-                    class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all duration-100 cursor-pointer">
+                    class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer">
                     <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
                     Portal Rapor Ortu
                 </a>
@@ -69,7 +74,7 @@
         <!-- STATS CARDS -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Stat 1: Total Siswa Kelompok -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <div>
                         <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Siswa Kelompok</p>
@@ -87,7 +92,7 @@
             </div>
 
             <!-- Stat 2: Rapor Terbit / Selesai -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <div>
                         <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Rapor Terbit / Disetujui</p>
@@ -105,7 +110,7 @@
             </div>
 
             <!-- Stat 3: Rapor Berkas PDF (Bypass) -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <div>
                         <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Upload Berkas PDF</p>
@@ -123,7 +128,7 @@
             </div>
 
             <!-- Stat 4: Draft / Belum Dibuat -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <div>
                         <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Draft / Belum Rapor</p>
@@ -142,7 +147,7 @@
         </section>
 
         <!-- FILTER TOOLBAR (Tahun Ajaran, Semester, Kelompok) -->
-        <section class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-xs w-full">
+        <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-xs w-full">
             <form method="GET" action="{{ route('report-cards.index') }}" class="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
                 <input type="hidden" name="sub_unit" value="{{ $selectedSubUnit }}">
 
@@ -186,7 +191,7 @@
         </section>
 
         <!-- TABLE LIST SISWA & STATUS RAPOR -->
-        <section class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden transition-all w-full">
+        <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden w-full">
             <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                 <div class="flex items-center gap-2">
                     <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-400 dark:border-indigo-800">
@@ -215,7 +220,7 @@
                     <thead>
                         <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-900/50">
                             <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-12">No</th>
-                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28">NIS & PIN</th>
+                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-32">NIS & PIN</th>
                             <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Nama Ananda</th>
                             <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-36">Mode & Status Rapor</th>
                             <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Capaian / Berkas Rapor</th>
@@ -233,7 +238,7 @@
                                 $hasSteam = !empty($r?->steam_narrative);
                                 $hasP5 = !empty($r?->p5_narrative);
                             @endphp
-                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors group">
+                            <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors group">
                                 <td class="px-5 py-3.5 text-slate-400 font-mono text-[11px]">
                                     {{ $index + 1 }}
                                 </td>
@@ -251,7 +256,7 @@
                                 </td>
                                 <td class="px-5 py-3.5">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-100 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">
+                                        <div class="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-100 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
                                             {{ $s->avatar_initials }}
                                         </div>
                                         <div class="flex flex-col">
@@ -320,7 +325,7 @@
                                             <a href="{{ asset('storage/' . $r->pdf_file) }}" target="_blank"
                                                 class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 rounded-lg text-xs font-semibold border border-purple-200 dark:border-purple-800/50 transition-colors">
                                                 <i data-lucide="file-check-2" class="w-3.5 h-3.5 text-purple-600"></i>
-                                                <span>Buka PDF Rapor</span>
+                                                <span>Buka PDF</span>
                                                 <i data-lucide="external-link" class="w-3 h-3 opacity-60"></i>
                                             </a>
                                         </div>
@@ -371,37 +376,39 @@
                                         </button>
 
                                         @if($r)
-                                            <!-- Quick Setujui Rapor -->
-                                            @if($r->status !== 'approved' && $r->status !== 'published')
-                                                <form method="POST" action="{{ route('report-cards.approve', $r->id) }}" class="inline">
-                                                    @csrf
-                                                    <button type="submit"
-                                                        class="p-1.5 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-lg transition-colors cursor-pointer"
-                                                        title="Setujui Rapor (Approval KS)">
-                                                        <i data-lucide="check-circle-2" class="w-4 h-4"></i>
-                                                    </button>
-                                                </form>
-                                            @endif
+                                            @if($isAdmin)
+                                                <!-- Quick Setujui Rapor -->
+                                                @if($r->status !== 'approved' && $r->status !== 'published')
+                                                    <form method="POST" action="{{ route('report-cards.approve', $r->id) }}" class="inline">
+                                                        @csrf
+                                                        <button type="submit"
+                                                            class="p-1.5 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-lg transition-colors cursor-pointer"
+                                                            title="Setujui Rapor (Approval KS)">
+                                                            <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                                                        </button>
+                                                    </form>
+                                                @endif
 
-                                            <!-- Quick Minta Revisi Rapor (Khusus KS) -->
-                                            @if($r->status !== 'published')
-                                                <button type="button" @click="openRevisionModal({{ Js::from($s) }}, {{ Js::from($r) }})"
-                                                    class="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/50 text-rose-600 dark:text-rose-400 rounded-lg transition-colors cursor-pointer"
-                                                    title="Minta Revisi / Beri Catatan Perbaikan">
-                                                    <i data-lucide="message-square-warning" class="w-4 h-4"></i>
-                                                </button>
-                                            @endif
-
-                                            @if($r->status === 'approved')
-                                                <!-- Quick Terbitkan ke Portal -->
-                                                <form method="POST" action="{{ route('report-cards.publish', $r->id) }}" class="inline">
-                                                    @csrf
-                                                    <button type="submit"
-                                                        class="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-lg transition-colors cursor-pointer"
-                                                        title="Terbitkan ke Portal Wali Murid">
-                                                        <i data-lucide="send" class="w-4 h-4"></i>
+                                                <!-- Quick Minta Revisi Rapor (Khusus KS) -->
+                                                @if($r->status !== 'published')
+                                                    <button type="button" @click="openRevisionModal({{ Js::from($s) }}, {{ Js::from($r) }})"
+                                                        class="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/50 text-rose-600 dark:text-rose-400 rounded-lg transition-colors cursor-pointer"
+                                                        title="Minta Revisi / Beri Catatan Perbaikan">
+                                                        <i data-lucide="message-square-warning" class="w-4 h-4"></i>
                                                     </button>
-                                                </form>
+                                                @endif
+
+                                                @if($r->status === 'approved')
+                                                    <!-- Quick Terbitkan ke Portal -->
+                                                    <form method="POST" action="{{ route('report-cards.publish', $r->id) }}" class="inline">
+                                                        @csrf
+                                                        <button type="submit"
+                                                            class="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-lg transition-colors cursor-pointer"
+                                                            title="Terbitkan ke Portal Wali Murid">
+                                                            <i data-lucide="send" class="w-4 h-4"></i>
+                                                        </button>
+                                                    </form>
+                                                @endif
                                             @endif
 
                                             <!-- Print / View Rapor -->
@@ -436,7 +443,7 @@
 
         <!-- MODAL: QUICK UPLOAD RAPOR PDF (BYPASS FORM) -->
         <div x-show="uploadModalOpen" x-cloak class="fixed inset-0 z-[9999] flex items-center justify-center p-4" style="background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);">
-            <div @click.outside="uploadModalOpen = false" class="w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-2xl space-y-5 animate-card text-left">
+            <div @click.outside="uploadModalOpen = false" class="w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-2xl space-y-5 text-left">
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
                     <div class="flex items-center gap-2.5">
@@ -537,7 +544,7 @@
 
         <!-- MODAL: MINTA REVISI RAPOR DARI KEPALA SEKOLAH -->
         <div x-show="revisionModalOpen" x-cloak class="fixed inset-0 z-[9999] flex items-center justify-center p-4" style="background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);">
-            <div @click.outside="revisionModalOpen = false" class="w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4 animate-card text-left">
+            <div @click.outside="revisionModalOpen = false" class="w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4 text-left">
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                     <div class="flex items-center gap-2.5">

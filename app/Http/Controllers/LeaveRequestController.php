@@ -53,10 +53,15 @@ class LeaveRequestController extends Controller
                 $q->where('unit', $schoolUnit);
             });
         }
-        $allLeaves = $statsQuery->get();
-        $pendingCount = $allLeaves->where('status', 'Pending')->count();
-        $approvedCount = $allLeaves->where('status', 'Approved')->count();
-        $rejectedCount = $allLeaves->where('status', 'Rejected')->count();
+        $leaveStats = (clone $statsQuery)->selectRaw("
+            SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END) as pending_count,
+            SUM(CASE WHEN status = 'Approved' THEN 1 ELSE 0 END) as approved_count,
+            SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END) as rejected_count
+        ")->first();
+
+        $pendingCount = (int) ($leaveStats->pending_count ?? 0);
+        $approvedCount = (int) ($leaveStats->approved_count ?? 0);
+        $rejectedCount = (int) ($leaveStats->rejected_count ?? 0);
         $processedCount = $approvedCount + $rejectedCount;
         $approvalRate = $processedCount > 0 ? round(($approvedCount / $processedCount) * 100, 1) : 0;
 
