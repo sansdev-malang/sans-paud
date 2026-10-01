@@ -62,32 +62,32 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,adm
     Route::post('alumni/{id}/restore', [\App\Http\Controllers\AlumniController::class, 'restoreToActive'])->name('alumni.restore');
     Route::resource('alumni', \App\Http\Controllers\AlumniController::class);
 
-    // E-Rapor Admin Management (Batch Actions, Approvals & Publish)
-    Route::get('report-cards/batch-print', [\App\Http\Controllers\ReportCardController::class, 'batchPrint'])->name('report-cards.batch-print');
-    Route::post('report-cards/batch-approve', [\App\Http\Controllers\ReportCardController::class, 'batchApprove'])->name('report-cards.batch-approve');
-    Route::post('report-cards/batch-publish', [\App\Http\Controllers\ReportCardController::class, 'batchPublish'])->name('report-cards.batch-publish');
-    Route::post('report-cards/{id}/approve', [\App\Http\Controllers\ReportCardController::class, 'approve'])->name('report-cards.approve');
-    Route::post('report-cards/{id}/publish', [\App\Http\Controllers\ReportCardController::class, 'publish'])->name('report-cards.publish');
-    Route::post('report-cards/{id}/request-revision', [\App\Http\Controllers\ReportCardController::class, 'requestRevision'])->name('report-cards.request-revision');
 });
 
-// E-Rapor PAUD Penilaian & Form (Guru & Wali Kelas Akses)
-Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,admin_smp,kepala_sekolah,waka,employee'])->group(function () {
-    Route::get('report-cards/templates', [\App\Http\Controllers\ReportCardController::class, 'getTemplates'])->name('report-cards.templates');
-    Route::post('report-cards/{student}/upload-pdf', [\App\Http\Controllers\ReportCardController::class, 'uploadPdf'])->name('report-cards.upload-pdf');
-    Route::get('report-cards/{student}/edit', [\App\Http\Controllers\ReportCardController::class, 'edit'])->name('report-cards.edit');
-    Route::put('report-cards/{student}', [\App\Http\Controllers\ReportCardController::class, 'update'])->name('report-cards.update');
-    Route::get('report-cards/{id}', [\App\Http\Controllers\ReportCardController::class, 'show'])->name('report-cards.show');
-    Route::get('report-cards', [\App\Http\Controllers\ReportCardController::class, 'index'])->name('report-cards.index');
-    Route::get('/rapor', fn() => redirect()->route('report-cards.index'))->name('rapor');
-});
+// Rekap & Hasil Rapor (Read-Only from SANS Rapor)
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/rekap-rapor', [\App\Http\Controllers\RaporSummaryController::class, 'index'])->name('rekap-rapor.index');
 
-// Portal E-Rapor Akses Orang Tua (Publik via NIS & PIN Akses)
-Route::prefix('portal-rapor')->group(function () {
-    Route::get('/', [\App\Http\Controllers\ParentReportPortalController::class, 'index'])->name('portal.report-cards.index');
-    Route::post('/check', [\App\Http\Controllers\ParentReportPortalController::class, 'check'])->name('portal.report-cards.check');
-    Route::get('/{id}/print', [\App\Http\Controllers\ParentReportPortalController::class, 'print'])->name('portal.report-cards.print');
-    Route::get('/{id}', [\App\Http\Controllers\ParentReportPortalController::class, 'view'])->name('portal.report-cards.view');
+    Route::get('/rapor', function () {
+        $ssoSecret = env('SSO_SECRET_KEY', 'sans_rapor_secret_sso_key_2026');
+        $raporUrl = env('SANS_RAPOR_URL', 'http://sans-rapor.test');
+        $curUser = auth()->user();
+        $isAdmin = in_array($curUser?->role, ['super_admin', 'admin_sd', 'admin_paud', 'admin_smp']);
+        $ssoPayload = base64_encode(json_encode([
+            'id' => $curUser?->id,
+            'name' => $curUser?->name,
+            'email' => $curUser?->email,
+            'employee_id' => $curUser?->employee_id,
+            'role' => $isAdmin ? 'super_admin' : 'guru',
+            'unit' => 'paud',
+            'timestamp' => time(),
+        ]));
+        $ssoSig = hash_hmac('sha256', $ssoPayload, $ssoSecret);
+        return redirect("{$raporUrl}/sso/login?data=" . urlencode($ssoPayload) . "&signature=" . urlencode($ssoSig));
+    })->name('report-cards.index');
+
+    Route::get('report-cards', fn() => redirect()->route('report-cards.index'));
+    Route::get('report-cards/{any}', fn() => redirect()->route('report-cards.index'))->where('any', '.*');
 });
 
 

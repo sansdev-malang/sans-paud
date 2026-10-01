@@ -90,11 +90,6 @@ class Student extends Model
         return $this->hasMany(StudentClassroomHistory::class);
     }
 
-    public function reportCards()
-    {
-        return $this->hasMany(ReportCard::class);
-    }
-
     public function academicYear(): BelongsTo
     {
         return $this->belongsTo(AcademicYear::class);

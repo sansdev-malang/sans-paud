@@ -123,28 +123,54 @@
             </nav>
         </div>
 
-        @if(!$isAdmin)
-        <!-- Group: Pembelajaran & Rapor (Guru & Wali Kelas) -->
+        <!-- Group: Rapor & Penilaian (Kurikulum Merdeka) SSO Launcher -->
+        @php
+            $ssoSecret = env('SSO_SECRET_KEY', 'sans_rapor_secret_sso_key_2026');
+            $raporUrl = env('SANS_RAPOR_URL', 'http://sans-rapor.test');
+            $curUser = auth()->user();
+            $ssoPayload = base64_encode(json_encode([
+                'id' => $curUser?->id,
+                'name' => $curUser?->name,
+                'email' => $curUser?->email,
+                'employee_id' => $curUser?->employee_id,
+                'role' => $isAdmin ? 'super_admin' : 'guru',
+                'unit' => 'paud',
+                'timestamp' => time(),
+            ]));
+            $ssoSig = hash_hmac('sha256', $ssoPayload, $ssoSecret);
+            $raporLink = "{$raporUrl}/sso/login?data=" . urlencode($ssoPayload) . "&signature=" . urlencode($ssoSig);
+        @endphp
         <div>
             <h3 class="school-info px-2 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
-                Pembelajaran & Rapor
+                Rapor & Penilaian
             </h3>
             <nav class="space-y-1">
-                <!-- E-Rapor PAUD -->
-                <a href="{{ route('report-cards.index') }}" class="menu-item flex items-center justify-between gap-3 px-3 py-2 rounded-lg 
-                    {{ Request::routeIs('report-cards.*') ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-50 font-medium' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/50' }} 
-                    text-xs font-medium relative group">
+                <!-- Hasil & Rekap Rapor (Read-Only dari SANS Rapor) -->
+                <a href="{{ route('rekap-rapor.index') }}" class="menu-item flex items-center justify-between gap-3 px-3 py-2 rounded-lg
+                    {{ Request::routeIs('rekap-rapor.*') ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-50 font-medium' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/50' }}
+                    text-xs relative group">
                     <div class="flex items-center gap-3">
-                        <i data-lucide="book-open-check" class="menu-icon w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
-                        <span class="menu-text">E-Rapor PAUD</span>
+                        <i data-lucide="file-check-2" class="menu-icon w-4 h-4 text-indigo-500"></i>
+                        <span class="menu-text">Hasil & Rekap Rapor</span>
                     </div>
                     <span class="sidebar-tooltip absolute left-full ml-3 px-2 py-1 bg-slate-900 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-50 dark:text-slate-100 text-xs font-semibold rounded-md shadow-md opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all origin-left duration-100 pointer-events-none whitespace-nowrap z-50">
-                        E-Rapor PAUD
+                        Hasil & Rekap Rapor
+                    </span>
+                </a>
+
+                <!-- Aplikasi E-Rapor (Terpusat) -->
+                <a href="{{ $raporLink }}" target="_blank" class="menu-item flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/50 text-xs font-medium relative group transition-colors">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="award" class="menu-icon w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
+                        <span class="menu-text">Aplikasi E-Rapor</span>
+                    </div>
+                    <i data-lucide="external-link" class="w-3.5 h-3.5 text-slate-400 opacity-50 group-hover:opacity-100"></i>
+                    <span class="sidebar-tooltip absolute left-full ml-3 px-2 py-1 bg-slate-900 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-50 dark:text-slate-100 text-xs font-semibold rounded-md shadow-md opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all origin-left duration-100 pointer-events-none whitespace-nowrap z-50">
+                        Aplikasi E-Rapor
                     </span>
                 </a>
             </nav>
         </div>
-        @endif
 
         @if($isAdmin)
         <!-- Group 2: Akademik & Kesiswaan -->
@@ -224,19 +250,6 @@
                     </div>
                     <span class="sidebar-tooltip absolute left-full ml-3 px-2 py-1 bg-slate-900 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-50 dark:text-slate-100 text-xs font-semibold rounded-md shadow-md opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all origin-left duration-100 pointer-events-none whitespace-nowrap z-50">
                         Data Alumni
-                    </span>
-                </a>
-
-                <!-- E-Rapor & Penilaian -->
-                <a href="{{ route('report-cards.index') }}" class="menu-item flex items-center justify-between gap-3 px-3 py-2 rounded-lg 
-                    {{ Request::routeIs('report-cards.*') ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-50 font-medium' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/50' }} 
-                    text-xs font-medium relative group">
-                    <div class="flex items-center gap-3">
-                        <i data-lucide="book-open-check" class="menu-icon w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
-                        <span class="menu-text">E-Rapor</span>
-                    </div>
-                    <span class="sidebar-tooltip absolute left-full ml-3 px-2 py-1 bg-slate-900 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-50 dark:text-slate-100 text-xs font-semibold rounded-md shadow-md opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all origin-left duration-100 pointer-events-none whitespace-nowrap z-50">
-                        E-Rapor
                     </span>
                 </a>
 
