@@ -395,6 +395,8 @@
                 if (window.lucide) lucide.createIcons();
                 resultBox.innerHTML = `<span class="text-red-500 dark:text-red-400">✕ Terjadi kesalahan jaringan (${err.message})</span>`;
             });
+        }
+
         function testRaporConnection() {
             const btn = document.getElementById('btn-test-rapor');
             const resultBox = document.getElementById('rapor-test-result');
