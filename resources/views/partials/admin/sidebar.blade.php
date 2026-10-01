@@ -125,8 +125,8 @@
 
         <!-- Group: Rapor & Penilaian (Kurikulum Merdeka) SSO Launcher -->
         @php
-            $ssoSecret = env('SSO_SECRET_KEY', 'sans_rapor_secret_sso_key_2026');
-            $raporUrl = env('SANS_RAPOR_URL', 'http://sans-rapor.test');
+            $ssoSecret = \App\Models\Setting::get('rapor_sso_secret', env('SSO_SECRET_KEY', 'sans_rapor_secret_sso_key_2026'));
+            $raporUrl = \App\Models\Setting::get('rapor_url', env('SANS_RAPOR_URL', 'http://sans-rapor.test'));
             $curUser = auth()->user();
             $ssoPayload = base64_encode(json_encode([
                 'id' => $curUser?->id,

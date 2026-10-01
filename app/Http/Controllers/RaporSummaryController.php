@@ -27,10 +27,9 @@ class RaporSummaryController extends Controller
         $selectedClassroom = $classrooms->firstWhere('id', $selectedClassroomId);
 
         $students = [];
-        $narratives = collect();
-        $attendances = collect();
-        $raporUrl = env('SANS_RAPOR_URL', 'http://sans-rapor.test');
-        $ssoSecret = env('SSO_SECRET_KEY', 'sans_rapor_secret_sso_key_2026');
+        $raporUrl = \App\Models\Setting::get('rapor_url', env('SANS_RAPOR_URL', 'http://sans-rapor.test'));
+        $ssoSecret = \App\Models\Setting::get('rapor_sso_secret', env('SSO_SECRET_KEY', 'sans_rapor_secret_sso_key_2026'));
+        $raporDb = \App\Models\Setting::get('rapor_db_name', env('DB_RAPOR_DATABASE', 'sans-rapor'));
 
         if ($selectedClassroom && $selectedYear) {
             $students = Student::where('classroom_id', $selectedClassroom->id)
@@ -40,6 +39,8 @@ class RaporSummaryController extends Controller
 
             // Fetch narratives and attendances from SANS Rapor database safely
             try {
+                config(['database.connections.sans_rapor.database' => $raporDb]);
+                DB::purge('sans_rapor');
                 $narratives = DB::connection('sans_rapor')
                     ->table('paud_narratives')
                     ->where('classroom_id', $selectedClassroom->id)

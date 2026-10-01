@@ -69,8 +69,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/rekap-rapor', [\App\Http\Controllers\RaporSummaryController::class, 'index'])->name('rekap-rapor.index');
 
     Route::get('/rapor', function () {
-        $ssoSecret = env('SSO_SECRET_KEY', 'sans_rapor_secret_sso_key_2026');
-        $raporUrl = env('SANS_RAPOR_URL', 'http://sans-rapor.test');
+        $ssoSecret = \App\Models\Setting::get('rapor_sso_secret', env('SSO_SECRET_KEY', 'sans_rapor_secret_sso_key_2026'));
+        $raporUrl = \App\Models\Setting::get('rapor_url', env('SANS_RAPOR_URL', 'http://sans-rapor.test'));
         $curUser = auth()->user();
         $isAdmin = in_array($curUser?->role, ['super_admin', 'admin_sd', 'admin_paud', 'admin_smp']);
         $ssoPayload = base64_encode(json_encode([
@@ -100,6 +100,7 @@ Route::post('/leaves/{id}/reject', [\App\Http\Controllers\LeaveRequestController
 Route::middleware(['auth', 'verified', 'role:super_admin'])->group(function () {
     Route::get('/settings', [SettingController::class, 'index'])->name('settings');
     Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
+    Route::post('/settings/test-rapor-connection', [SettingController::class, 'testRaporConnection'])->name('settings.test-rapor');
     Route::resource('users', \App\Http\Controllers\UserController::class);
 });
 
