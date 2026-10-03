@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AcademicYear;
 use App\Models\Classroom;
+use App\Models\Semester;
 use App\Models\Student;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -11,7 +12,7 @@ use Illuminate\Http\Request;
 class AcademicYearController extends Controller
 {
     /**
-     * Display a listing of academic years with stats & active toggle.
+     * Display a listing of academic years and semesters with stats.
      */
     public function index()
     {
@@ -25,20 +26,25 @@ class AcademicYearController extends Controller
         ->orderBy('name', 'desc')
         ->get();
 
+        $semesters = Semester::orderBy('order', 'asc')->get();
+
         $activeYear = $academicYears->firstWhere('is_active', true);
+        $activeSemester = $semesters->firstWhere('is_active', true);
         $totalYears = $academicYears->count();
+        $totalSemesters = $semesters->count();
         $totalClassrooms = Classroom::where('is_active', true)->count();
         $totalStudents = Student::where('status', 'aktif')->count();
 
         $stats = [
             'total_years' => $totalYears,
             'active_year' => $activeYear?->name ?? 'Belum Diatur',
-            'active_semester' => $activeYear?->semester ?? '-',
+            'active_semester' => $activeSemester?->name ?? ($activeYear?->semester ?? 'Belum Diatur'),
+            'total_semesters' => $totalSemesters,
             'total_classrooms' => $totalClassrooms,
             'total_students' => $totalStudents,
         ];
 
-        return view('admin.academic-years.index', compact('academicYears', 'activeYear', 'stats'));
+        return view('admin.academic-years.index', compact('academicYears', 'semesters', 'activeYear', 'activeSemester', 'stats'));
     }
 
     /**
@@ -62,14 +68,14 @@ class AcademicYearController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:50|unique:academic_years,name',
             'code' => 'nullable|string|max:20',
-            'semester' => 'required|string|in:Ganjil,Genap,ganjil,genap',
+            'semester' => 'nullable|string|max:50',
             'is_active' => 'nullable|boolean',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'description' => 'nullable|string',
         ]);
 
-        $validated['semester'] = strtolower($validated['semester']);
+        $validated['semester'] = strtolower($validated['semester'] ?? 'ganjil');
         $isActive = $request->boolean('is_active');
         $validated['is_active'] = $isActive;
 
@@ -82,7 +88,7 @@ class AcademicYearController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Tahun Ajaran {$academicYear->name} ({$academicYear->semester}) berhasil ditambahkan.",
+            'message' => "Tahun Pelajaran {$academicYear->name} berhasil ditambahkan.",
             'academic_year' => $academicYear,
         ]);
     }
@@ -97,14 +103,16 @@ class AcademicYearController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:50|unique:academic_years,name,' . $academicYear->id,
             'code' => 'nullable|string|max:20',
-            'semester' => 'required|string|in:Ganjil,Genap,ganjil,genap',
+            'semester' => 'nullable|string|max:50',
             'is_active' => 'nullable|boolean',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'description' => 'nullable|string',
         ]);
 
-        $validated['semester'] = strtolower($validated['semester']);
+        if (isset($validated['semester'])) {
+            $validated['semester'] = strtolower($validated['semester']);
+        }
         $isActive = $request->boolean('is_active');
         $validated['is_active'] = $isActive;
 
@@ -116,7 +124,7 @@ class AcademicYearController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Tahun Ajaran {$academicYear->name} berhasil diperbarui.",
+            'message' => "Tahun Pelajaran {$academicYear->name} berhasil diperbarui.",
             'academic_year' => $academicYear,
         ]);
     }
@@ -134,7 +142,7 @@ class AcademicYearController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Tahun Ajaran {$academicYear->name} ({$academicYear->semester}) sekarang aktif sebagai acuan sistem.",
+            'message' => "Tahun Pelajaran {$academicYear->name} sekarang aktif sebagai acuan sistem.",
         ]);
     }
 
@@ -148,7 +156,7 @@ class AcademicYearController extends Controller
         if ($academicYear->is_active) {
             return response()->json([
                 'success' => false,
-                'message' => 'Tahun Ajaran yang sedang aktif tidak dapat dihapus. Aktifkan tahun ajaran lain terlebih dahulu.',
+                'message' => 'Tahun Pelajaran yang sedang aktif tidak dapat dihapus. Aktifkan tahun ajaran lain terlebih dahulu.',
             ], 422);
         }
 
@@ -158,7 +166,7 @@ class AcademicYearController extends Controller
         if ($classroomsCount > 0 || $studentsCount > 0) {
             return response()->json([
                 'success' => false,
-                'message' => "Tahun Ajaran tidak dapat dihapus karena masih terhubung dengan {$classroomsCount} rombel dan {$studentsCount} siswa.",
+                'message' => "Tahun Pelajaran tidak dapat dihapus karena masih terhubung dengan {$classroomsCount} rombel dan {$studentsCount} siswa.",
             ], 422);
         }
 
@@ -167,7 +175,7 @@ class AcademicYearController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Tahun Ajaran {$name} berhasil dihapus.",
+            'message' => "Tahun Pelajaran {$name} berhasil dihapus.",
         ]);
     }
 }

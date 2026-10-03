@@ -6,6 +6,7 @@ use App\Models\AcademicYear;
 use App\Models\ClassLevel;
 use App\Models\Classroom;
 use App\Models\Employee;
+use App\Models\Jenjang;
 use App\Models\Student;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,16 +19,21 @@ class ClassroomController extends Controller
     public function index(Request $request)
     {
         $selectedYearId = $request->get('academic_year_id');
-        $selectedSubUnit = $request->get('sub_unit', 'all');
+        $selectedJenjangId = $request->get('jenjang_id', 'all');
 
-        $query = Classroom::with(['classLevel', 'academicYear', 'homeroomTeacher']);
+        $query = Classroom::with(['jenjang', 'classLevel.jenjang', 'academicYear', 'homeroomTeacher']);
 
         if ($selectedYearId && $selectedYearId !== 'all') {
             $query->where('academic_year_id', $selectedYearId);
         }
 
-        if ($selectedSubUnit && $selectedSubUnit !== 'all') {
-            $query->where('sub_unit', $selectedSubUnit);
+        if ($selectedJenjangId && $selectedJenjangId !== 'all') {
+            $query->where(function ($q) use ($selectedJenjangId) {
+                $q->where('jenjang_id', $selectedJenjangId)
+                  ->orWhereHas('classLevel', function ($lq) use ($selectedJenjangId) {
+                      $lq->where('jenjang_id', $selectedJenjangId);
+                  });
+            });
         }
 
         if ($classLevelId = $request->get('class_level_id')) {
@@ -68,9 +74,10 @@ class ClassroomController extends Controller
 
             foreach ($classrooms as $cls) {
                 $id = $cls->id;
-                if ($cls->sub_unit === 'DAYCARE') {
+                $code = $cls->jenjang?->code ?? $cls->sub_unit;
+                if ($code === 'DAYCARE' || $code === 'TPA') {
                     $cls->active_students_count = ($primaryCounts[$id] ?? 0) + ($daycareCounts[$id] ?? 0);
-                } elseif ($cls->sub_unit === 'TPQ') {
+                } elseif ($code === 'TPQ') {
                     $cls->active_students_count = ($primaryCounts[$id] ?? 0) + ($tpqCounts[$id] ?? 0);
                 } else {
                     $cls->active_students_count = $primaryCounts[$id] ?? 0;
@@ -91,19 +98,34 @@ class ClassroomController extends Controller
             'occupancy_rate' => $occupancyRate,
         ];
 
-        $classLevels = ClassLevel::orderBy('order')->get();
+        $jenjangs = Jenjang::orderBy('order', 'asc')->get();
+        $classLevels = ClassLevel::with('jenjang')->orderBy('order')->get();
         $academicYears = AcademicYear::orderBy('name', 'desc')->get();
         $teachers = Employee::whereIn('status', ['Active', 'aktif', 'active', 'Aktif'])->orderBy('name')->get();
 
         return view('admin.classrooms.index', compact(
             'classrooms',
             'stats',
+            'jenjangs',
             'classLevels',
             'academicYears',
             'teachers',
             'selectedYearId',
-            'selectedSubUnit'
+            'selectedJenjangId'
         ));
+    }
+
+    /**
+     * Show single classroom detail (JSON).
+     */
+    public function show($id): JsonResponse
+    {
+        $classroom = Classroom::with(['jenjang', 'classLevel.jenjang', 'academicYear', 'homeroomTeacher'])->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'classroom' => $classroom,
+        ]);
     }
 
     /**
@@ -111,7 +133,7 @@ class ClassroomController extends Controller
      */
     public function students($id): JsonResponse
     {
-        $classroom = Classroom::with(['classLevel', 'academicYear', 'homeroomTeacher'])->findOrFail($id);
+        $classroom = Classroom::with(['jenjang', 'classLevel', 'academicYear', 'homeroomTeacher'])->findOrFail($id);
         
         $students = Student::where(function ($q) use ($id) {
             $q->where('classroom_id', $id)
@@ -139,24 +161,34 @@ class ClassroomController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:100',
             'code' => 'nullable|string|max:50',
-            'sub_unit' => 'nullable|string|in:PG,TK,DAYCARE,TPQ',
+            'jenjang_id' => 'nullable|exists:jenjangs,id',
             'class_level_id' => 'required|exists:class_levels,id',
-            'academic_year_id' => 'required|exists:academic_years,id',
-            'homeroom_teacher_id' => 'nullable|exists:employees,id',
+            'academic_year_id' => 'nullable|exists:academic_years,id',
             'capacity' => 'required|integer|min:1|max:100',
+            'is_active' => 'nullable|boolean',
             'description' => 'nullable|string',
         ]);
 
-        if (empty($validated['sub_unit'])) {
-            $level = ClassLevel::find($validated['class_level_id']);
-            $validated['sub_unit'] = $level?->sub_unit ?? 'TK';
+        $level = ClassLevel::with('jenjang')->find($validated['class_level_id']);
+        if ($level) {
+            if (empty($validated['jenjang_id'])) {
+                $validated['jenjang_id'] = $level->jenjang_id;
+            }
+            $validated['sub_unit'] = $level->jenjang?->code ?? $level->sub_unit;
         }
+
+        if (empty($validated['academic_year_id'])) {
+            $activeYear = AcademicYear::where('is_active', true)->first();
+            $validated['academic_year_id'] = $activeYear?->id;
+        }
+
+        $validated['is_active'] = $request->has('is_active') ? $request->boolean('is_active') : true;
 
         $classroom = Classroom::create($validated);
 
         return response()->json([
             'success' => true,
-            'message' => "Kelompok {$classroom->name} berhasil dibuat.",
+            'message' => "Rombel/Kelompok {$classroom->name} berhasil dibuat.",
             'classroom' => $classroom,
         ]);
     }
@@ -171,25 +203,29 @@ class ClassroomController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:100',
             'code' => 'nullable|string|max:50',
-            'sub_unit' => 'nullable|string|in:PG,TK,DAYCARE,TPQ',
+            'jenjang_id' => 'nullable|exists:jenjangs,id',
             'class_level_id' => 'required|exists:class_levels,id',
-            'academic_year_id' => 'required|exists:academic_years,id',
-            'homeroom_teacher_id' => 'nullable|exists:employees,id',
+            'academic_year_id' => 'nullable|exists:academic_years,id',
             'capacity' => 'required|integer|min:1|max:100',
-            'is_active' => 'boolean',
+            'is_active' => 'nullable|boolean',
             'description' => 'nullable|string',
         ]);
 
-        if (empty($validated['sub_unit'])) {
-            $level = ClassLevel::find($validated['class_level_id']);
-            $validated['sub_unit'] = $level?->sub_unit ?? 'TK';
+        $level = ClassLevel::with('jenjang')->find($validated['class_level_id']);
+        if ($level) {
+            if (empty($validated['jenjang_id'])) {
+                $validated['jenjang_id'] = $level->jenjang_id;
+            }
+            $validated['sub_unit'] = $level->jenjang?->code ?? $level->sub_unit;
         }
+
+        $validated['is_active'] = $request->has('is_active') ? $request->boolean('is_active') : $classroom->is_active;
 
         $classroom->update($validated);
 
         return response()->json([
             'success' => true,
-            'message' => "Kelompok {$classroom->name} berhasil diperbarui.",
+            'message' => "Rombel/Kelompok {$classroom->name} berhasil diperbarui.",
             'classroom' => $classroom,
         ]);
     }
@@ -210,7 +246,7 @@ class ClassroomController extends Controller
         if ($activeCount > 0) {
             return response()->json([
                 'success' => false,
-                'message' => "Kelompok tidak dapat dihapus karena masih memiliki {$activeCount} murid aktif. Pindahkan murid terlebih dahulu.",
+                'message' => "Rombel/Kelompok tidak dapat dihapus karena masih memiliki {$activeCount} murid aktif. Pindahkan murid terlebih dahulu.",
             ], 422);
         }
 
@@ -219,7 +255,7 @@ class ClassroomController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Kelompok {$name} berhasil dihapus.",
+            'message' => "Rombel/Kelompok {$name} berhasil dihapus.",
         ]);
     }
 }

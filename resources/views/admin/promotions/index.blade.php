@@ -320,10 +320,16 @@
                                 action: 'promote'
                             }));
                         } else {
-                            alert(res.message || 'Gagal memuat murid.');
+                            if (typeof window.showToast === 'function') {
+                                window.showToast('Perhatian!', res.message || 'Gagal memuat murid.', 'error');
+                            }
                         }
                     })
-                    .catch(err => alert('Error: ' + err.message));
+                    .catch(err => {
+                        if (typeof window.showToast === 'function') {
+                            window.showToast('Perhatian!', 'Error: ' + err.message, 'error');
+                        }
+                    });
                 },
 
                 setAllAction(action) {
@@ -332,46 +338,60 @@
 
                 submitPromotion() {
                     if (!this.sourceClassroomId || !this.targetClassroomId || !this.targetAcademicYearId) {
-                        alert('Mohon lengkapi pilihan kelompok asal, kelompok tujuan, dan tahun ajaran tujuan.');
+                        if (typeof window.showToast === 'function') {
+                            window.showToast('Peringatan', 'Mohon lengkapi pilihan kelompok asal, kelompok tujuan, dan tahun ajaran tujuan.', 'warning');
+                        }
                         return;
                     }
 
-                    if (!confirm(`Apakah Anda yakin ingin memproses kenaikan kelas untuk ${this.promotionStudents.length} murid?`)) return;
+                    const doProcess = () => {
+                        this.processing = true;
 
-                    this.processing = true;
-
-                    fetch('/class-promotions/process', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        },
-                        body: JSON.stringify({
-                            source_classroom_id: this.sourceClassroomId,
-                            target_classroom_id: this.targetClassroomId,
-                            target_academic_year_id: this.targetAcademicYearId,
-                            effective_date: this.graduationDate,
-                            students: this.promotionStudents.map(s => ({
-                                id: s.id,
-                                action: s.action
-                            }))
+                        fetch('/class-promotions/process', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({
+                                source_classroom_id: this.sourceClassroomId,
+                                target_classroom_id: this.targetClassroomId,
+                                target_academic_year_id: this.targetAcademicYearId,
+                                effective_date: this.graduationDate,
+                                students: this.promotionStudents.map(s => ({
+                                    id: s.id,
+                                    action: s.action
+                                }))
+                            })
                         })
-                    })
-                    .then(res => res.json())
-                    .then(res => {
-                        this.processing = false;
-                        if (res.success) {
-                            alert(res.message);
-                            window.location.reload();
-                        } else {
-                            alert(res.message || 'Gagal memproses kenaikan kelas.');
-                        }
-                    })
-                    .catch(err => {
-                        this.processing = false;
-                        alert('Error: ' + err.message);
-                    });
+                        .then(res => res.json())
+                        .then(res => {
+                            this.processing = false;
+                            if (res.success) {
+                                if (typeof window.setPendingToast === 'function') {
+                                    window.setPendingToast(res.message || 'Kenaikan kelas berhasil diproses!', 'success');
+                                }
+                                window.location.reload();
+                            } else {
+                                if (typeof window.showToast === 'function') {
+                                    window.showToast('Perhatian!', res.message || 'Gagal memproses kenaikan kelas.', 'error');
+                                }
+                            }
+                        })
+                        .catch(err => {
+                            this.processing = false;
+                            if (typeof window.showToast === 'function') {
+                                window.showToast('Perhatian!', 'Error: ' + err.message, 'error');
+                            }
+                        });
+                    };
+
+                    if (typeof showGlobalConfirmModal === 'function') {
+                        showGlobalConfirmModal(`Apakah Anda yakin ingin memproses kenaikan kelas untuk ${this.promotionStudents.length} murid?`, doProcess, false);
+                    } else if (confirm(`Apakah Anda yakin ingin memproses kenaikan kelas untuk ${this.promotionStudents.length} murid?`)) {
+                        doProcess();
+                    }
                 },
 
                 fetchGraduationStudents() {
@@ -394,10 +414,16 @@
                                 is_graduated: true
                             }));
                         } else {
-                            alert(res.message || 'Gagal memuat murid.');
+                            if (typeof window.showToast === 'function') {
+                                window.showToast('Perhatian!', res.message || 'Gagal memuat murid.', 'error');
+                            }
                         }
                     })
-                    .catch(err => alert('Error: ' + err.message));
+                    .catch(err => {
+                        if (typeof window.showToast === 'function') {
+                            window.showToast('Perhatian!', 'Error: ' + err.message, 'error');
+                        }
+                    });
                 },
 
                 toggleAllGraduation(val) {
@@ -407,44 +433,58 @@
                 submitGraduation() {
                     const selected = this.graduationStudents.filter(s => s.is_graduated);
                     if (selected.length === 0) {
-                        alert('Pilih setidaknya 1 murid yang akan diluluskan.');
+                        if (typeof window.showToast === 'function') {
+                            window.showToast('Peringatan', 'Pilih setidaknya 1 murid yang akan diluluskan.', 'warning');
+                        }
                         return;
                     }
 
-                    if (!confirm(`Apakah Anda yakin ingin meresmikan kelulusan untuk ${selected.length} murid?`)) return;
+                    const doGraduate = () => {
+                        this.processing = true;
 
-                    this.processing = true;
-
-                    fetch('/class-promotions/graduate', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        },
-                        body: JSON.stringify({
-                            classroom_id: this.gradClassroomId,
-                            graduation_date: this.graduationDate,
-                            students: this.graduationStudents.map(s => ({
-                                id: s.id,
-                                is_graduated: s.is_graduated
-                            }))
+                        fetch('/class-promotions/graduate', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({
+                                classroom_id: this.gradClassroomId,
+                                graduation_date: this.graduationDate,
+                                students: this.graduationStudents.map(s => ({
+                                    id: s.id,
+                                    is_graduated: s.is_graduated
+                                }))
+                            })
                         })
-                    })
-                    .then(res => res.json())
-                    .then(res => {
-                        this.processing = false;
-                        if (res.success) {
-                            alert(res.message);
-                            window.location.reload();
-                        } else {
-                            alert(res.message || 'Gagal meresmikan kelulusan.');
-                        }
-                    })
-                    .catch(err => {
-                        this.processing = false;
-                        alert('Error: ' + err.message);
-                    });
+                        .then(res => res.json())
+                        .then(res => {
+                            this.processing = false;
+                            if (res.success) {
+                                if (typeof window.setPendingToast === 'function') {
+                                    window.setPendingToast(res.message || 'Kelulusan berhasil diresmikan!', 'success');
+                                }
+                                window.location.reload();
+                            } else {
+                                if (typeof window.showToast === 'function') {
+                                    window.showToast('Perhatian!', res.message || 'Gagal meresmikan kelulusan.', 'error');
+                                }
+                            }
+                        })
+                        .catch(err => {
+                            this.processing = false;
+                            if (typeof window.showToast === 'function') {
+                                window.showToast('Perhatian!', 'Error: ' + err.message, 'error');
+                            }
+                        });
+                    };
+
+                    if (typeof showGlobalConfirmModal === 'function') {
+                        showGlobalConfirmModal(`Apakah Anda yakin ingin meresmikan kelulusan untuk ${selected.length} murid?`, doGraduate, false);
+                    } else if (confirm(`Apakah Anda yakin ingin meresmikan kelulusan untuk ${selected.length} murid?`)) {
+                        doGraduate();
+                    }
                 }
             }
         }

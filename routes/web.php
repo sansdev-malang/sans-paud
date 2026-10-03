@@ -25,11 +25,23 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['au
 
 // Academic Master & Student Management (English Resource Standard)
 Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,admin_smp,kepala_sekolah,waka'])->group(function () {
-    // Academic Years (Tahun Ajaran)
+    // Academic Years (Tahun Pelajaran)
     Route::post('academic-years/{id}/set-active', [AcademicYearController::class, 'setActive'])->name('academic-years.set-active');
     Route::match(['post', 'put', 'patch'], 'academic-years/{id}', [AcademicYearController::class, 'update'])->name('academic-years.update-custom');
     Route::match(['post', 'delete'], 'academic-years/{id}/delete', [AcademicYearController::class, 'destroy'])->name('academic-years.destroy-custom');
     Route::resource('academic-years', AcademicYearController::class);
+
+    // Semesters (Semester / Periode Evaluasi)
+    Route::post('semesters/{id}/set-active', [\App\Http\Controllers\SemesterController::class, 'setActive'])->name('semesters.set-active');
+    Route::match(['post', 'put', 'patch'], 'semesters/{id}', [\App\Http\Controllers\SemesterController::class, 'update'])->name('semesters.update-custom');
+    Route::match(['post', 'delete'], 'semesters/{id}/delete', [\App\Http\Controllers\SemesterController::class, 'destroy'])->name('semesters.destroy-custom');
+    Route::resource('semesters', \App\Http\Controllers\SemesterController::class);
+
+    // Jenjang Pendidikan
+    Route::post('jenjangs/{id}/toggle-status', [\App\Http\Controllers\JenjangController::class, 'toggleStatus'])->name('jenjangs.toggle-status');
+    Route::match(['post', 'put', 'patch'], 'jenjangs/{id}', [\App\Http\Controllers\JenjangController::class, 'update'])->name('jenjangs.update-custom');
+    Route::match(['post', 'delete'], 'jenjangs/{id}/delete', [\App\Http\Controllers\JenjangController::class, 'destroy'])->name('jenjangs.destroy-custom');
+    Route::resource('jenjangs', \App\Http\Controllers\JenjangController::class);
 
     // Class Levels (Tingkat Kelas)
     Route::resource('class-levels', ClassLevelController::class);
@@ -45,6 +57,19 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,adm
     Route::get('students/export/excel', [StudentController::class, 'exportExcel'])->name('students.export.excel');
     Route::resource('students', StudentController::class);
     Route::get('/siswa', fn() => redirect()->route('students.index'))->name('siswa');
+
+    // Wali Kelas (Penugasan Wali Kelas)
+    Route::post('homeroom-assignments/{id}/toggle-status', [\App\Http\Controllers\HomeroomAssignmentController::class, 'toggleStatus'])->name('homeroom-assignments.toggle-status');
+    Route::match(['post', 'put', 'patch'], 'homeroom-assignments/{id}', [\App\Http\Controllers\HomeroomAssignmentController::class, 'update'])->name('homeroom-assignments.update-custom');
+    Route::match(['post', 'delete'], 'homeroom-assignments/{id}/delete', [\App\Http\Controllers\HomeroomAssignmentController::class, 'destroy'])->name('homeroom-assignments.destroy-custom');
+    Route::resource('homeroom-assignments', \App\Http\Controllers\HomeroomAssignmentController::class);
+    Route::get('/wali-kelas', fn() => redirect()->route('homeroom-assignments.index'))->name('wali-kelas');
+
+    // Data Akademik (Matriks Akademik & Rekap)
+    Route::get('academic-summary', [\App\Http\Controllers\AcademicSummaryController::class, 'index'])->name('academic-summary.index');
+    Route::get('academic-summary/print', [\App\Http\Controllers\AcademicSummaryController::class, 'print'])->name('academic-summary.print');
+    Route::get('academic-summary/export/excel', [\App\Http\Controllers\AcademicSummaryController::class, 'exportExcel'])->name('academic-summary.export.excel');
+    Route::get('/data-akademik', fn() => redirect()->route('academic-summary.index'))->name('data-akademik');
 
     // Rekapitulasi Rombel & Kesiswaan (Student Reports)
     Route::get('student-reports', [\App\Http\Controllers\StudentReportController::class, 'index'])->name('student-reports.index');
@@ -78,7 +103,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'name' => $curUser?->name,
             'email' => $curUser?->email,
             'employee_id' => $curUser?->employee_id,
-            'role' => $isAdmin ? 'super_admin' : 'guru',
+            'role' => $curUser?->role ?? ($isAdmin ? 'super_admin' : 'guru'),
             'unit' => 'paud',
             'timestamp' => time(),
         ]));

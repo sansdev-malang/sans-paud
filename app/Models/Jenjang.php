@@ -4,18 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class ClassLevel extends Model
+class Jenjang extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'jenjang_id',
-        'code',
         'name',
-        'sub_unit',
+        'code',
         'order',
         'is_active',
         'description',
@@ -26,9 +23,9 @@ class ClassLevel extends Model
         'order' => 'integer',
     ];
 
-    public function jenjang(): BelongsTo
+    public function classLevels(): HasMany
     {
-        return $this->belongsTo(Jenjang::class);
+        return $this->hasMany(ClassLevel::class)->orderBy('order', 'asc');
     }
 
     public function classrooms(): HasMany
@@ -39,5 +36,18 @@ class ClassLevel extends Model
     public function students(): HasMany
     {
         return $this->hasMany(Student::class);
+    }
+
+    public function homeroomAssignments(): HasMany
+    {
+        return $this->hasMany(HomeroomAssignment::class);
+    }
+
+    /**
+     * Scope for active jenjang.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
     }
 }

@@ -581,6 +581,19 @@
                 return false; // Always prevent native browser confirm prompt immediately
             };
 
+            // Override native window.alert to display modern toast
+            window.alert = function (message) {
+                if (typeof window.showToast === 'function') {
+                    const msgStr = String(message || '');
+                    const isError = /gagal|error|salah|peringatan|perhatian|failed/i.test(msgStr);
+                    const isSuccess = /berhasil|sukses|success/i.test(msgStr);
+                    const type = isError ? 'error' : (isSuccess ? 'success' : 'info');
+                    window.showToast(msgStr, type);
+                } else {
+                    console.warn('Alert:', message);
+                }
+            };
+
             // Global Tooltip System
             (function() {
                 let tooltipEl = null;

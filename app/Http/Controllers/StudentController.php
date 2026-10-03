@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AcademicYear;
 use App\Models\ClassLevel;
 use App\Models\Classroom;
+use App\Models\Jenjang;
 use App\Models\Student;
 use App\Models\StudentClassroomHistory;
 use Illuminate\Http\JsonResponse;
@@ -33,31 +34,59 @@ class StudentController extends Controller
         $selectedYearId = $request->get('academic_year_id', $activeAcademicYear?->id);
         $selectedYear = $academicYears->firstWhere('id', $selectedYearId) ?? $activeAcademicYear;
         $selectedYearId = $selectedYear?->id;
-        $selectedSubUnit = $request->get('sub_unit', 'ALL');
 
-        $query = Student::with(['classroom.classLevel', 'daycareClassroom', 'tpqClassroom', 'classLevel', 'academicYear', 'spmbCandidate']);
-
-        // Academic Year Filter
-        if ($selectedYearId) {
-            $query->where('academic_year_id', $selectedYearId);
+        // Master lists for filter dropdowns & modal selects
+        $jenjangs = Jenjang::where('is_active', true)->orderBy('order')->get();
+        $selectedJenjangId = $request->get('jenjang_id');
+        if (!$selectedJenjangId && $jenjangs->isNotEmpty()) {
+            $selectedJenjangId = $jenjangs->first()->id;
         }
 
-        // Sub-Unit Filter
-        if ($selectedSubUnit && $selectedSubUnit !== 'ALL') {
-            if ($selectedSubUnit === 'DAYCARE') {
-                $query->where(function ($q) {
-                    $q->where('sub_unit', 'DAYCARE')
-                      ->orWhereNotNull('daycare_classroom_id');
+        // Compute active students count for each Jenjang tab
+        foreach ($jenjangs as $j) {
+            $countQuery = Student::where('status', 'aktif')
+                ->where(function ($q) use ($j) {
+                    $q->where('jenjang_id', $j->id)
+                      ->orWhereHas('classroom', function ($sq) use ($j) {
+                          $sq->where('jenjang_id', $j->id);
+                      })
+                      ->orWhereHas('classLevel', function ($sq) use ($j) {
+                          $sq->where('jenjang_id', $j->id);
+                      });
                 });
-            } elseif ($selectedSubUnit === 'TPQ') {
-                $query->where(function ($q) {
-                    $q->where('sub_unit', 'TPQ')
-                      ->orWhere('is_tpq', true)
-                      ->orWhereNotNull('tpq_classroom_id');
-                });
-            } else {
-                $query->where('sub_unit', $selectedSubUnit);
+            if ($selectedYearId && $selectedYearId !== 'all') {
+                $countQuery->where('academic_year_id', $selectedYearId);
             }
+            $j->students_count = $countQuery->count();
+        }
+
+        $query = Student::with([
+            'jenjang',
+            'classroom.classLevel',
+            'classroom.jenjang',
+            'daycareClassroom',
+            'tpqClassroom',
+            'classLevel.jenjang',
+            'academicYear',
+            'spmbCandidate'
+        ]);
+
+        // Jenjang Filter (Active Tab)
+        if ($selectedJenjangId && $selectedJenjangId !== 'all') {
+            $query->where(function ($q) use ($selectedJenjangId) {
+                $q->where('jenjang_id', $selectedJenjangId)
+                  ->orWhereHas('classroom', function ($sq) use ($selectedJenjangId) {
+                      $sq->where('jenjang_id', $selectedJenjangId);
+                  })
+                  ->orWhereHas('classLevel', function ($sq) use ($selectedJenjangId) {
+                      $sq->where('jenjang_id', $selectedJenjangId);
+                  });
+            });
+        }
+
+        // Academic Year Filter
+        if ($selectedYearId && $selectedYearId !== 'all') {
+            $query->where('academic_year_id', $selectedYearId);
         }
 
         // Search query
@@ -74,62 +103,71 @@ class StudentController extends Controller
             });
         }
 
-        // Filter: Jenjang (ClassLevel)
-        if ($classLevelId = $request->get('class_level_id')) {
-            if ($classLevelId !== 'all') {
-                $query->where(function ($q) use ($classLevelId) {
-                    $q->where('class_level_id', $classLevelId)
-                      ->orWhereHas('classroom', function ($sq) use ($classLevelId) {
-                          $sq->where('class_level_id', $classLevelId);
-                      });
-                });
-            }
+        // Filter: Kelas (ClassLevel)
+        $selectedClassLevelId = $request->get('class_level_id');
+        if ($selectedClassLevelId && $selectedClassLevelId !== 'all') {
+            $query->where(function ($q) use ($selectedClassLevelId) {
+                $q->where('class_level_id', $selectedClassLevelId)
+                  ->orWhereHas('classroom', function ($sq) use ($selectedClassLevelId) {
+                      $sq->where('class_level_id', $selectedClassLevelId);
+                  });
+            });
         }
 
         // Filter: Kelompok (Classroom)
-        if ($classroomId = $request->get('classroom_id')) {
-            if ($classroomId !== 'all') {
-                $query->where(function ($q) use ($classroomId) {
-                    $q->where('classroom_id', $classroomId)
-                      ->orWhere('daycare_classroom_id', $classroomId)
-                      ->orWhere('tpq_classroom_id', $classroomId);
-                });
-            }
+        $selectedClassroomId = $request->get('classroom_id');
+        if ($selectedClassroomId && $selectedClassroomId !== 'all') {
+            $query->where(function ($q) use ($selectedClassroomId) {
+                $q->where('classroom_id', $selectedClassroomId)
+                  ->orWhere('daycare_classroom_id', $selectedClassroomId)
+                  ->orWhere('tpq_classroom_id', $selectedClassroomId);
+            });
         }
 
         // Filter: Status
-        if ($status = $request->get('status')) {
-            if ($status !== 'all') {
-                $query->where('status', $status);
-            }
+        $selectedStatus = $request->get('status', 'all');
+        if ($selectedStatus && $selectedStatus !== 'all') {
+            $query->where('status', $selectedStatus);
         }
 
         // Filter: Gender
-        if ($gender = $request->get('gender')) {
-            if ($gender !== 'all') {
-                $query->where('gender', $gender);
-            }
+        $selectedGender = $request->get('gender', 'all');
+        if ($selectedGender && $selectedGender !== 'all') {
+            $query->where('gender', $selectedGender);
         }
 
-        // Fast Single Aggregation Query for all Student Stats
+        // Fast Single Aggregation Query for all Student Stats in the active Jenjang
         $statsAgg = Student::query();
-        if ($selectedYearId) {
+        if ($selectedJenjangId && $selectedJenjangId !== 'all') {
+            $statsAgg->where(function ($q) use ($selectedJenjangId) {
+                $q->where('jenjang_id', $selectedJenjangId)
+                  ->orWhereHas('classroom', function ($sq) use ($selectedJenjangId) {
+                      $sq->where('jenjang_id', $selectedJenjangId);
+                  })
+                  ->orWhereHas('classLevel', function ($sq) use ($selectedJenjangId) {
+                      $sq->where('jenjang_id', $selectedJenjangId);
+                  });
+            });
+        }
+        if ($selectedYearId && $selectedYearId !== 'all') {
             $statsAgg->where('academic_year_id', $selectedYearId);
         }
         $aggregated = $statsAgg->selectRaw("
             COUNT(*) as total_all,
             SUM(CASE WHEN status = 'aktif' THEN 1 ELSE 0 END) as total_active,
             SUM(CASE WHEN status = 'aktif' AND gender IN ('L', 'Laki-laki', 'Male') THEN 1 ELSE 0 END) as male,
-            SUM(CASE WHEN status = 'aktif' AND gender IN ('P', 'Perempuan', 'Female') THEN 1 ELSE 0 END) as female,
-            SUM(CASE WHEN status = 'aktif' AND sub_unit = 'PG' THEN 1 ELSE 0 END) as pg,
-            SUM(CASE WHEN status = 'aktif' AND sub_unit = 'TK' THEN 1 ELSE 0 END) as tk,
-            SUM(CASE WHEN status = 'aktif' AND (sub_unit = 'DAYCARE' OR daycare_classroom_id IS NOT NULL) THEN 1 ELSE 0 END) as daycare,
-            SUM(CASE WHEN status = 'aktif' AND (sub_unit = 'TPQ' OR is_tpq = 1 OR tpq_classroom_id IS NOT NULL) THEN 1 ELSE 0 END) as tpq
+            SUM(CASE WHEN status = 'aktif' AND gender IN ('P', 'Perempuan', 'Female') THEN 1 ELSE 0 END) as female
         ")->first();
 
         $rombelQuery = Classroom::where('is_active', true);
-        if ($selectedYearId) {
+        if ($selectedJenjangId && $selectedJenjangId !== 'all') {
+            $rombelQuery->where('jenjang_id', $selectedJenjangId);
+        }
+        if ($selectedYearId && $selectedYearId !== 'all') {
             $rombelQuery->where('academic_year_id', $selectedYearId);
+        }
+        if ($selectedClassLevelId && $selectedClassLevelId !== 'all') {
+            $rombelQuery->where('class_level_id', $selectedClassLevelId);
         }
         $totalClassrooms = $rombelQuery->count();
 
@@ -139,32 +177,60 @@ class StudentController extends Controller
             'male' => (int) ($aggregated->male ?? 0),
             'female' => (int) ($aggregated->female ?? 0),
             'classrooms' => $totalClassrooms,
-            'pg' => (int) ($aggregated->pg ?? 0),
-            'tk' => (int) ($aggregated->tk ?? 0),
-            'daycare' => (int) ($aggregated->daycare ?? 0),
-            'tpq' => (int) ($aggregated->tpq ?? 0),
         ];
 
-        // Master lists for filter dropdowns & modal selects
-        $classLevels = ClassLevel::orderBy('order')->get();
-        
-        $classroomListQuery = Classroom::with(['classLevel', 'academicYear', 'homeroomTeacher'])->where('is_active', true);
-        if ($selectedYearId) {
-            $classroomListQuery->where('academic_year_id', $selectedYearId);
-        }
-        $classrooms = $classroomListQuery->orderBy('class_level_id')->orderBy('name')->get();
+        // Filter dropdowns: ClassLevels and Classrooms filtered by the active Jenjang tab & selected Kelas
+        $classLevels = ClassLevel::where('is_active', true)
+            ->when($selectedJenjangId && $selectedJenjangId !== 'all', fn($q) => $q->where('jenjang_id', $selectedJenjangId))
+            ->orderBy('order')
+            ->get();
+
+        $classrooms = Classroom::with(['classLevel', 'academicYear', 'homeroomTeacher'])
+            ->where('is_active', true)
+            ->when($selectedJenjangId && $selectedJenjangId !== 'all', fn($q) => $q->where('jenjang_id', $selectedJenjangId))
+            ->when($selectedYearId && $selectedYearId !== 'all', fn($q) => $q->where('academic_year_id', $selectedYearId))
+            ->when($selectedClassLevelId && $selectedClassLevelId !== 'all', fn($q) => $q->where('class_level_id', $selectedClassLevelId))
+            ->orderBy('class_level_id')
+            ->orderBy('name')
+            ->get();
+
+        // Master lists for Modal dropdowns
+        $allClassLevels = ClassLevel::with('jenjang')->where('is_active', true)->orderBy('order')->get();
         $allClassrooms = Classroom::with(['classLevel', 'academicYear', 'homeroomTeacher'])->where('is_active', true)->orderBy('academic_year_id', 'desc')->orderBy('name')->get();
 
-        $daycareClassrooms = $classrooms->where('sub_unit', 'DAYCARE');
-        $tpqClassrooms = $classrooms->where('sub_unit', 'TPQ');
+        $daycareJenjangIds = Jenjang::where(function($q) {
+            $q->where('code', 'DAYCARE')
+              ->orWhere('code', 'TPA')
+              ->orWhere('name', 'like', '%Daycare%')
+              ->orWhere('name', 'like', '%TPA%');
+        })->pluck('id');
+
+        $daycareClassrooms = Classroom::with(['classLevel', 'academicYear', 'jenjang'])
+            ->where('is_active', true)
+            ->whereIn('jenjang_id', $daycareJenjangIds)
+            ->orderBy('name')
+            ->get();
+
+        $tpqJenjangIds = Jenjang::where(function($q) {
+            $q->where('code', 'TPQ')
+              ->orWhere('name', 'like', '%TPQ%');
+        })->pluck('id');
+
+        $tpqClassrooms = Classroom::with(['classLevel', 'academicYear', 'jenjang'])
+            ->where('is_active', true)
+            ->whereIn('jenjang_id', $tpqJenjangIds)
+            ->orderBy('name')
+            ->get();
 
         $students = $query->orderBy('status', 'asc')->orderBy('full_name', 'asc')->paginate(20)->withQueryString();
 
         return view('admin.students.index', compact(
             'students',
             'stats',
+            'jenjangs',
             'classLevels',
             'classrooms',
+            'allClassLevels',
             'allClassrooms',
             'daycareClassrooms',
             'tpqClassrooms',
@@ -172,7 +238,11 @@ class StudentController extends Controller
             'activeAcademicYear',
             'selectedYearId',
             'selectedYear',
-            'selectedSubUnit'
+            'selectedJenjangId',
+            'selectedClassLevelId',
+            'selectedClassroomId',
+            'selectedStatus',
+            'selectedGender'
         ));
     }
 
@@ -220,6 +290,7 @@ class StudentController extends Controller
             'birth_place' => 'nullable|string|max:100',
             'birth_date' => 'nullable|date',
             'religion' => 'nullable|string|max:50',
+            'jenjang_id' => 'nullable|exists:jenjangs,id',
             'sub_unit' => 'nullable|string|in:PG,TK,DAYCARE,TPQ',
             'class_level_id' => 'nullable|exists:class_levels,id',
             'classroom_id' => 'nullable|exists:classrooms,id',
@@ -249,9 +320,19 @@ class StudentController extends Controller
             $validated['enrolled_date'] = now()->toDateString();
         }
 
-        if (empty($validated['sub_unit']) && !empty($validated['classroom_id'])) {
+        if (!empty($validated['classroom_id'])) {
             $cls = Classroom::find($validated['classroom_id']);
-            $validated['sub_unit'] = $cls?->sub_unit ?? 'TK';
+            if ($cls) {
+                if (empty($validated['jenjang_id'])) {
+                    $validated['jenjang_id'] = $cls->jenjang_id;
+                }
+                if (empty($validated['class_level_id'])) {
+                    $validated['class_level_id'] = $cls->class_level_id;
+                }
+                if (empty($validated['sub_unit'])) {
+                    $validated['sub_unit'] = $cls->sub_unit ?? 'TK';
+                }
+            }
         }
 
         $student = Student::create($validated);
@@ -297,6 +378,7 @@ class StudentController extends Controller
             'birth_place' => 'nullable|string|max:100',
             'birth_date' => 'nullable|date',
             'religion' => 'nullable|string|max:50',
+            'jenjang_id' => 'nullable|exists:jenjangs,id',
             'sub_unit' => 'nullable|string|in:PG,TK,DAYCARE,TPQ',
             'class_level_id' => 'nullable|exists:class_levels,id',
             'classroom_id' => 'nullable|exists:classrooms,id',
@@ -316,9 +398,19 @@ class StudentController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        if (empty($validated['sub_unit']) && !empty($validated['classroom_id'])) {
+        if (!empty($validated['classroom_id'])) {
             $cls = Classroom::find($validated['classroom_id']);
-            $validated['sub_unit'] = $cls?->sub_unit ?? 'TK';
+            if ($cls) {
+                if (empty($validated['jenjang_id'])) {
+                    $validated['jenjang_id'] = $cls->jenjang_id;
+                }
+                if (empty($validated['class_level_id'])) {
+                    $validated['class_level_id'] = $cls->class_level_id;
+                }
+                if (empty($validated['sub_unit'])) {
+                    $validated['sub_unit'] = $cls->sub_unit ?? 'TK';
+                }
+            }
         }
 
         $student->update($validated);
@@ -326,6 +418,8 @@ class StudentController extends Controller
         // Sync or record history with immutable text snapshots
         if ($student->classroom_id) {
             $student->load(['classroom.classLevel', 'classroom.homeroomTeacher']);
+            $isInactiveOrExit = in_array($student->status, ['mutasi', 'keluar', 'lulus', 'nonaktif']);
+
             StudentClassroomHistory::updateOrCreate(
                 [
                     'student_id' => $student->id,
@@ -339,7 +433,8 @@ class StudentController extends Controller
                     'homeroom_teacher_name' => $student->classroom?->homeroomTeacher?->name,
                     'status' => $student->status,
                     'start_date' => $student->enrolled_date ?? now()->toDateString(),
-                    'notes' => 'Pembaruan Data Murid',
+                    'end_date' => $isInactiveOrExit ? now()->toDateString() : null,
+                    'notes' => 'Pembaruan Data Murid (' . ucfirst($student->status) . ')',
                 ]
             );
         }
@@ -389,26 +484,27 @@ class StudentController extends Controller
 
         $selectedYearId = $request->get('academic_year_id', $activeAcademicYear?->id);
         $selectedYear = $academicYears->firstWhere('id', $selectedYearId) ?? $activeAcademicYear;
-        $selectedSubUnit = $request->get('sub_unit', 'ALL');
 
-        $query = Student::with(['classroom.classLevel', 'daycareClassroom', 'tpqClassroom', 'classLevel', 'academicYear']);
+        $jenjangs = Jenjang::where('is_active', true)->orderBy('order')->get();
+        $selectedJenjangId = $request->get('jenjang_id');
+        $selectedJenjang = $jenjangs->firstWhere('id', $selectedJenjangId);
 
-        if ($selectedYearId) {
-            $query->where('academic_year_id', $selectedYearId);
+        $query = Student::with(['jenjang', 'classroom.classLevel', 'classroom.jenjang', 'daycareClassroom', 'tpqClassroom', 'classLevel', 'academicYear']);
+
+        if ($selectedJenjangId && $selectedJenjangId !== 'all') {
+            $query->where(function ($q) use ($selectedJenjangId) {
+                $q->where('jenjang_id', $selectedJenjangId)
+                  ->orWhereHas('classroom', function ($sq) use ($selectedJenjangId) {
+                      $sq->where('jenjang_id', $selectedJenjangId);
+                  })
+                  ->orWhereHas('classLevel', function ($sq) use ($selectedJenjangId) {
+                      $sq->where('jenjang_id', $selectedJenjangId);
+                  });
+            });
         }
 
-        if ($selectedSubUnit && $selectedSubUnit !== 'ALL') {
-            if ($selectedSubUnit === 'DAYCARE') {
-                $query->where(function ($q) {
-                    $q->where('sub_unit', 'DAYCARE')->orWhereNotNull('daycare_classroom_id');
-                });
-            } elseif ($selectedSubUnit === 'TPQ') {
-                $query->where(function ($q) {
-                    $q->where('sub_unit', 'TPQ')->orWhere('is_tpq', true)->orWhereNotNull('tpq_classroom_id');
-                });
-            } else {
-                $query->where('sub_unit', $selectedSubUnit);
-            }
+        if ($selectedYearId && $selectedYearId !== 'all') {
+            $query->where('academic_year_id', $selectedYearId);
         }
 
         if ($search = $request->get('search')) {
@@ -457,8 +553,7 @@ class StudentController extends Controller
             }
         }
 
-        $students = $query->orderBy('sub_unit', 'asc')
-            ->orderBy('classroom_id', 'asc')
+        $students = $query->orderBy('classroom_id', 'asc')
             ->orderBy('full_name', 'asc')
             ->get();
 
@@ -469,7 +564,7 @@ class StudentController extends Controller
         // Document Title
         $sheet->setCellValue('A1', 'DAFTAR DATA MURID (PESERTA DIDIK)');
         $sheet->setCellValue('A2', 'KB - TK - DAYCARE - TPQ ANAK SALEH MALANG');
-        $sheet->setCellValue('A3', 'Tahun Ajaran: ' . ($selectedYear ? $selectedYear->name : 'Semua') . ' | Sub-Unit: ' . $selectedSubUnit . ' | Total Murid: ' . $students->count() . ' | Tanggal Unduh: ' . date('d/m/Y H:i'));
+        $sheet->setCellValue('A3', 'Tahun Ajaran: ' . ($selectedYear ? $selectedYear->name : 'Semua') . ' | Jenjang: ' . ($selectedJenjang ? $selectedJenjang->name : 'Semua') . ' | Total Murid: ' . $students->count() . ' | Tanggal Unduh: ' . date('d/m/Y H:i'));
 
         $sheet->getStyle('A1:A2')->getFont()->setBold(true)->setSize(14);
         $sheet->getStyle('A3')->getFont()->setItalic(true)->setSize(10)->getColor()->setARGB('FF475569');
@@ -825,52 +920,69 @@ class StudentController extends Controller
                 }
             }
 
-            // Sub-unit normalization
-            $subUnit = 'TK';
-            if (in_array($subUnitRaw, ['PG', 'KB', 'PLAYGROUP'])) {
-                $subUnit = 'PG';
-            } elseif (in_array($subUnitRaw, ['DAYCARE', 'TPA'])) {
-                $subUnit = 'DAYCARE';
-            } elseif (in_array($subUnitRaw, ['TPQ'])) {
-                $subUnit = 'TPQ';
-            }
-
-            // Status normalization
-            $status = in_array($statusRaw, ['aktif', 'lulus', 'mutasi', 'keluar', 'nonaktif']) ? $statusRaw : 'aktif';
-
-            // Resolve Classroom
+            // Resolve Classroom dynamically from Classroom table & relations
             $classroomId = $defaultClassroomId;
             $classLevelId = null;
+            $jenjangId = null;
+            $subUnit = null;
 
             if (!empty($kelompokRaw)) {
-                $matchedClassroom = Classroom::where('name', 'like', "%{$kelompokRaw}%")->first();
+                $matchedClassroom = Classroom::with(['jenjang', 'classLevel.jenjang'])->where('name', 'like', "%{$kelompokRaw}%")->first();
                 if ($matchedClassroom) {
                     $classroomId = $matchedClassroom->id;
                     $classLevelId = $matchedClassroom->class_level_id;
-                    $subUnit = $matchedClassroom->sub_unit;
+                    $jenjangId = $matchedClassroom->jenjang_id ?? $matchedClassroom->classLevel?->jenjang_id;
+                    $subUnit = $matchedClassroom->jenjang?->code ?? $matchedClassroom->sub_unit;
                 }
             }
 
-            // Resolve Jenjang if not set by classroom
+            // Resolve Class Level if not set by classroom
             if (!$classLevelId && !empty($jenjangRaw)) {
-                $matchedLevel = ClassLevel::where('name', 'like', "%{$jenjangRaw}%")->first();
+                $matchedLevel = ClassLevel::with('jenjang')->where('name', 'like', "%{$jenjangRaw}%")->first();
                 if ($matchedLevel) {
                     $classLevelId = $matchedLevel->id;
+                    if (!$jenjangId) {
+                        $jenjangId = $matchedLevel->jenjang_id;
+                    }
+                    if (!$subUnit) {
+                        $subUnit = $matchedLevel->jenjang?->code;
+                    }
                 }
             }
 
-            // Resolve Daycare Classroom
+            // Resolve Jenjang directly if still not set
+            if (!$jenjangId && !empty($jenjangRaw)) {
+                $matchedJenjang = Jenjang::where('name', 'like', "%{$jenjangRaw}%")->orWhere('code', 'like', "%{$jenjangRaw}%")->first();
+                if ($matchedJenjang) {
+                    $jenjangId = $matchedJenjang->id;
+                    $subUnit = $matchedJenjang->code;
+                }
+            }
+
+            // Resolve Daycare Classroom dynamically via Jenjang
             $daycareClassroomId = null;
             if (!empty($daycareRaw)) {
-                $dc = Classroom::where('sub_unit', 'DAYCARE')->where('name', 'like', "%{$daycareRaw}%")->first();
+                $dc = Classroom::whereHas('jenjang', function($jq) {
+                    $jq->whereIn('code', ['DAYCARE', 'TPA'])->orWhere('name', 'like', '%Daycare%')->orWhere('name', 'like', '%TPA%');
+                })->where('name', 'like', "%{$daycareRaw}%")->first();
+                
+                if (!$dc) {
+                    $dc = Classroom::where('name', 'like', "%{$daycareRaw}%")->first();
+                }
                 $daycareClassroomId = $dc?->id;
             }
 
-            // Resolve TPQ
+            // Resolve TPQ dynamically via Jenjang
             $isTpq = in_array(strtolower($tpqRaw ?? ''), ['ya', 'true', '1', 'tpq', 'ikut']);
             $tpqClassroomId = null;
             if (!empty($tpqKelompokRaw)) {
-                $tpqCls = Classroom::where('sub_unit', 'TPQ')->where('name', 'like', "%{$tpqKelompokRaw}%")->first();
+                $tpqCls = Classroom::whereHas('jenjang', function($jq) {
+                    $jq->where('code', 'TPQ')->orWhere('name', 'like', '%TPQ%');
+                })->where('name', 'like', "%{$tpqKelompokRaw}%")->first();
+
+                if (!$tpqCls) {
+                    $tpqCls = Classroom::where('name', 'like', "%{$tpqKelompokRaw}%")->first();
+                }
                 $tpqClassroomId = $tpqCls?->id;
                 if ($tpqClassroomId) {
                     $isTpq = true;
@@ -901,6 +1013,7 @@ class StudentController extends Controller
                 'birth_place' => $birthPlace,
                 'birth_date' => $birthDate,
                 'religion' => $religion,
+                'jenjang_id' => $jenjangId,
                 'sub_unit' => $subUnit,
                 'class_level_id' => $classLevelId,
                 'classroom_id' => $classroomId,

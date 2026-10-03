@@ -133,7 +133,7 @@
                 'name' => $curUser?->name,
                 'email' => $curUser?->email,
                 'employee_id' => $curUser?->employee_id,
-                'role' => $isAdmin ? 'super_admin' : 'guru',
+                'role' => $curUser?->role ?? ($isAdmin ? 'super_admin' : 'guru'),
                 'unit' => 'paud',
                 'timestamp' => time(),
             ]));
@@ -192,20 +192,7 @@
                     </span>
                 </a>
 
-                <!-- Rekapitulasi Rombel & Kesiswaan -->
-                <a href="{{ route('student-reports.index') }}" class="menu-item flex items-center justify-between gap-3 px-3 py-2 rounded-lg
-                    {{ Request::routeIs('student-reports.*') ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-50 font-medium' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/50' }}
-                    text-xs relative group">
-                    <div class="flex items-center gap-3">
-                        <i data-lucide="pie-chart" class="menu-icon w-4 h-4 text-indigo-600 dark:text-indigo-400"></i>
-                        <span class="menu-text">Rekapitulasi</span>
-                    </div>
-                    <span class="sidebar-tooltip absolute left-full ml-3 px-2 py-1 bg-slate-900 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-50 dark:text-slate-100 text-xs font-semibold rounded-md shadow-md opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all origin-left duration-100 pointer-events-none whitespace-nowrap z-50">
-                        Rekapitulasi
-                    </span>
-                </a>
-
-                <!-- Data Guru (Dipindah ke Akademik & Kesiswaan) -->
+                <!-- Data Guru -->
                 <a href="{{ route('teachers.index') }}" class="menu-item flex items-center gap-3 px-3 py-2 rounded-lg {{ Request::routeIs('teachers.*') ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-50 font-medium' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/50' }} text-xs relative group">
                     <i data-lucide="graduation-cap" class="menu-icon w-4 h-4"></i>
                     <span class="menu-text">Data Guru</span>
@@ -254,9 +241,9 @@
                 </a>
 
                 <!-- Dropdown: Master Akademik -->
-                <div x-data="{ openAcademic: {{ Request::routeIs('classrooms.*', 'class-levels.*', 'academic-years.*') ? 'true' : 'false' }} }">
+                <div x-data="{ openAcademic: {{ Request::routeIs('academic-summary.*', 'jenjangs.*', 'classrooms.*', 'class-levels.*', 'academic-years.*', 'semesters.*', 'homeroom-assignments.*') ? 'true' : 'false' }} }">
                     <button @click="openAcademic = !openAcademic"
-                        class="menu-item w-full flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors text-xs font-medium relative group cursor-pointer {{ Request::routeIs('classrooms.*', 'class-levels.*', 'academic-years.*') ? 'text-slate-900 dark:text-slate-50 bg-slate-50/50 dark:bg-slate-900/30' : '' }}">
+                        class="menu-item w-full flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors text-xs font-medium relative group cursor-pointer {{ Request::routeIs('academic-summary.*', 'jenjangs.*', 'classrooms.*', 'class-levels.*', 'academic-years.*', 'semesters.*', 'homeroom-assignments.*') ? 'text-slate-900 dark:text-slate-50 bg-slate-50/50 dark:bg-slate-900/30' : '' }}">
                         <div class="flex items-center gap-3">
                             <i data-lucide="layers" class="menu-icon w-4 h-4"></i>
                             <span class="menu-text">Master Akademik</span>
@@ -269,17 +256,29 @@
                     <div x-show="openAcademic" x-collapse
                         class="mt-1 ml-5 pl-4 border-l border-slate-200 dark:border-slate-800 space-y-1"
                         style="margin-left:20px">
+                        <a href="{{ route('academic-summary.index') }}"
+                            class="flex items-center justify-between gap-2 py-1.5 text-xs font-medium {{ Request::routeIs('academic-summary.*') ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100' }} transition-colors">
+                            <span>Data Akademik</span>
+                        </a>
+                        <a href="{{ route('jenjangs.index') }}"
+                            class="flex items-center justify-between gap-2 py-1.5 text-xs font-medium {{ Request::routeIs('jenjangs.*') ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100' }} transition-colors">
+                            <span>Jenjang</span>
+                        </a>
+                        <a href="{{ route('class-levels.index') }}"
+                            class="flex items-center justify-between gap-2 py-1.5 text-xs font-medium {{ Request::routeIs('class-levels.*') ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100' }} transition-colors">
+                            <span>Kelas</span>
+                        </a>
                         <a href="{{ route('classrooms.index') }}"
                             class="flex items-center justify-between gap-2 py-1.5 text-xs font-medium {{ Request::routeIs('classrooms.*') ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100' }} transition-colors">
                             <span>Kelompok</span>
                         </a>
-                        <a href="{{ route('class-levels.index') }}"
-                            class="flex items-center justify-between gap-2 py-1.5 text-xs font-medium {{ Request::routeIs('class-levels.*') ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100' }} transition-colors">
-                            <span>Jenjang</span>
+                        <a href="{{ route('homeroom-assignments.index') }}"
+                            class="flex items-center justify-between gap-2 py-1.5 text-xs font-medium {{ Request::routeIs('homeroom-assignments.*') ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100' }} transition-colors">
+                            <span>Wali Kelas</span>
                         </a>
                         <a href="{{ route('academic-years.index') }}"
-                            class="flex items-center justify-between gap-2 py-1.5 text-xs font-medium {{ Request::routeIs('academic-years.*') ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100' }} transition-colors">
-                            <span>Tahun Ajaran</span>
+                            class="flex items-center justify-between gap-2 py-1.5 text-xs font-medium {{ Request::routeIs('academic-years.*', 'semesters.*') ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100' }} transition-colors">
+                            <span>Tapel & Semester</span>
                         </a>
                     </div>
                 </div>

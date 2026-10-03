@@ -561,12 +561,16 @@
                                     if (window.lucide) window.lucide.createIcons();
                                 });
                             } else {
-                                alert('Gagal memuat detail data alumni.');
+                                if (typeof window.showToast === 'function') {
+                                    window.showToast('Perhatian!', 'Gagal memuat detail data alumni.', 'error');
+                                }
                             }
                         })
                         .catch(err => {
                             console.error(err);
-                            alert('Terjadi kesalahan jaringan.');
+                            if (typeof window.showToast === 'function') {
+                                window.showToast('Perhatian!', 'Terjadi kesalahan jaringan.', 'error');
+                            }
                         });
                 },
 
@@ -597,15 +601,22 @@
                         this.isSubmitting = false;
                         if (data.success) {
                             this.editNotesModalOpen = false;
+                            if (typeof window.setPendingToast === 'function') {
+                                window.setPendingToast(data.message || 'Catatan alumni berhasil disimpan.', 'success');
+                            }
                             window.location.reload();
                         } else {
-                            alert(data.message || 'Gagal menyimpan catatan alumni.');
+                            if (typeof window.showToast === 'function') {
+                                window.showToast('Perhatian!', data.message || 'Gagal menyimpan catatan alumni.', 'error');
+                            }
                         }
                     })
                     .catch(err => {
                         this.isSubmitting = false;
                         console.error(err);
-                        alert('Terjadi kesalahan saat menyimpan data.');
+                        if (typeof window.showToast === 'function') {
+                            window.showToast('Perhatian!', 'Terjadi kesalahan saat menyimpan data.', 'error');
+                        }
                     });
                 }
             };

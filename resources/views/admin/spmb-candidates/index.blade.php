@@ -703,7 +703,11 @@
                             });
                         }
                     })
-                    .catch(err => alert("Gagal memuat detail pendaftar: " + err.message));
+                    .catch(err => {
+                        if (typeof window.showToast === 'function') {
+                            window.showToast('Perhatian!', "Gagal memuat detail pendaftar: " + err.message, 'error');
+                        }
+                    });
                 },
 
                 openEnrollModal(id) {
@@ -730,7 +734,11 @@
                             });
                         }
                     })
-                    .catch(err => alert("Gagal mengambil data persiapan siswa aktif: " + err.message));
+                    .catch(err => {
+                        if (typeof window.showToast === 'function') {
+                            window.showToast('Perhatian!', "Gagal mengambil data persiapan siswa aktif: " + err.message, 'error');
+                        }
+                    });
                 },
 
                 submitEnroll() {
@@ -751,39 +759,59 @@
                         this.enrolling = false;
                         if (res.success) {
                             this.enrollModalOpen = false;
-                            alert(res.message || "Berhasil mendaftarkan siswa aktif!");
+                            if (typeof window.setPendingToast === 'function') {
+                                window.setPendingToast(res.message || "Berhasil mendaftarkan siswa aktif!", 'success');
+                            }
                             window.location.reload();
                         } else {
-                            alert("Gagal: " + (res.message || "Terjadi kesalahan"));
+                            if (typeof window.showToast === 'function') {
+                                window.showToast('Perhatian!', (res.message || "Terjadi kesalahan"), 'error');
+                            }
                         }
                     })
                     .catch(err => {
                         this.enrolling = false;
-                        alert("Error: " + err.message);
+                        if (typeof window.showToast === 'function') {
+                            window.showToast('Perhatian!', "Error: " + err.message, 'error');
+                        }
                     });
                 },
 
                 unenrollStudent(id) {
-                    if (!confirm("Apakah Anda yakin ingin membatalkan status siswa aktif untuk calon murid ini? Data kesiswaannya akan dihapus.")) return;
+                    const doUnenroll = () => {
+                        fetch(`/spmb/candidates/${id}/unenroll`, {
+                            method: "POST",
+                            headers: {
+                                "Accept": "application/json",
+                                "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(res => {
+                            if (res.success) {
+                                this.enrollModalOpen = false;
+                                if (typeof window.setPendingToast === 'function') {
+                                    window.setPendingToast(res.message || "Status siswa aktif berhasil dibatalkan.", 'success');
+                                }
+                                window.location.reload();
+                            } else {
+                                if (typeof window.showToast === 'function') {
+                                    window.showToast('Perhatian!', (res.message || "Terjadi kesalahan"), 'error');
+                                }
+                            }
+                        })
+                        .catch(err => {
+                            if (typeof window.showToast === 'function') {
+                                window.showToast('Perhatian!', "Error: " + err.message, 'error');
+                            }
+                        });
+                    };
 
-                    fetch(`/spmb/candidates/${id}/unenroll`, {
-                        method: "POST",
-                        headers: {
-                            "Accept": "application/json",
-                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                        }
-                    })
-                    .then(res => res.json())
-                    .then(res => {
-                        if (res.success) {
-                            this.enrollModalOpen = false;
-                            alert(res.message || "Status siswa aktif berhasil dibatalkan.");
-                            window.location.reload();
-                        } else {
-                            alert("Gagal: " + (res.message || "Terjadi kesalahan"));
-                        }
-                    })
-                    .catch(err => alert("Error: " + err.message));
+                    if (typeof showGlobalConfirmModal === 'function') {
+                        showGlobalConfirmModal("Apakah Anda yakin ingin membatalkan status siswa aktif untuk calon murid ini? Data kesiswaannya akan dihapus.", doUnenroll, true);
+                    } else if (confirm("Apakah Anda yakin ingin membatalkan status siswa aktif untuk calon murid ini? Data kesiswaannya akan dihapus.")) {
+                        doUnenroll();
+                    }
                 },
 
                 syncData() {
@@ -805,15 +833,21 @@
                     .then(res => {
                         this.syncing = false;
                         if (res.success) {
-                            alert(res.message || "Sinkronisasi berhasil!");
+                            if (typeof window.setPendingToast === 'function') {
+                                window.setPendingToast(res.message || "Sinkronisasi berhasil!", 'success');
+                            }
                             window.location.reload();
                         } else {
-                            alert("Gagal sinkronisasi: " + (res.message || "Unknown error"));
+                            if (typeof window.showToast === 'function') {
+                                window.showToast('Perhatian!', "Gagal sinkronisasi: " + (res.message || "Unknown error"), 'error');
+                            }
                         }
                     })
                     .catch(err => {
                         this.syncing = false;
-                        alert("Terjadi kesalahan koneksi: " + err.message);
+                        if (typeof window.showToast === 'function') {
+                            window.showToast('Perhatian!', "Terjadi kesalahan koneksi: " + err.message, 'error');
+                        }
                     });
                 }
             }

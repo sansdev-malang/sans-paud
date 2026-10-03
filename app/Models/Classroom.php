@@ -12,6 +12,7 @@ class Classroom extends Model
     use HasFactory;
 
     protected $fillable = [
+        'jenjang_id',
         'name',
         'code',
         'sub_unit',
@@ -28,6 +29,11 @@ class Classroom extends Model
         'capacity' => 'integer',
     ];
 
+    public function jenjang(): BelongsTo
+    {
+        return $this->belongsTo(Jenjang::class);
+    }
+
     public function classLevel(): BelongsTo
     {
         return $this->belongsTo(ClassLevel::class);
@@ -41,6 +47,11 @@ class Classroom extends Model
     public function homeroomTeacher(): BelongsTo
     {
         return $this->belongsTo(Employee::class, 'homeroom_teacher_id');
+    }
+
+    public function homeroomAssignments(): HasMany
+    {
+        return $this->hasMany(HomeroomAssignment::class);
     }
 
     public function students(): HasMany

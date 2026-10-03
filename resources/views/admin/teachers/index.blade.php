@@ -141,10 +141,10 @@
                 <!-- Filters -->
                 <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
 
-                    <!-- Filter Sub-Unit -->
+                    <!-- Filter Jenjang -->
                     <select name="sub_unit" onchange="this.form.submit()"
                         class="h-9 px-2 flex-1 sm:flex-initial sm:w-32 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
-                        <option value="">Semua Sub-Unit</option>
+                        <option value="">Semua Jenjang</option>
                         <option value="PG" {{ request('sub_unit') == 'PG' ? 'selected' : '' }}>Playgroup (KB)</option>
                         <option value="TK" {{ request('sub_unit') == 'TK' ? 'selected' : '' }}>TK</option>
                         <option value="DAYCARE" {{ request('sub_unit') == 'DAYCARE' ? 'selected' : '' }}>Daycare</option>

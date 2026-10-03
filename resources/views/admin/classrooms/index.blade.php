@@ -10,12 +10,12 @@
                     </div>
                     <div>
                         <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2">
-                            Kelompok Belajar
+                            Rombel / Kelompok
                             <span class="text-xs px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400 font-semibold border border-indigo-200 dark:border-indigo-800">
-                                PG - TK - DAYCARE
+                                Master Akademik
                             </span>
                         </h2>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Kelola kelompok, alokasi wali kelas / bunda pendamping, dan daya tampung murid.</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Kelola master rombongan belajar / kelompok belajar siswa berdasarkan jenjang dan kelas.</p>
                     </div>
                 </div>
             </div>
@@ -23,23 +23,23 @@
                 <a href="{{ route('class-levels.index') }}"
                     class="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-colors cursor-pointer">
                     <i data-lucide="layers" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400"></i>
-                    Jenjang
+                    Kelas
                 </a>
                 <button type="button" @click="openCreateModal()"
                     class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer">
                     <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                    Tambah Kelompok
+                    Tambah Rombel / Kelompok
                 </button>
             </div>
         </section>
 
         <!-- STATS CARDS GRID -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- Stat 1: Total Kelompok -->
+            <!-- Stat 1: Total Rombel -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Kelompok</p>
+                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Rombel / Kelompok</p>
                         <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
                             {{ number_format($stats['total_classrooms']) }}
                         </h3>
@@ -49,7 +49,7 @@
                     </div>
                 </div>
                 <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
-                    Kelompok aktif di semua sub-unit
+                    Kelompok terdaftar di seluruh kelas
                 </div>
             </div>
 
@@ -67,7 +67,7 @@
                     </div>
                 </div>
                 <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
-                    Maksimal kapasitas seluruh kelompok
+                    Kapasitas seluruh rombel
                 </div>
             </div>
 
@@ -75,7 +75,7 @@
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Murid Terisi</p>
+                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Murid Terdaftar</p>
                         <h3 class="text-2xl font-bold tracking-tight text-indigo-600 dark:text-indigo-400 mt-1">
                             {{ number_format($stats['total_enrolled']) }}
                         </h3>
@@ -85,7 +85,7 @@
                     </div>
                 </div>
                 <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
-                    Murid aktif yang telah terdaftar
+                    Murid aktif saat ini
                 </div>
             </div>
 
@@ -103,39 +103,30 @@
                     </div>
                 </div>
                 <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
-                    Rasio keterisian terhadap daya tampung
+                    Rasio keterisian murid
                 </div>
             </div>
         </section>
 
-        <!-- FILTER SUB-UNIT TABS & CONTROLS -->
+        <!-- FILTER JENJANG TABS (DINAMIS DARI RELASI JENJANG - TANPA SEMUA JENJANG) -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs">
             <div class="flex flex-wrap items-center gap-2">
-                <button type="button" @click="activeSubUnit = 'ALL'"
-                    :class="activeSubUnit === 'ALL' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'"
-                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5">
-                    <span>🌟</span> Semua Kelompok
-                </button>
-                <button type="button" @click="activeSubUnit = 'PG'"
-                    :class="activeSubUnit === 'PG' ? 'bg-amber-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'"
-                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5">
-                    <span>🧸</span> Playgroup (PG)
-                </button>
-                <button type="button" @click="activeSubUnit = 'TK'"
-                    :class="activeSubUnit === 'TK' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'"
-                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5">
-                    <span>🎒</span> TK (Taman Kanak-Kanak)
-                </button>
-                <button type="button" @click="activeSubUnit = 'DAYCARE'"
-                    :class="activeSubUnit === 'DAYCARE' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'"
-                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5">
-                    <span>👶</span> Daycare (TPA)
-                </button>
-                <button type="button" @click="activeSubUnit = 'TPQ'"
-                    :class="activeSubUnit === 'TPQ' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'"
-                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5">
-                    <span>📖</span> TPQ
-                </button>
+                @foreach($jenjangs as $j)
+                    <button type="button" @click="setJenjangTab({{ $j->id }})"
+                        :class="activeJenjangId == {{ $j->id }} ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'"
+                        class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5">
+                        @if($j->code === 'KB' || $j->code === 'PG')
+                            <span>🧸</span>
+                        @elseif($j->code === 'TK')
+                            <span>🎒</span>
+                        @elseif($j->code === 'DAYCARE' || $j->code === 'TPA')
+                            <span>👶</span>
+                        @elseif($j->code === 'TPQ')
+                            <span>📖</span>
+                        @endif
+                        <span>{{ $j->name }}</span>
+                    </button>
+                @endforeach
             </div>
 
             <!-- Search box -->
@@ -143,87 +134,68 @@
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400"></i>
                 </span>
-                <input type="text" x-model="searchQuery" placeholder="Cari nama / kode kelompok..."
+                <input type="text" x-model="searchQuery" placeholder="Cari nama rombel/kelompok..."
                     style="padding-left: 2.25rem;"
                     class="w-full h-9 pr-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
             </div>
         </div>
 
-        <!-- TABLE LIST KELOMPOK -->
+        <!-- TABLE LIST ROMBEL / KELOMPOK -->
+        <!-- Kolom: jenjang, kelas, rombel/kelompok, status, aksi -->
         <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden w-full">
             <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                 <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                    <i data-lucide="list-ordered" class="w-4 h-4 text-indigo-600"></i>
-                    Daftar Kelompok Belajar
+                    <i data-lucide="list" class="w-4 h-4 text-indigo-600"></i>
+                    Daftar Rombel / Kelompok
                 </h3>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-xs border-collapse">
                     <thead>
                         <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-900/50">
-                            <th class="px-5 py-3.5 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-12">No</th>
-                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28">Sub Unit</th>
-                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Nama Kelompok</th>
-                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28">Jenjang</th>
-                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Wali Kelas / Pendamping</th>
-                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28">T.A.</th>
-                            <th class="px-5 py-3.5 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-44">Kapasitas & Murid</th>
-                            <th class="px-5 py-3.5 text-right text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-40">Aksi</th>
+                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-40">Jenjang</th>
+                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-36">Kelas</th>
+                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Rombel / Kelompok</th>
+                            <th class="px-5 py-3.5 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-36">Status</th>
+                            <th class="px-5 py-3.5 text-right text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-36">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
-                        @php $rowIdx = 0; @endphp
                         @forelse($classrooms as $c)
-                            @php
-                                $rowIdx++;
-                                $occupancy = $c->capacity > 0 ? round(($c->active_students_count / $c->capacity) * 100) : 0;
-                                $isFull = $c->active_students_count >= $c->capacity;
-                            @endphp
-                            <tr x-show="(activeSubUnit === 'ALL' || activeSubUnit === '{{ $c->sub_unit }}') && (searchQuery === '' || '{{ strtolower($c->name . ' ' . $c->code) }}'.includes(searchQuery.toLowerCase()))"
+                            <tr x-show="(activeJenjangId == {{ $c->jenjang_id ?: ($c->classLevel?->jenjang_id ?: '0') }}) && (searchQuery === '' || '{{ strtolower($c->name . ' ' . $c->code) }}'.includes(searchQuery.toLowerCase()))"
                                 class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors group">
                                 
-                                <!-- 1. No -->
-                                <td class="px-5 py-3.5 text-center text-slate-400 font-mono text-[11px]">
-                                    {{ $rowIdx }}
-                                </td>
-
-                                <!-- 2. Sub Unit Badge -->
+                                <!-- 1. Jenjang (Relasi dari Table Jenjang) -->
                                 <td class="px-5 py-3.5">
-                                    @if($c->sub_unit === 'PG')
-                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
-                                            🧸 PG
-                                        </span>
-                                    @elseif($c->sub_unit === 'TK')
-                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
-                                            🎒 TK
-                                        </span>
-                                    @elseif($c->sub_unit === 'DAYCARE')
-                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400 border border-purple-200 dark:border-purple-800">
-                                            👶 DAYCARE
-                                        </span>
-                                    @elseif($c->sub_unit === 'TPQ')
-                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                                            📖 TPQ
+                                    @php
+                                        $jenjangName = $c->jenjang?->name ?? $c->classLevel?->jenjang?->name;
+                                    @endphp
+                                    @if($jenjangName)
+                                        <span class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                                            {{ $jenjangName }}
                                         </span>
                                     @else
-                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 dark:bg-slate-800">
-                                            -
-                                        </span>
+                                        <span class="text-slate-400 italic text-[11px]">-</span>
                                     @endif
                                 </td>
 
-                                <!-- 3. Nama Kelompok & Kode -->
+                                <!-- 2. Kelas (Relasi dari Table Jenjang & Kelas) -->
+                                <td class="px-5 py-3.5">
+                                    <span class="font-bold text-slate-800 dark:text-slate-200 text-xs">
+                                        {{ $c->classLevel?->name ?? '-' }}
+                                    </span>
+                                </td>
+
+                                <!-- 3. Rombel / Kelompok -->
                                 <td class="px-5 py-3.5">
                                     <div class="flex items-center gap-2">
+                                        <div class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center font-bold text-xs shrink-0">
+                                            <i data-lucide="shapes" class="w-4 h-4 text-indigo-600"></i>
+                                        </div>
                                         <div>
-                                            <span class="font-bold text-slate-900 dark:text-slate-100 text-xs group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                            <span class="font-bold text-slate-900 dark:text-slate-100 text-xs">
                                                 {{ $c->name }}
                                             </span>
-                                            @if($c->code)
-                                                <span class="ml-1 px-1.5 py-0.2 rounded text-[10px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                                                    {{ $c->code }}
-                                                </span>
-                                            @endif
                                             @if($c->description)
                                                 <p class="text-[11px] text-slate-400 mt-0.5">{{ $c->description }}</p>
                                             @endif
@@ -231,51 +203,22 @@
                                     </div>
                                 </td>
 
-                                <!-- 4. Jenjang -->
-                                <td class="px-5 py-3.5">
-                                    <span class="font-semibold text-slate-700 dark:text-slate-300">
-                                        {{ $c->classLevel?->name ?? '-' }}
-                                    </span>
-                                </td>
-
-                                <!-- 5. Wali Kelas / Pendamping -->
-                                <td class="px-5 py-3.5">
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-6 h-6 rounded-full bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-100 dark:border-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-[10px] shrink-0">
-                                            <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
-                                        </div>
-                                        <span class="font-medium text-slate-800 dark:text-slate-200">
-                                            {{ $c->homeroomTeacher?->name ?? '-' }}
-                                        </span>
-                                    </div>
-                                </td>
-
-                                <!-- 6. Tahun Ajaran -->
-                                <td class="px-5 py-3.5">
-                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/50">
-                                        {{ $c->academicYear?->name ?? '-' }}
-                                    </span>
-                                </td>
-
-                                <!-- 7. Kapasitas & Murid Progress -->
+                                <!-- 4. Status -->
                                 <td class="px-5 py-3.5 text-center">
-                                    <div class="flex flex-col gap-1 max-w-[150px] mx-auto">
-                                        <div class="flex items-center justify-between text-[11px]">
-                                            <span class="font-bold text-slate-900 dark:text-slate-100 font-mono">
-                                                {{ $c->active_students_count }} <span class="font-normal text-slate-400">/ {{ $c->capacity }}</span>
-                                            </span>
-                                            <span class="font-semibold {{ $isFull ? 'text-rose-600' : ($occupancy > 80 ? 'text-amber-600' : 'text-emerald-600') }}">
-                                                {{ $occupancy }}%
-                                            </span>
-                                        </div>
-                                        <div class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                                            <div class="h-full rounded-full transition-all duration-300 {{ $isFull ? 'bg-rose-500' : ($occupancy > 80 ? 'bg-amber-500' : 'bg-emerald-500') }}"
-                                                style="width: {{ min($occupancy, 100) }}%"></div>
-                                        </div>
-                                    </div>
+                                    @if($c->is_active)
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800 shadow-2xs">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                            Aktif
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                            Non-aktif
+                                        </span>
+                                    @endif
                                 </td>
 
-                                <!-- 8. Aksi -->
+                                <!-- 5. Aksi -->
                                 <td class="px-5 py-3.5 text-right">
                                     <div class="flex items-center justify-end gap-1">
                                         <button type="button" @click="viewStudents({{ $c->id }})"
@@ -286,12 +229,12 @@
                                         </button>
                                         <button type="button" @click="openEditModal({{ $c->id }})"
                                             class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 rounded-lg transition-colors cursor-pointer"
-                                            title="Edit Kelompok">
+                                            title="Edit Rombel / Kelompok">
                                             <i data-lucide="edit-2" class="w-4 h-4"></i>
                                         </button>
                                         <button type="button" @click="deleteClassroom({{ $c->id }}, '{{ $c->name }}')"
                                             class="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg transition-colors cursor-pointer"
-                                            title="Hapus Kelompok">
+                                            title="Hapus Rombel / Kelompok">
                                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                                         </button>
                                     </div>
@@ -299,8 +242,8 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-6 py-12 text-center text-slate-400">
-                                    Belum ada data Kelompok Belajar.
+                                <td colspan="5" class="px-6 py-12 text-center text-slate-400">
+                                    Belum ada data Rombel / Kelompok.
                                 </td>
                             </tr>
                         @endforelse
@@ -319,9 +262,6 @@
                             <span x-text="'Daftar Murid ' + selectedClassroom.name"></span>
                             <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400 font-semibold" x-text="classroomStudents.length + ' Murid'"></span>
                         </h3>
-                        <p class="text-xs text-slate-400 mt-0.5">
-                            Wali / Pendamping: <span class="font-medium text-slate-700 dark:text-slate-300" x-text="selectedClassroom.homeroom_teacher ? selectedClassroom.homeroom_teacher.name : '-'"></span>
-                        </p>
                     </div>
                     <button type="button" @click="studentsModalOpen = false" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                         <i data-lucide="x" class="w-5 h-5"></i>
@@ -378,15 +318,15 @@
             </div>
         </div>
 
-        <!-- MODAL TAMBAH / EDIT KELOMPOK -->
+        <!-- MODAL TAMBAH / EDIT ROMBEL / KELOMPOK -->
         <div x-show="modalOpen" x-cloak class="fixed inset-0 z-[9999] flex items-center justify-center p-4" style="background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);">
             <div @click.outside="modalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col text-left">
                 
                 <form @submit.prevent="submitForm">
                     <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm z-10">
                         <div>
-                            <h3 class="text-base font-bold text-slate-900 dark:text-slate-50" x-text="isEdit ? 'Edit Kelompok Belajar' : 'Tambah Kelompok Baru'"></h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Konfigurasi nama kelompok, jenjang, wali kelas, dan kapasitas murid.</p>
+                            <h3 class="text-base font-bold text-slate-900 dark:text-slate-50" x-text="isEdit ? 'Edit Rombel / Kelompok' : 'Tambah Rombel / Kelompok Baru'"></h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Pilih jenjang, kelas, dan nama rombel/kelompok belajar.</p>
                         </div>
                         <button type="button" @click="modalOpen = false" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                             <i data-lucide="x" class="w-5 h-5"></i>
@@ -395,31 +335,35 @@
 
                     <div class="p-6 space-y-4 text-xs">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- 1. Jenjang (Dropdown Dinamis) -->
                             <div>
-                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Sub Unit <span class="text-rose-500">*</span></label>
-                                <select x-model="formData.sub_unit" required
-                                    class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    <option value="PG">🧸 Playgroup (PG)</option>
-                                    <option value="TK">🎒 TK (Taman Kanak-Kanak)</option>
-                                    <option value="DAYCARE">👶 Daycare (TPA)</option>
-                                    <option value="TPQ">📖 TPQ</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Jenjang <span class="text-rose-500">*</span></label>
-                                <select x-model="formData.class_level_id" required
+                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Jenjang Pendidikan <span class="text-rose-500">*</span></label>
+                                <select x-model="formData.jenjang_id" @change="onJenjangChange()" required
                                     class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
                                     <option value="">-- Pilih Jenjang --</option>
-                                    @foreach($classLevels as $lvl)
-                                        <option value="{{ $lvl->id }}">[{{ $lvl->sub_unit }}] {{ $lvl->name }}</option>
+                                    @foreach($jenjangs as $j)
+                                        <option value="{{ $j->id }}">{{ $j->name }}</option>
                                     @endforeach
+                                </select>
+                            </div>
+
+                            <!-- 2. Kelas (Dropdown Dinamis Sesuai Jenjang) -->
+                            <div>
+                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kelas <span class="text-rose-500">*</span></label>
+                                <select x-model="formData.class_level_id" required
+                                    class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    <option value="">-- Pilih Kelas --</option>
+                                    <template x-for="lvl in filteredClassLevels" :key="lvl.id">
+                                        <option :value="lvl.id" x-text="lvl.name"></option>
+                                    </template>
                                 </select>
                             </div>
                         </div>
 
+                        <!-- 3. Nama Kelompok -->
                         <div>
-                            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Kelompok <span class="text-rose-500">*</span></label>
-                            <input type="text" x-model="formData.name" required placeholder="Contoh: KB A1 / TK A1 / TPA 1"
+                            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Rombel / Kelompok <span class="text-rose-500">*</span></label>
+                            <input type="text" x-model="formData.name" required placeholder="Contoh: KB A1 / TK A1 / TPA 1 / TPQ"
                                 class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
                         </div>
 
@@ -430,38 +374,27 @@
                                     class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono uppercase">
                             </div>
                             <div>
-                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Daya Tampung (Kapasitas) <span class="text-rose-500">*</span></label>
-                                <input type="number" x-model.number="formData.capacity" required min="1" max="100" placeholder="Contoh: 15 / 20"
+                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Daya Tampung (Kapasitas)</label>
+                                <input type="number" x-model.number="formData.capacity" min="1" max="100" placeholder="15 / 20"
                                     class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tahun Ajaran <span class="text-rose-500">*</span></label>
-                                <select x-model="formData.academic_year_id" required
-                                    class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    @foreach($academicYears as $y)
-                                        <option value="{{ $y->id }}">{{ $y->name }} {{ $y->is_active ? '(Aktif)' : '' }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Wali Kelas / Bunda Pendamping</label>
-                                <select x-model="formData.homeroom_teacher_id"
-                                    class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    <option value="">-- Belum Ditentukan --</option>
-                                    @foreach($teachers as $t)
-                                        <option value="{{ $t->id }}">{{ $t->name }}</option>
-                                    @endforeach
-                                </select>
                             </div>
                         </div>
 
                         <div>
-                            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Keterangan Tambahan</label>
-                            <textarea x-model="formData.description" rows="2" placeholder="Catatan tambahan kelompok..."
+                            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Keterangan</label>
+                            <textarea x-model="formData.description" rows="2" placeholder="Keterangan opsional untuk kelompok ini..."
                                 class="w-full p-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50"></textarea>
+                        </div>
+
+                        <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50 flex items-center justify-between">
+                            <div>
+                                <p class="font-semibold text-slate-800 dark:text-slate-200">Status Aktif</p>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Aktifkan rombel / kelompok ini agar tersedia untuk penempatan siswa.</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" x-model="formData.is_active" class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-slate-600 peer-checked:bg-indigo-600"></div>
+                            </label>
                         </div>
                     </div>
 
@@ -470,7 +403,7 @@
                             Batal
                         </button>
                         <button type="submit" :disabled="saving" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-all shadow-xs flex items-center gap-1.5">
-                            <span x-text="saving ? 'Menyimpan...' : (isEdit ? 'Simpan Perubahan' : 'Tambah Kelompok')"></span>
+                            <span x-text="saving ? 'Menyimpan...' : (isEdit ? 'Simpan Perubahan' : 'Tambah Rombel')"></span>
                         </button>
                     </div>
                 </form>
@@ -483,33 +416,56 @@
     <!-- Alpine.js Application Logic -->
     <script>
         function rombelApp() {
+            const allLevels = @json($classLevels);
+            const urlParams = new URLSearchParams(window.location.search);
+            const initialJenjangId = urlParams.get('jenjang_id') || '{{ $jenjangs->first()?->id ?? 1 }}';
+
             return {
                 modalOpen: false,
                 studentsModalOpen: false,
                 isEdit: false,
                 saving: false,
-                activeSubUnit: 'ALL',
+                activeJenjangId: initialJenjangId,
                 searchQuery: '',
                 studentFilterQuery: '',
                 selectedClassroom: {},
                 classroomStudents: [],
+
                 formData: {
                     id: null,
+                    jenjang_id: '',
+                    class_level_id: '',
                     name: '',
                     code: '',
-                    sub_unit: 'TK',
-                    class_level_id: '{{ $classLevels->first()?->id ?? "" }}',
-                    academic_year_id: '{{ $academicYears->where("is_active", true)->first()?->id ?? ($academicYears->first()?->id ?? "") }}',
-                    homeroom_teacher_id: '',
                     capacity: 20,
+                    is_active: true,
                     description: '',
+                },
+
+                setJenjangTab(id) {
+                    this.activeJenjangId = id;
+                    const url = new URL(window.location);
+                    url.searchParams.set('jenjang_id', id);
+                    window.history.replaceState({}, '', url);
+                },
+
+                get filteredClassLevels() {
+                    if (!this.formData.jenjang_id) return allLevels;
+                    return allLevels.filter(lvl => lvl.jenjang_id == this.formData.jenjang_id);
+                },
+
+                onJenjangChange() {
+                    const valid = this.filteredClassLevels.some(l => l.id == this.formData.class_level_id);
+                    if (!valid) {
+                        this.formData.class_level_id = this.filteredClassLevels.length > 0 ? this.filteredClassLevels[0].id : '';
+                    }
                 },
 
                 get filteredStudents() {
                     if (!this.studentFilterQuery) return this.classroomStudents;
                     const q = this.studentFilterQuery.toLowerCase();
                     return this.classroomStudents.filter(s => 
-                        (s.full_name && s.full_name.toLowerCase().includes(q)) || 
+                        (s.full_name && s.full_name.toLowerCase().includes(q)) ||
                         (s.nis && s.nis.toLowerCase().includes(q)) ||
                         (s.nickname && s.nickname.toLowerCase().includes(q))
                     );
@@ -517,42 +473,23 @@
 
                 openCreateModal() {
                     this.isEdit = false;
+                    const defaultJenjangId = this.activeJenjangId || (allLevels.length > 0 ? allLevels[0].jenjang_id : '');
                     this.formData = {
                         id: null,
+                        jenjang_id: defaultJenjangId,
+                        class_level_id: '',
                         name: '',
                         code: '',
-                        sub_unit: this.activeSubUnit !== 'ALL' ? this.activeSubUnit : 'TK',
-                        class_level_id: '{{ $classLevels->first()?->id ?? "" }}',
-                        academic_year_id: '{{ $academicYears->where("is_active", true)->first()?->id ?? ($academicYears->first()?->id ?? "") }}',
-                        homeroom_teacher_id: '',
                         capacity: 20,
+                        is_active: true,
                         description: '',
                     };
+                    this.onJenjangChange();
                     this.modalOpen = true;
                 },
 
                 openEditModal(id) {
-                    const c = @json($classrooms).find(item => item.id == id);
-                    if (c) {
-                        this.isEdit = true;
-                        this.formData = {
-                            id: c.id,
-                            name: c.name,
-                            code: c.code || '',
-                            sub_unit: c.sub_unit || 'TK',
-                            class_level_id: c.class_level_id,
-                            academic_year_id: c.academic_year_id,
-                            homeroom_teacher_id: c.homeroom_teacher_id || '',
-                            capacity: c.capacity || 20,
-                            description: c.description || '',
-                        };
-                        this.modalOpen = true;
-                    }
-                },
-
-                viewStudents(id) {
-                    this.studentFilterQuery = '';
-                    fetch(`/classrooms/${id}/students`, {
+                    fetch(`/classrooms/${id}`, {
                         headers: {
                             'Accept': 'application/json',
                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -561,15 +498,26 @@
                     .then(res => res.json())
                     .then(res => {
                         if (res.success) {
-                            this.selectedClassroom = res.classroom;
-                            this.classroomStudents = res.students;
-                            this.studentsModalOpen = true;
-                            this.$nextTick(() => {
-                                if (window.lucide) lucide.createIcons();
-                            });
+                            const c = res.classroom;
+                            this.isEdit = true;
+                            this.formData = {
+                                id: c.id,
+                                jenjang_id: c.jenjang_id || (c.class_level ? c.class_level.jenjang_id : ''),
+                                class_level_id: c.class_level_id,
+                                name: c.name,
+                                code: c.code || '',
+                                capacity: c.capacity || 20,
+                                is_active: !!c.is_active,
+                                description: c.description || '',
+                            };
+                            this.modalOpen = true;
                         }
                     })
-                    .catch(err => alert("Gagal mengambil daftar murid: " + err.message));
+                    .catch(err => {
+                        if (typeof window.showToast === 'function') {
+                            window.showToast('Perhatian!', "Gagal mengambil data rombel: " + err.message, 'error');
+                        }
+                    });
                 },
 
                 submitForm() {
@@ -593,38 +541,81 @@
                         this.saving = false;
                         if (res.success) {
                             this.modalOpen = false;
-                            alert(res.message || 'Kelompok berhasil disimpan!');
-                            window.location.reload();
+                            if (typeof window.setPendingToast === 'function') {
+                                window.setPendingToast(res.message || 'Rombel berhasil disimpan!', 'success');
+                            }
+                            const targetJenjang = this.formData.jenjang_id || this.activeJenjangId;
+                            const url = new URL(window.location);
+                            url.searchParams.set('jenjang_id', targetJenjang);
+                            window.location.href = url.toString();
                         } else {
-                            alert(res.message || 'Terjadi kesalahan saat menyimpan.');
+                            if (typeof window.showToast === 'function') {
+                                window.showToast('Perhatian!', res.message || 'Terjadi kesalahan saat menyimpan.', 'error');
+                            }
                         }
                     })
                     .catch(err => {
                         this.saving = false;
-                        alert('Error: ' + err.message);
+                        if (typeof window.showToast === 'function') {
+                            window.showToast('Perhatian!', 'Error: ' + err.message, 'error');
+                        }
                     });
                 },
 
-                deleteClassroom(id, name) {
-                    if (!confirm(`Apakah Anda yakin ingin menghapus Kelompok "${name}"?`)) return;
+                viewStudents(id) {
+                    fetch(`/classrooms/${id}/students`)
+                        .then(res => res.json())
+                        .then(res => {
+                            if (res.success) {
+                                this.selectedClassroom = res.classroom;
+                                this.classroomStudents = res.students;
+                                this.studentFilterQuery = '';
+                                this.studentsModalOpen = true;
+                            }
+                        })
+                        .catch(err => {
+                            if (typeof window.showToast === 'function') {
+                                window.showToast('Perhatian!', 'Gagal memuat data murid: ' + err.message, 'error');
+                            }
+                        });
+                },
 
-                    fetch(`/classrooms/${id}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        }
-                    })
-                    .then(res => res.json())
-                    .then(res => {
-                        if (res.success) {
-                            alert(res.message || 'Kelompok berhasil dihapus!');
-                            window.location.reload();
-                        } else {
-                            alert(res.message || 'Gagal menghapus kelompok.');
-                        }
-                    })
-                    .catch(err => alert('Error: ' + err.message));
+                deleteClassroom(id, name) {
+                    const action = () => {
+                        fetch(`/classrooms/${id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(res => {
+                            if (res.success) {
+                                if (typeof window.setPendingToast === 'function') {
+                                    window.setPendingToast(res.message || 'Rombel berhasil dihapus!', 'success');
+                                }
+                                const url = new URL(window.location);
+                                url.searchParams.set('jenjang_id', this.activeJenjangId);
+                                window.location.href = url.toString();
+                            } else {
+                                if (typeof window.showToast === 'function') {
+                                    window.showToast('Perhatian!', res.message || 'Gagal menghapus rombel.', 'error');
+                                }
+                            }
+                        })
+                        .catch(err => {
+                            if (typeof window.showToast === 'function') {
+                                window.showToast('Perhatian!', 'Error: ' + err.message, 'error');
+                            }
+                        });
+                    };
+
+                    if (typeof showGlobalConfirmModal === 'function') {
+                        showGlobalConfirmModal(`Apakah Anda yakin ingin menghapus Rombel/Kelompok "${name}"?`, action, true);
+                    } else if (confirm(`Apakah Anda yakin ingin menghapus Rombel/Kelompok "${name}"?`)) {
+                        action();
+                    }
                 }
             }
         }

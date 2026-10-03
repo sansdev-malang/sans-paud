@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ClassLevel;
 use App\Models\Classroom;
+use App\Models\Jenjang;
 use App\Models\Student;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -11,11 +12,13 @@ use Illuminate\Http\Request;
 class ClassLevelController extends Controller
 {
     /**
-     * Display a listing of class levels with stats.
+     * Display a listing of class levels (Kelas) with stats.
      */
     public function index()
     {
-        $classLevels = ClassLevel::with(['classrooms.academicYear'])
+        $jenjangs = Jenjang::orderBy('order', 'asc')->get();
+
+        $classLevels = ClassLevel::with(['jenjang', 'classrooms.academicYear'])
             ->withCount([
                 'classrooms',
             ])
@@ -42,7 +45,7 @@ class ClassLevelController extends Controller
             'total_students' => $totalStudents,
         ];
 
-        return view('admin.class-levels.index', compact('classLevels', 'stats'));
+        return view('admin.class-levels.index', compact('classLevels', 'jenjangs', 'stats'));
     }
 
     /**
@@ -50,7 +53,7 @@ class ClassLevelController extends Controller
      */
     public function show($id): JsonResponse
     {
-        $classLevel = ClassLevel::with('classrooms')->findOrFail($id);
+        $classLevel = ClassLevel::with(['jenjang', 'classrooms'])->findOrFail($id);
 
         return response()->json([
             'success' => true,
@@ -64,18 +67,30 @@ class ClassLevelController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
+            'jenjang_id' => 'required|exists:jenjangs,id',
             'name' => 'required|string|max:100',
-            'code' => 'required|string|max:50|unique:class_levels,code',
-            'sub_unit' => 'nullable|string|in:PG,TK,DAYCARE,TPQ',
-            'order' => 'required|integer|min:1|max:99',
+            'code' => 'nullable|string|max:50',
+            'order' => 'nullable|integer|min:1|max:99',
+            'is_active' => 'nullable|boolean',
             'description' => 'nullable|string',
         ]);
+
+        if (empty($validated['order'])) {
+            $validated['order'] = (ClassLevel::max('order') ?? 0) + 1;
+        }
+
+        $jenjang = Jenjang::find($validated['jenjang_id']);
+        if ($jenjang) {
+            $validated['sub_unit'] = $jenjang->code;
+        }
+
+        $validated['is_active'] = $request->has('is_active') ? $request->boolean('is_active') : true;
 
         $classLevel = ClassLevel::create($validated);
 
         return response()->json([
             'success' => true,
-            'message' => "Jenjang {$classLevel->name} berhasil ditambahkan.",
+            'message' => "Kelas {$classLevel->name} berhasil ditambahkan.",
             'class_level' => $classLevel,
         ]);
     }
@@ -88,18 +103,26 @@ class ClassLevelController extends Controller
         $classLevel = ClassLevel::findOrFail($id);
 
         $validated = $request->validate([
+            'jenjang_id' => 'required|exists:jenjangs,id',
             'name' => 'required|string|max:100',
-            'code' => 'required|string|max:50|unique:class_levels,code,' . $classLevel->id,
-            'sub_unit' => 'nullable|string|in:PG,TK,DAYCARE,TPQ',
-            'order' => 'required|integer|min:1|max:99',
+            'code' => 'nullable|string|max:50',
+            'order' => 'nullable|integer|min:1|max:99',
+            'is_active' => 'nullable|boolean',
             'description' => 'nullable|string',
         ]);
+
+        $jenjang = Jenjang::find($validated['jenjang_id']);
+        if ($jenjang) {
+            $validated['sub_unit'] = $jenjang->code;
+        }
+
+        $validated['is_active'] = $request->has('is_active') ? $request->boolean('is_active') : $classLevel->is_active;
 
         $classLevel->update($validated);
 
         return response()->json([
             'success' => true,
-            'message' => "Jenjang {$classLevel->name} berhasil diperbarui.",
+            'message' => "Kelas {$classLevel->name} berhasil diperbarui.",
             'class_level' => $classLevel,
         ]);
     }
@@ -115,7 +138,7 @@ class ClassLevelController extends Controller
         if ($classroomsCount > 0) {
             return response()->json([
                 'success' => false,
-                'message' => "Jenjang tidak dapat dihapus karena masih digunakan oleh {$classroomsCount} kelompok.",
+                'message' => "Kelas tidak dapat dihapus karena masih digunakan oleh {$classroomsCount} rombel/kelompok.",
             ], 422);
         }
 
@@ -124,7 +147,7 @@ class ClassLevelController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Jenjang {$name} berhasil dihapus.",
+            'message' => "Kelas {$name} berhasil dihapus.",
         ]);
     }
 }

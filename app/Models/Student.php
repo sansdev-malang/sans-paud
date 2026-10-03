@@ -15,6 +15,7 @@ class Student extends Model
         'nisn',
         'nik',
         'spmb_candidate_id',
+        'jenjang_id',
         'classroom_id',
         'daycare_classroom_id',
         'is_tpq',
@@ -64,6 +65,11 @@ class Student extends Model
         'clean_parent_phone',
         'whatsapp_url',
     ];
+
+    public function jenjang(): BelongsTo
+    {
+        return $this->belongsTo(Jenjang::class);
+    }
 
     public function classroom(): BelongsTo
     {

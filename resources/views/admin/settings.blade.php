@@ -305,7 +305,7 @@
                                 <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400">URL Endpoint Webhook Receiver di PAUD (Salin ke SPMB):</label>
                                 <div class="flex items-center gap-2">
                                     <code id="webhook-receiver-url" class="text-[11px] text-indigo-600 dark:text-indigo-400 font-mono select-all flex-1 truncate">{{ url('/api/spmb-webhook') }}</code>
-                                    <button type="button" onclick="navigator.clipboard.writeText('{{ url('/api/spmb-webhook') }}'); alert('URL Webhook berhasil disalin!');" class="p-1 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 text-xs font-semibold">
+                                    <button type="button" onclick="navigator.clipboard.writeText('{{ url('/api/spmb-webhook') }}'); if (typeof window.showToast === 'function') { window.showToast('Sukses!', 'URL Webhook berhasil disalin!', 'success'); }" class="p-1 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 text-xs font-semibold">
                                         <i data-lucide="copy" class="w-3.5 h-3.5"></i>
                                     </button>
                                 </div>

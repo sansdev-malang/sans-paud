@@ -67,12 +67,20 @@
                     } else {
                         this.schedules.push(res.schedule);
                     }
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('Sukses!', 'Jadwal piket berhasil diperbarui.', 'success');
+                    }
                 } else {
-                    alert(res.message || 'Gagal menyimpan penugasan.');
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('Perhatian!', res.message || 'Gagal menyimpan penugasan.', 'error');
+                    }
                 }
             }
         } catch (e) {
             console.error(e);
+            if (typeof window.showToast === 'function') {
+                window.showToast('Perhatian!', 'Error: ' + e.message, 'error');
+            }
         }
     },
     async removeAssignment(scheduleId) {
@@ -87,11 +95,19 @@
             const res = await response.json();
             if (res.success) {
                 this.schedules = this.schedules.filter(s => s.id !== scheduleId);
+                if (typeof window.showToast === 'function') {
+                    window.showToast('Sukses!', 'Penugasan piket berhasil dihapus.', 'success');
+                }
             } else {
-                alert(res.message || 'Gagal menghapus penugasan.');
+                if (typeof window.showToast === 'function') {
+                    window.showToast('Perhatian!', res.message || 'Gagal menghapus penugasan.', 'error');
+                }
             }
         } catch (e) {
             console.error(e);
+            if (typeof window.showToast === 'function') {
+                window.showToast('Perhatian!', 'Error: ' + e.message, 'error');
+            }
         }
     }
 }">
