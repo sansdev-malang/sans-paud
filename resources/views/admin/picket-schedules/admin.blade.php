@@ -112,11 +112,11 @@
     }
 }">
     <!-- HEADER SECTION -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
-        <div>
-            <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100">Manajemen Piket</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Tahun Ajaran: <span class="font-semibold text-indigo-600 dark:text-indigo-400">{{ $selectedYear ? $selectedYear->name : 'Tahun Ajaran Aktif' }}</span>
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
+        <div class="flex flex-col gap-0.5">
+            <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Manajemen Piket</h2>
+            <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">
+                Tahun Pelajaran: <span class="font-semibold text-indigo-600 dark:text-indigo-400">{{ $selectedYear ? $selectedYear->name : 'Tahun Pelajaran Aktif' }}</span>
                 @if($selectedYear && $selectedYear->is_active)
                     <span class="ml-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200/30">Aktif</span>
                 @endif

@@ -53,4 +53,19 @@ class HomeroomAssignment extends Model
     {
         return $this->belongsTo(Employee::class, 'employee_id');
     }
+
+    protected static function booted()
+    {
+        static::saved(function ($assignment) {
+            if ($assignment->employee_id) {
+                \Illuminate\Support\Facades\Cache::forget('user_is_active_homeroom_' . $assignment->employee_id);
+            }
+        });
+
+        static::deleted(function ($assignment) {
+            if ($assignment->employee_id) {
+                \Illuminate\Support\Facades\Cache::forget('user_is_active_homeroom_' . $assignment->employee_id);
+            }
+        });
+    }
 }

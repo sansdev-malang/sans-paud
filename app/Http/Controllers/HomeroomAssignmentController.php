@@ -22,11 +22,13 @@ class HomeroomAssignmentController extends Controller
         $academicYears = AcademicYear::orderBy('name', 'desc')->get();
         $activeAcademicYear = $academicYears->firstWhere('is_active', true) ?? $academicYears->first();
         $selectedYearId = $request->get('academic_year_id', $activeAcademicYear?->id);
+        if (!$selectedYearId || $selectedYearId === 'all') {
+            $selectedYearId = $activeAcademicYear?->id;
+        }
 
         $jenjangs = Jenjang::where('is_active', true)->orderBy('order')->get();
-        $selectedJenjangId = $request->get('jenjang_id', $jenjangs->first()?->id);
-        $selectedClassLevelId = $request->get('class_level_id');
-        $selectedStatus = $request->get('status');
+        $selectedJenjangId = $request->get('jenjang_id', 'all');
+        $selectedClassLevelId = $request->get('class_level_id', 'all');
         $search = $request->get('search');
 
         $query = HomeroomAssignment::with([
@@ -37,7 +39,7 @@ class HomeroomAssignmentController extends Controller
             'teacher'
         ]);
 
-        if ($selectedYearId && $selectedYearId !== 'all') {
+        if ($selectedYearId) {
             $query->where('academic_year_id', $selectedYearId);
         }
 
@@ -59,10 +61,6 @@ class HomeroomAssignmentController extends Controller
             });
         }
 
-        if ($selectedStatus !== null && $selectedStatus !== '' && $selectedStatus !== 'all') {
-            $query->where('is_active', (bool)$selectedStatus);
-        }
-
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->whereHas('teacher', function ($tq) use ($search) {
@@ -74,16 +72,27 @@ class HomeroomAssignmentController extends Controller
             });
         }
 
+        $perPage = $request->get('per_page', 15);
+        $perPageCount = ($perPage === 'all' || $perPage == 99999 || $perPage === '99999') ? 99999 : (int) $perPage;
+        if ($perPageCount <= 0) {
+            $perPageCount = 15;
+        }
+
         $assignments = $query->orderBy('academic_year_id', 'desc')
             ->orderBy('jenjang_id', 'asc')
             ->orderBy('class_level_id', 'asc')
-            ->paginate(15)
+            ->paginate($perPageCount)
             ->withQueryString();
 
         // Master data for dropdowns
         $jenjangs = Jenjang::where('is_active', true)->orderBy('order')->get();
         $classLevels = ClassLevel::with('jenjang')->where('is_active', true)->orderBy('order')->get();
         $classrooms = Classroom::with(['jenjang', 'classLevel'])->where('is_active', true)->orderBy('name')->get();
+
+        // Filter available class levels for toolbar filter
+        $availableClassLevels = ($selectedJenjangId && $selectedJenjangId !== 'all')
+            ? $classLevels->where('jenjang_id', $selectedJenjangId)
+            : $classLevels;
 
         // Teachers (Employees with teacher type or active status)
         $teacherTypeId = EmployeeType::where('code', 'teacher')->value('id');
@@ -102,6 +111,16 @@ class HomeroomAssignmentController extends Controller
             $teachers = Employee::where('status', 'Active')->orderBy('name', 'asc')->get();
         }
 
+        $stats = [
+            'total_assignments' => HomeroomAssignment::where('academic_year_id', $selectedYearId)->count(),
+            'total_classrooms' => Classroom::where('is_active', true)->count(),
+            'assigned_classrooms' => HomeroomAssignment::where('academic_year_id', $selectedYearId)
+                ->where('is_active', true)
+                ->distinct('classroom_id')
+                ->count('classroom_id'),
+            'total_teachers' => $teachers->count(),
+        ];
+
         return view('admin.homeroom-assignments.index', compact(
             'assignments',
             'academicYears',
@@ -109,11 +128,12 @@ class HomeroomAssignmentController extends Controller
             'selectedYearId',
             'selectedJenjangId',
             'selectedClassLevelId',
-            'selectedStatus',
             'jenjangs',
             'classLevels',
+            'availableClassLevels',
             'classrooms',
-            'teachers'
+            'teachers',
+            'stats'
         ));
     }
 

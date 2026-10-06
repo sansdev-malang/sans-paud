@@ -26,8 +26,8 @@ class ClassPromotionController extends Controller
 
         // Classrooms in source academic year
         $sourceClassrooms = Classroom::with(['classLevel', 'academicYear', 'homeroomTeacher'])
-            ->where('is_active', true)
-            ->where('academic_year_id', $sourceYear?->id)
+            ->where('classrooms.is_active', true)
+            ->where('classrooms.academic_year_id', $sourceYear?->id)
             ->join('class_levels', 'classrooms.class_level_id', '=', 'class_levels.id')
             ->orderBy('class_levels.order', 'asc')
             ->orderBy('classrooms.name', 'asc')
@@ -36,7 +36,7 @@ class ClassPromotionController extends Controller
 
         // All active classrooms across all academic years for target selection
         $allClassrooms = Classroom::with(['classLevel', 'academicYear', 'homeroomTeacher'])
-            ->where('is_active', true)
+            ->where('classrooms.is_active', true)
             ->join('class_levels', 'classrooms.class_level_id', '=', 'class_levels.id')
             ->orderBy('classrooms.academic_year_id', 'desc')
             ->orderBy('class_levels.order', 'asc')

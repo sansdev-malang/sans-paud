@@ -1,12 +1,12 @@
 <x-admin-layout>
 <div x-data="{ showCreateModal: {{ $errors->any() && !old('edit_id') ? 'true' : 'false' }}, showEditModal: {{ $errors->any() && old('edit_id') ? 'true' : 'false' }}, selectedTeacher: null }">
-    <div class="p-6 space-y-6" x-data="{ showEmpDetailModal: false, selectedEmp: null, showTeacherStudentsModal: false, selectedTeacherStudents: null }">
+    <div class="p-3.5 sm:p-5 lg:p-6 space-y-3.5 sm:space-y-5 lg:space-y-6" x-data="{ showEmpDetailModal: false, selectedEmp: null, showTeacherStudentsModal: false, selectedTeacherStudents: null }">
 
         <!-- HEADER -->
-        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full text-left">
+        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3 w-full text-left">
             <div class="flex flex-col gap-0.5">
-                <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">Data Guru</h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Kelola dan pantau data akademis serta profil pendidik secara real-time.</p>
+                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Data Guru</h2>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Kelola dan pantau data akademis serta profil pendidik secara real-time.</p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
                 <form action="{{ route('employees.sync-cache') }}" method="POST" class="m-0 p-0 flex">
@@ -43,75 +43,75 @@
         @endif
 
         <!-- SECTION 2: STATS CARDS GRID -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <!-- Stat Card 1 -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm flex flex-col justify-between">
+            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-sm flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Guru Aktif</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
+                        <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Guru Aktif</p>
+                        <h3 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-0.5">
                             <span class="stat-counter" data-target="{{ $totalGuru }}">{{ $totalGuru }}</span>
                         </h3>
                     </div>
-                    <div class="p-2 bg-slate-50 dark:bg-slate-900 rounded-lg">
-                        <i data-lucide="users" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
+                    <div class="p-1.5 sm:p-2 bg-slate-50 dark:bg-slate-800/60 rounded-lg">
+                        <i data-lucide="users" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 dark:text-slate-400"></i>
                     </div>
                 </div>
-                <div class="mt-4 text-xs text-slate-500 dark:text-slate-400">
+                <div class="mt-2.5 text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">
                     <span class="text-emerald-600 dark:text-emerald-400 font-bold">+2.4%</span> dari bulan lalu
                 </div>
             </div>
 
             <!-- Stat Card 2 -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm flex flex-col justify-between">
+            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-sm flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Guru Laki-laki</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
+                        <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Guru Laki-laki</p>
+                        <h3 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-0.5">
                             <span class="stat-counter" data-target="{{ $guruMale }}">{{ $guruMale }}</span>
                         </h3>
                     </div>
-                    <div class="p-2 bg-slate-50 dark:bg-slate-900 rounded-lg">
-                        <i data-lucide="user" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
+                    <div class="p-1.5 sm:p-2 bg-slate-50 dark:bg-slate-800/60 rounded-lg">
+                        <i data-lucide="user" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 dark:text-slate-400"></i>
                     </div>
                 </div>
-                <div class="mt-4 text-xs text-slate-500 dark:text-slate-400">
+                <div class="mt-2.5 text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">
                     Distribusi gender guru laki-laki
                 </div>
             </div>
 
             <!-- Stat Card 3 -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm flex flex-col justify-between">
+            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-sm flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Guru Perempuan</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
+                        <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Guru Perempuan</p>
+                        <h3 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-0.5">
                             <span class="stat-counter" data-target="{{ $guruFemale }}">{{ $guruFemale }}</span>
                         </h3>
                     </div>
-                    <div class="p-2 bg-slate-50 dark:bg-slate-900 rounded-lg">
-                        <i data-lucide="user" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
+                    <div class="p-1.5 sm:p-2 bg-slate-50 dark:bg-slate-800/60 rounded-lg">
+                        <i data-lucide="user" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 dark:text-slate-400"></i>
                     </div>
                 </div>
-                <div class="mt-4 text-xs text-slate-500 dark:text-slate-400">
+                <div class="mt-2.5 text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">
                     Distribusi gender guru perempuan
                 </div>
             </div>
 
             <!-- Stat Card 4 -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm flex flex-col justify-between">
+            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-sm flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Telah Sertifikasi</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
+                        <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Telah Sertifikasi</p>
+                        <h3 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-0.5">
                             <span class="stat-counter" data-target="{{ $certifiedPercent }}">{{ $certifiedPercent }}</span>%
                         </h3>
                     </div>
-                    <div class="p-2 bg-slate-50 dark:bg-slate-900 rounded-lg">
-                        <i data-lucide="award" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
+                    <div class="p-1.5 sm:p-2 bg-slate-50 dark:bg-slate-800/60 rounded-lg">
+                        <i data-lucide="award" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 dark:text-slate-400"></i>
                     </div>
                 </div>
-                <div class="mt-4 text-xs text-slate-500 dark:text-slate-400">
+                <div class="mt-2.5 text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">
                     Persentase guru dengan identitas NUPTK/NIP
                 </div>
             </div>

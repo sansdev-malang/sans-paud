@@ -2,22 +2,10 @@
     <div class="p-6 space-y-6" x-data="alumniApp()">
 
         <!-- PAGE TITLE & HEADER -->
-        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full text-left">
+        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3 w-full text-left">
             <div class="flex flex-col gap-0.5">
-                <div class="flex items-center gap-2.5">
-                    <div class="p-2 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl border border-amber-500/20">
-                        <i data-lucide="award" class="w-5 h-5"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2">
-                            Buku Induk Alumni
-                            <span class="text-xs px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-400 font-semibold border border-amber-200 dark:border-amber-800">
-                                KB & TK ANAK SALEH
-                            </span>
-                        </h2>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Database multi-tahun kelulusan ananda, riwayat kelas & wali kelas terdahulu, serta sekolah lanjutan.</p>
-                    </div>
-                </div>
+                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Buku Induk Alumni</h2>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Database multi-tahun kelulusan ananda, riwayat kelas & wali kelas terdahulu, serta sekolah lanjutan.</p>
             </div>
 
             <!-- ACTION CONTROLS -->

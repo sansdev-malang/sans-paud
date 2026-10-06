@@ -15,6 +15,10 @@ class RaporSummaryController extends Controller
      */
     public function index(Request $request)
     {
+        if (!auth()->user()?->canAccessRapor()) {
+            abort(403, 'Akses menu Rekap Rapor hanya untuk Administrator dan Guru yang sedang ditugaskan sebagai Wali Kelas aktif.');
+        }
+
         $academicYears = AcademicYear::orderBy('name', 'desc')->get();
         $activeAcademicYear = $academicYears->firstWhere('is_active', true) ?? $academicYears->first();
 

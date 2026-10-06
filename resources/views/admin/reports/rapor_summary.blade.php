@@ -9,22 +9,10 @@
     }">
 
         <!-- HEADER SECTION -->
-        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full text-left">
+        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3 w-full text-left">
             <div class="flex flex-col gap-0.5">
-                <div class="flex items-center gap-2.5">
-                    <div class="p-2.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-500/20">
-                        <i data-lucide="award" class="w-6 h-6"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2">
-                            Hasil & Rekap Rapor
-                            <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 font-semibold border border-emerald-200 dark:border-emerald-800">
-                                Terpusat (SANS Rapor)
-                            </span>
-                        </h2>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Ringkasan capaian pembelajaran, narasi evaluasi, tumbuh kembang, dan cetak dokumen rapor murid.</p>
-                    </div>
-                </div>
+                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Hasil & Rekap Rapor</h2>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Ringkasan capaian pembelajaran, narasi evaluasi, tumbuh kembang, dan cetak dokumen rapor murid.</p>
             </div>
 
             <!-- SSO LAUNCHER ACTION -->

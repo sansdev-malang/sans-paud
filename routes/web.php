@@ -94,16 +94,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/rekap-rapor', [\App\Http\Controllers\RaporSummaryController::class, 'index'])->name('rekap-rapor.index');
 
     Route::get('/rapor', function () {
+        $curUser = auth()->user();
+        if (!$curUser || !$curUser->canAccessRapor()) {
+            abort(403, 'Akses E-Rapor hanya untuk Administrator dan Guru yang sedang ditugaskan sebagai Wali Kelas aktif.');
+        }
+
         $ssoSecret = \App\Models\Setting::get('rapor_sso_secret', env('SSO_SECRET_KEY', 'sans_rapor_secret_sso_key_2026'));
         $raporUrl = \App\Models\Setting::get('rapor_url', env('SANS_RAPOR_URL', 'http://sans-rapor.test'));
-        $curUser = auth()->user();
-        $isAdmin = in_array($curUser?->role, ['super_admin', 'admin_sd', 'admin_paud', 'admin_smp']);
+        $isAdmin = $curUser->isAdmin();
         $ssoPayload = base64_encode(json_encode([
-            'id' => $curUser?->id,
-            'name' => $curUser?->name,
-            'email' => $curUser?->email,
-            'employee_id' => $curUser?->employee_id,
-            'role' => $curUser?->role ?? ($isAdmin ? 'super_admin' : 'guru'),
+            'id' => $curUser->id,
+            'name' => $curUser->name,
+            'email' => $curUser->email,
+            'employee_id' => $curUser->employee_id,
+            'role' => $curUser->role ?? ($isAdmin ? 'super_admin' : 'guru'),
             'unit' => 'paud',
             'timestamp' => time(),
         ]));

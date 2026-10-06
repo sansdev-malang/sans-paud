@@ -12,10 +12,10 @@
     }
 @endphp
 <x-admin-layout>
-    <div class="p-6 space-y-6" x-data="attendanceLogs">
+    <div class="p-3.5 sm:p-5 lg:p-6 space-y-3.5 sm:space-y-5 lg:space-y-6" x-data="attendanceLogs">
         <!-- SUCCESS/ERROR ALERT -->
         @if(session('success'))
-            <div class="bg-emerald-50 dark:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-900/60 rounded-xl p-4 flex items-center gap-3">
+            <div class="bg-emerald-50 dark:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-900/60 rounded-xl p-3 sm:p-4 flex items-center gap-3">
                 <div class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
                     <i data-lucide="check" class="w-4 h-4"></i>
                 </div>
@@ -26,7 +26,7 @@
             </div>
         @endif
         @if(session('error'))
-            <div class="bg-rose-50 dark:bg-rose-900/40 border border-rose-200 dark:border-rose-900/60 rounded-xl p-4 flex items-center gap-3">
+            <div class="bg-rose-50 dark:bg-rose-900/40 border border-rose-200 dark:border-rose-900/60 rounded-xl p-3 sm:p-4 flex items-center gap-3">
                 <div class="w-8 h-8 rounded-full bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
                     <i data-lucide="alert-triangle" class="w-4 h-4"></i>
                 </div>
@@ -38,10 +38,10 @@
         @endif
         
         <!-- HEADER -->
-        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3">
             <div class="flex flex-col gap-0.5">
-                <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Data Riwayat Absensi</h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Memantau waktu kedatangan dan kepulangan pegawai secara komprehensif.</p>
+                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">Data Riwayat Absensi</h2>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Memantau waktu kedatangan dan kepulangan pegawai secara komprehensif.</p>
             </div>
             
             <!-- ACTIONS: SINKRONKAN & EKSPOR DATA -->

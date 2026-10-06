@@ -2,22 +2,10 @@
     <div class="p-6 space-y-6" x-data="spmbCandidateApp()">
 
         <!-- HEADER / ACTION BAR -->
-        <section class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 w-full text-left">
+        <section class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-2 sm:gap-3 w-full text-left">
             <div class="flex flex-col gap-0.5">
-                <div class="flex items-center gap-2.5">
-                    <div class="p-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-500/20">
-                        <i data-lucide="user-plus" class="w-5 h-5"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2">
-                            SPMB
-                            <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 font-semibold border border-emerald-200 dark:border-emerald-800">
-                                Unit PAUD
-                            </span>
-                        </h2>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Data pendaftar dan calon murid yang masuk dari sistem pendaftaran SPMB Pusat.</p>
-                    </div>
-                </div>
+                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">SPMB</h2>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Data pendaftar dan calon murid yang masuk dari sistem pendaftaran SPMB Pusat.</p>
             </div>
 
             <!-- ACTION CONTROLS: TAHUN AJARAN & SYNC BUTTON -->

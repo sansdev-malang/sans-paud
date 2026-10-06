@@ -1,23 +1,11 @@
 <x-admin-layout>
-    <div class="p-6 space-y-6" x-data="rombelApp()">
+    <div class="p-3.5 sm:p-5 lg:p-6 space-y-3.5 sm:space-y-5 lg:space-y-6" x-data="rombelApp()">
 
         <!-- GREETING / PAGE TITLE -->
-        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full text-left">
+        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3 w-full text-left">
             <div class="flex flex-col gap-0.5">
-                <div class="flex items-center gap-2.5">
-                    <div class="p-2.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl border border-indigo-500/20 shadow-xs">
-                        <i data-lucide="shapes" class="w-5 h-5"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2">
-                            Rombel / Kelompok
-                            <span class="text-xs px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400 font-semibold border border-indigo-200 dark:border-indigo-800">
-                                Master Akademik
-                            </span>
-                        </h2>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Kelola master rombongan belajar / kelompok belajar siswa berdasarkan jenjang dan kelas.</p>
-                    </div>
-                </div>
+                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Rombel / Kelompok</h2>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Kelola master rombongan belajar / kelompok belajar siswa berdasarkan jenjang dan kelas.</p>
             </div>
             <div class="flex items-center gap-2.5 shrink-0">
                 <a href="{{ route('class-levels.index') }}"

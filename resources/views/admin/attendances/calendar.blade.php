@@ -108,10 +108,10 @@
         }
     }" x-ref="container" @click="hideTooltip()">
         <!-- DATA RIWAYAT ABSENSI / PAGE TITLE -->
-        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3">
             <div class="flex flex-col gap-0.5">
-                <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">Data Riwayat Absensi</h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Memantau waktu kedatangan, kepulangan, dan estimasi bonus ketepatan waktu Anda.</p>
+                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Data Riwayat Absensi</h2>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium">Memantau waktu kedatangan, kepulangan, dan estimasi bonus ketepatan waktu Anda.</p>
             </div>
             <div>
                 <a href="{{ route('attendances.index', array_merge(request()->query(), ['refresh' => 1])) }}" 

@@ -31,6 +31,44 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user has an admin-level role.
+     */
+    public function isAdmin(): bool
+    {
+        return in_array($this->role, ['super_admin', 'admin_sd', 'admin_paud', 'admin_smp', 'kepala_sekolah', 'waka']);
+    }
+
+    /**
+     * Check if the user is currently assigned as an active homeroom teacher in the active academic year.
+     */
+    public function isActiveHomeroomTeacher(): bool
+    {
+        if (!$this->employee_id) {
+            return false;
+        }
+
+        return \Illuminate\Support\Facades\Cache::remember('user_is_active_homeroom_' . $this->employee_id, 60, function () {
+            $activeAy = \App\Models\AcademicYear::where('is_active', true)->first();
+            if (!$activeAy) {
+                return false;
+            }
+
+            return \App\Models\HomeroomAssignment::where('employee_id', $this->employee_id)
+                ->where('academic_year_id', $activeAy->id)
+                ->where('is_active', true)
+                ->exists();
+        });
+    }
+
+    /**
+     * Check if the user can access E-Rapor (Admins or Active Homeroom Teachers).
+     */
+    public function canAccessRapor(): bool
+    {
+        return $this->isAdmin() || $this->isActiveHomeroomTeacher();
+    }
+
+    /**
      * Get the employee profile associated with the user.
      */
     public function employee()

@@ -1,27 +1,27 @@
 <x-admin-layout>
-    <div class="p-6 space-y-6" x-data="{ showEmpDetailModal: false, showCreateModal: {{ $errors->any() && !old('edit_id') ? 'true' : 'false' }}, showEditModal: {{ $errors->any() && old('edit_id') ? 'true' : 'false' }}, selectedEmp: null }">
+    <div class="p-3.5 sm:p-5 lg:p-6 space-y-3.5 sm:space-y-5 lg:space-y-6" x-data="{ showEmpDetailModal: false, showCreateModal: {{ $errors->any() && !old('edit_id') ? 'true' : 'false' }}, showEditModal: {{ $errors->any() && old('edit_id') ? 'true' : 'false' }}, selectedEmp: null }">
 
         <!-- HEADER -->
-        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full text-left">
+        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3 w-full text-left">
             <div class="flex flex-col gap-0.5">
-                <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">Data Pegawai & Guru</h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Kelola dan pantau seluruh data pendidik (guru) dan kependidikan (karyawan/staff) di semua unit.</p>
+                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Data Pegawai & Guru</h2>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Kelola dan pantau seluruh data pendidik (guru) dan kependidikan (karyawan/staff) di semua unit.</p>
             </div>
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto shrink-0">
                 <form action="{{ route('employees.sync-cache') }}" method="POST" class="m-0 p-0 flex w-full sm:w-auto">
                     @csrf
-                    <button type="submit" class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-100 cursor-pointer w-full sm:w-auto" onclick="this.disabled=true; this.innerHTML='Syncing...'; this.form.submit();">
+                    <button type="submit" class="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] sm:text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-100 cursor-pointer w-full sm:w-auto" onclick="this.disabled=true; this.innerHTML='Syncing...'; this.form.submit();">
                         <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-slate-500"></i>
                         Sync ke Server
                     </button>
                 </form>
-                <button onclick="toggleModal('import-employee-modal')" class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-100 cursor-pointer w-full sm:w-auto">
+                <button onclick="toggleModal('import-employee-modal')" class="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] sm:text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-100 cursor-pointer w-full sm:w-auto">
                     <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-slate-500"></i>
                     Impor Pegawai
                 </button>
                 <!-- EXPORT DROPDOWN -->
                 <div x-data="{ open: false }" class="relative w-full sm:w-auto">
-                    <button type="button" @click="open = !open" @click.outside="open = false" class="w-full sm:w-auto justify-center px-4 py-2 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold text-xs rounded-lg shadow-sm transition-all cursor-pointer whitespace-nowrap flex items-center gap-2">
+                    <button type="button" @click="open = !open" @click.outside="open = false" class="w-full sm:w-auto justify-center px-3 sm:px-4 py-2 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold text-[11px] sm:text-xs rounded-lg shadow-sm transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 sm:gap-2">
                         <i data-lucide="download" class="w-3.5 h-3.5 text-slate-500"></i>
                         <span>Ekspor</span>
                         <i data-lucide="chevron-down" class="w-3.5 h-3.5 opacity-70"></i>
@@ -38,14 +38,14 @@
                         </a>
                     </div>
                 </div>
-                <button @click="showCreateModal = true" class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-slate-900 dark:bg-slate-50 hover:bg-slate-800 dark:hover:bg-slate-200 text-white dark:text-slate-900 text-xs font-semibold rounded-lg shadow-sm transition-all duration-100 cursor-pointer w-full sm:w-auto">
+                <button @click="showCreateModal = true" class="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-slate-900 dark:bg-slate-50 hover:bg-slate-800 dark:hover:bg-slate-200 text-white dark:text-slate-900 text-[11px] sm:text-xs font-semibold rounded-lg shadow-sm transition-all duration-100 cursor-pointer w-full sm:w-auto">
                       <i data-lucide="plus" class="w-3.5 h-3.5"></i>
                       Tambah Pegawai
                   </button>
                 @if(auth()->user()->role === 'super_admin')
                 <form action="{{ route('employees.generate-accounts') }}" method="POST" class="m-0 p-0 flex w-full sm:w-auto">
                     @csrf
-                    <button type="submit" class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 dark:bg-emerald-500 hover:bg-emerald-700 dark:hover:bg-emerald-600 text-white text-xs font-semibold rounded-lg shadow-sm transition-all duration-100 cursor-pointer w-full" onclick="return confirm('Generate akun untuk semua pegawai yang memiliki email tetapi belum punya akun?')">
+                    <button type="submit" class="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-emerald-600 dark:bg-emerald-500 hover:bg-emerald-700 dark:hover:bg-emerald-600 text-white text-[11px] sm:text-xs font-semibold rounded-lg shadow-sm transition-all duration-100 cursor-pointer w-full" onclick="return confirm('Generate akun untuk semua pegawai yang memiliki email tetapi belum punya akun?')">
                         <i data-lucide="key" class="w-3.5 h-3.5"></i>
                         Generate Akun Massal
                     </button>

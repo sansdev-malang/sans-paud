@@ -1,9 +1,9 @@
 <x-admin-layout>
     <div class="p-6 space-y-6">
-        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3">
             <div class="flex flex-col gap-0.5">
-                <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">Edit Pengumuman</h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Perbarui informasi pengumuman.</p>
+                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Edit Pengumuman</h2>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Perbarui informasi pengumuman.</p>
             </div>
         </section>
 

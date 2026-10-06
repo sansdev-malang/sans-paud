@@ -1,46 +1,46 @@
 <x-admin-layout>
-    <div class="p-6 space-y-6">
+    <div class="p-3.5 sm:p-5 lg:p-6 space-y-4 sm:space-y-5 lg:space-y-6">
 
 
         <!-- GREETING / PAGE TITLE -->
-        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3">
             <div class="flex flex-col gap-0.5">
-                <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 font-nasalization">Dashboard</h2>
+                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50 font-nasalization">Dashboard</h2>
                 @if($isAdmin)
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Selamat datang kembali! Aktivitas sekolah terpantau kondusif.</p>
+                    <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium">Selamat datang kembali! Aktivitas sekolah terpantau kondusif.</p>
                 @else
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Selamat datang kembali, {{ auth()->user()->name }}! Pantau performa kehadiran harian Anda disini.</p>
+                    <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium">Selamat datang kembali, {{ auth()->user()->name }}! Pantau performa kehadiran harian Anda disini.</p>
                 @endif
             </div>
         </section>
 
         <!-- STAT CARDS GRID -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             @if($isAdmin)
                 <!-- Admin Card 1: Total Siswa -->
-                <div onclick="window.location='{{ route('students.index') }}'" class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer">
+                <div onclick="window.location='{{ route('students.index') }}'" class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Siswa Aktif</p>
-                            <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
+                            <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Siswa Aktif</p>
+                            <h3 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
                                 <span class="stat-counter" data-target="{{ $studentCount ?? 0 }}">{{ $studentCount ?? 0 }}</span>
                             </h3>
                         </div>
-                        <div class="p-2 bg-slate-50 dark:bg-slate-900 rounded-lg">
-                            <i data-lucide="users" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
+                        <div class="p-1.5 sm:p-2 bg-slate-50 dark:bg-slate-800/60 rounded-lg">
+                            <i data-lucide="users" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 dark:text-slate-400"></i>
                         </div>
                     </div>
-                    <div class="mt-4 text-xs text-slate-500 dark:text-slate-400">
+                    <div class="mt-2.5 text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">
                         Total data peserta didik aktif
                     </div>
                 </div>
 
                 <!-- Admin Card 2: Pegawai -->
-                <div onclick="window.location='{{ route('employees.index') }}'" class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer">
+                <div onclick="window.location='{{ route('employees.index') }}'" class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pegawai</p>
-                            <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
+                            <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pegawai</p>
+                            <h3 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
                                 @if(isset($employeeCount))
                                     <span class="stat-counter" data-target="{{ $employeeCount }}">{{ $employeeCount }}</span>
                                 @else
@@ -48,47 +48,47 @@
                                 @endif
                             </h3>
                         </div>
-                        <div class="p-2 bg-slate-50 dark:bg-slate-900 rounded-lg">
-                            <i data-lucide="graduation-cap" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
+                        <div class="p-1.5 sm:p-2 bg-slate-50 dark:bg-slate-800/60 rounded-lg">
+                            <i data-lucide="graduation-cap" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 dark:text-slate-400"></i>
                         </div>
                     </div>
-                    <div class="mt-4 text-xs text-slate-500 dark:text-slate-400">
+                    <div class="mt-2.5 text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">
                         <span class="text-emerald-600 dark:text-emerald-400 font-bold">{{ $employeeAttendancePercent ?? 0 }}%</span> tingkat kehadiran
                     </div>
                 </div>
 
                 <!-- Admin Card 3: Total Rombel / Kelas -->
-                <div onclick="window.location='{{ route('classrooms.index') }}'" class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer">
+                <div onclick="window.location='{{ route('classrooms.index') }}'" class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Rombel / Kelas</p>
-                            <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
+                            <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Rombel / Kelas</p>
+                            <h3 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
                                 <span class="stat-counter" data-target="{{ $classroomCount ?? 0 }}">{{ $classroomCount ?? 0 }}</span>
                             </h3>
                         </div>
-                        <div class="p-2 bg-slate-50 dark:bg-slate-900 rounded-lg">
-                            <i data-lucide="layout-grid" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
+                        <div class="p-1.5 sm:p-2 bg-slate-50 dark:bg-slate-800/60 rounded-lg">
+                            <i data-lucide="layout-grid" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 dark:text-slate-400"></i>
                         </div>
                     </div>
-                    <div class="mt-4 text-xs text-slate-500 dark:text-slate-400">
+                    <div class="mt-2.5 text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">
                         Total ruang kelas & rombel aktif
                     </div>
                 </div>
 
                 <!-- Admin Card 4: Presensi Hari Ini -->
-                <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
+                <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Presensi Hari Ini</p>
-                            <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
+                            <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Presensi Hari Ini</p>
+                            <h3 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
                                 <span class="stat-counter" data-target="{{ $todayOverallPercent ?? 0 }}">{{ $todayOverallPercent ?? 0 }}</span>%
                             </h3>
                         </div>
-                        <div class="p-2 bg-slate-50 dark:bg-slate-900 rounded-lg">
-                            <i data-lucide="clock" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
+                        <div class="p-1.5 sm:p-2 bg-slate-50 dark:bg-slate-800/60 rounded-lg">
+                            <i data-lucide="clock" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 dark:text-slate-400"></i>
                         </div>
                     </div>
-                    <div class="mt-4 text-xs text-slate-500 dark:text-slate-400">
+                    <div class="mt-2.5 text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">
                         @if(($diffPercent ?? 0) > 0)
                             <span class="text-emerald-600 dark:text-emerald-400 font-bold">+{{ $diffPercent }}%</span> dari kemarin
                         @elseif(($diffPercent ?? 0) < 0)
@@ -100,37 +100,37 @@
                 </div>
             @else
                 <!-- Pegawai Card 1: Kehadiran Bulan Ini -->
-                <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
+                <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Kehadiran Bulan Ini</p>
-                            <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
+                            <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Kehadiran Bulan Ini</p>
+                            <h3 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
                                 <span>{{ $myReport['total_present'] ?? 0 }}</span> Hari
                             </h3>
                         </div>
-                        <div class="p-2 bg-slate-50 dark:bg-slate-900 rounded-lg">
-                            <i data-lucide="calendar" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
+                        <div class="p-1.5 sm:p-2 bg-slate-50 dark:bg-slate-800/60 rounded-lg">
+                            <i data-lucide="calendar" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 dark:text-slate-400"></i>
                         </div>
                     </div>
-                    <div class="mt-4 text-xs text-slate-500 dark:text-slate-400">
+                    <div class="mt-2.5 text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">
                         Siklus aktif terhitung hadir
                     </div>
                 </div>
 
                 <!-- Pegawai Card 2: Menit Terlambat -->
-                <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
+                <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Keterlambatan</p>
-                            <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
+                            <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Keterlambatan</p>
+                            <h3 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
                                 <span>{{ $totalLateDays ?? 0 }}</span> Hari
                             </h3>
                         </div>
-                        <div class="p-2 bg-slate-50 dark:bg-slate-900 rounded-lg">
-                            <i data-lucide="hourglass" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
+                        <div class="p-1.5 sm:p-2 bg-slate-50 dark:bg-slate-800/60 rounded-lg">
+                            <i data-lucide="hourglass" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 dark:text-slate-400"></i>
                         </div>
                     </div>
-                    <div class="mt-4 text-xs text-slate-500 dark:text-slate-400">
+                    <div class="mt-2.5 text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">
                         @if(($totalLateDays ?? 0) > 0)
                             <span class="text-amber-500 font-bold">Terlambat</span> pada siklus aktif
                         @elseif(($myReport['total_present'] ?? 0) == 0)
@@ -142,37 +142,37 @@
                 </div>
 
                 <!-- Pegawai Card 3: Total Izin & Cuti -->
-                <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
+                <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Izin & Cuti</p>
-                            <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
+                            <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Izin & Cuti</p>
+                            <h3 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
                                 <span>{{ $totalLeavesThisYear }}</span> Hari
                             </h3>
                         </div>
-                        <div class="p-2 bg-slate-50 dark:bg-slate-900 rounded-lg">
-                            <i data-lucide="calendar-days" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
+                        <div class="p-1.5 sm:p-2 bg-slate-50 dark:bg-slate-800/60 rounded-lg">
+                            <i data-lucide="calendar-days" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 dark:text-slate-400"></i>
                         </div>
                     </div>
-                    <div class="mt-4 text-xs text-slate-500 dark:text-slate-400">
+                    <div class="mt-2.5 text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">
                         Akumulasi persetujuan tahun ini
                     </div>
                 </div>
 
                 <!-- Pegawai Card 4: Estimasi Bonus -->
-                <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
+                <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Estimasi Bonus</p>
-                            <h3 class="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400 mt-1">
+                            <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Estimasi Bonus</p>
+                            <h3 class="text-lg sm:text-xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400 mt-1">
                                 Rp {{ number_format($myReport['bonus_nominal'] ?? 0, 0, ',', '.') }}
                             </h3>
                         </div>
-                        <div class="p-2 bg-slate-50 dark:bg-slate-900 rounded-lg">
-                            <i data-lucide="award" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
+                        <div class="p-1.5 sm:p-2 bg-slate-50 dark:bg-slate-800/60 rounded-lg">
+                            <i data-lucide="award" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 dark:text-slate-400"></i>
                         </div>
                     </div>
-                    <div class="mt-4 text-xs text-slate-500 dark:text-slate-400">
+                    <div class="mt-2.5 text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">
                         Akumulasi bonus bulan ini
                     </div>
                 </div>
@@ -180,10 +180,10 @@
         </section>
 
         <!-- DETAILED SECTIONS: CHARTS & ACTIVITIES -->
-        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
             
             <!-- Graph Card (SVG) -->
-            <div class="animate-card lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 relative flex flex-col justify-between overflow-visible shadow-sm transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
+            <div class="animate-card lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 sm:p-4 lg:p-5 relative flex flex-col justify-between overflow-visible shadow-sm transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
                 <div>
                     <div class="flex items-center justify-between mb-4">
                         <div>
@@ -228,7 +228,7 @@
                                             @foreach($myActiveShifts as $index => $shift)
                                                 <div class="{{ $index > 0 ? 'pt-3 border-t border-slate-100 dark:border-slate-800/50' : '' }}">
                                                     <div class="font-bold text-slate-700 dark:text-slate-200 mb-1 flex items-center justify-between">
-                                                        <span>{{ $shift['name'] }}</span>
+                                                        <span>{{ $shift['name'] ?? 'Shift' }}</span>
                                                     </div>
                                                     @if(!empty($shift['description']))
                                                         <div class="text-xs text-slate-400 dark:text-slate-500 mb-1.5 leading-snug">{{ $shift['description'] }}</div>
@@ -237,33 +237,43 @@
                                                     @php
                                                         $daysName = [1 => 'Senin', 2 => 'Selasa', 3 => 'Rabu', 4 => 'Kamis', 5 => 'Jumat', 6 => 'Sabtu', 0 => 'Minggu'];
                                                         $groupedDetails = [];
-                                                        foreach($shift['details'] as $dt) {
-                                                            if(!$dt['is_off']) {
-                                                                 $timeRange = $dt['start_time'] . ' - ' . $dt['end_time'];
-                                                                 $groupedDetails[$timeRange][] = $dt['day_of_week'];
+                                                        if (!empty($shift['details']) && is_array($shift['details'])) {
+                                                            foreach($shift['details'] as $dt) {
+                                                                if(empty($dt['is_off'])) {
+                                                                     $startTime = isset($dt['start_time']) ? substr($dt['start_time'], 0, 5) : '-';
+                                                                     $endTime = isset($dt['end_time']) ? substr($dt['end_time'], 0, 5) : '-';
+                                                                     $timeRange = $startTime . ' - ' . $endTime;
+                                                                     $groupedDetails[$timeRange][] = $dt['day_of_week'] ?? 0;
+                                                                }
                                                             }
                                                         }
                                                     @endphp
                                                     
-                                                    <div class="space-y-1 mt-1">
-                                                        @foreach($groupedDetails as $timeRange => $days)
-                                                            @php
-                                                                usort($days, function($a, $b) {
-                                                                    $valA = $a == 0 ? 7 : $a;
-                                                                    $valB = $b == 0 ? 7 : $b;
-                                                                    return $valA <=> $valB;
-                                                                });
-                                                                $dayLabels = array_map(function($d) use ($daysName) {
-                                                                    return $daysName[$d] ?? '';
-                                                                }, $days);
-                                                                $daysStr = implode(', ', $dayLabels);
-                                                            @endphp
-                                                            <div class="flex flex-col gap-0.5 pb-1 border-b border-slate-50 dark:border-slate-800/40 last:border-0 last:pb-0">
-                                                                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{{ $daysStr }}</span>
-                                                                <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 font-mono">{{ $timeRange }}</span>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
+                                                    @if(!empty($groupedDetails))
+                                                        <div class="space-y-1 mt-1">
+                                                            @foreach($groupedDetails as $timeRange => $days)
+                                                                @php
+                                                                    usort($days, function($a, $b) {
+                                                                        $valA = $a == 0 ? 7 : $a;
+                                                                        $valB = $b == 0 ? 7 : $b;
+                                                                        return $valA <=> $valB;
+                                                                    });
+                                                                    $dayLabels = array_map(function($d) use ($daysName) {
+                                                                        return $daysName[$d] ?? '';
+                                                                    }, $days);
+                                                                    $daysStr = implode(', ', array_filter($dayLabels));
+                                                                @endphp
+                                                                <div class="flex flex-col gap-0.5 pb-1 border-b border-slate-50 dark:border-slate-800/40 last:border-0 last:pb-0">
+                                                                    <span class="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{{ $daysStr }}</span>
+                                                                    <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 font-mono">{{ $timeRange }}</span>
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
+                                                    @elseif(!empty($shift['schedule']))
+                                                        <div class="text-xs text-slate-600 dark:text-slate-400 font-mono mt-1">
+                                                            {{ $shift['schedule'] }}
+                                                        </div>
+                                                    @endif
                                                 </div>
                                             @endforeach
                                         </div>
@@ -525,93 +535,93 @@
             </div>
             
             <!-- Announcements / Information System -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-6 flex flex-col justify-between shadow-sm transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
+            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 sm:p-4 lg:p-5 flex flex-col justify-between shadow-sm transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
                 <div>
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-50">Pengumuman Sekolah</h3>
-                        <a href="{{ route('announcements.index') }}" class="text-xs text-slate-500 dark:text-slate-400 font-semibold hover:underline">Lihat Semua</a>
+                    <div class="flex items-center justify-between mb-3.5">
+                        <h3 class="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-50">Pengumuman Sekolah</h3>
+                        <a href="{{ route('announcements.index') }}" class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-semibold hover:underline">Lihat Semua</a>
                     </div>
 
                     <!-- List of updates -->
-                    <div class="space-y-3.5">
+                    <div class="space-y-3">
                         @forelse($latestAnnouncements ?? collect() as $announcement)
                             <div class="flex gap-2.5 items-start">
                                 <div class="w-1.5 h-1.5 rounded-full {{ $announcement->category == 'penting' ? 'bg-red-500' : 'bg-slate-400 dark:bg-slate-500' }} mt-1.5 shrink-0"></div>
-                                <div class="flex-1">
-                                    <h4 class="text-xs font-semibold {{ $announcement->category == 'penting' ? 'text-red-600 dark:text-red-400' : 'text-slate-900 dark:text-slate-50' }}">
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="text-xs font-semibold {{ $announcement->category == 'penting' ? 'text-red-600 dark:text-red-400' : 'text-slate-900 dark:text-slate-50' }} truncate">
                                         <a href="{{ route('announcements.show', $announcement) }}" class="hover:underline">{{ $announcement->title }}</a>
                                     </h4>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">{{ Str::limit(html_entity_decode(strip_tags(str_replace('&nbsp;', ' ', $announcement->content)), ENT_QUOTES, 'UTF-8'), 100) }}</p>
+                                    <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2 leading-relaxed">{{ Str::limit(html_entity_decode(strip_tags(str_replace('&nbsp;', ' ', $announcement->content)), ENT_QUOTES, 'UTF-8'), 90) }}</p>
                                     <div class="flex items-center gap-2 mt-1">
-                                        <span class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">{{ $announcement->created_at->translatedFormat('d M Y, H:i') }}</span>
+                                        <span class="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 font-medium">{{ $announcement->created_at->translatedFormat('d M Y, H:i') }}</span>
                                         @if($announcement->attachment)
                                             <span class="text-[9px] text-slate-300 dark:text-slate-700 select-none">•</span>
-                                            <a href="{{ Storage::url($announcement->attachment) }}" target="_blank" class="text-[10px] text-blue-500 hover:underline inline-flex items-center gap-0.5"><i data-lucide="paperclip" class="w-3 h-3"></i> Lampiran</a>
+                                            <a href="{{ Storage::url($announcement->attachment) }}" target="_blank" class="text-[9px] sm:text-[10px] text-indigo-600 dark:text-indigo-400 hover:underline inline-flex items-center gap-0.5"><i data-lucide="paperclip" class="w-2.5 h-2.5"></i> Lampiran</a>
                                         @endif
                                     </div>
                                 </div>
                             </div>
                         @empty
-                            <div class="text-xs text-slate-500 text-center py-4">Belum ada pengumuman terbaru.</div>
+                            <div class="text-[11px] sm:text-xs text-slate-500 text-center py-4">Belum ada pengumuman terbaru.</div>
                         @endforelse
                     </div>
                 </div>
 
                 <!-- Info tag footer -->
-                <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-400">
+                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] sm:text-xs text-slate-400">
                     <span>Diperbarui secara real-time</span>
                 </div>
             </div>
         </section>
 
         <!-- QUICK ACTIONS & ACTIVITY FEED -->
-        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
             
             <!-- Quick Actions Grid -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
-                <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-50 mb-4">Aksi Cepat</h3>
-                <div class="grid grid-cols-2 gap-2">
+            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 sm:p-4 lg:p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
+                <h3 class="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-50 mb-3.5">Aksi Cepat</h3>
+                <div class="grid grid-cols-2 gap-2 sm:gap-2.5">
                     @if($isAdmin)
-                        <button onclick="window.location='{{ route('students.index') }}'" class="flex flex-col items-center justify-center p-3 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg group transition-all duration-100 cursor-pointer">
-                            <i data-lucide="user-plus" class="w-4 h-4 text-slate-600 dark:text-slate-400 group-hover:scale-105 transition-transform"></i>
-                            <span class="text-[10px] font-medium text-slate-700 dark:text-slate-300 mt-1.5 text-center leading-tight">Tambah Siswa</span>
+                        <button onclick="window.location='{{ route('students.index') }}'" class="flex flex-col items-center justify-center p-2.5 sm:p-3 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg group transition-all duration-100 cursor-pointer">
+                            <i data-lucide="user-plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-600 dark:text-slate-400 group-hover:scale-105 transition-transform"></i>
+                            <span class="text-[10px] sm:text-[11px] font-medium text-slate-700 dark:text-slate-300 mt-1.5 text-center leading-tight">Tambah Siswa</span>
                         </button>
-                        <button onclick="window.location='{{ route('employees.index') }}'" class="flex flex-col items-center justify-center p-3 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg group transition-all duration-100 cursor-pointer">
-                            <i data-lucide="users" class="w-4 h-4 text-slate-600 dark:text-slate-400 group-hover:scale-105 transition-transform"></i>
-                            <span class="text-[10px] font-medium text-slate-700 dark:text-slate-300 mt-1.5 text-center leading-tight">Data Pegawai</span>
+                        <button onclick="window.location='{{ route('employees.index') }}'" class="flex flex-col items-center justify-center p-2.5 sm:p-3 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg group transition-all duration-100 cursor-pointer">
+                            <i data-lucide="users" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-600 dark:text-slate-400 group-hover:scale-105 transition-transform"></i>
+                            <span class="text-[10px] sm:text-[11px] font-medium text-slate-700 dark:text-slate-300 mt-1.5 text-center leading-tight">Data Pegawai</span>
                         </button>
-                        <button onclick="window.location='{{ route('picket-schedules.admin') }}'" class="flex flex-col items-center justify-center p-3 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg group transition-all duration-100 cursor-pointer">
-                            <i data-lucide="calendar-range" class="w-4 h-4 text-slate-600 dark:text-slate-400 group-hover:scale-105 transition-transform"></i>
-                            <span class="text-[10px] font-medium text-slate-700 dark:text-slate-300 mt-1.5 text-center leading-tight">Kelola Piket</span>
+                        <button onclick="window.location='{{ route('picket-schedules.admin') }}'" class="flex flex-col items-center justify-center p-2.5 sm:p-3 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg group transition-all duration-100 cursor-pointer">
+                            <i data-lucide="calendar-range" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-600 dark:text-slate-400 group-hover:scale-105 transition-transform"></i>
+                            <span class="text-[10px] sm:text-[11px] font-medium text-slate-700 dark:text-slate-300 mt-1.5 text-center leading-tight">Kelola Piket</span>
                         </button>
-                        <button onclick="window.location='{{ route('leaves.index') }}'" class="flex flex-col items-center justify-center p-3 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg group transition-all duration-100 cursor-pointer">
-                            <i data-lucide="file-check-2" class="w-4 h-4 text-slate-600 dark:text-slate-400 group-hover:scale-105 transition-transform"></i>
-                            <span class="text-[10px] font-medium text-slate-700 dark:text-slate-300 mt-1.5 text-center leading-tight">Verifikasi Cuti</span>
+                        <button onclick="window.location='{{ route('leaves.index') }}'" class="flex flex-col items-center justify-center p-2.5 sm:p-3 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg group transition-all duration-100 cursor-pointer">
+                            <i data-lucide="file-check-2" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-600 dark:text-slate-400 group-hover:scale-105 transition-transform"></i>
+                            <span class="text-[10px] sm:text-[11px] font-medium text-slate-700 dark:text-slate-300 mt-1.5 text-center leading-tight">Verifikasi Cuti</span>
                         </button>
-                        <button onclick="window.location='{{ route('attendances.index') }}'" class="flex flex-col items-center justify-center p-3 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg group transition-all duration-100 cursor-pointer">
-                            <i data-lucide="history" class="w-4 h-4 text-slate-600 dark:text-slate-400 group-hover:scale-105 transition-transform"></i>
-                            <span class="text-[10px] font-medium text-slate-700 dark:text-slate-300 mt-1.5 text-center leading-tight">Riwayat Presensi</span>
+                        <button onclick="window.location='{{ route('attendances.index') }}'" class="flex flex-col items-center justify-center p-2.5 sm:p-3 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg group transition-all duration-100 cursor-pointer">
+                            <i data-lucide="history" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-600 dark:text-slate-400 group-hover:scale-105 transition-transform"></i>
+                            <span class="text-[10px] sm:text-[11px] font-medium text-slate-700 dark:text-slate-300 mt-1.5 text-center leading-tight">Riwayat Presensi</span>
                         </button>
-                        <button onclick="window.location='{{ route('zkteco-devices.index') }}'" class="flex flex-col items-center justify-center p-3 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg group transition-all duration-100 cursor-pointer">
-                            <i data-lucide="hard-drive" class="w-4 h-4 text-slate-600 dark:text-slate-400 group-hover:scale-105 transition-transform"></i>
-                            <span class="text-[10px] font-medium text-slate-700 dark:text-slate-300 mt-1.5 text-center leading-tight">Mesin Absensi</span>
+                        <button onclick="window.location='{{ route('zkteco-devices.index') }}'" class="flex flex-col items-center justify-center p-2.5 sm:p-3 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg group transition-all duration-100 cursor-pointer">
+                            <i data-lucide="hard-drive" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-600 dark:text-slate-400 group-hover:scale-105 transition-transform"></i>
+                            <span class="text-[10px] sm:text-[11px] font-medium text-slate-700 dark:text-slate-300 mt-1.5 text-center leading-tight">Mesin Absensi</span>
                         </button>
                     @else
-                        <button onclick="window.location='{{ route('my-leaves.index') }}'" class="flex flex-col items-center justify-center p-3 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg group transition-all duration-100 cursor-pointer">
-                            <i data-lucide="file-text" class="w-4 h-4 text-indigo-650 dark:text-indigo-400 group-hover:scale-105 transition-transform"></i>
-                            <span class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1.5">Ajukan Cuti/Izin</span>
+                        <button onclick="window.location='{{ route('my-leaves.index') }}'" class="flex flex-col items-center justify-center p-2.5 sm:p-3 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg group transition-all duration-100 cursor-pointer">
+                            <i data-lucide="file-text" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-650 dark:text-indigo-400 group-hover:scale-105 transition-transform"></i>
+                            <span class="text-[10px] sm:text-[11px] font-medium text-slate-700 dark:text-slate-300 mt-1.5">Ajukan Cuti/Izin</span>
                         </button>
-                        <button onclick="window.location='{{ route('attendances.index') }}'" class="flex flex-col items-center justify-center p-3 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg group transition-all duration-100 cursor-pointer">
-                            <i data-lucide="calendar-check" class="w-4 h-4 text-slate-600 dark:text-slate-400 group-hover:scale-105 transition-transform"></i>
-                            <span class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1.5">Data Absensi</span>
+                        <button onclick="window.location='{{ route('attendances.index') }}'" class="flex flex-col items-center justify-center p-2.5 sm:p-3 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg group transition-all duration-100 cursor-pointer">
+                            <i data-lucide="calendar-check" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-600 dark:text-slate-400 group-hover:scale-105 transition-transform"></i>
+                            <span class="text-[10px] sm:text-[11px] font-medium text-slate-700 dark:text-slate-300 mt-1.5">Data Absensi</span>
                         </button>
-                        <button onclick="window.location='{{ route('my-employee-profile.edit') }}'" class="flex flex-col items-center justify-center p-3 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg group transition-all duration-100 cursor-pointer">
-                            <i data-lucide="user" class="w-4 h-4 text-slate-600 dark:text-slate-400 group-hover:scale-105 transition-transform"></i>
-                            <span class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1.5">Profile</span>
+                        <button onclick="window.location='{{ route('my-employee-profile.edit') }}'" class="flex flex-col items-center justify-center p-2.5 sm:p-3 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg group transition-all duration-100 cursor-pointer">
+                            <i data-lucide="user" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-600 dark:text-slate-400 group-hover:scale-105 transition-transform"></i>
+                            <span class="text-[10px] sm:text-[11px] font-medium text-slate-700 dark:text-slate-300 mt-1.5">Profil</span>
                         </button>
-                        <button onclick="window.location='{{ route('payslips.index') }}'" class="flex flex-col items-center justify-center p-3 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg group transition-all duration-100 cursor-pointer">
-                            <i data-lucide="receipt" class="w-4 h-4 text-slate-600 dark:text-slate-400 group-hover:scale-105 transition-transform"></i>
-                            <span class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1.5">Lihat Slip Gaji</span>
+                        <button onclick="window.location='{{ route('payslips.index') }}'" class="flex flex-col items-center justify-center p-2.5 sm:p-3 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg group transition-all duration-100 cursor-pointer">
+                            <i data-lucide="receipt" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-600 dark:text-slate-400 group-hover:scale-105 transition-transform"></i>
+                            <span class="text-[10px] sm:text-[11px] font-medium text-slate-700 dark:text-slate-300 mt-1.5">Slip Gaji</span>
                         </button>
                     @endif
                 </div>
@@ -619,13 +629,13 @@
 
             <!-- Jadwal Piket Saya Card -->
             @if(isset($myPicketSchedules) && $myPicketSchedules->isNotEmpty())
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 flex flex-col justify-between" x-data="{ openJobs: null }">
+            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 sm:p-4 lg:p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 flex flex-col justify-between" x-data="{ openJobs: null }">
                 <div>
-                    <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-50 mb-4 font-nasalization">Jadwal Piket Saya</h3>
+                    <h3 class="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-50 mb-3.5 font-nasalization">Jadwal Piket Saya</h3>
                     
                     @if($myPicketToday)
                         <!-- Hari Ini Ada Piket -->
-                        <div class="bg-gradient-to-br from-indigo-500/10 via-indigo-600/5 to-transparent dark:from-indigo-950/30 dark:via-indigo-900/10 dark:to-transparent border border-indigo-100 dark:border-indigo-900/40 rounded-2xl p-4 mb-4 relative overflow-hidden">
+                        <div class="bg-gradient-to-br from-indigo-500/10 via-indigo-600/5 to-transparent dark:from-indigo-950/30 dark:via-indigo-900/10 dark:to-transparent border border-indigo-100 dark:border-indigo-900/40 rounded-2xl p-3.5 mb-3.5 relative overflow-hidden">
                             <!-- Subtle decorative gradient circle -->
                             <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-indigo-500/10 rounded-full blur-xl pointer-events-none"></div>
                             
@@ -650,9 +660,9 @@
                             </div>
 
                             @if($myPicketToday->picketArea->jobs)
-                                <div class="mt-3.5 pt-3.5 border-t border-indigo-100/50 dark:border-indigo-900/30">
+                                <div class="mt-3 pt-3 border-t border-indigo-100/50 dark:border-indigo-900/30">
                                     <p class="text-[9px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-widest mb-1.5">TUPOKSI ANDA:</p>
-                                    <div class="space-y-2">
+                                    <div class="space-y-1.5">
                                         @foreach(explode("\n", $myPicketToday->picketArea->jobs) as $job)
                                             @if(trim($job))
                                                 <div class="flex items-start gap-2 text-[10px] text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
@@ -670,7 +680,7 @@
                     @endif
 
                     <!-- List Roster Jadwal Mingguan -->
-                    <div class="space-y-2.5">
+                    <div class="space-y-2">
                         @php
                             $groupedSchedules = $myPicketSchedules->groupBy('picket_area_id');
                         @endphp
@@ -680,11 +690,11 @@
                                 $daysOfWeek = $schedulesGroup->pluck('day_of_week')->sort()->toArray();
                                 $hasTodayInGroup = in_array($todayDayOfWeek, $daysOfWeek);
                             @endphp
-                            <div class="p-3 border rounded-2xl transition-all duration-200 cursor-pointer {{ $hasTodayInGroup ? 'bg-indigo-500/5 dark:bg-indigo-500/5 border-indigo-200 dark:border-indigo-950' : 'bg-slate-50/50 dark:bg-slate-950/30 border-slate-200/50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-950' }}"
+                            <div class="p-2.5 sm:p-3 border rounded-xl transition-all duration-200 cursor-pointer {{ $hasTodayInGroup ? 'bg-indigo-500/5 dark:bg-indigo-500/5 border-indigo-200 dark:border-indigo-950' : 'bg-slate-50/50 dark:bg-slate-950/30 border-slate-200/50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-950' }}"
                                 @click="openJobs = (openJobs === {{ $areaId }} ? null : {{ $areaId }})">
                                 <div class="flex items-center justify-between gap-3">
                                     <div class="flex items-start gap-2.5 min-w-0">
-                                        <div class="w-7 h-7 rounded-lg {{ $hasTodayInGroup ? 'bg-indigo-600 text-white shadow-3xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400' }} flex items-center justify-center shrink-0 border border-indigo-100/10 mt-0.5">
+                                        <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg {{ $hasTodayInGroup ? 'bg-indigo-600 text-white shadow-3xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400' }} flex items-center justify-center shrink-0 border border-indigo-100/10 mt-0.5">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>
                                         </div>
                                         <div class="flex flex-col min-w-0">
@@ -692,12 +702,12 @@
                                             <span class="text-[9px] text-slate-500 dark:text-slate-400 mt-0.5">Jam: {{ $area->duty_hours }}</span>
                                             
                                             <!-- Day badges list -->
-                                            <div class="flex items-center gap-1.5 flex-wrap mt-2">
+                                            <div class="flex items-center gap-1.5 flex-wrap mt-1.5">
                                                 @foreach($daysOfWeek as $dayNum)
                                                     @php
                                                         $isDayToday = ($dayNum === $todayDayOfWeek);
                                                     @endphp
-                                                    <span class="px-2 py-0.5 rounded-lg text-[9px] font-bold {{ $isDayToday ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800 text-slate-700 dark:text-slate-300' }} shrink-0">
+                                                    <span class="px-2 py-0.5 rounded-md text-[9px] font-bold {{ $isDayToday ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800 text-slate-700 dark:text-slate-300' }} shrink-0">
                                                         {{ [1 => 'Senin', 2 => 'Selasa', 3 => 'Rabu', 4 => 'Kamis', 5 => 'Jumat', 6 => 'Sabtu'][$dayNum] }}
                                                     </span>
                                                 @endforeach
@@ -706,14 +716,14 @@
                                     </div>
                                     @if($area->jobs)
                                         <button type="button" class="shrink-0 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors p-1 cursor-pointer border-0 bg-transparent flex items-center justify-center" title="Lihat Tugas/Tupoksi">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform duration-200" :class="openJobs === {{ $areaId }} && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 transition-transform duration-200" :class="openJobs === {{ $areaId }} && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
                                         </button>
                                     @endif
                                 </div>
                                 
                                 <!-- Expandable Jobs/Tupoksi List -->
                                 @if($area->jobs)
-                                    <div x-show="openJobs === {{ $areaId }}" @click.stop x-collapse x-cloak class="mt-3 pt-3 border-t border-slate-200/60 dark:border-slate-800/60 text-[10px] text-slate-600 dark:text-slate-400 space-y-2">
+                                    <div x-show="openJobs === {{ $areaId }}" @click.stop x-collapse x-cloak class="mt-2.5 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60 text-[10px] text-slate-600 dark:text-slate-400 space-y-2">
                                         <p class="font-black text-slate-700 dark:text-slate-300 uppercase tracking-widest text-[8px]">TUGAS & TUPOKSI:</p>
                                         <div class="space-y-1.5 pl-1">
                                             @foreach(explode("\n", $area->jobs) as $job)
@@ -730,8 +740,8 @@
                             </div>
                         @empty
                             @if(!$myPicketToday)
-                                <div class="text-xs text-slate-500 text-center py-8">
-                                    <i data-lucide="calendar" class="w-6 h-6 text-slate-300 dark:text-slate-700 mx-auto mb-2"></i>
+                                <div class="text-xs text-slate-500 text-center py-6">
+                                    <i data-lucide="calendar" class="w-5 h-5 text-slate-300 dark:text-slate-700 mx-auto mb-1.5"></i>
                                     Anda tidak memiliki jadwal piket minggu ini.
                                 </div>
                             @endif
@@ -742,14 +752,14 @@
             @endif
 
             <!-- Recent Activity Logs -->
-            <div class="animate-card {{ (!isset($myPicketSchedules) || $myPicketSchedules->isEmpty()) ? 'lg:col-span-2' : 'lg:col-span-1' }} bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
+            <div class="animate-card {{ (!isset($myPicketSchedules) || $myPicketSchedules->isEmpty()) ? 'lg:col-span-2' : 'lg:col-span-1' }} bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 sm:p-4 lg:p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
                 @if($isAdmin)
-                    <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-50 mb-4">Log Aktivitas Terbaru</h3>
-                     <div class="space-y-3.5 max-h-[380px] overflow-y-auto pr-1.5 scrollbar-thin">
+                    <h3 class="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-50 mb-3.5">Log Aktivitas Terbaru</h3>
+                     <div class="space-y-3 max-h-[360px] overflow-y-auto pr-1.5 scrollbar-thin">
                         @forelse($activityLogs as $log)
-                            <div class="flex items-start justify-between gap-3 py-1 border-b border-slate-50 dark:border-slate-900/60 pb-3 last:border-b-0 last:pb-0">
-                                <div class="flex items-center gap-3 min-w-0">
-                                    <div class="w-7 h-7 rounded-lg {{ $log['icon_color'] }} flex items-center justify-center shrink-0">
+                            <div class="flex items-start justify-between gap-2.5 py-1 border-b border-slate-50 dark:border-slate-900/60 pb-2.5 last:border-b-0 last:pb-0">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg {{ $log['icon_color'] }} flex items-center justify-center shrink-0">
                                         <i data-lucide="{{ $log['icon'] }}" class="w-3.5 h-3.5"></i>
                                     </div>
                                     <div class="min-w-0">
@@ -763,19 +773,19 @@
                                 <span class="desktop-time text-[10px] text-slate-400 dark:text-slate-500 font-medium shrink-0 mt-0.5">{{ $log['time']->diffForHumans() }}</span>
                             </div>
                         @empty
-                            <div class="text-xs text-slate-505 text-center py-6">
-                                <i data-lucide="activity" class="w-6 h-6 text-slate-300 dark:text-slate-700 mx-auto mb-2"></i>
+                            <div class="text-xs text-slate-500 text-center py-6">
+                                <i data-lucide="activity" class="w-5 h-5 text-slate-300 dark:text-slate-700 mx-auto mb-1.5"></i>
                                 Belum ada aktivitas terbaru hari ini.
                             </div>
                         @endforelse
                     </div>
                 @else
-                    <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-50 mb-4 font-nasalization">Aktivitas Saya (Pengajuan Terakhir)</h3>
-                     <div class="space-y-3.5 max-h-[380px] overflow-y-auto pr-1.5 scrollbar-thin">
+                    <h3 class="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-50 mb-3.5 font-nasalization">Aktivitas Saya (Pengajuan Terakhir)</h3>
+                     <div class="space-y-3 max-h-[360px] overflow-y-auto pr-1.5 scrollbar-thin">
                         @forelse($myRecentLeaves as $leave)
-                            <div class="flex items-start justify-between gap-3 py-1 border-b border-slate-50 dark:border-slate-900/60 pb-3">
-                                <div class="flex items-center gap-3 min-w-0">
-                                    <div class="w-7 h-7 rounded-lg bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-600 dark:text-slate-400 shrink-0">
+                            <div class="flex items-start justify-between gap-2.5 py-1 border-b border-slate-50 dark:border-slate-900/60 pb-2.5">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-600 dark:text-slate-400 shrink-0">
                                         <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
                                     </div>
                                     <div class="min-w-0">
@@ -788,7 +798,7 @@
                                 <span class="desktop-time text-[10px] text-slate-400 dark:text-slate-500 font-medium shrink-0 mt-0.5">{{ $leave->created_at->translatedFormat('d M Y, H:i') }}</span>
                             </div>
                         @empty
-                            <div class="text-xs text-slate-505 text-center py-4">Belum ada riwayat aktivitas pengajuan cuti/izin.</div>
+                            <div class="text-xs text-slate-500 text-center py-4">Belum ada riwayat aktivitas pengajuan cuti/izin.</div>
                         @endforelse
                     </div>
                 @endif

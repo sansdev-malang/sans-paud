@@ -9,22 +9,10 @@
     }">
 
         <!-- HEADER SECTION -->
-        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full text-left">
+        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3 w-full text-left">
             <div class="flex flex-col gap-0.5">
-                <div class="flex items-center gap-2.5">
-                    <div class="p-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl border border-indigo-500/20">
-                        <i data-lucide="pie-chart" class="w-5 h-5"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2">
-                            Rekapitulasi Rombel & Kesiswaan
-                            <span class="text-xs px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400 font-semibold border border-indigo-200 dark:border-indigo-800">
-                                PAUD Terpadu
-                            </span>
-                        </h2>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Laporan distribusi kelompok belajar, rasio gender, kapasitas ruang, dan statistik usia murid.</p>
-                    </div>
-                </div>
+                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Rekapitulasi Rombel & Kesiswaan</h2>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Laporan distribusi kelompok belajar, rasio gender, kapasitas ruang, dan statistik usia murid.</p>
             </div>
 
             <!-- ACTION BUTTONS & YEAR FILTER -->

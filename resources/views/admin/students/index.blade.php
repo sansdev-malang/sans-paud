@@ -1,29 +1,17 @@
 <x-admin-layout>
-    <div class="p-6 space-y-6" x-data="studentApp()">
+    <div class="p-3.5 sm:p-5 lg:p-6 space-y-3.5 sm:space-y-5 lg:space-y-6" x-data="studentApp()">
 
         <!-- GREETING / PAGE TITLE -->
-        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full text-left">
+        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3 w-full text-left">
             <div class="flex flex-col gap-0.5">
-                <div class="flex items-center gap-2.5">
-                    <div class="p-2.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl border border-indigo-500/20 shadow-xs">
-                        <i data-lucide="users" class="w-5 h-5"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2">
-                            Daftar Murid
-                            <span class="text-xs px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400 font-semibold border border-indigo-200 dark:border-indigo-800">
-                                PG - TK - DAYCARE
-                            </span>
-                        </h2>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Database komprehensif murid, penempatan kelompok, daycare, dan TPQ Anak Saleh.</p>
-                    </div>
-                </div>
+                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Daftar Murid</h2>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Database komprehensif murid, penempatan kelompok, daycare, dan TPQ Anak Saleh.</p>
             </div>
 
             <!-- ACTION CONTROLS -->
-            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+            <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 shrink-0">
                 <!-- Info Badge Tahun Ajaran Aktif -->
-                <div class="inline-flex items-center gap-2 px-3.5 py-2 bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/60 rounded-xl text-xs shadow-xs">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/60 rounded-xl text-[11px] sm:text-xs shadow-xs">
                     <span class="flex h-2 w-2 relative">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -36,21 +24,21 @@
 
                 <!-- Impor Excel Button -->
                 <button type="button" @click="importModalOpen = true"
-                    class="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-colors cursor-pointer">
+                    class="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] sm:text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-colors cursor-pointer">
                     <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-slate-500"></i>
                     Impor Excel
                 </button>
 
                 <!-- Ekspor Excel Button -->
                 <a href="{{ route('students.export.excel', request()->query()) }}"
-                    class="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-colors cursor-pointer">
+                    class="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] sm:text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-colors cursor-pointer">
                     <i data-lucide="download" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400"></i>
                     Ekspor Excel
                 </a>
 
                 <!-- Tambah Murid Button -->
                 <button type="button" @click="openCreateModal()"
-                    class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer">
+                    class="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] sm:text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer">
                     <i data-lucide="plus" class="w-3.5 h-3.5"></i>
                     Tambah Murid
                 </button>
@@ -59,7 +47,7 @@
 
         <!-- IMPORT ERRORS ALERT -->
         @if(session('import_errors'))
-            <div class="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-900 text-rose-800 dark:text-rose-400 p-4 rounded-xl flex items-start gap-3 text-left w-full">
+            <div class="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-900 text-rose-800 dark:text-rose-400 p-3 sm:p-4 rounded-xl flex items-start gap-3 text-left w-full">
                 <i data-lucide="alert-triangle" class="w-5 h-5 mt-0.5 shrink-0 text-rose-500 dark:text-rose-400"></i>
                 <div class="space-y-1">
                     <h5 class="text-xs font-bold">Beberapa baris data murid gagal diimpor:</h5>
@@ -73,75 +61,75 @@
         @endif
 
         <!-- STATS CARDS GRID -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <!-- Stat Card 1: Total Murid Aktif -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-xs flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Murid Aktif</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
+                        <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Murid Aktif</p>
+                        <h3 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
                             {{ number_format($stats['total_active']) }}
                         </h3>
                     </div>
-                    <div class="p-2.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-xl border border-indigo-100 dark:border-indigo-900/50">
-                        <i data-lucide="users" class="w-5 h-5"></i>
+                    <div class="p-1.5 sm:p-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-xl border border-indigo-100 dark:border-indigo-900/50">
+                        <i data-lucide="users" class="w-4 h-4 sm:w-5 sm:h-5"></i>
                     </div>
                 </div>
-                <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
+                <div class="mt-2.5 sm:mt-3 text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">
                     Total terdaftar: <span class="font-semibold text-slate-700 dark:text-slate-300">{{ number_format($stats['total_all']) }}</span> anak
                 </div>
             </div>
 
             <!-- Stat Card 2: Laki-laki -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-xs flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Laki-laki (Putra)</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
+                        <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Laki-laki (Putra)</p>
+                        <h3 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
                             {{ number_format($stats['male']) }}
                         </h3>
                     </div>
-                    <div class="p-2.5 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-100 dark:border-blue-900/50">
-                        <i data-lucide="user" class="w-5 h-5"></i>
+                    <div class="p-1.5 sm:p-2 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-100 dark:border-blue-900/50">
+                        <i data-lucide="user" class="w-4 h-4 sm:w-5 sm:h-5"></i>
                     </div>
                 </div>
-                <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
+                <div class="mt-2.5 sm:mt-3 text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">
                     Murid aktif putra
                 </div>
             </div>
 
             <!-- Stat Card 3: Perempuan -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-xs flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Perempuan (Putri)</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
+                        <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Perempuan (Putri)</p>
+                        <h3 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
                             {{ number_format($stats['female']) }}
                         </h3>
                     </div>
-                    <div class="p-2.5 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-xl border border-rose-100 dark:border-rose-900/50">
-                        <i data-lucide="user-check" class="w-5 h-5"></i>
+                    <div class="p-1.5 sm:p-2 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-xl border border-rose-100 dark:border-rose-900/50">
+                        <i data-lucide="user-check" class="w-4 h-4 sm:w-5 sm:h-5"></i>
                     </div>
                 </div>
-                <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
+                <div class="mt-2.5 sm:mt-3 text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">
                     Murid aktif putri
                 </div>
             </div>
 
             <!-- Stat Card 4: Total Kelompok Belajar -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-xs flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Kelompok Belajar</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
+                        <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Kelompok Belajar</p>
+                        <h3 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
                             {{ number_format($stats['classrooms']) }}
                         </h3>
                     </div>
-                    <div class="p-2.5 bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 rounded-xl border border-purple-100 dark:border-purple-900/50">
-                        <i data-lucide="shapes" class="w-5 h-5"></i>
+                    <div class="p-1.5 sm:p-2 bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 rounded-xl border border-purple-100 dark:border-purple-900/50">
+                        <i data-lucide="shapes" class="w-4 h-4 sm:w-5 sm:h-5"></i>
                     </div>
                 </div>
-                <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
+                <div class="mt-2.5 sm:mt-3 text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">
                     Rombel aktif jenjang ini
                 </div>
             </div>

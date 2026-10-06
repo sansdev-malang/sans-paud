@@ -1,11 +1,11 @@
 <x-admin-layout>
-    <div class="p-6 space-y-6" x-data="{ activeTab: localStorage.getItem('sans_settings_tab') || 'general' }" x-init="$watch('activeTab', val => localStorage.setItem('sans_settings_tab', val))">
+    <div class="p-3.5 sm:p-5 lg:p-6 space-y-3.5 sm:space-y-5 lg:space-y-6" x-data="{ activeTab: localStorage.getItem('sans_settings_tab') || 'general' }" x-init="$watch('activeTab', val => localStorage.setItem('sans_settings_tab', val))">
 
         <!-- PAGE HEADER -->
-        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3">
             <div class="flex flex-col gap-0.5">
-                <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">Pengaturan Sistem</h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Konfigurasi identitas sistem, informasi unit kerja, dan integrasi API eksternal.</p>
+                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Pengaturan Sistem</h2>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Konfigurasi identitas sistem, informasi unit kerja, dan integrasi API eksternal.</p>
             </div>
         </section>
 

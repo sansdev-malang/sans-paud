@@ -299,7 +299,14 @@ class DashboardController extends Controller
                         'active_shifts' => [
                             [
                                 'name' => 'Shift Reguler',
-                                'schedule' => 'Senin - Jumat: 07.00 - 15.30'
+                                'schedule' => 'Senin - Jumat: 07.00 - 15.30',
+                                'details' => [
+                                    ['day_of_week' => 1, 'is_off' => false, 'start_time' => '07:00:00', 'end_time' => '15:30:00'],
+                                    ['day_of_week' => 2, 'is_off' => false, 'start_time' => '07:00:00', 'end_time' => '15:30:00'],
+                                    ['day_of_week' => 3, 'is_off' => false, 'start_time' => '07:00:00', 'end_time' => '15:30:00'],
+                                    ['day_of_week' => 4, 'is_off' => false, 'start_time' => '07:00:00', 'end_time' => '15:30:00'],
+                                    ['day_of_week' => 5, 'is_off' => false, 'start_time' => '07:00:00', 'end_time' => '15:30:00'],
+                                ]
                             ]
                         ]
                     ];

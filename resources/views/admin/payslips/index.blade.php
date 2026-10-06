@@ -28,17 +28,12 @@
 
     <div class="p-4 sm:p-6 space-y-5 w-full">
         <!-- HEADER -->
-        <section class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 shadow-xs">
-                    <i data-lucide="receipt" class="w-5 h-5"></i>
-                </div>
-                <div>
-                    <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Slip Gaji</h1>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        {{ $isSuperAdmin ? 'Kelola dan pantau slip gaji seluruh pegawai.' : 'Unduh slip gaji dan lampiran resmi dari HRD.' }}
-                    </p>
-                </div>
+        <section class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-3">
+            <div class="flex flex-col gap-0.5">
+                <h1 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">Slip Gaji</h1>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">
+                    {{ $isSuperAdmin ? 'Kelola dan pantau slip gaji seluruh pegawai.' : 'Unduh slip gaji dan lampiran resmi dari HRD.' }}
+                </p>
             </div>
 
             <!-- Month Navigator (Integrated into Header for clean mobile flow) -->

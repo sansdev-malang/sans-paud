@@ -2,15 +2,15 @@
     <div class="p-6 space-y-6" x-data="{ showClearModal: false }">
 
         <!-- HEADER / PAGE TITLE -->
-        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3">
             <div class="flex flex-col gap-0.5">
                 <div class="flex items-center gap-2">
-                    <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 font-nasalization">Log Sistem</h2>
-                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                    <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50 font-nasalization">Log Sistem</h2>
+                    <span class="text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
                         {{ $selectedFileName }}
                     </span>
                 </div>
-                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium">
                     Pantau rekaman error, peringatan, dan status runtime sistem Laravel secara real-time.
                 </p>
             </div>

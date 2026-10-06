@@ -1,5 +1,5 @@
 <x-admin-layout>
-    <div class="p-6 space-y-6" x-data="{ 
+    <div class="p-3.5 sm:p-5 lg:p-6 space-y-3.5 sm:space-y-5 lg:space-y-6" x-data="{ 
         showRejectModal: false,
         selectedLeaveId: '',
         selectedLeaveEmployee: '',
@@ -25,57 +25,57 @@
         @endphp
 
         <!-- HEADER -->
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full text-left ">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3 w-full text-left">
             <div class="flex flex-col gap-0.5">
-                <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-200 font-nasalization">Riwayat Izin Pegawai</h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Daftar riwayat izin, sakit, dan cuti pegawai di unit sekolah.</p>
+                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-200 font-nasalization">Riwayat Izin Pegawai</h2>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium">Daftar riwayat izin, sakit, dan cuti pegawai di unit sekolah.</p>
             </div>
             <div>
-                <button @click="showAddModal = true" class="h-9 px-4 bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-slate-200 text-white dark:text-slate-900 text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer flex items-center gap-2">
-                    <i data-lucide="plus" class="w-4 h-4"></i>
+                <button @click="showAddModal = true" class="h-9 px-3.5 sm:px-4 bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-slate-200 text-white dark:text-slate-900 text-[11px] sm:text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer flex items-center gap-1.5 sm:gap-2">
+                    <i data-lucide="plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
                     Input Izin / Cuti
                 </button>
             </div>
         </header>
 
         <!-- STATS SECTION -->
-        <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <section class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             <!-- Menunggu Approval -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm text-left flex items-center justify-between">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-sm text-left flex items-center justify-between">
                 <div>
-                    <span class="text-xs text-slate-500 dark:text-slate-400 block font-medium">Menunggu Approval</span>
-                    <span class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1 block">
-                        <span>{{ $pendingCount }}</span> <span class="text-xs font-medium text-slate-400">Pengajuan</span>
+                    <span class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 block font-medium">Menunggu Approval</span>
+                    <span class="text-lg sm:text-xl font-bold text-amber-600 dark:text-amber-400 mt-0.5 block">
+                        <span>{{ $pendingCount }}</span> <span class="text-[10px] sm:text-[11px] font-medium text-slate-400">Pengajuan</span>
                     </span>
                 </div>
-                <div class="w-10 h-10 rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-                    <i data-lucide="clock" class="w-5 h-5"></i>
+                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                    <i data-lucide="clock" class="w-4 h-4"></i>
                 </div>
             </div>
 
             <!-- Total Diproses -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm text-left flex items-center justify-between">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-sm text-left flex items-center justify-between">
                 <div>
-                    <span class="text-xs text-slate-500 dark:text-slate-400 block font-medium">Total Diproses</span>
-                    <span class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mt-1 block">
-                        <span>{{ $processedCount }}</span> <span class="text-xs font-medium text-slate-400">Izin</span>
+                    <span class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 block font-medium">Total Diproses</span>
+                    <span class="text-lg sm:text-xl font-bold text-indigo-600 dark:text-indigo-400 mt-0.5 block">
+                        <span>{{ $processedCount }}</span> <span class="text-[10px] sm:text-[11px] font-medium text-slate-400">Izin</span>
                     </span>
                 </div>
-                <div class="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
-                    <i data-lucide="file-signature" class="w-5 h-5"></i>
+                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                    <i data-lucide="file-signature" class="w-4 h-4"></i>
                 </div>
             </div>
 
             <!-- Rasio Persetujuan -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm text-left flex items-center justify-between">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-sm text-left flex items-center justify-between">
                 <div>
-                    <span class="text-xs text-slate-500 dark:text-slate-400 block font-medium">Rasio Persetujuan</span>
-                    <span class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1 block">
+                    <span class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 block font-medium">Rasio Persetujuan</span>
+                    <span class="text-lg sm:text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 block">
                         <span>{{ $approvalRate }}%</span>
                     </span>
                 </div>
-                <div class="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                    <i data-lucide="percent" class="w-5 h-5"></i>
+                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                    <i data-lucide="percent" class="w-4 h-4"></i>
                 </div>
             </div>
         </section>
