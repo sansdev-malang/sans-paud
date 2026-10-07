@@ -36,7 +36,7 @@ class HomeroomAssignmentController extends Controller
             'jenjang',
             'classLevel',
             'classroom',
-            'teacher'
+            'teacher.user'
         ]);
 
         if ($selectedYearId) {
@@ -65,7 +65,9 @@ class HomeroomAssignmentController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->whereHas('teacher', function ($tq) use ($search) {
                     $tq->where('name', 'like', "%{$search}%")
-                       ->orWhere('nuptk', 'like', "%{$search}%");
+                       ->orWhere('email', 'like', "%{$search}%")
+                       ->orWhere('nuptk', 'like', "%{$search}%")
+                       ->orWhere('nip', 'like', "%{$search}%");
                 })->orWhereHas('classroom', function ($cq) use ($search) {
                     $cq->where('name', 'like', "%{$search}%");
                 });

@@ -124,7 +124,7 @@
                     <span class="pl-3 text-slate-400">
                         <i data-lucide="search" class="w-3.5 h-3.5"></i>
                     </span>
-                    <input type="text" name="search" x-model="searchVal" placeholder="Cari nama guru, NUPTK, rombel..."
+                    <input type="text" name="search" x-model="searchVal" placeholder="Cari nama guru, email, NUPTK, rombel..."
                         style="border: none !important; outline: none !important; box-shadow: none !important;"
                         class="w-full h-9 px-2.5 text-xs bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-0">
                     
@@ -194,18 +194,30 @@
 
                                 <!-- 5. Wali Kelas -->
                                 <td class="px-4 py-3">
-                                    <div class="flex items-center gap-2.5 min-w-[180px]">
+                                    <div class="flex items-center gap-2.5 min-w-[200px]">
                                         @if($a->teacher?->photo)
-                                            <img src="{{ asset('storage/' . $a->teacher->photo) }}" alt="{{ $a->teacher->name }}" class="w-7 h-7 rounded-full object-cover shrink-0 ring-1 ring-slate-200 dark:ring-slate-700">
+                                            <img src="{{ asset('storage/' . $a->teacher->photo) }}" alt="{{ $a->teacher->name }}" class="w-8 h-8 rounded-full object-cover shrink-0 ring-1 ring-slate-200 dark:ring-slate-700">
                                         @else
-                                            <div class="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 font-bold text-xs flex items-center justify-center shrink-0">
+                                            <div class="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 font-bold text-xs flex items-center justify-center shrink-0">
                                                 {{ substr($a->teacher?->name ?? 'G', 0, 1) }}
                                             </div>
                                         @endif
-                                        <div class="min-w-0">
+                                        <div class="min-w-0 flex-1">
                                             <p class="font-bold text-slate-900 dark:text-slate-100 leading-snug truncate">
                                                 {{ $a->teacher?->name ?? 'Belum Ditugaskan' }}
                                             </p>
+                                            
+                                            @php
+                                                $teacherEmail = $a->teacher?->email ?? $a->teacher?->user?->email;
+                                            @endphp
+                                            
+                                            @if($teacherEmail)
+                                                <div class="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium truncate flex items-center gap-1 mt-0.5" title="{{ $teacherEmail }}">
+                                                    <i data-lucide="mail" class="w-3 h-3 shrink-0 text-slate-400"></i>
+                                                    <span class="truncate">{{ $teacherEmail }}</span>
+                                                </div>
+                                            @endif
+
                                             <div class="flex items-center gap-2 text-[10px] text-slate-400 font-mono mt-0.5">
                                                 @if($a->teacher?->nuptk)
                                                     <span>NUPTK: {{ $a->teacher->nuptk }}</span>
