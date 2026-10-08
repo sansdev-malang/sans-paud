@@ -89,53 +89,79 @@ class SpmbCandidateController extends Controller
             }
         }
 
-        // Jalur Masuk Filter (Murid Baru / Mutasi Masuk)
+        // 1. Filter Jalur Masuk (Murid Baru / Mutasi Masuk / Pindahan)
         if ($regType = $request->get('registration_type')) {
             if ($regType !== 'all') {
                 $query->where(function ($q) use ($regType) {
                     $q->where('registration_type', 'like', "%{$regType}%")
                       ->orWhere('raw_payload->registration_type', 'like', "%{$regType}%")
-                      ->orWhere('raw_payload->entry_type', 'like', "%{$regType}%");
+                      ->orWhere('raw_payload->entry_type', 'like', "%{$regType}%")
+                      ->orWhere('raw_payload->type->name', 'like', "%{$regType}%");
                 });
             }
         }
 
-        // Kelas / Kelompok Pilihan Filter (TK A / TK B / KB / Daycare)
-        if ($admissionLevel = $request->get('admission_level')) {
-            if ($admissionLevel !== 'all') {
-                $query->where(function ($q) use ($admissionLevel) {
-                    $q->where('admission_level', 'like', "%{$admissionLevel}%")
-                      ->orWhere('class_program', 'like', "%{$admissionLevel}%");
-                });
-            }
-        }
-
-        // Layanan Tambahan Filter (Daycare / TPQ / Fullday)
-        if ($service = $request->get('service')) {
-            if ($service !== 'all') {
-                $query->where(function ($q) use ($service) {
-                    $q->where('extra_services', 'like', "%{$service}%")
-                      ->orWhere('raw_payload->extra_services', 'like', "%{$service}%")
-                      ->orWhere('raw_payload->services', 'like', "%{$service}%");
-                });
-            }
-        }
-
-        // Wave Filter
+        // 2. Filter Gelombang (Gelombang 1, Gelombang 2, Indent, dll)
         if ($wave = $request->get('wave')) {
             if ($wave !== 'all') {
                 $query->where('wave', $wave);
             }
         }
 
-        // Status Filter
+        // 3. Filter Jenjang (TK / KB / Daycare / TPQ)
+        if ($jenjang = $request->get('jenjang')) {
+            if ($jenjang !== 'all') {
+                $query->where(function ($q) use ($jenjang) {
+                    $q->where('admission_level', 'like', "%{$jenjang}%")
+                      ->orWhere('class_program', 'like', "%{$jenjang}%")
+                      ->orWhere('extra_services', 'like', "%{$jenjang}%")
+                      ->orWhere('raw_payload->admission_level', 'like', "%{$jenjang}%")
+                      ->orWhere('raw_payload->extra_services', 'like', "%{$jenjang}%")
+                      ->orWhere('raw_payload->services', 'like', "%{$jenjang}%")
+                      ->orWhere('raw_payload->grade->name', 'like', "%{$jenjang}%");
+                });
+            }
+        }
+
+        // 4. Filter Kelas (TK A, TK B, KB A, KB B, TPA 1, dll)
+        if ($admissionLevel = $request->get('admission_level')) {
+            if ($admissionLevel !== 'all') {
+                $query->where(function ($q) use ($admissionLevel) {
+                    $q->where('admission_level', 'like', "%{$admissionLevel}%")
+                      ->orWhere('class_program', 'like', "%{$admissionLevel}%")
+                      ->orWhere('raw_payload->admission_level', 'like', "%{$admissionLevel}%")
+                      ->orWhere('raw_payload->grade->name', 'like', "%{$admissionLevel}%");
+                });
+            }
+        }
+
+        // 5. Filter Kategori Murid (Reguler / MBK)
+        if ($category = $request->get('category')) {
+            if ($category !== 'all') {
+                if (strtolower($category) === 'mbk' || str_contains(strtolower($category), 'khusus')) {
+                    $query->where(function ($q) {
+                        $q->where('class_program', 'like', '%mbk%')
+                          ->orWhere('class_program', 'like', '%khusus%')
+                          ->orWhere('class_program', 'like', '%kebutuhan%');
+                    });
+                } else {
+                    $query->where(function ($q) {
+                        $q->where('class_program', 'not like', '%mbk%')
+                          ->where('class_program', 'not like', '%khusus%')
+                          ->where('class_program', 'not like', '%kebutuhan%');
+                    });
+                }
+            }
+        }
+
+        // Status Pendaftaran Filter
         if ($status = $request->get('status')) {
             if ($status !== 'all') {
                 $query->where('registration_status', $status);
             }
         }
 
-        // Payment Filter
+        // Status Pembayaran Filter
         if ($payment = $request->get('payment_status')) {
             if ($payment !== 'all') {
                 $query->where('payment_status', $payment);
@@ -160,19 +186,24 @@ class SpmbCandidateController extends Controller
             'enrolled' => (clone $statsQuery)->where('is_enrolled', true)->count(),
         ];
 
-        // 4. Get filter option lists dynamically from database with defaults
-        $dbWaves = SpmbCandidate::whereNotNull('wave')->distinct()->pluck('wave')->filter()->values()->toArray();
-        $availableWaves = array_values(array_unique(array_merge(['Gelombang 1', 'Gelombang 2', 'Gelombang 3', 'Indent'], $dbWaves)));
-
-        $categories = ['Reguler', 'MBK'];
-
+        // 4. Get filter option lists dynamically
         $dbTypes = SpmbCandidate::whereNotNull('registration_type')->distinct()->pluck('registration_type')->filter()->values()->toArray();
         $registrationTypes = array_values(array_unique(array_merge(['Murid Baru', 'Mutasi Masuk / Pindahan'], $dbTypes)));
 
-        $dbLevels = SpmbCandidate::whereNotNull('admission_level')->distinct()->pluck('admission_level')->filter()->values()->toArray();
-        $availableAdmissionLevels = array_values(array_unique(array_merge(['Kelompok Bermain (KB)', 'TK A', 'TK B', 'Daycare / TPA'], $dbLevels)));
+        $dbWaves = SpmbCandidate::whereNotNull('wave')->distinct()->pluck('wave')->filter()->values()->toArray();
+        $availableWaves = array_values(array_unique(array_merge(['Gelombang 1', 'Gelombang 2', 'Gelombang 3', 'Indent'], $dbWaves)));
 
-        $availableServices = ['Daycare', 'Fullday', 'TPQ'];
+        $availableJenjangs = [
+            'TK' => 'TK (Taman Kanak-Kanak)',
+            'KB' => 'KB (Kelompok Bermain)',
+            'Daycare' => 'Daycare (TPA)',
+            'TPQ' => 'TPQ'
+        ];
+
+        $dbLevels = SpmbCandidate::whereNotNull('admission_level')->distinct()->pluck('admission_level')->filter()->values()->toArray();
+        $availableAdmissionLevels = array_values(array_unique(array_merge(['TK A', 'TK B', 'KB A', 'KB B', 'Kelompok Bermain (KB)', 'Daycare / TPA'], $dbLevels)));
+
+        $categories = ['Reguler', 'MBK'];
 
         $candidates = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
 
@@ -190,11 +221,11 @@ class SpmbCandidateController extends Controller
             'academicYears', 
             'selectedYear', 
             'stats', 
-            'categories',
             'registrationTypes',
             'availableWaves',
+            'availableJenjangs',
             'availableAdmissionLevels',
-            'availableServices',
+            'categories',
             'masterAcademicYears',
             'masterJenjangs',
             'masterClassrooms'

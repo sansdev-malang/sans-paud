@@ -64,9 +64,9 @@
                         <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
                     </div>
 
-                    <!-- Dropdowns Filter Sejajar -->
+                    <!-- Dropdowns Filter Sejajar (Urutan: Tahun Ajaran -> Jalur Masuk -> Gelombang -> Jenjang -> Kelas -> Kategori) -->
                     <div class="flex flex-wrap items-center gap-2">
-                        <!-- Filter 1: Tahun Ajaran -->
+                        <!-- 1. Tahun Ajaran -->
                         <select name="period" onchange="this.form.submit()" 
                             class="px-3 py-2 text-xs font-semibold bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer">
                             <option value="all" {{ $selectedYear === 'all' ? 'selected' : '' }}>Semua Tahun</option>
@@ -77,18 +77,7 @@
                             @endforeach
                         </select>
 
-                        <!-- Filter 2: Kategori Murid (Reguler / MBK) -->
-                        <select name="category" onchange="this.form.submit()" 
-                            class="px-3 py-2 text-xs font-semibold bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer">
-                            <option value="all">Semua Kategori</option>
-                            @foreach($categories as $cat)
-                                <option value="{{ $cat }}" {{ request('category') === $cat ? 'selected' : '' }}>
-                                    {{ $cat === 'MBK' ? '🌟 MBK (Berkebutuhan Khusus)' : 'Reguler' }}
-                                </option>
-                            @endforeach
-                        </select>
-
-                        <!-- Filter 3: Jalur Masuk (Murid Baru / Mutasi) -->
+                        <!-- 2. Jalur Masuk -->
                         <select name="registration_type" onchange="this.form.submit()" 
                             class="px-3 py-2 text-xs font-semibold bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer">
                             <option value="all">Semua Jalur</option>
@@ -99,7 +88,7 @@
                             @endforeach
                         </select>
 
-                        <!-- Filter 4: Gelombang -->
+                        <!-- 3. Gelombang -->
                         <select name="wave" onchange="this.form.submit()" 
                             class="px-3 py-2 text-xs font-semibold bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer">
                             <option value="all">Semua Gelombang</option>
@@ -108,7 +97,16 @@
                             @endforeach
                         </select>
 
-                        <!-- Filter 5: Kelas -->
+                        <!-- 4. Jenjang -->
+                        <select name="jenjang" onchange="this.form.submit()" 
+                            class="px-3 py-2 text-xs font-semibold bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer">
+                            <option value="all">Semua Jenjang</option>
+                            @foreach($availableJenjangs as $jKey => $jLabel)
+                                <option value="{{ $jKey }}" {{ request('jenjang') === $jKey ? 'selected' : '' }}>{{ $jLabel }}</option>
+                            @endforeach
+                        </select>
+
+                        <!-- 5. Kelas -->
                         <select name="admission_level" onchange="this.form.submit()" 
                             class="px-3 py-2 text-xs font-semibold bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer">
                             <option value="all">Semua Kelas</option>
@@ -117,16 +115,18 @@
                             @endforeach
                         </select>
 
-                        <!-- Filter 6: Layanan -->
-                        <select name="service" onchange="this.form.submit()" 
+                        <!-- 6. Kategori Murid (Reguler / MBK) -->
+                        <select name="category" onchange="this.form.submit()" 
                             class="px-3 py-2 text-xs font-semibold bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer">
-                            <option value="all">Semua Layanan</option>
-                            @foreach($availableServices as $srv)
-                                <option value="{{ $srv }}" {{ request('service') === $srv ? 'selected' : '' }}>{{ $srv }}</option>
+                            <option value="all">Semua Kategori</option>
+                            @foreach($categories as $cat)
+                                <option value="{{ $cat }}" {{ request('category') === $cat ? 'selected' : '' }}>
+                                    {{ $cat === 'MBK' ? '🌟 MBK' : 'Reguler' }}
+                                </option>
                             @endforeach
                         </select>
 
-                        @if(request()->hasAny(['search', 'category', 'registration_type', 'wave', 'admission_level', 'service', 'status', 'payment_status', 'period']))
+                        @if(request()->hasAny(['search', 'period', 'registration_type', 'wave', 'jenjang', 'admission_level', 'category', 'status', 'payment_status']))
                             <a href="{{ route('spmb.candidates.index') }}" 
                                 class="p-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 transition-colors inline-flex items-center justify-center"
                                 title="Reset Semua Filter">
@@ -146,9 +146,9 @@
                         <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-950/50 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                             <th class="px-4 py-3.5 w-40">No. Registrasi</th>
                             <th class="px-4 py-3.5 min-w-[210px]">Calon Murid</th>
-                            <th class="px-4 py-3.5 w-44">Kategori & Jalur</th>
-                            <th class="px-4 py-3.5 w-44">Gelombang & Kelas</th>
-                            <th class="px-4 py-3.5 w-40">Layanan</th>
+                            <th class="px-4 py-3.5 w-44">Jalur & Gelombang</th>
+                            <th class="px-4 py-3.5 w-48">Jenjang & Kelas</th>
+                            <th class="px-4 py-3.5 w-32 text-center">Kategori</th>
                             <th class="px-4 py-3.5 min-w-[170px]">Orang Tua & WA</th>
                             <th class="px-4 py-3.5 text-center w-36">Status Murid</th>
                             <th class="px-4 py-3.5 text-right w-36">Aksi</th>
@@ -176,7 +176,7 @@
                                 <td class="px-4 py-3.5 align-top">
                                     <div class="flex items-start gap-2.5">
                                         @if($c->student_photo_url)
-                                            <img src="{{ $c->student_photo_url }}" alt="{{ $c->full_name }}" class="w-10 h-10 rounded-xl object-cover ring-1 ring-slate-200 dark:ring-slate-700 shrink-0 shadow-2xs">
+                                             <img src="{{ $c->student_photo_url }}" alt="{{ $c->full_name }}" class="w-10 h-10 rounded-xl object-cover ring-1 ring-slate-200 dark:ring-slate-700 shrink-0 shadow-2xs">
                                         @else
                                             <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                                                 {{ strtoupper(substr($c->full_name, 0, 2)) }}
@@ -199,8 +199,57 @@
                                     </div>
                                 </td>
 
-                                <!-- 3. Kategori Murid & Jalur Masuk -->
+                                <!-- 3. Jalur Masuk & Gelombang -->
                                 <td class="px-4 py-3.5 align-top whitespace-nowrap">
+                                    <div class="font-semibold text-slate-800 dark:text-slate-200 text-xs flex items-center gap-1">
+                                        <i data-lucide="signpost" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+                                        <span>{{ $c->registration_type ?: 'Murid Baru' }}</span>
+                                    </div>
+                                    <div class="mt-1.5">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-indigo-50/70 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60">
+                                            {{ $c->wave ?? 'Gelombang 1' }}
+                                        </span>
+                                    </div>
+                                </td>
+
+                                <!-- 4. Jenjang & Kelas -->
+                                <td class="px-4 py-3.5 align-top">
+                                    @php
+                                        $adm = strtolower($c->admission_level ?? '');
+                                        $prog = strtolower($c->class_program ?? '');
+                                        $srvs = implode(' ', array_map('strtolower', $c->services_list ?? []));
+                                        $comb = $adm . ' ' . $prog . ' ' . $srvs;
+
+                                        $jenjangBadge = 'TK';
+                                        $jenjangColor = 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+                                        if (str_contains($comb, 'kb') || str_contains($comb, 'bermain')) {
+                                            $jenjangBadge = 'KB';
+                                            $jenjangColor = 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 border-blue-200 dark:border-blue-800';
+                                        } elseif (str_contains($comb, 'daycare') || str_contains($comb, 'tpa')) {
+                                            $jenjangBadge = 'Daycare';
+                                            $jenjangColor = 'bg-pink-50 text-pink-700 dark:bg-pink-950/50 dark:text-pink-300 border-pink-200 dark:border-pink-800';
+                                        } elseif (str_contains($comb, 'tpq')) {
+                                            $jenjangBadge = 'TPQ';
+                                            $jenjangColor = 'bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border-purple-200 dark:border-purple-800';
+                                        }
+                                    @endphp
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border {{ $jenjangColor }}">
+                                            {{ $jenjangBadge }}
+                                        </span>
+                                        <span class="font-bold text-slate-800 dark:text-slate-100 text-xs">
+                                            {{ $c->admission_level ?: 'TK A' }}
+                                        </span>
+                                    </div>
+                                    @if(!empty($c->services_list))
+                                        <div class="text-[10px] text-slate-400 mt-1 flex items-center gap-1 flex-wrap">
+                                            <span>Layanan: {{ implode(', ', $c->services_list) }}</span>
+                                        </div>
+                                    @endif
+                                </td>
+
+                                <!-- 5. Kategori Murid -->
+                                <td class="px-4 py-3.5 align-top whitespace-nowrap text-center">
                                     @if($c->category === 'MBK')
                                         <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 dark:bg-amber-950/70 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
                                             🌟 MBK
@@ -209,56 +258,6 @@
                                         <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                                             Reguler
                                         </span>
-                                    @endif
-
-                                    <div class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-1.5 flex items-center gap-1">
-                                        <i data-lucide="signpost" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
-                                        <span>{{ $c->registration_type ?: 'Murid Baru' }}</span>
-                                    </div>
-                                </td>
-
-                                <!-- 4. Gelombang & Kelas -->
-                                <td class="px-4 py-3.5 align-top whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-indigo-50/70 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60">
-                                        {{ $c->wave ?? 'Gelombang 1' }}
-                                    </span>
-                                    <div class="font-bold text-slate-800 dark:text-slate-100 text-xs mt-1.5">
-                                        {{ $c->admission_level ?: 'TK A' }}
-                                    </div>
-                                </td>
-
-                                <!-- 5. Layanan Tambahan -->
-                                <td class="px-4 py-3.5 align-top">
-                                    @php
-                                        $services = $c->services_list;
-                                    @endphp
-                                    @if(!empty($services))
-                                        <div class="flex flex-wrap gap-1">
-                                            @foreach($services as $srv)
-                                                @php
-                                                    $srvLower = strtolower($srv);
-                                                @endphp
-                                                @if(str_contains($srvLower, 'daycare') || str_contains($srvLower, 'tpa'))
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-pink-50 text-pink-700 dark:bg-pink-950/60 dark:text-pink-300 border border-pink-200 dark:border-pink-800">
-                                                        👶 Daycare
-                                                    </span>
-                                                @elseif(str_contains($srvLower, 'tpq') || str_contains($srvLower, 'ngaji'))
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                                                        📖 TPQ
-                                                    </span>
-                                                @elseif(str_contains($srvLower, 'full'))
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                                                        ☀️ Fullday
-                                                    </span>
-                                                @else
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                                                        {{ $srv }}
-                                                    </span>
-                                                @endif
-                                            @endforeach
-                                        </div>
-                                    @else
-                                        <span class="text-[11px] text-slate-400 font-medium">Layanan Standar</span>
                                     @endif
                                 </td>
 
