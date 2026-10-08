@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AcademicYear;
 use App\Models\Classroom;
+use App\Models\HomeroomAssignment;
 use App\Models\Semester;
 use App\Models\Student;
 use Illuminate\Http\Request;
@@ -16,7 +17,8 @@ class RaporSummaryController extends Controller
      */
     public function index(Request $request)
     {
-        if (!auth()->user()?->canAccessRapor()) {
+        $currentUser = auth()->user();
+        if (!$currentUser?->canAccessRapor()) {
             abort(403, 'Akses menu Data Rapor hanya untuk Administrator dan Guru yang sedang ditugaskan sebagai Wali Kelas aktif.');
         }
 
@@ -63,7 +65,22 @@ class RaporSummaryController extends Controller
         if ($selectedSemester === 'tengah_ganjil') $selectedSemester = 'PTS-1';
         if ($selectedSemester === 'tengah_genap') $selectedSemester = 'PTS-2';
 
-        $classrooms = Classroom::where('is_active', true)->orderBy('name')->get();
+        // Scoping Rombel / Classroom: Admin & Kepsek melihat semua rombel, Wali Kelas hanya melihat rombel binaannya
+        $classroomQuery = Classroom::where('is_active', true)->orderBy('name');
+        $isPureWaliKelas = !$currentUser->isAdmin() && $currentUser->isActiveHomeroomTeacher();
+
+        if ($isPureWaliKelas && $currentUser->employee_id) {
+            $assignedClassroomIds = HomeroomAssignment::where('employee_id', $currentUser->employee_id)
+                ->where('academic_year_id', $selectedYear?->id)
+                ->where('is_active', true)
+                ->pluck('classroom_id');
+
+            if ($assignedClassroomIds->isNotEmpty()) {
+                $classroomQuery->whereIn('id', $assignedClassroomIds);
+            }
+        }
+
+        $classrooms = $classroomQuery->get();
         $selectedClassroomId = $request->get('classroom_id', $classrooms->first()?->id);
         $selectedClassroom = $classrooms->firstWhere('id', $selectedClassroomId);
 
