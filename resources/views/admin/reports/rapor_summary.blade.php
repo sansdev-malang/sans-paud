@@ -170,13 +170,11 @@
                     </button>
                 </div>
             </div>
-        </div>
-
-        <!-- ========================================================= -->
+           <!-- ========================================================= -->
         <!-- STUDENT REPORT DATA TABLE (Standardized Typography)      -->
         <!-- ========================================================= -->
         <div class="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
-            <div class="overflow-x-auto custom-sidebar-scroll">
+            <div class="overflow-x-auto">
                 <table class="w-full text-xs border-collapse min-w-[760px]">
                     <thead class="border-b border-slate-200 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-900/50 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider select-none">
                         <tr>
@@ -185,7 +183,7 @@
                             <th class="px-4 py-3.5 text-left">Peserta Didik</th>
                             <th class="w-44 px-4 py-3.5 text-left">Kelengkapan Data</th>
                             <th class="w-44 px-4 py-3.5 text-center">Status Rapor</th>
-                            <th class="w-48 px-4 py-3.5 text-right">Aksi</th>
+                            <th class="w-44 px-4 py-3.5 text-right">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
@@ -293,29 +291,24 @@
                                 </div>
                             </td>
 
-                            <!-- 6. Aksi -->
+                            <!-- 6. Aksi (Hanya Menampilkan Data & Cetak Rapor) -->
                             <td class="px-4 py-3.5 text-right">
                                 <div class="flex items-center justify-end gap-1.5">
-                                    <!-- Tombol Isi / Perbaiki Rapor ke SANS Rapor -->
-                                    <a href="{{ $student->edit_url }}" target="_blank"
-                                        class="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold shadow-2xs transition cursor-pointer {{ $student->status === 'revisi' ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-xs' : 'border border-slate-200 dark:border-slate-700 bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900' }}"
-                                        title="Buka Form Penilaian SANS Rapor">
-                                        @if($student->status === 'revisi')
-                                        <i data-lucide="rotate-ccw" class="w-3 h-3"></i>
-                                        <span>Perbaiki</span>
-                                        @else
-                                        <i data-lucide="file-edit" class="w-3 h-3"></i>
-                                        <span>Isi Rapor</span>
-                                        @endif
-                                    </a>
-
-                                    <!-- Tombol Pratinjau / Cetak PDF -->
+                                    <!-- Tombol Pratinjau -->
                                     <button @click="openPreview({{ json_encode($student) }})" type="button"
                                         class="inline-flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/50 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-2xs transition cursor-pointer"
                                         title="Lihat Pratinjau Dokumen PDF">
-                                        <i data-lucide="eye" class="w-3 h-3 text-indigo-600 dark:text-indigo-400"></i>
+                                        <i data-lucide="eye" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400"></i>
                                         <span>Pratinjau</span>
                                     </button>
+
+                                    <!-- Tombol Cetak PDF Langsung -->
+                                    <a href="{{ $student->print_url }}" target="_blank"
+                                        class="inline-flex items-center gap-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white px-2.5 py-1 text-xs font-semibold shadow-2xs transition cursor-pointer"
+                                        title="Cetak Dokumen Rapor PDF">
+                                        <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                                        <span>Cetak PDF</span>
+                                    </a>
                                 </div>
                             </td>
                         </tr>
