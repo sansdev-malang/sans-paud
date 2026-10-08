@@ -2,39 +2,16 @@
     <div class="p-6 space-y-6" x-data="spmbCandidateApp()">
 
         <!-- HEADER / ACTION BAR -->
-        <section class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-2 sm:gap-3 w-full text-left">
+        <section class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 w-full text-left">
             <div class="flex flex-col gap-0.5">
                 <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">SPMB</h2>
                 <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Data pendaftar dan calon murid yang masuk dari sistem pendaftaran SPMB Pusat.</p>
             </div>
 
-            <!-- ACTION CONTROLS: TAHUN AJARAN & SYNC BUTTON -->
-            <div class="flex flex-wrap items-center gap-3 shrink-0">
-                <!-- Dropdown Tahun Ajaran -->
-                <form id="filter-period-form" method="GET" action="{{ route('spmb.candidates.index') }}" class="flex items-center">
-                    <div class="relative">
-                        <select name="period" onchange="this.form.submit()" 
-                            class="appearance-none pl-8 pr-8 py-2 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-800 dark:text-slate-200 shadow-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer">
-                            <option value="all" {{ $selectedYear === 'all' ? 'selected' : '' }}>Semua Tahun Ajaran</option>
-                            @foreach($academicYears as $year)
-                                <option value="{{ $year }}" {{ $selectedYear === $year ? 'selected' : '' }}>
-                                    Tahun Ajaran {{ $year }}
-                                </option>
-                            @endforeach
-                            @if(empty($academicYears))
-                                <option value="{{ date('Y') . '/' . (date('Y') + 1) }}" selected>
-                                    Tahun Ajaran {{ date('Y') . '/' . (date('Y') + 1) }}
-                                </option>
-                            @endif
-                        </select>
-                        <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-                        <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-                    </div>
-                </form>
-
-                <!-- Tombol Tarik Data dari SPMB -->
+            <!-- ACTION CONTROLS: SYNC BUTTON -->
+            <div class="flex items-center gap-2.5 shrink-0">
                 <button type="button" @click="syncData()" :disabled="syncing"
-                    class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold rounded-lg shadow-sm transition-all duration-150 cursor-pointer">
+                    class="inline-flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-xs transition-all duration-150 cursor-pointer">
                     <i data-lucide="refresh-cw" class="w-3.5 h-3.5" :class="{ 'animate-spin': syncing }"></i>
                     <span x-text="syncing ? 'Menyinkronkan...' : 'Tarik Data dari SPMB'">Tarik Data dari SPMB</span>
                 </button>
@@ -109,49 +86,59 @@
         </section>
 
         <!-- SEARCH & FILTER TOOLBAR -->
-        <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-xs">
-            <form method="GET" action="{{ route('spmb.candidates.index') }}" class="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
-                <input type="hidden" name="period" value="{{ $selectedYear }}">
-
+        <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 sm:p-4 shadow-xs">
+            <form method="GET" action="{{ route('spmb.candidates.index') }}" class="flex flex-col lg:flex-row gap-2.5 sm:gap-3 items-stretch lg:items-center justify-between">
+                
                 <!-- Search input -->
-                <div class="relative flex-1 md:max-w-md">
+                <div class="relative flex-1 lg:max-w-md">
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama murid, no. registrasi, NIK, nama orang tua..."
-                        class="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+                        class="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
                     <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
                 </div>
 
-                <!-- Dropdowns -->
+                <!-- Dropdowns Sejajar -->
                 <div class="flex flex-wrap items-center gap-2">
-                    <!-- Status Filter -->
+                    <!-- Filter 1: Tahun (Sejajar dengan Filter Status) -->
+                    <select name="period" onchange="this.form.submit()" 
+                        class="px-3 py-2 text-xs font-semibold bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer">
+                        <option value="all" {{ $selectedYear === 'all' ? 'selected' : '' }}>Semua Tahun</option>
+                        @foreach($academicYears as $year)
+                            <option value="{{ $year }}" {{ $selectedYear === $year ? 'selected' : '' }}>
+                                {{ $year }}
+                            </option>
+                        @endforeach
+                    </select>
+
+                    <!-- Filter 2: Status Pendaftaran -->
                     <select name="status" onchange="this.form.submit()" 
-                        class="px-3 py-2 text-xs font-semibold bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer">
+                        class="px-3 py-2 text-xs font-semibold bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer">
                         <option value="all">Semua Status</option>
                         <option value="verified" {{ request('status') === 'verified' ? 'selected' : '' }}>Terverifikasi / Diterima</option>
                         <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending / Menunggu</option>
                     </select>
 
-                    <!-- Payment Filter -->
+                    <!-- Filter 3: Status Pembayaran -->
                     <select name="payment_status" onchange="this.form.submit()" 
-                        class="px-3 py-2 text-xs font-semibold bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer">
+                        class="px-3 py-2 text-xs font-semibold bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer">
                         <option value="all">Semua Pembayaran</option>
                         <option value="paid" {{ request('payment_status') === 'paid' ? 'selected' : '' }}>Lunas</option>
                         <option value="unpaid" {{ request('payment_status') === 'unpaid' ? 'selected' : '' }}>Belum Lunas</option>
                     </select>
 
-                    <!-- Wave Filter -->
+                    <!-- Filter 4: Gelombang -->
                     <select name="wave" onchange="this.form.submit()" 
-                        class="px-3 py-2 text-xs font-semibold bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer">
+                        class="px-3 py-2 text-xs font-semibold bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer">
                         <option value="all">Semua Gelombang</option>
                         @foreach($availableWaves as $w)
                             <option value="{{ $w }}" {{ request('wave') === $w ? 'selected' : '' }}>{{ $w }}</option>
                         @endforeach
                     </select>
 
-                    @if(request()->hasAny(['search', 'status', 'payment_status', 'wave']))
-                        <a href="{{ route('spmb.candidates.index', ['period' => $selectedYear]) }}" 
-                            class="px-3 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-700 transition-colors"
-                            title="Reset Filter">
-                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                    @if(request()->hasAny(['search', 'status', 'payment_status', 'wave', 'period']))
+                        <a href="{{ route('spmb.candidates.index') }}" 
+                            class="p-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 transition-colors inline-flex items-center justify-center"
+                            title="Reset Semua Filter">
+                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
                         </a>
                     @endif
                 </div>
@@ -735,17 +722,17 @@
                 </div>
 
                 <!-- Modal Footer -->
-                <div class="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950/50 shrink-0">
-                    <div class="text-[11px] text-slate-400 font-mono">
+                <div class="p-4 sm:p-5 border-t border-slate-200 dark:border-slate-800 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-slate-50/80 dark:bg-slate-950/60 shrink-0">
+                    <div class="text-[11px] text-slate-400 font-mono text-center sm:text-left">
                         Sinkron: <span x-text="selectedCandidate?.synced_at || '-'"></span>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <button @click="modalOpen = false" class="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-300 rounded-lg font-bold transition-colors cursor-pointer">
+                    <div class="flex items-center justify-end gap-2">
+                        <button type="button" @click="modalOpen = false" class="flex-1 sm:flex-initial px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold transition-colors cursor-pointer text-center">
                             Tutup
                         </button>
-                        <button type="button" @click="openEnrollModal(selectedCandidate.id)" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer">
-                            <i data-lucide="graduation-cap" class="w-4 h-4"></i>
-                            <span x-text="selectedCandidate?.is_enrolled ? 'Kelola Murid Aktif' : 'Daftarkan sebagai Murid Aktif'"></span>
+                        <button type="button" @click="openEnrollModal(selectedCandidate.id)" class="flex-1 sm:flex-initial px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs flex items-center justify-center gap-1.5 cursor-pointer text-center">
+                            <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i>
+                            <span x-text="selectedCandidate?.is_enrolled ? 'Kelola Murid' : 'Daftarkan Murid'"></span>
                         </button>
                     </div>
                 </div>
@@ -816,7 +803,7 @@
                                         Tahun Ajaran Masuk <span class="text-rose-500">*</span>
                                     </label>
                                     <select x-model="enrollForm.academic_year_id" required
-                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-slate-900 dark:text-slate-50 font-semibold cursor-pointer">
+                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-slate-900 dark:text-slate-50 font-semibold cursor-pointer">
                                         <template x-for="ay in enrollData.academic_years" :key="ay.id">
                                             <option :value="ay.id" x-text="'TA ' + ay.name + (ay.is_active ? ' (Aktif)' : '')"></option>
                                         </template>
@@ -828,7 +815,7 @@
                                         Jenjang Pendidikan <span class="text-rose-500">*</span>
                                     </label>
                                     <select x-model="enrollForm.jenjang_id" @change="onJenjangChange()" required
-                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-slate-900 dark:text-slate-50 font-semibold cursor-pointer">
+                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-slate-900 dark:text-slate-50 font-semibold cursor-pointer">
                                         <template x-for="j in enrollData.jenjangs" :key="j.id">
                                             <option :value="j.id" x-text="j.name + ' (' + j.code + ')'"></option>
                                         </template>
@@ -843,7 +830,7 @@
                                         Tingkat Kelas
                                     </label>
                                     <select x-model="enrollForm.class_level_id" @change="onClassLevelChange()"
-                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-slate-900 dark:text-slate-50 cursor-pointer">
                                         <option value="">-- Semua Tingkat Kelas --</option>
                                         <template x-for="lvl in filteredClassLevels" :key="lvl.id">
                                             <option :value="lvl.id" x-text="lvl.name"></option>
@@ -856,7 +843,7 @@
                                         Rombongan Belajar (Rombel) <span class="text-rose-500">*</span>
                                     </label>
                                     <select x-model="enrollForm.classroom_id" required
-                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-slate-900 dark:text-slate-50 font-bold cursor-pointer">
+                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-slate-900 dark:text-slate-50 font-bold cursor-pointer">
                                         <option value="">-- Pilih Rombongan Belajar --</option>
                                         <template x-for="r in filteredClassrooms" :key="r.id">
                                             <option :value="r.id" 
@@ -881,7 +868,7 @@
                                         Nomor Induk Murid (NIS) <span class="text-rose-500">*</span>
                                     </label>
                                     <input type="text" x-model="enrollForm.nis" required placeholder="Contoh: 26.PAUD.001"
-                                        class="w-full h-9 px-3 text-xs font-mono font-bold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-purple-700 dark:text-purple-300">
+                                        class="w-full h-9 px-3 text-xs font-mono font-bold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-purple-700 dark:text-purple-300">
                                     <p class="text-[10px] text-slate-400 mt-1">Saran NIS otomatis dibuat berdasarkan urutan pendaftaran tahun masuk.</p>
                                 </div>
 
@@ -890,7 +877,7 @@
                                         Tanggal Masuk / Terdaftar <span class="text-rose-500">*</span>
                                     </label>
                                     <input type="date" x-model="enrollForm.enrolled_date" required
-                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-slate-900 dark:text-slate-50">
+                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-slate-900 dark:text-slate-50">
                                 </div>
                             </div>
                         </div>
@@ -906,7 +893,7 @@
                                 <div>
                                     <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Layanan Daycare (TPA)</label>
                                     <select x-model="enrollForm.daycare_classroom_id"
-                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-slate-900 dark:text-slate-50 cursor-pointer">
                                         <option value="">- Tidak Mengambil Daycare -</option>
                                         <template x-for="dc in enrollData.daycare_classrooms" :key="dc.id">
                                             <option :value="dc.id" x-text="'👶 ' + dc.name"></option>
@@ -916,9 +903,9 @@
 
                                 <div>
                                     <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Layanan TPQ</label>
-                                    <label class="flex items-center gap-2 h-9 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg cursor-pointer">
+                                    <label class="flex items-center gap-2 h-9 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl cursor-pointer">
                                         <input type="checkbox" x-model="enrollForm.is_tpq" class="rounded text-purple-600 focus:ring-purple-500">
-                                        <span class="font-medium text-slate-700 dark:text-slate-300">📖 Mengikuti Program Mengaji TPQ</span>
+                                        <span class="font-medium text-slate-700 dark:text-slate-300">📖 Mengikuti Program TPQ</span>
                                     </label>
                                 </div>
                             </div>
@@ -928,7 +915,7 @@
                         <div>
                             <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Catatan Pendaftaran</label>
                             <textarea x-model="enrollForm.notes" rows="2" placeholder="Catatan tambahan penempatan murid..."
-                                class="w-full p-2.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-slate-900 dark:text-slate-50"></textarea>
+                                class="w-full p-2.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-slate-900 dark:text-slate-50"></textarea>
                         </div>
 
                         <!-- Alert jika sudah enrolled -->
@@ -943,22 +930,22 @@
                     </div>
 
                     <!-- Modal Footer -->
-                    <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between gap-2 shrink-0">
+                    <div class="p-4 sm:p-5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/60 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 shrink-0">
                         <div>
                             <template x-if="enrollData.candidate?.is_enrolled">
                                 <button type="button" @click="unenrollStudent(enrollData.candidate.id)" 
-                                    class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200 dark:border-rose-800 rounded-lg text-xs font-semibold transition-colors cursor-pointer">
-                                    Batalkan Status Murid Aktif
+                                    class="w-full sm:w-auto px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200 dark:border-rose-800 rounded-xl text-xs font-bold transition-colors cursor-pointer text-center">
+                                    Batalkan Status Murid
                                 </button>
                             </template>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <button type="button" @click="enrollModalOpen = false" class="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold transition-colors cursor-pointer">
+                        <div class="flex items-center gap-2 justify-end">
+                            <button type="button" @click="enrollModalOpen = false" class="flex-1 sm:flex-initial px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold transition-colors cursor-pointer text-center">
                                 Batal
                             </button>
-                            <button type="submit" :disabled="enrolling" class="px-5 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
+                            <button type="submit" :disabled="enrolling" class="flex-1 sm:flex-initial px-4 sm:px-5 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer text-center">
                                 <i data-lucide="check" class="w-3.5 h-3.5" :class="{ 'animate-spin': enrolling }"></i>
-                                <span x-text="enrolling ? 'Menyimpan...' : (enrollData.candidate?.is_enrolled ? 'Perbarui Rombel Murid' : 'Resmi Jadikan Murid Aktif')"></span>
+                                <span x-text="enrolling ? 'Menyimpan...' : (enrollData.candidate?.is_enrolled ? 'Perbarui Rombel' : 'Resmi Daftarkan Murid')"></span>
                             </button>
                         </div>
                     </div>
