@@ -11,12 +11,12 @@ use Illuminate\Support\Facades\DB;
 class RaporSummaryController extends Controller
 {
     /**
-     * Display the Rekap & Hasil Rapor PAUD (Read-Only from SANS Rapor).
+     * Display the Data Rapor PAUD (Interactive & Synced with SANS Rapor).
      */
     public function index(Request $request)
     {
         if (!auth()->user()?->canAccessRapor()) {
-            abort(403, 'Akses menu Rekap Rapor hanya untuk Administrator dan Guru yang sedang ditugaskan sebagai Wali Kelas aktif.');
+            abort(403, 'Akses menu Data Rapor hanya untuk Administrator dan Guru yang sedang ditugaskan sebagai Wali Kelas aktif.');
         }
 
         $academicYears = AcademicYear::orderBy('name', 'desc')->get();
@@ -24,7 +24,21 @@ class RaporSummaryController extends Controller
 
         $selectedYearId = $request->get('academic_year_id', $activeAcademicYear?->id);
         $selectedYear = $academicYears->firstWhere('id', $selectedYearId) ?? $activeAcademicYear;
-        $selectedSemester = $request->get('semester', 'ganjil');
+
+        // 4 Semesters matching SANS Rapor standard
+        $semesters = [
+            ['code' => 'PTS-1', 'name' => 'Tengah Semester Ganjil', 'description' => 'Penilaian Tengah Semester 1', 'is_active' => true],
+            ['code' => 'PAS-1', 'name' => 'Semester Ganjil', 'description' => 'Akhir Semester 1', 'is_active' => false],
+            ['code' => 'PTS-2', 'name' => 'Tengah Semester Genap', 'description' => 'Penilaian Tengah Semester 2', 'is_active' => false],
+            ['code' => 'PAT-2', 'name' => 'Semester Genap', 'description' => 'Akhir Semester 2', 'is_active' => false],
+        ];
+
+        $selectedSemester = $request->get('semester', 'PTS-1');
+        // Normalisasi format lama
+        if ($selectedSemester === 'ganjil') $selectedSemester = 'PAS-1';
+        if ($selectedSemester === 'genap') $selectedSemester = 'PAT-2';
+        if ($selectedSemester === 'tengah_ganjil') $selectedSemester = 'PTS-1';
+        if ($selectedSemester === 'tengah_genap') $selectedSemester = 'PTS-2';
 
         $classrooms = Classroom::where('is_active', true)->orderBy('name')->get();
         $selectedClassroomId = $request->get('classroom_id', $classrooms->first()?->id);
@@ -34,6 +48,9 @@ class RaporSummaryController extends Controller
         $raporUrl = \App\Models\Setting::get('rapor_url', env('SANS_RAPOR_URL', 'http://sans-rapor.test'));
         $ssoSecret = \App\Models\Setting::get('rapor_sso_secret', env('SSO_SECRET_KEY', 'sans_rapor_secret_sso_key_2026'));
         $raporDb = \App\Models\Setting::get('rapor_db_name', env('DB_RAPOR_DATABASE', 'sans-rapor'));
+
+        $narratives = collect();
+        $attendances = collect();
 
         if ($selectedClassroom && $selectedYear) {
             $students = Student::where('classroom_id', $selectedClassroom->id)
@@ -45,11 +62,16 @@ class RaporSummaryController extends Controller
             try {
                 config(['database.connections.sans_rapor.database' => $raporDb]);
                 DB::purge('sans_rapor');
+                
                 $narratives = DB::connection('sans_rapor')
                     ->table('paud_narratives')
                     ->where('classroom_id', $selectedClassroom->id)
                     ->where('academic_year_id', $selectedYear->id)
-                    ->where('semester', $selectedSemester)
+                    ->where(function($q) use ($selectedSemester) {
+                        $q->where('semester', $selectedSemester);
+                        if ($selectedSemester === 'PAS-1') $q->orWhere('semester', 'ganjil');
+                        if ($selectedSemester === 'PAT-2') $q->orWhere('semester', 'genap');
+                    })
                     ->get()
                     ->keyBy('student_id');
 
@@ -58,22 +80,31 @@ class RaporSummaryController extends Controller
                     ->where('unit', 'paud')
                     ->where('classroom_id', $selectedClassroom->id)
                     ->where('academic_year_id', $selectedYear->id)
-                    ->where('semester', $selectedSemester)
+                    ->where(function($q) use ($selectedSemester) {
+                        $q->where('semester', $selectedSemester);
+                        if ($selectedSemester === 'PAS-1') $q->orWhere('semester', 'ganjil');
+                        if ($selectedSemester === 'PAT-2') $q->orWhere('semester', 'genap');
+                    })
                     ->get()
                     ->keyBy('student_id');
             } catch (\Throwable $e) {
-                // SANS Rapor connection fallback
                 $narratives = collect();
                 $attendances = collect();
             }
         }
 
-        // Summary metrics
-        $totalStudents = count($students);
-        $completedCount = 0;
-        $growthRecordedCount = 0;
+        // Summary metrics & Status breakdown
+        $stats = [
+            'total_students' => count($students),
+            'approved_count' => 0,
+            'submitted_count' => 0,
+            'revisi_count' => 0,
+            'draft_count' => 0,
+            'unfilled_count' => 0,
+            'completed_count' => 0,
+        ];
 
-        $studentData = collect($students)->map(function ($student) use ($narratives, $attendances, $raporUrl, $selectedYear, $selectedSemester, &$completedCount, &$growthRecordedCount) {
+        $studentData = collect($students)->map(function ($student) use ($narratives, $attendances, $raporUrl, $selectedClassroom, $selectedYear, $selectedSemester, &$stats) {
             $narrative = $narratives->get($student->id);
             $attendance = $attendances->get($student->id);
 
@@ -84,30 +115,47 @@ class RaporSummaryController extends Controller
             $hasReligion = !empty($narrative?->element_religion) || !empty($elemNarratives['religion']) || !empty($elemNarratives['agama']);
             $hasIdentity = !empty($narrative?->element_identity) || !empty($elemNarratives['identity']) || !empty($elemNarratives['jati_diri']);
             $hasSteam = !empty($narrative?->element_literacy_steam) || !empty($elemNarratives['literacy_steam']) || !empty($elemNarratives['steam']);
-            $isComplete = $hasReligion && $hasIdentity && $hasSteam;
+            $hasNarrative = $hasReligion && $hasIdentity && $hasSteam;
 
             $hasGrowth = !empty($narrative?->growth_height) || !empty($narrative?->growth_weight) || !empty($narrative?->growth_head_circ);
-            if ($isComplete) $completedCount++;
-            if ($hasGrowth) $growthRecordedCount++;
+            if ($hasNarrative) $stats['completed_count']++;
+
+            // Status Rapor Calculation
+            $status = 'belum_diisi';
+            if ($narrative) {
+                if (!empty($narrative->status)) {
+                    $status = $narrative->status;
+                } elseif ($hasNarrative || $hasGrowth) {
+                    $status = 'draft';
+                }
+            }
+
+            if ($status === 'approved') $stats['approved_count']++;
+            elseif ($status === 'submitted') $stats['submitted_count']++;
+            elseif ($status === 'revisi') $stats['revisi_count']++;
+            elseif ($status === 'draft') $stats['draft_count']++;
+            else $stats['unfilled_count']++;
 
             $relText = $narrative?->element_religion ?: ($elemNarratives['religion'] ?? ($elemNarratives['agama'] ?? null));
             $idText = $narrative?->element_identity ?: ($elemNarratives['identity'] ?? ($elemNarratives['jati_diri'] ?? null));
             $stText = $narrative?->element_literacy_steam ?: ($elemNarratives['literacy_steam'] ?? ($elemNarratives['steam'] ?? null));
 
-            $printUrl = "{$raporUrl}/reports/print/{$student->id}?unit=paud&semester={$selectedSemester}&academic_year_id={$selectedYear?->id}";
+            $printUrl = "{$raporUrl}/reports/print/{$student->id}?classroom_id={$selectedClassroom?->id}&semester={$selectedSemester}&academic_year_id={$selectedYear?->id}";
+            $editUrl = "{$raporUrl}/paud?student_id={$student->id}&classroom_id={$selectedClassroom?->id}&semester={$selectedSemester}";
 
             return (object) [
-                'student' => $student,
-                'narrative' => $narrative,
-                'attendance' => $attendance,
+                'id' => $student->id,
+                'nis' => $student->nis ?? '-',
+                'nisn' => $student->nisn ?? null,
+                'full_name' => $student->full_name,
+                'gender' => $student->gender ?? 'L',
+                'status' => $status,
+                'review_notes' => $narrative?->review_notes ?? null,
+                'has_narrative' => $hasNarrative,
+                'has_growth' => $hasGrowth,
                 'element_religion' => $relText,
                 'element_identity' => $idText,
                 'element_literacy_steam' => $stText,
-                'is_complete' => $isComplete,
-                'has_religion' => $hasReligion,
-                'has_identity' => $hasIdentity,
-                'has_steam' => $hasSteam,
-                'has_growth' => $hasGrowth,
                 'height' => $narrative?->growth_height,
                 'weight' => $narrative?->growth_weight,
                 'head_circ' => $narrative?->growth_head_circ,
@@ -117,6 +165,9 @@ class RaporSummaryController extends Controller
                 'permission' => $attendance?->permission ?? 0,
                 'unexcused' => $attendance?->unexcused ?? 0,
                 'print_url' => $printUrl,
+                'edit_url' => $editUrl,
+                'student' => $student,
+                'narrative' => $narrative,
             ];
         });
 
@@ -135,20 +186,24 @@ class RaporSummaryController extends Controller
         $ssoSig = hash_hmac('sha256', $ssoPayload, $ssoSecret);
         $ssoLaunchUrl = "{$raporUrl}/sso/login?data=" . urlencode($ssoPayload) . "&signature=" . urlencode($ssoSig);
 
+        $exportLegerUrl = "{$raporUrl}/reports/export-leger?classroom_id={$selectedClassroomId}&semester={$selectedSemester}&academic_year_id={$selectedYear?->id}";
+        $printClassroomUrl = "{$raporUrl}/reports/print-classroom/{$selectedClassroomId}?semester={$selectedSemester}&academic_year_id={$selectedYear?->id}";
+
         return view('admin.reports.rapor_summary', [
             'academicYears' => $academicYears,
             'activeAcademicYear' => $activeAcademicYear,
             'selectedYearId' => $selectedYearId,
             'selectedYear' => $selectedYear,
+            'semesters' => $semesters,
             'selectedSemester' => $selectedSemester,
             'classrooms' => $classrooms,
             'selectedClassroomId' => $selectedClassroomId,
             'selectedClassroom' => $selectedClassroom,
             'studentData' => $studentData,
-            'totalStudents' => $totalStudents,
-            'completedCount' => $completedCount,
-            'growthRecordedCount' => $growthRecordedCount,
+            'stats' => $stats,
             'ssoLaunchUrl' => $ssoLaunchUrl,
+            'exportLegerUrl' => $exportLegerUrl,
+            'printClassroomUrl' => $printClassroomUrl,
             'raporUrl' => $raporUrl,
         ]);
     }
