@@ -24,14 +24,18 @@ class SpmbCandidateController extends Controller
      */
     public function index(Request $request)
     {
-        // 1. Get available academic years and normalize to standard slash format (e.g. 2026/2027)
-        $rawYears = SpmbCandidate::select('academic_year')
-            ->whereNotNull('academic_year')
+        // 1. Get dynamic master filter options from SPMB API / master data
+        $masterOptions = $this->service->getFilterOptions();
+        $defaultPeriodFromSpmb = $masterOptions['default_period'] ?? null;
+
+        $rawCandidateYears = SpmbCandidate::whereNotNull('academic_year')
             ->distinct()
             ->pluck('academic_year')
             ->toArray();
+        $rawMasterYears = AcademicYear::pluck('name')->toArray();
+        $apiPeriods = $masterOptions['periods'] ?? [];
 
-        $academicYears = collect($rawYears)
+        $academicYears = collect(array_merge($rawCandidateYears, $rawMasterYears, $apiPeriods))
             ->map(fn($y) => str_replace('-', '/', trim($y)))
             ->filter()
             ->unique()
@@ -39,8 +43,25 @@ class SpmbCandidateController extends Controller
             ->values()
             ->toArray();
 
-        // Default to latest year or 'all' if empty
-        $selectedYear = $request->get('period', $academicYears[0] ?? 'all');
+        // Default year selection priority:
+        // 1. User query parameter 'period'
+        // 2. Default active registration period in SPMB (e.g. 2027/2028)
+        // 3. Most populated candidate year in database
+        // 4. Active academic year in PAUD
+        $defaultYear = $defaultPeriodFromSpmb;
+        if (!$defaultYear || !in_array($defaultYear, $academicYears)) {
+            $mostPopulatedYear = SpmbCandidate::whereNotNull('academic_year')
+                ->select('academic_year', \DB::raw('count(*) as total'))
+                ->groupBy('academic_year')
+                ->orderByDesc('total')
+                ->value('academic_year');
+            
+            $activeMasterYear = AcademicYear::where('is_active', true)->value('name');
+
+            $defaultYear = $mostPopulatedYear ?: ($activeMasterYear ?: ($academicYears[0] ?? 'all'));
+        }
+
+        $selectedYear = $request->get('period', $defaultYear);
         if ($selectedYear && $selectedYear !== 'all') {
             $selectedYear = str_replace('-', '/', trim($selectedYear));
         }
@@ -51,13 +72,10 @@ class SpmbCandidateController extends Controller
         if ($selectedYear && $selectedYear !== 'all') {
             $slashYear = str_replace('-', '/', $selectedYear);
             $hyphenYear = str_replace('/', '-', $selectedYear);
-            $query->where(function ($q) use ($slashYear, $hyphenYear) {
-                $q->where('academic_year', $slashYear)
-                  ->orWhere('academic_year', $hyphenYear);
-            });
+            $query->whereIn('academic_year', [$slashYear, $hyphenYear]);
         }
 
-        // Search Filter
+        // Search Filter (Keyword search for name, reg no, NIK, parent)
         if ($search = $request->get('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('full_name', 'like', "%{$search}%")
@@ -70,145 +88,140 @@ class SpmbCandidateController extends Controller
             });
         }
 
-        // Category Filter (Reguler / MBK)
-        if ($category = $request->get('category')) {
-            if ($category !== 'all') {
-                if (strtolower($category) === 'mbk') {
-                    $query->where(function ($q) {
-                        $q->where('class_program', 'like', '%mbk%')
-                          ->orWhere('class_program', 'like', '%kebutuhan khusus%');
-                    });
-                } elseif (strtolower($category) === 'reguler') {
-                    $query->where(function ($q) {
-                        $q->where('class_program', 'not like', '%mbk%')
-                          ->where('class_program', 'not like', '%kebutuhan khusus%');
-                    });
-                } else {
-                    $query->where('class_program', $category);
-                }
-            }
-        }
-
-        // 1. Filter Jalur Masuk (Murid Baru / Mutasi Masuk / Pindahan)
+        // 1. Filter Jalur Masuk (registration_type) - Exact match
         if ($regType = $request->get('registration_type')) {
             if ($regType !== 'all') {
-                $query->where(function ($q) use ($regType) {
-                    $q->where('registration_type', 'like', "%{$regType}%")
-                      ->orWhere('raw_payload->registration_type', 'like', "%{$regType}%")
-                      ->orWhere('raw_payload->entry_type', 'like', "%{$regType}%")
-                      ->orWhere('raw_payload->type->name', 'like', "%{$regType}%");
-                });
+                $query->where('registration_type', $regType);
             }
         }
 
-        // 2. Filter Gelombang (Gelombang 1, Gelombang 2, Indent, dll)
+        // 2. Filter Gelombang (wave) - Exact match
         if ($wave = $request->get('wave')) {
             if ($wave !== 'all') {
                 $query->where('wave', $wave);
             }
         }
 
-        // 3. Filter Jenjang (TK / KB / Daycare / TPQ)
+        // 3. Filter Jenjang (jenjang) - KODE JENJANG (KB, TK, TPA, TPQ)
+        // Multi-jenjang support: mencocokkan kelas utama maupun layanan tambahan
         if ($jenjang = $request->get('jenjang')) {
             if ($jenjang !== 'all') {
-                $query->where(function ($q) use ($jenjang) {
-                    $q->where('admission_level', 'like', "%{$jenjang}%")
-                      ->orWhere('class_program', 'like', "%{$jenjang}%")
-                      ->orWhere('extra_services', 'like', "%{$jenjang}%")
-                      ->orWhere('raw_payload->admission_level', 'like', "%{$jenjang}%")
-                      ->orWhere('raw_payload->extra_services', 'like', "%{$jenjang}%")
-                      ->orWhere('raw_payload->services', 'like', "%{$jenjang}%")
-                      ->orWhere('raw_payload->grade->name', 'like', "%{$jenjang}%");
+                $jenjangCode = strtoupper(trim($jenjang));
+                $query->where(function ($q) use ($jenjangCode) {
+                    $q->where('admission_level', 'like', "{$jenjangCode}%")
+                      ->orWhere('admission_level', 'like', "%{$jenjangCode}%")
+                      ->orWhere('extra_services', 'like', "%{$jenjangCode}%")
+                      ->orWhere('raw_payload', 'like', "%\"{$jenjangCode}\"%")
+                      ->orWhere('raw_payload', 'like', "%\"jenjang_code\":\"{$jenjangCode}\"%");
                 });
             }
         }
 
-        // 4. Filter Kelas (TK A, TK B, KB A, KB B, TPA 1, dll)
+        // 4. Filter Kelas (admission_level) - Mendukung single class maupun multi-kelas (misal KB A & TPA 2)
         if ($admissionLevel = $request->get('admission_level')) {
             if ($admissionLevel !== 'all') {
                 $query->where(function ($q) use ($admissionLevel) {
-                    $q->where('admission_level', 'like', "%{$admissionLevel}%")
-                      ->orWhere('class_program', 'like', "%{$admissionLevel}%")
-                      ->orWhere('raw_payload->admission_level', 'like', "%{$admissionLevel}%")
-                      ->orWhere('raw_payload->grade->name', 'like', "%{$admissionLevel}%");
+                    $q->where('admission_level', $admissionLevel)
+                      ->orWhere('admission_level', 'like', "%{$admissionLevel}%")
+                      ->orWhere('extra_services', 'like', "%{$admissionLevel}%")
+                      ->orWhere('raw_payload', 'like', "%\"{$admissionLevel}\"%");
                 });
             }
         }
 
-        // 5. Filter Kategori Murid (Reguler / MBK)
+        // 5. Filter Kategori Murid (class_program) - Exact match
         if ($category = $request->get('category')) {
             if ($category !== 'all') {
-                if (strtolower($category) === 'mbk' || str_contains(strtolower($category), 'khusus')) {
-                    $query->where(function ($q) {
-                        $q->where('class_program', 'like', '%mbk%')
-                          ->orWhere('class_program', 'like', '%khusus%')
-                          ->orWhere('class_program', 'like', '%kebutuhan%');
-                    });
-                } else {
-                    $query->where(function ($q) {
-                        $q->where('class_program', 'not like', '%mbk%')
-                          ->where('class_program', 'not like', '%khusus%')
-                          ->where('class_program', 'not like', '%kebutuhan%');
-                    });
-                }
+                $query->where('class_program', $category);
             }
         }
 
-        // Status Pendaftaran Filter
+        // Status Pendaftaran Filter - Exact match
         if ($status = $request->get('status')) {
             if ($status !== 'all') {
                 $query->where('registration_status', $status);
             }
         }
 
-        // Status Pembayaran Filter
+        // Status Pembayaran Filter - Exact match
         if ($payment = $request->get('payment_status')) {
             if ($payment !== 'all') {
                 $query->where('payment_status', $payment);
             }
         }
 
-        // 3. Stats Calculation (based on selected year)
+        // 3. Stats Calculation
         $statsQuery = SpmbCandidate::query();
         if ($selectedYear && $selectedYear !== 'all') {
             $slashYear = str_replace('-', '/', $selectedYear);
             $hyphenYear = str_replace('/', '-', $selectedYear);
-            $statsQuery->where(function ($q) use ($slashYear, $hyphenYear) {
-                $q->where('academic_year', $slashYear)
-                  ->orWhere('academic_year', $hyphenYear);
-            });
+            $statsQuery->whereIn('academic_year', [$slashYear, $hyphenYear]);
         }
 
         $stats = [
             'total' => (clone $statsQuery)->count(),
-            'verified' => (clone $statsQuery)->whereIn('registration_status', ['verified', 'accepted', 'diterima', 'terverifikasi'])->count(),
+            'verified' => (clone $statsQuery)->whereIn('registration_status', ['verified', 'accepted', 'diterima', 'terverifikasi', 'completed', 'agreement_signed'])->count(),
             'paid' => (clone $statsQuery)->whereIn('payment_status', ['paid', 'lunas', 'settlement', 'success'])->count(),
             'enrolled' => (clone $statsQuery)->where('is_enrolled', true)->count(),
+            'has_payment_data' => (clone $statsQuery)->whereNotNull('payment_status')->exists(),
         ];
 
-        // 4. Get filter option lists dynamically
-        $dbTypes = SpmbCandidate::whereNotNull('registration_type')->distinct()->pluck('registration_type')->filter()->values()->toArray();
-        $registrationTypes = array_values(array_unique(array_merge(['Murid Baru', 'Mutasi Masuk / Pindahan'], $dbTypes)));
+        // 4. Dynamic Filter Options Lists
+        // Jalur Masuk (dari Master SPMB & Database)
+        $dbTypes = SpmbCandidate::whereNotNull('registration_type')->where('registration_type', '!=', '')->distinct()->pluck('registration_type')->toArray();
+        $apiTypes = $masterOptions['registration_types'] ?? ['Murid Baru', 'Mutasi Masuk / Pindahan'];
+        $registrationTypes = array_values(array_unique(array_filter(array_merge($apiTypes, $dbTypes))));
 
-        $dbWaves = SpmbCandidate::whereNotNull('wave')->distinct()->pluck('wave')->filter()->values()->toArray();
-        $availableWaves = array_values(array_unique(array_merge(['Gelombang 1', 'Gelombang 2', 'Gelombang 3', 'Indent'], $dbWaves)));
+        // Gelombang (dari Master SPMB & Database)
+        $dbWaves = SpmbCandidate::whereNotNull('wave')->where('wave', '!=', '')->distinct()->pluck('wave')->toArray();
+        $apiWaves = $masterOptions['waves'] ?? ['Indent', 'Gelombang 1', 'Gelombang 2'];
+        $availableWaves = array_values(array_unique(array_filter(array_merge($apiWaves, $dbWaves))));
 
-        $availableJenjangs = [
-            'TK' => 'TK (Taman Kanak-Kanak)',
-            'KB' => 'KB (Kelompok Bermain)',
-            'Daycare' => 'Daycare (TPA)',
-            'TPQ' => 'TPQ'
+        // Jenjang (KB, TK, TPA, TPQ)
+        $availableJenjangs = collect($masterOptions['jenjangs'] ?? [
+            ['code' => 'KB', 'name' => 'Playgroup (KB)'],
+            ['code' => 'TK', 'name' => 'Taman Kanak-kanak (TK)'],
+            ['code' => 'TPA', 'name' => 'Daycare (TPA)'],
+            ['code' => 'TPQ', 'name' => 'TPQ'],
+        ])->map(function ($j) {
+            return is_array($j) ? (object)$j : $j;
+        });
+
+        // Seluruh Master Kelas PAUD
+        $allMasterGrades = $masterOptions['grades'] ?? [
+            ['name' => 'KB A', 'jenjang_code' => 'KB'],
+            ['name' => 'KB B', 'jenjang_code' => 'KB'],
+            ['name' => 'TK A', 'jenjang_code' => 'TK'],
+            ['name' => 'TK B', 'jenjang_code' => 'TK'],
+            ['name' => 'TPA 1 (Umum)', 'jenjang_code' => 'TPA'],
+            ['name' => 'TPA 1 (Anak Gukar YPAS)', 'jenjang_code' => 'TPA'],
+            ['name' => 'TPA 2 (Mulai Usia 2 Tahun)', 'jenjang_code' => 'TPA'],
+            ['name' => 'TPA 2 (Mulai Usia 3 Tahun)', 'jenjang_code' => 'TPA'],
+            ['name' => 'TPA 3 (Mulai Usia 4 Tahun)', 'jenjang_code' => 'TPA'],
+            ['name' => 'TPA 3 (Mulai Usia 5 Tahun)', 'jenjang_code' => 'TPA'],
+            ['name' => 'TPQ', 'jenjang_code' => 'TPQ'],
         ];
 
-        $dbLevels = SpmbCandidate::whereNotNull('admission_level')->distinct()->pluck('admission_level')->filter()->values()->toArray();
-        $availableAdmissionLevels = array_values(array_unique(array_merge(['TK A', 'TK B', 'KB A', 'KB B', 'Kelompok Bermain (KB)', 'Daycare / TPA'], $dbLevels)));
+        // Filter Opsi Kelas jika Jenjang dipilih (Cascade Jenjang -> Kelas)
+        $selectedJenjang = $request->get('jenjang');
+        if ($selectedJenjang && $selectedJenjang !== 'all') {
+            $filteredGrades = array_filter($allMasterGrades, function($g) use ($selectedJenjang) {
+                return strtoupper($g['jenjang_code'] ?? '') === strtoupper($selectedJenjang);
+            });
+            $availableAdmissionLevels = array_values(array_unique(array_column($filteredGrades, 'name')));
+        } else {
+            $availableAdmissionLevels = array_values(array_unique(array_column($allMasterGrades, 'name')));
+        }
 
-        $categories = ['Reguler', 'MBK'];
+        // Kategori Murid (Reguler, MBK)
+        $dbCats = SpmbCandidate::whereNotNull('class_program')->where('class_program', '!=', '')->distinct()->pluck('class_program')->toArray();
+        $apiCats = $masterOptions['categories'] ?? ['Reguler', 'Murid Berkebutuhan Khusus (MBK)'];
+        $categories = array_values(array_unique(array_filter(array_merge($apiCats, $dbCats))));
 
         $candidates = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
 
         $masterAcademicYears = AcademicYear::orderBy('name', 'desc')->get();
-        $masterJenjangs = \App\Models\Jenjang::where('is_active', true)->orderBy('order')->get();
+        $masterJenjangs = $availableJenjangs;
         $masterClassrooms = Classroom::with(['jenjang', 'classLevel', 'homeroomTeacher'])
             ->where('is_active', true)
             ->orderBy('jenjang_id')
@@ -224,6 +237,7 @@ class SpmbCandidateController extends Controller
             'registrationTypes',
             'availableWaves',
             'availableJenjangs',
+            'allMasterGrades',
             'availableAdmissionLevels',
             'categories',
             'masterAcademicYears',
@@ -372,7 +386,7 @@ class SpmbCandidateController extends Controller
         $candidate = SpmbCandidate::findOrFail($id);
 
         $validated = $request->validate([
-            'nis' => 'required|string|max:50|unique:students,nis,' . ($candidate->student_id ?? 'NULL'),
+            'nis' => 'nullable|string|max:50|unique:students,nis,' . ($candidate->student_id ?? 'NULL'),
             'academic_year_id' => 'required|exists:academic_years,id',
             'jenjang_id' => 'nullable|exists:jenjangs,id',
             'class_level_id' => 'nullable|exists:class_levels,id',
@@ -390,7 +404,7 @@ class SpmbCandidateController extends Controller
         $subUnit = $classroom->sub_unit ?: ($classroom->jenjang?->code ?? 'TK');
 
         $studentData = [
-            'nis' => $validated['nis'],
+            'nis' => !empty($validated['nis']) ? trim($validated['nis']) : null,
             'nisn' => $candidate->nisn,
             'nik' => $candidate->nik,
             'spmb_candidate_id' => $candidate->id,

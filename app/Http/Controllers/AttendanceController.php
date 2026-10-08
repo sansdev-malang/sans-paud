@@ -497,9 +497,16 @@ class AttendanceController extends Controller
         }
 
         if ($format === 'pdf') {
+            if ($request->filled('download_token')) {
+                setcookie('download_token', $request->query('download_token'), time() + 60, '/', '', false, false);
+            }
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.attendances.export-pdf', compact('reports', 'periodeStr', 'dates', 'schoolUnit'))
                 ->setPaper('a4', 'landscape');
-            return $pdf->download($baseFileName . ".pdf");
+            $response = $pdf->download($baseFileName . ".pdf");
+            if ($request->filled('download_token')) {
+                $response->headers->setCookie(cookie('download_token', $request->query('download_token'), 1, '/', null, false, false));
+            }
+            return $response;
         }
 
         // Excel
@@ -611,6 +618,10 @@ class AttendanceController extends Controller
         $sheet->getStyle($dataRange)->getBorders()->getAllBorders()
               ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
+        if ($request->filled('download_token')) {
+            setcookie('download_token', $request->query('download_token'), time() + 60, '/', '', false, false);
+        }
+
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
         $responseHeaders = [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -618,9 +629,18 @@ class AttendanceController extends Controller
             'Cache-Control' => 'max-age=0',
         ];
 
-        return response()->stream(function () use ($writer) {
+        $response = response()->stream(function () use ($writer) {
+            if (ob_get_length()) {
+                ob_clean();
+            }
             $writer->save('php://output');
         }, 200, $responseHeaders);
+
+        if ($request->filled('download_token')) {
+            $response->headers->setCookie(cookie('download_token', $request->query('download_token'), 1, '/', null, false, false));
+        }
+
+        return $response;
     }
     /**
      * Store a newly created resource in storage.

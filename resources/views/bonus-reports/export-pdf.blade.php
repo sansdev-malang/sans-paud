@@ -62,7 +62,7 @@
     <h2>Rekap Bonus Ketepatan Waktu</h2>
     <div class="subtitle">
         Periode: {{ $periodeStr }} <br>
-        Unit: {{ count($reports) > 0 ? ($reports[0]['employee']['unit']['name'] ?? ($reports[0]['employee']['unit_name'] ?? 'Semua Unit')) : 'Semua Unit' }}
+        Unit: {{ strtoupper($schoolUnit ?? (count($reports) > 0 ? ($reports[0]['employee']['unit']['name'] ?? ($reports[0]['employee']['unit_name'] ?? 'PAUD')) : 'PAUD')) }}
     </div>
 
     <table>
@@ -70,7 +70,6 @@
             <tr>
                 <th class="col-no">No</th>
                 <th class="col-name">Pegawai</th>
-                
                 <th class="col-total">Total Bonus (Rp)</th>
                 @foreach($dates as $date)
                     @php
@@ -90,7 +89,7 @@
                     <td>{{ $index + 1 }}</td>
                     <td class="text-left">
                         <div class="font-bold">{{ $report['employee']['name'] }}</div>
-                        <div style="font-size: 6px; color: #666;">{{ $report['employee']['nuptk'] ?? '-' }}</div>
+                        <div style="font-size: 6px; color: #666;">{{ $report['employee']['nuptk'] ?? ($report['employee']['nuptk_nip_nik'] ?? ($report['employee']['nip'] ?? '-')) }}</div>
                     </td>
                     
                     <td class="text-right font-bold" style="color: #059669;">
@@ -121,7 +120,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="{{ count($dates) + 4 }}" class="text-center">Tidak ada data pegawai pada periode ini.</td>
+                    <td colspan="{{ count($dates) + 3 }}" class="text-center">Tidak ada data pegawai pada periode ini.</td>
                 </tr>
             @endforelse
             
@@ -142,7 +141,7 @@
                 <td style="border: none; text-align: center; width: 50%;">
                     Mengetahui,<br><br><br><br><br>
                     <strong>(________________________)</strong><br>
-                    HRD Manager
+                    Kepala Sekolah
                 </td>
             </tr>
         </table>

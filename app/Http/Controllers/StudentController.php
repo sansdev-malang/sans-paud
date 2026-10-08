@@ -252,11 +252,13 @@ class StudentController extends Controller
     public function show($id): JsonResponse
     {
         $student = Student::with([
+            'jenjang',
             'classroom.classLevel',
             'classroom.homeroomTeacher',
+            'classroom.jenjang',
             'daycareClassroom.homeroomTeacher',
             'tpqClassroom.homeroomTeacher',
-            'classLevel',
+            'classLevel.jenjang',
             'academicYear',
             'spmbCandidate',
             'classroomHistories' => function ($q) {
@@ -280,8 +282,17 @@ class StudentController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        // Normalize empty string foreign keys / dates to null
+        $input = $request->all();
+        foreach (['jenjang_id', 'class_level_id', 'classroom_id', 'academic_year_id', 'daycare_classroom_id', 'tpq_classroom_id', 'nis', 'nisn', 'nik', 'birth_date', 'notes', 'parent_phone', 'father_phone', 'mother_phone', 'nickname', 'birth_place', 'address', 'city', 'pin_access'] as $k) {
+            if (isset($input[$k]) && ($input[$k] === '' || $input[$k] === 'null')) {
+                $input[$k] = null;
+            }
+        }
+        $request->merge($input);
+
         $validated = $request->validate([
-            'nis' => 'required|string|max:50|unique:students,nis',
+            'nis' => 'nullable|string|max:50|unique:students,nis',
             'nisn' => 'nullable|string|max:50',
             'nik' => 'nullable|string|max:50',
             'full_name' => 'required|string|max:255',
@@ -310,6 +321,8 @@ class StudentController extends Controller
             'enrolled_date' => 'nullable|date',
             'notes' => 'nullable|string',
         ]);
+
+        $validated['nis'] = !empty($validated['nis']) ? trim($validated['nis']) : null;
 
         if (empty($validated['academic_year_id'])) {
             $activeAY = AcademicYear::where('is_active', true)->first();
@@ -368,8 +381,17 @@ class StudentController extends Controller
     {
         $student = Student::findOrFail($id);
 
+        // Normalize empty string foreign keys / dates to null
+        $input = $request->all();
+        foreach (['jenjang_id', 'class_level_id', 'classroom_id', 'academic_year_id', 'daycare_classroom_id', 'tpq_classroom_id', 'nis', 'nisn', 'nik', 'birth_date', 'notes', 'parent_phone', 'father_phone', 'mother_phone', 'nickname', 'birth_place', 'address', 'city', 'pin_access'] as $k) {
+            if (isset($input[$k]) && ($input[$k] === '' || $input[$k] === 'null')) {
+                $input[$k] = null;
+            }
+        }
+        $request->merge($input);
+
         $validated = $request->validate([
-            'nis' => 'required|string|max:50|unique:students,nis,' . $student->id,
+            'nis' => 'nullable|string|max:50|unique:students,nis,' . $student->id,
             'nisn' => 'nullable|string|max:50',
             'nik' => 'nullable|string|max:50',
             'full_name' => 'required|string|max:255',
@@ -397,6 +419,8 @@ class StudentController extends Controller
             'status' => 'required|string|in:aktif,lulus,mutasi,keluar,nonaktif',
             'notes' => 'nullable|string',
         ]);
+
+        $validated['nis'] = !empty($validated['nis']) ? trim($validated['nis']) : null;
 
         if (!empty($validated['classroom_id'])) {
             $cls = Classroom::find($validated['classroom_id']);
@@ -475,21 +499,26 @@ class StudentController extends Controller
     }
 
     /**
-     * Export students data to Excel (.xlsx).
+     * Helper to get filtered students query for export.
      */
-    public function exportExcel(Request $request)
+    protected function getFilteredStudentsQuery(Request $request)
     {
         $academicYears = AcademicYear::orderBy('name', 'desc')->get();
         $activeAcademicYear = $academicYears->firstWhere('is_active', true) ?? $academicYears->first();
 
         $selectedYearId = $request->get('academic_year_id', $activeAcademicYear?->id);
-        $selectedYear = $academicYears->firstWhere('id', $selectedYearId) ?? $activeAcademicYear;
-
-        $jenjangs = Jenjang::where('is_active', true)->orderBy('order')->get();
         $selectedJenjangId = $request->get('jenjang_id');
-        $selectedJenjang = $jenjangs->firstWhere('id', $selectedJenjangId);
 
-        $query = Student::with(['jenjang', 'classroom.classLevel', 'classroom.jenjang', 'daycareClassroom', 'tpqClassroom', 'classLevel', 'academicYear']);
+        $query = Student::with([
+            'jenjang',
+            'classroom.classLevel',
+            'classroom.jenjang',
+            'classroom.homeroomTeacher',
+            'daycareClassroom',
+            'tpqClassroom',
+            'classLevel',
+            'academicYear'
+        ]);
 
         if ($selectedJenjangId && $selectedJenjangId !== 'all') {
             $query->where(function ($q) use ($selectedJenjangId) {
@@ -553,9 +582,25 @@ class StudentController extends Controller
             }
         }
 
-        $students = $query->orderBy('classroom_id', 'asc')
-            ->orderBy('full_name', 'asc')
-            ->get();
+        return $query->orderBy('classroom_id', 'asc')->orderBy('full_name', 'asc');
+    }
+
+    /**
+     * Export students data to Excel (.xlsx).
+     */
+    public function exportExcel(Request $request)
+    {
+        $academicYears = AcademicYear::orderBy('name', 'desc')->get();
+        $activeAcademicYear = $academicYears->firstWhere('is_active', true) ?? $academicYears->first();
+
+        $selectedYearId = $request->get('academic_year_id', $activeAcademicYear?->id);
+        $selectedYear = $academicYears->firstWhere('id', $selectedYearId) ?? $activeAcademicYear;
+
+        $jenjangs = Jenjang::where('is_active', true)->orderBy('order')->get();
+        $selectedJenjangId = $request->get('jenjang_id');
+        $selectedJenjang = $jenjangs->firstWhere('id', $selectedJenjangId);
+
+        $students = $this->getFilteredStudentsQuery($request)->get();
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
@@ -583,6 +628,7 @@ class StudentController extends Controller
             'Usia',
             'Sub Unit',
             'Jenjang',
+            'Tingkat Kelas',
             'Kelompok (Rombel)',
             'Kelompok Daycare',
             'Status TPQ',
@@ -620,14 +666,15 @@ class StudentController extends Controller
         foreach ($students as $index => $s) {
             $genderLabel = in_array(strtoupper($s->gender), ['L', 'LAKI-LAKI', 'MALE']) ? 'L' : 'P';
             $birthDateFormatted = $s->birth_date ? date('Y-m-d', strtotime($s->birth_date)) : '-';
-            $jenjangName = $s->classroom?->classLevel?->name ?? $s->classLevel?->name ?? '-';
+            $jenjangName = $s->jenjang?->name ?? $s->classroom?->jenjang?->name ?? $s->classLevel?->jenjang?->name ?? $s->sub_unit ?? '-';
+            $classLevelName = $s->classroom?->classLevel?->name ?? $s->classLevel?->name ?? '-';
             $rombelName = $s->classroom?->name ?? '-';
             $daycareName = $s->daycareClassroom?->name ?? '-';
             $tpqStatus = ($s->is_tpq || $s->tpq_classroom_id || $s->sub_unit === 'TPQ') ? 'Ya' : 'Tidak';
             $tpqName = $s->tpqClassroom?->name ?? ($tpqStatus === 'Ya' ? 'TPQ' : '-');
 
             $sheet->setCellValue("A{$currentRow}", $index + 1);
-            $sheet->setCellValueExplicit("B{$currentRow}", (string)$s->nis, DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("B{$currentRow}", (string)($s->nis ?? ''), DataType::TYPE_STRING);
             $sheet->setCellValueExplicit("C{$currentRow}", (string)($s->nisn ?? ''), DataType::TYPE_STRING);
             $sheet->setCellValueExplicit("D{$currentRow}", (string)($s->nik ?? ''), DataType::TYPE_STRING);
             $sheet->setCellValue("E{$currentRow}", $s->full_name);
@@ -638,27 +685,28 @@ class StudentController extends Controller
             $sheet->setCellValue("J{$currentRow}", $s->age ?? '-');
             $sheet->setCellValue("K{$currentRow}", $s->sub_unit ?? 'TK');
             $sheet->setCellValue("L{$currentRow}", $jenjangName);
-            $sheet->setCellValue("M{$currentRow}", $rombelName);
-            $sheet->setCellValue("N{$currentRow}", $daycareName);
-            $sheet->setCellValue("O{$currentRow}", $tpqStatus);
-            $sheet->setCellValue("P{$currentRow}", $tpqName);
-            $sheet->setCellValue("Q{$currentRow}", $s->father_name ?? '-');
-            $sheet->setCellValueExplicit("R{$currentRow}", (string)($s->father_phone ?? ''), DataType::TYPE_STRING);
-            $sheet->setCellValue("S{$currentRow}", $s->mother_name ?? '-');
-            $sheet->setCellValueExplicit("T{$currentRow}", (string)($s->mother_phone ?? ''), DataType::TYPE_STRING);
-            $sheet->setCellValueExplicit("U{$currentRow}", (string)($s->clean_parent_phone ?? $s->parent_phone ?? ''), DataType::TYPE_STRING);
-            $sheet->setCellValue("V{$currentRow}", $s->address ?? '-');
-            $sheet->setCellValue("W{$currentRow}", $s->city ?? 'Malang');
-            $sheet->setCellValueExplicit("X{$currentRow}", (string)($s->pin_access ?? ''), DataType::TYPE_STRING);
-            $sheet->setCellValue("Y{$currentRow}", ucfirst($s->status ?? 'aktif'));
+            $sheet->setCellValue("M{$currentRow}", $classLevelName);
+            $sheet->setCellValue("N{$currentRow}", $rombelName);
+            $sheet->setCellValue("O{$currentRow}", $daycareName);
+            $sheet->setCellValue("P{$currentRow}", $tpqStatus);
+            $sheet->setCellValue("Q{$currentRow}", $tpqName);
+            $sheet->setCellValue("R{$currentRow}", $s->father_name ?? '-');
+            $sheet->setCellValueExplicit("S{$currentRow}", (string)($s->father_phone ?? ''), DataType::TYPE_STRING);
+            $sheet->setCellValue("T{$currentRow}", $s->mother_name ?? '-');
+            $sheet->setCellValueExplicit("U{$currentRow}", (string)($s->mother_phone ?? ''), DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("V{$currentRow}", (string)($s->clean_parent_phone ?? $s->parent_phone ?? ''), DataType::TYPE_STRING);
+            $sheet->setCellValue("W{$currentRow}", $s->address ?? '-');
+            $sheet->setCellValue("X{$currentRow}", $s->city ?? 'Malang');
+            $sheet->setCellValueExplicit("Y{$currentRow}", (string)($s->pin_access ?? ''), DataType::TYPE_STRING);
+            $sheet->setCellValue("Z{$currentRow}", ucfirst($s->status ?? 'aktif'));
 
             // Center align for certain columns
             $sheet->getStyle("A{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("B{$currentRow}:D{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("G{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("I{$currentRow}:L{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("O{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("X{$currentRow}:Y{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("P{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("Y{$currentRow}:Z{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
             // Zebra striping
             if ($index % 2 === 1) {
@@ -683,12 +731,60 @@ class StudentController extends Controller
         $writer = new Xlsx($spreadsheet);
         $filename = 'Data_Murid_PAUD_' . date('Ymd_His') . '.xlsx';
 
-        return response()->streamDownload(function () use ($writer) {
+        if ($request->filled('download_token')) {
+            setcookie('download_token', $request->query('download_token'), time() + 60, '/', '', false, false);
+        }
+
+        $response = response()->streamDownload(function () use ($writer) {
             $writer->save('php://output');
         }, $filename, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Cache-Control' => 'max-age=0',
         ]);
+
+        if ($request->filled('download_token')) {
+            $response->headers->setCookie(cookie('download_token', $request->query('download_token'), 1, '/', null, false, false));
+        }
+
+        return $response;
+    }
+
+    /**
+     * Export students data to PDF.
+     */
+    public function exportPdf(Request $request)
+    {
+        ini_set('memory_limit', '512M');
+        $academicYears = AcademicYear::orderBy('name', 'desc')->get();
+        $activeAcademicYear = $academicYears->firstWhere('is_active', true) ?? $academicYears->first();
+
+        $selectedYearId = $request->get('academic_year_id', $activeAcademicYear?->id);
+        $selectedYear = $academicYears->firstWhere('id', $selectedYearId) ?? $activeAcademicYear;
+
+        $jenjangs = Jenjang::where('is_active', true)->orderBy('order')->get();
+        $selectedJenjangId = $request->get('jenjang_id');
+        $selectedJenjang = $jenjangs->firstWhere('id', $selectedJenjangId);
+
+        $students = $this->getFilteredStudentsQuery($request)->get();
+        $fileName = 'Data_Murid_PAUD_' . date('Ymd_His') . '.pdf';
+
+        if ($request->filled('download_token')) {
+            setcookie('download_token', $request->query('download_token'), time() + 60, '/', '', false, false);
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.students.pdf', [
+            'students' => $students,
+            'selectedYear' => $selectedYear,
+            'selectedJenjang' => $selectedJenjang,
+        ])->setPaper('a4', 'landscape');
+
+        $response = $pdf->download($fileName);
+
+        if ($request->filled('download_token')) {
+            $response->headers->setCookie(cookie('download_token', $request->query('download_token'), 1, '/', null, false, false));
+        }
+
+        return $response;
     }
 
     /**
@@ -701,9 +797,9 @@ class StudentController extends Controller
         $sheet->setTitle('Template Import Murid');
 
         $headers = [
-            'NIS',
-            'NISN',
-            'NIK',
+            'NIS (opsional)',
+            'NISN (opsional)',
+            'NIK (opsional)',
             'Nama Lengkap',
             'Nama Panggilan',
             'Jenis Kelamin (L/P)',
@@ -816,14 +912,24 @@ class StudentController extends Controller
             $sheet->getColumnDimension($colLetter)->setAutoSize(true);
         }
 
+        if (request()->filled('download_token')) {
+            setcookie('download_token', request()->query('download_token'), time() + 60, '/', '', false, false);
+        }
+
         $writer = new Xlsx($spreadsheet);
 
-        return response()->streamDownload(function () use ($writer) {
+        $response = response()->streamDownload(function () use ($writer) {
             $writer->save('php://output');
         }, 'Template_Impor_Murid_PAUD.xlsx', [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Cache-Control' => 'max-age=0',
         ]);
+
+        if (request()->filled('download_token')) {
+            $response->headers->setCookie(cookie('download_token', request()->query('download_token'), 1, '/', null, false, false));
+        }
+
+        return $response;
     }
 
     /**
@@ -865,7 +971,6 @@ class StudentController extends Controller
         foreach ($rows as $index => $row) {
             $rowNum = $index + 2;
 
-            // Name is at column index 3 (or column index 0 if format is alternate)
             $nis = !empty($row[0]) ? trim((string)$row[0]) : null;
             $nisn = !empty($row[1]) ? trim((string)$row[1]) : null;
             $nik = !empty($row[2]) ? trim((string)$row[2]) : null;
@@ -894,7 +999,7 @@ class StudentController extends Controller
             $parentPhone = !empty($row[19]) ? trim((string)$row[19]) : ($fatherPhone ?: $motherPhone);
             $address = !empty($row[20]) ? trim((string)$row[20]) : null;
             $city = !empty($row[21]) ? trim((string)$row[21]) : 'Malang';
-            $pinAccess = !empty($row[22]) ? trim((string)$row[22]) : null;
+            $pinAccess = !empty($row[22]) ? trim((string)$row[22]) : '1234';
             $statusRaw = !empty($row[23]) ? strtolower(trim((string)$row[23])) : 'aktif';
 
             // Parse Gender
@@ -989,17 +1094,12 @@ class StudentController extends Controller
                 }
             }
 
-            // Generate fallback NIS if empty
-            if (empty($nis)) {
-                $yearPrefix = date('y');
-                $lastStudent = Student::orderBy('id', 'desc')->first();
-                $seq = $lastStudent ? ($lastStudent->id + 1) : 1;
-                $nis = sprintf('%s%04d', $yearPrefix, $seq);
+            // Find existing student by NIS (if provided) or exact Name + Birth Date
+            $student = null;
+            if (!empty($nis)) {
+                $student = Student::where('nis', $nis)->first();
             }
-
-            // Find existing student by NIS or exact Name + Birth Date
-            $student = Student::where('nis', $nis)->first();
-            if (!$student && $birthDate) {
+            if (!$student && $birthDate && $fullName) {
                 $student = Student::where('full_name', $fullName)->where('birth_date', $birthDate)->first();
             }
 
@@ -1029,7 +1129,7 @@ class StudentController extends Controller
                 'address' => $address,
                 'city' => $city,
                 'pin_access' => $pinAccess,
-                'status' => $status,
+                'status' => $statusRaw,
                 'enrolled_date' => now()->toDateString(),
             ];
 

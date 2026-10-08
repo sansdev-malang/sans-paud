@@ -88,7 +88,13 @@ class SpmbCandidate extends Model
         'father_income',
         'mother_income',
         'formatted_payments',
+        'fee_categories',
+        'payment_summary',
+        'referral',
+        'has_payment_access',
         'category',
+        'jenjang_code',
+        'jenjang_name',
         'services_list',
     ];
 
@@ -257,15 +263,83 @@ class SpmbCandidate extends Model
     }
 
     /**
-     * Kategori Murid (Reguler / MBK)
+     * Kategori Murid (Reguler / MBK / etc)
      */
     public function getCategoryAttribute(): string
     {
-        $prog = strtolower($this->class_program ?? ($this->raw_payload['class_program'] ?? ''));
-        if (str_contains($prog, 'mbk') || str_contains($prog, 'kebutuhan khusus')) {
-            return 'MBK';
+        return $this->class_program ?: 'Reguler';
+    }
+
+    /**
+     * Kode Jenjang Singkat Utama (KB, TK, TPA, TPQ)
+     */
+    public function getJenjangCodeAttribute(): string
+    {
+        if (!empty($this->raw_payload['jenjang_code'])) {
+            return strtoupper($this->raw_payload['jenjang_code']);
         }
-        return 'Reguler';
+        if (!empty($this->raw_payload['jenjang']['code'])) {
+            return strtoupper($this->raw_payload['jenjang']['code']);
+        }
+
+        $lvl = strtoupper(trim($this->admission_level ?? ''));
+        if (str_starts_with($lvl, 'KB')) return 'KB';
+        if (str_starts_with($lvl, 'TK')) return 'TK';
+        if (str_starts_with($lvl, 'TPA') || str_starts_with($lvl, 'DAYCARE')) return 'TPA';
+        if (str_starts_with($lvl, 'TPQ')) return 'TPQ';
+        return 'TK';
+    }
+
+    /**
+     * Nama Lengkap Jenjang Utama (Playgroup (KB), Taman Kanak-kanak (TK), Daycare (TPA), TPQ)
+     */
+    public function getJenjangNameAttribute(): string
+    {
+        if (!empty($this->raw_payload['jenjang']['name'])) {
+            return $this->raw_payload['jenjang']['name'];
+        }
+        $code = $this->jenjang_code;
+        return match($code) {
+            'KB' => 'Playgroup (KB)',
+            'TK' => 'Taman Kanak-kanak (TK)',
+            'TPA' => 'Daycare (TPA)',
+            'TPQ' => 'TPQ',
+            default => $code ?: 'PAUD',
+        };
+    }
+
+    /**
+     * Seluruh Kode Jenjang yang didaftarkan murid (Kelas Utama + Layanan Tambahan)
+     */
+    public function getAllJenjangCodesAttribute(): array
+    {
+        $codes = [];
+        $primary = $this->jenjang_code;
+        if ($primary) {
+            $codes[] = $primary;
+        }
+
+        if (!empty($this->raw_payload['all_jenjang_codes']) && is_array($this->raw_payload['all_jenjang_codes'])) {
+            $codes = array_merge($codes, $this->raw_payload['all_jenjang_codes']);
+        }
+
+        foreach ($this->services_list as $srv) {
+            $srvUpper = strtoupper($srv);
+            if (str_contains($srvUpper, 'TPA') || str_contains($srvUpper, 'PENITIPAN') || str_contains($srvUpper, 'DAYCARE')) {
+                $codes[] = 'TPA';
+            }
+            if (str_contains($srvUpper, 'TPQ') || str_contains($srvUpper, 'QURAN') || str_contains($srvUpper, 'MENGAJI')) {
+                $codes[] = 'TPQ';
+            }
+            if (str_contains($srvUpper, 'KB') || str_contains($srvUpper, 'PLAYGROUP')) {
+                $codes[] = 'KB';
+            }
+            if (str_contains($srvUpper, 'TK') || str_contains($srvUpper, 'KANAK')) {
+                $codes[] = 'TK';
+            }
+        }
+
+        return array_values(array_unique(array_filter($codes)));
     }
 
     /**
@@ -274,7 +348,9 @@ class SpmbCandidate extends Model
     public function getServicesListAttribute(): array
     {
         if (is_array($this->extra_services) && !empty($this->extra_services)) {
-            return $this->extra_services;
+            return array_map(function($s) {
+                return is_array($s) ? ($s['name'] ?? 'Layanan') : (string)$s;
+            }, $this->extra_services);
         }
 
         $rawServices = $this->raw_payload['extra_services'] 
@@ -321,6 +397,40 @@ class SpmbCandidate extends Model
         }
 
         return $list;
+    }
+
+    /**
+     * Rincian Kategori Biaya Lengkap dari SPMB
+     */
+    public function getFeeCategoriesAttribute(): array
+    {
+        return $this->raw_payload['fee_categories'] ?? [];
+    }
+
+    /**
+     * Ringkasan Tagihan Pembayaran dari SPMB
+     */
+    public function getPaymentSummaryAttribute(): ?array
+    {
+        return $this->raw_payload['payment_summary'] ?? null;
+    }
+
+    /**
+     * Saluran Informasi & Referral dari SPMB
+     */
+    public function getReferralAttribute(): ?array
+    {
+        return $this->raw_payload['referral'] ?? null;
+    }
+
+    /**
+     * Cek apakah data keuangan / pembayaran diizinkan dan tersedia
+     */
+    public function getHasPaymentAccessAttribute(): bool
+    {
+        return !empty($this->payment_status)
+            || (!empty($this->payments) && is_array($this->payments) && count($this->payments) > 0)
+            || (!empty($this->raw_payload['fee_categories']) && is_array($this->raw_payload['fee_categories']) && count($this->raw_payload['fee_categories']) > 0);
     }
 
     /**
@@ -396,27 +506,30 @@ class SpmbCandidate extends Model
         $regType = $payload['registration_type'] 
             ?? ($payload['entry_type'] 
             ?? ($payload['admission_type'] 
-            ?? ($payload['type'] ?? 'Murid Baru')));
+            ?? ($payload['type']['name'] ?? ($payload['type'] ?? 'Murid Baru'))));
+        if (is_array($regType)) {
+            $regType = $regType['name'] ?? 'Murid Baru';
+        }
 
         $admLevel = $payload['admission_level'] 
             ?? ($payload['target_class'] 
-            ?? ($payload['grade'] 
-            ?? ($payload['class_level'] ?? null)));
-
-        if (!$admLevel) {
-            $prog = strtolower($payload['class_program'] ?? '');
-            if (str_contains($prog, 'tk-a') || str_contains($prog, 'tk a')) {
-                $admLevel = 'TK A';
-            } elseif (str_contains($prog, 'tk-b') || str_contains($prog, 'tk b')) {
-                $admLevel = 'TK B';
-            } elseif (str_contains($prog, 'kb') || str_contains($prog, 'bermain')) {
-                $admLevel = 'Kelompok Bermain (KB)';
-            } elseif (str_contains($prog, 'daycare') || str_contains($prog, 'tpa')) {
-                $admLevel = 'Daycare / TPA';
-            } else {
-                $admLevel = 'TK A';
-            }
+            ?? ($payload['grade']['name'] ?? ($payload['grade'] ?? ($payload['class_level'] ?? null))));
+        if (is_array($admLevel)) {
+            $admLevel = $admLevel['name'] ?? null;
         }
+
+        $wave = $payload['wave'] ?? null;
+        if (is_array($wave)) {
+            $wave = $wave['name'] ?? null;
+        }
+
+        $classProgram = $payload['class_program'] ?? ($payload['category'] ?? 'Reguler');
+        if (is_array($classProgram)) {
+            $classProgram = $classProgram['name'] ?? 'Reguler';
+        }
+
+        $unitCode = $payload['unit']['code'] ?? ($payload['unit_code'] ?? 'PAUD');
+        $unitName = $payload['unit']['name'] ?? ($payload['unit_name'] ?? 'PAUD Terpadu Anak Saleh');
 
         $services = $payload['extra_services'] 
             ?? ($payload['services'] 
@@ -427,10 +540,10 @@ class SpmbCandidate extends Model
             [
                 'spmb_registration_id' => $payload['id'] ?? null,
                 'academic_year' => $payload['period'] ?? null,
-                'unit_code' => $payload['unit']['code'] ?? 'PAUD',
-                'unit_name' => $payload['unit']['name'] ?? 'PAUD Terpadu Anak Saleh',
-                'wave' => $payload['wave'] ?? null,
-                'class_program' => $payload['class_program'] ?? 'Reguler',
+                'unit_code' => $unitCode,
+                'unit_name' => $unitName,
+                'wave' => $wave,
+                'class_program' => $classProgram,
                 'registration_type' => $regType ?: 'Murid Baru',
                 'admission_level' => $admLevel,
                 'extra_services' => $services,
@@ -457,7 +570,7 @@ class SpmbCandidate extends Model
                 'parent_phone' => $parentPhone,
                 'parent_email' => $contact['email'] ?? null,
                 'registration_status' => $payload['registration_status'] ?? 'verified',
-                'payment_status' => $payload['payment_status'] ?? 'unpaid',
+                'payment_status' => $payload['payment_status'] ?? null,
                 'verified_at' => $verifiedAt,
                 'student_photo_url' => $studentPhotoUrl,
                 'documents' => $documents,

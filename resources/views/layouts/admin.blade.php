@@ -38,7 +38,7 @@
                     'announcements.index' => 'Pengumuman',
                     'zkteco-devices.index' => 'Mesin Absensi',
                     'students.index' => 'Data Siswa',
-                    'classrooms.index' => 'Rombongan Belajar',
+                    'classrooms.index' => 'Kelompok Belajar',
                     'spmb.candidates.index' => 'SPMB',
                     'rekap-rapor.index' => 'Data Rapor',
                 ];
@@ -814,7 +814,15 @@
                     if (isDownload) {
                         const token = 'dt_' + Date.now();
                         
-                        window.showToastNotification('Menyiapkan file ekspor... Berkas Anda akan terunduh sebentar lagi.', 'info', token);
+                        // Apply disabled / loading visual effect on clicked link and its container button
+                        link.classList.add('pointer-events-none', 'opacity-50', 'cursor-not-allowed');
+                        const parentDropdown = link.closest('.relative, [x-data]');
+                        const parentBtn = parentDropdown ? parentDropdown.querySelector('button') : null;
+                        if (parentBtn) {
+                            parentBtn.classList.add('pointer-events-none', 'opacity-60', 'cursor-not-allowed');
+                        }
+
+                        window.showToastNotification('Menyiapkan berkas unduhan... File akan segera diunduh.', 'info', token);
                         if (typeof NProgress !== 'undefined') {
                             NProgress.start();
                         }
@@ -823,27 +831,42 @@
                         url.searchParams.set('download_token', token);
                         
                         e.preventDefault();
-                        window.location.href = url.toString();
-                        
-                        const intervalId = setInterval(function () {
-                            const cookieVal = getCookie('download_token');
-                            if (cookieVal === token) {
-                                window.dispatchEvent(new CustomEvent('toast-dismiss-dispatch', { detail: { token } }));
-                                if (typeof NProgress !== 'undefined') {
-                                    NProgress.done();
-                                }
-                                deleteCookie('download_token');
-                                clearInterval(intervalId);
+
+                        // Hidden iframe to trigger file download without stopping page runtime
+                        const downloadFrame = document.createElement('iframe');
+                        downloadFrame.style.display = 'none';
+                        downloadFrame.src = url.toString();
+                        document.body.appendChild(downloadFrame);
+
+                        const finishDownload = function () {
+                            link.classList.remove('pointer-events-none', 'opacity-50', 'cursor-not-allowed');
+                            if (parentBtn) {
+                                parentBtn.classList.remove('pointer-events-none', 'opacity-60', 'cursor-not-allowed');
                             }
-                        }, 150);
-                        
-                        setTimeout(function () {
-                            clearInterval(intervalId);
                             window.dispatchEvent(new CustomEvent('toast-dismiss-dispatch', { detail: { token } }));
                             if (typeof NProgress !== 'undefined') {
                                 NProgress.done();
                             }
-                        }, 25000);
+                            deleteCookie('download_token');
+                            setTimeout(function () {
+                                if (downloadFrame && downloadFrame.parentNode) {
+                                    downloadFrame.remove();
+                                }
+                            }, 2000);
+                        };
+                        
+                        const intervalId = setInterval(function () {
+                            const cookieVal = getCookie('download_token');
+                            if (cookieVal === token) {
+                                clearInterval(intervalId);
+                                finishDownload();
+                            }
+                        }, 100);
+                        
+                        setTimeout(function () {
+                            clearInterval(intervalId);
+                            finishDownload();
+                        }, 10000);
                         
                         return;
                     }

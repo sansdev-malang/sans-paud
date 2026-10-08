@@ -18,22 +18,19 @@ class ClassroomController extends Controller
      */
     public function index(Request $request)
     {
-        $selectedYearId = $request->get('academic_year_id');
-        $selectedJenjangId = $request->get('jenjang_id', 'all');
+        $academicYears = AcademicYear::orderBy('name', 'desc')->get();
+        $activeAcademicYear = $academicYears->firstWhere('is_active', true) ?? $academicYears->first();
+        
+        $selectedYearId = $request->get('academic_year_id', $activeAcademicYear?->id);
+        if (!$selectedYearId || $selectedYearId === 'all') {
+            $selectedYearId = $activeAcademicYear?->id;
+        }
+        $selectedJenjangId = $request->get('jenjang_id');
 
         $query = Classroom::with(['jenjang', 'classLevel.jenjang', 'academicYear', 'homeroomTeacher']);
 
-        if ($selectedYearId && $selectedYearId !== 'all') {
+        if ($selectedYearId) {
             $query->where('academic_year_id', $selectedYearId);
-        }
-
-        if ($selectedJenjangId && $selectedJenjangId !== 'all') {
-            $query->where(function ($q) use ($selectedJenjangId) {
-                $q->where('jenjang_id', $selectedJenjangId)
-                  ->orWhereHas('classLevel', function ($lq) use ($selectedJenjangId) {
-                      $lq->where('jenjang_id', $selectedJenjangId);
-                  });
-            });
         }
 
         if ($classLevelId = $request->get('class_level_id')) {
@@ -100,7 +97,6 @@ class ClassroomController extends Controller
 
         $jenjangs = Jenjang::orderBy('order', 'asc')->get();
         $classLevels = ClassLevel::with('jenjang')->orderBy('order')->get();
-        $academicYears = AcademicYear::orderBy('name', 'desc')->get();
         $teachers = Employee::whereIn('status', ['Active', 'aktif', 'active', 'Aktif'])->orderBy('name')->get();
 
         return view('admin.classrooms.index', compact(
@@ -163,7 +159,7 @@ class ClassroomController extends Controller
             'code' => 'nullable|string|max:50',
             'jenjang_id' => 'nullable|exists:jenjangs,id',
             'class_level_id' => 'required|exists:class_levels,id',
-            'academic_year_id' => 'nullable|exists:academic_years,id',
+            'academic_year_id' => 'required|exists:academic_years,id',
             'capacity' => 'required|integer|min:1|max:100',
             'is_active' => 'nullable|boolean',
             'description' => 'nullable|string',
@@ -175,11 +171,6 @@ class ClassroomController extends Controller
                 $validated['jenjang_id'] = $level->jenjang_id;
             }
             $validated['sub_unit'] = $level->jenjang?->code ?? $level->sub_unit;
-        }
-
-        if (empty($validated['academic_year_id'])) {
-            $activeYear = AcademicYear::where('is_active', true)->first();
-            $validated['academic_year_id'] = $activeYear?->id;
         }
 
         $validated['is_active'] = $request->has('is_active') ? $request->boolean('is_active') : true;
@@ -205,7 +196,7 @@ class ClassroomController extends Controller
             'code' => 'nullable|string|max:50',
             'jenjang_id' => 'nullable|exists:jenjangs,id',
             'class_level_id' => 'required|exists:class_levels,id',
-            'academic_year_id' => 'nullable|exists:academic_years,id',
+            'academic_year_id' => 'required|exists:academic_years,id',
             'capacity' => 'required|integer|min:1|max:100',
             'is_active' => 'nullable|boolean',
             'description' => 'nullable|string',

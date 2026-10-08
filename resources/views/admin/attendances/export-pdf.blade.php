@@ -89,9 +89,9 @@
                     <td>{{ $index + 1 }}</td>
                     <td class="text-left">
                         <div class="font-bold">{{ $report['employee']['name'] }}</div>
-                        <div style="font-size: 6px; color: #666;">{{ $report['employee']['nuptk'] ?? '-' }}</div>
+                        <div style="font-size: 6px; color: #666;">{{ $report['employee']['nuptk'] ?? ($report['employee']['nuptk_nip_nik'] ?? ($report['employee']['nip'] ?? '-')) }}</div>
                     </td>
-                    <td>{{ $report['employee']['unit']['name'] ?? ($report['employee']['unit_name'] ?? '-') }}</td>
+                    <td>{{ $report['employee']['unit']['name'] ?? ($report['employee']['unit_name'] ?? strtoupper($schoolUnit ?? 'PAUD')) }}</td>
                     
                     @foreach($dates as $date)
                         @php

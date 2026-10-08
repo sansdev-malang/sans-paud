@@ -196,9 +196,14 @@ class SpmbIntegrationService
             }
             $prunedCount = $pruneQuery->delete();
 
-            $msg = "Berhasil menyinkronkan {$syncedCount} calon murid dari SPMB.";
+            $periodLabel = $period && $period !== 'all' ? " TA " . str_replace('-', '/', $period) : "";
+            if ($syncedCount > 0) {
+                $msg = "Berhasil menarik {$syncedCount} data calon murid (Tahap Administrasi / Lunas) dari SPMB{$periodLabel}.";
+            } else {
+                $msg = "Sinkronisasi selesai. Belum ada calon murid baru pada tahap Administrasi / Lunas di SPMB{$periodLabel}.";
+            }
             if ($prunedCount > 0) {
-                $msg .= " ({$prunedCount} data lama yang tidak lagi masuk izin SPMB telah dibersihkan).";
+                $msg .= " ({$prunedCount} data yang tidak lagi memenuhi kriteria telah dibersihkan).";
             }
 
             return [
@@ -261,7 +266,7 @@ class SpmbIntegrationService
         }
 
         // Candidate events
-        if (in_array($event, ['candidate.verified', 'candidate.accepted', 'candidate.created', 'payment.success'])) {
+        if (in_array($event, ['candidate.agreement_signed', 'candidate.verified', 'candidate.accepted', 'candidate.created', 'payment.tuition_paid', 'payment.success', 'registration.completed'])) {
             $candidateData = $payload['data'] ?? $payload;
             $candidate = SpmbCandidate::syncFromPayload($candidateData);
             return [
@@ -276,6 +281,60 @@ class SpmbIntegrationService
         return [
             'status' => 'ignored',
             'message' => "Event {$event} tidak membutuhkan pemrosesan khusus.",
+        ];
+    }
+
+    /**
+     * Get dynamic master filter options from SPMB API with fallback.
+     */
+    public function getFilterOptions(): array
+    {
+        $baseUrl = self::getBaseUrl();
+        $token = self::getApiToken();
+
+        if (!empty($baseUrl) && !empty($token)) {
+            try {
+                $response = Http::withToken($token)
+                    ->timeout(4)
+                    ->acceptJson()
+                    ->get("{$baseUrl}/api/v1/options");
+
+                if ($response->successful()) {
+                    $data = $response->json('data');
+                    if (!empty($data) && is_array($data)) {
+                        return $data;
+                    }
+                }
+            } catch (\Throwable $e) {
+                // Ignore and use master fallback
+            }
+        }
+
+        // Fallback default master for PAUD (Relasi Unit PAUD -> Jenjang -> Kelas)
+        return [
+            'periods' => ['2027/2028', '2026/2027', '2028/2029', '2029/2030'],
+            'registration_types' => ['Murid Baru', 'Mutasi Masuk / Pindahan'],
+            'waves' => ['Indent', 'Gelombang 1', 'Gelombang 2'],
+            'categories' => ['Reguler', 'Murid Berkebutuhan Khusus (MBK)'],
+            'jenjangs' => [
+                ['code' => 'KB', 'name' => 'Playgroup (KB)'],
+                ['code' => 'TK', 'name' => 'Taman Kanak-kanak (TK)'],
+                ['code' => 'TPA', 'name' => 'Daycare (TPA)'],
+                ['code' => 'TPQ', 'name' => 'TPQ'],
+            ],
+            'grades' => [
+                ['name' => 'KB A', 'jenjang_code' => 'KB'],
+                ['name' => 'KB B', 'jenjang_code' => 'KB'],
+                ['name' => 'TK A', 'jenjang_code' => 'TK'],
+                ['name' => 'TK B', 'jenjang_code' => 'TK'],
+                ['name' => 'TPA 1 (Umum)', 'jenjang_code' => 'TPA'],
+                ['name' => 'TPA 1 (Anak Gukar YPAS)', 'jenjang_code' => 'TPA'],
+                ['name' => 'TPA 2 (Mulai Usia 2 Tahun)', 'jenjang_code' => 'TPA'],
+                ['name' => 'TPA 2 (Mulai Usia 3 Tahun)', 'jenjang_code' => 'TPA'],
+                ['name' => 'TPA 3 (Mulai Usia 4 Tahun)', 'jenjang_code' => 'TPA'],
+                ['name' => 'TPA 3 (Mulai Usia 5 Tahun)', 'jenjang_code' => 'TPA'],
+                ['name' => 'TPQ', 'jenjang_code' => 'TPQ'],
+            ],
         ];
     }
 }
