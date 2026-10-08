@@ -43,90 +43,68 @@
         </section>
 
         <!-- STATS KPI CARDS -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
             <!-- Card 1: Total Murid Aktif -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Murid Aktif</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
-                            {{ number_format($stats['total_active']) }} <span class="text-xs font-normal text-slate-500">anak</span>
-                        </h3>
-                    </div>
-                    <div class="p-2.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-xl border border-indigo-100 dark:border-indigo-900/50">
-                        <i data-lucide="users" class="w-5 h-5"></i>
-                    </div>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-100 dark:border-indigo-900/40">
+                    <i data-lucide="users" class="w-5 h-5"></i>
                 </div>
-                <div class="mt-3 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800/80 pt-2.5">
-                    <span class="text-blue-600 dark:text-blue-400 font-semibold">👦 Putra: {{ $stats['male'] }}</span>
-                    <span class="text-slate-300 dark:text-slate-700">&bull;</span>
-                    <span class="text-rose-600 dark:text-rose-400 font-semibold">👧 Putri: {{ $stats['female'] }}</span>
+                <div class="min-w-0">
+                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Total Murid Aktif</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <h3 class="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 font-mono">
+                            {{ number_format($stats['total_active']) }}
+                        </h3>
+                        <span class="text-[10px] text-slate-400 font-medium truncate">👦 {{ $stats['male'] }} &bull; 👧 {{ $stats['female'] }}</span>
+                    </div>
                 </div>
             </div>
 
             <!-- Card 2: Kapasitas & Keterisian -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Keterisian Daya Tampung</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/40">
+                    <i data-lucide="gauge" class="w-5 h-5"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Keterisian Kapasitas</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <h3 class="text-xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400 font-mono">
                             {{ $stats['occupancy_pct'] }}%
                         </h3>
-                    </div>
-                    <div class="p-2.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-100 dark:border-emerald-900/50">
-                        <i data-lucide="gauge" class="w-5 h-5"></i>
-                    </div>
-                </div>
-                <div class="mt-3">
-                    <div class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                        <div class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: {{ min(100, $stats['occupancy_pct']) }}%"></div>
-                    </div>
-                    <div class="flex justify-between items-center text-[10px] text-slate-500 dark:text-slate-400 mt-1">
-                        <span>Terisi: {{ $stats['total_active'] }}</span>
-                        <span>Kapasitas: {{ $stats['total_capacity'] }}</span>
+                        <span class="text-[10px] text-slate-400 font-medium truncate">{{ $stats['total_active'] }} / {{ $stats['total_capacity'] }} kursi</span>
                     </div>
                 </div>
             </div>
 
             <!-- Card 3: Total Kelompok (Rombel) -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Kelompok Belajar</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
-                            {{ $stats['total_classrooms'] }} <span class="text-xs font-normal text-slate-500">kelompok</span>
-                        </h3>
-                    </div>
-                    <div class="p-2.5 bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 rounded-xl border border-purple-100 dark:border-purple-900/50">
-                        <i data-lucide="shapes" class="w-5 h-5"></i>
-                    </div>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 border border-purple-100 dark:border-purple-900/40">
+                    <i data-lucide="shapes" class="w-5 h-5"></i>
                 </div>
-                <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                    <span class="font-semibold text-amber-600">PG: {{ count($groupedBySubUnit['PG']) }}</span> &bull;
-                    <span class="font-semibold text-indigo-600">TK: {{ count($groupedBySubUnit['TK']) }}</span> &bull;
-                    <span class="font-semibold text-purple-600">Daycare: {{ count($groupedBySubUnit['DAYCARE']) }}</span>
+                <div class="min-w-0">
+                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Total Kelompok Belajar</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <h3 class="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 font-mono">
+                            {{ $stats['total_classrooms'] }}
+                        </h3>
+                        <span class="text-[10px] text-slate-400 font-medium truncate">PG: {{ count($groupedBySubUnit['PG'] ?? []) }} &bull; TK: {{ count($groupedBySubUnit['TK'] ?? []) }}</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Card 4: Distribusi Murid per Sub-Unit -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Layanan Terintegrasi</p>
-                        <div class="flex items-center gap-2 mt-1">
-                            <span class="text-xs font-bold text-amber-600">PG: {{ $stats['pg'] }}</span>
-                            <span class="text-slate-300">&bull;</span>
-                            <span class="text-xs font-bold text-indigo-600">TK: {{ $stats['tk'] }}</span>
-                            <span class="text-slate-300">&bull;</span>
-                            <span class="text-xs font-bold text-purple-600">Daycare: {{ $stats['daycare'] }}</span>
-                        </div>
-                    </div>
-                    <div class="p-2.5 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 rounded-xl border border-amber-100 dark:border-amber-900/50">
-                        <i data-lucide="sparkles" class="w-5 h-5"></i>
-                    </div>
+            <!-- Card 4: Layanan Terintegrasi -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-100 dark:border-amber-900/40">
+                    <i data-lucide="sparkles" class="w-5 h-5"></i>
                 </div>
-                <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
-                    Santri TPQ aktif: <span class="font-bold text-emerald-600">{{ $stats['tpq'] }} anak</span>
+                <div class="min-w-0">
+                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Layanan Khusus</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <h3 class="text-xl font-bold tracking-tight text-amber-600 dark:text-amber-400 font-mono">
+                            {{ $stats['daycare'] }} <span class="text-xs font-normal text-slate-400">DC</span>
+                        </h3>
+                        <span class="text-[10px] text-slate-400 font-medium truncate">&bull; TPQ: {{ $stats['tpq'] }} anak</span>
+                    </div>
                 </div>
             </div>
         </section>

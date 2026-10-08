@@ -24,41 +24,50 @@
         <!-- COMPACT KPI STATS (MINIMALIS & LANGSUNG FOKUS KE TABEL) -->
         <section class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
             <!-- Stat 1: Total Penugasan -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 shadow-xs flex items-center justify-between">
-                <div>
-                    <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Penugasan</p>
-                    <p class="text-sm sm:text-base font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-0.5">
-                        {{ number_format($stats['total_assignments'] ?? $assignments->total()) }} <span class="text-[11px] font-normal text-slate-400">Wali Kelas</span>
-                    </p>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-100 dark:border-indigo-900/40">
+                    <i data-lucide="user-check" class="w-5 h-5"></i>
                 </div>
-                <div class="p-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-lg shrink-0">
-                    <i data-lucide="user-check" class="w-4 h-4"></i>
+                <div class="min-w-0">
+                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Total Penugasan</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <h3 class="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 font-mono">
+                            {{ number_format($stats['total_assignments'] ?? $assignments->total()) }}
+                        </h3>
+                        <span class="text-[10px] text-slate-400 font-medium truncate">Wali Kelas</span>
+                    </div>
                 </div>
             </div>
 
             <!-- Stat 2: Total Rombel Terisi -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 shadow-xs flex items-center justify-between">
-                <div>
-                    <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Rombel Terisi</p>
-                    <p class="text-sm sm:text-base font-bold tracking-tight text-emerald-600 dark:text-emerald-400 mt-0.5">
-                        {{ number_format($stats['assigned_classrooms'] ?? 0) }} <span class="text-[11px] font-normal text-slate-400">/ {{ number_format($stats['total_classrooms'] ?? $classrooms->count()) }} Kelompok</span>
-                    </p>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/40">
+                    <i data-lucide="shapes" class="w-5 h-5"></i>
                 </div>
-                <div class="p-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-lg shrink-0">
-                    <i data-lucide="shapes" class="w-4 h-4"></i>
+                <div class="min-w-0">
+                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Rombel Terisi</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <h3 class="text-xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400 font-mono">
+                            {{ number_format($stats['assigned_classrooms'] ?? 0) }}
+                        </h3>
+                        <span class="text-[10px] text-slate-400 font-medium truncate">/ {{ number_format($stats['total_classrooms'] ?? $classrooms->count()) }} Kelompok</span>
+                    </div>
                 </div>
             </div>
 
             <!-- Stat 3: Guru Siap Ditugaskan -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 shadow-xs flex items-center justify-between">
-                <div>
-                    <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Guru Tersedia</p>
-                    <p class="text-sm sm:text-base font-bold tracking-tight text-amber-600 dark:text-amber-400 mt-0.5">
-                        {{ number_format($stats['total_teachers'] ?? $teachers->count()) }} <span class="text-[11px] font-normal text-slate-400">Pendidik</span>
-                    </p>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-100 dark:border-amber-900/40">
+                    <i data-lucide="graduation-cap" class="w-5 h-5"></i>
                 </div>
-                <div class="p-2 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 rounded-lg shrink-0">
-                    <i data-lucide="graduation-cap" class="w-4 h-4"></i>
+                <div class="min-w-0">
+                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Guru Tersedia</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <h3 class="text-xl font-bold tracking-tight text-amber-600 dark:text-amber-400 font-mono">
+                            {{ number_format($stats['total_teachers'] ?? $teachers->count()) }}
+                        </h3>
+                        <span class="text-[10px] text-slate-400 font-medium truncate">Pendidik</span>
+                    </div>
                 </div>
             </div>
         </section>

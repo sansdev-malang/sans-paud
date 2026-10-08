@@ -100,35 +100,52 @@
         </section>
 
         <!-- STATS CARDS -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full text-left">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-3.5 w-full text-left">
             <!-- Total Perangkat -->
-            <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm flex items-center gap-4">
-                <div class="p-3 bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 rounded-lg">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
                     <i data-lucide="cpu" class="w-5 h-5"></i>
                 </div>
-                <div>
-                    <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">Total Mesin</p>
-                    <p class="text-xl font-bold text-slate-900 dark:text-slate-50">{{ $devices->count() }}</p>
+                <div class="min-w-0">
+                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Total Mesin</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <h3 class="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 font-mono">
+                            {{ $devices->count() }}
+                        </h3>
+                        <span class="text-[10px] text-slate-400 font-medium truncate">Perangkat</span>
+                    </div>
                 </div>
             </div>
+
             <!-- Online -->
-            <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm flex items-center gap-4">
-                <div class="p-3 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/40">
                     <i data-lucide="wifi" class="w-5 h-5"></i>
                 </div>
-                <div>
-                    <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">Status Terkoneksi</p>
-                    <p class="text-xl font-bold text-slate-900 dark:text-slate-50 text-emerald-600 dark:text-emerald-400">{{ $devices->where('is_online', true)->count() }}</p>
+                <div class="min-w-0">
+                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Terkoneksi</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <h3 class="text-xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400 font-mono">
+                            {{ $devices->where('is_online', true)->count() }}
+                        </h3>
+                        <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold truncate">Online</span>
+                    </div>
                 </div>
             </div>
+
             <!-- Offline -->
-            <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm flex items-center gap-4">
-                <div class="p-3 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 border border-rose-100 dark:border-rose-900/40">
                     <i data-lucide="wifi-off" class="w-5 h-5"></i>
                 </div>
-                <div>
-                    <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">Terputus</p>
-                    <p class="text-xl font-bold text-slate-900 dark:text-slate-50 text-rose-600 dark:text-rose-400">{{ $devices->where('is_online', false)->count() }}</p>
+                <div class="min-w-0">
+                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Terputus</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <h3 class="text-xl font-bold tracking-tight text-rose-600 dark:text-rose-400 font-mono">
+                            {{ $devices->where('is_online', false)->count() }}
+                        </h3>
+                        <span class="text-[10px] text-rose-500 font-medium truncate">Offline</span>
+                    </div>
                 </div>
             </div>
         </div>

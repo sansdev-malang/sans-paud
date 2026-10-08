@@ -22,73 +22,73 @@
         </section>
 
         <!-- STATS CARDS GRID -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
             <!-- Stat 1: Total Kelas -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Kelas</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">{{ number_format($stats['total_levels']) }}</h3>
-                    </div>
-                    <div class="p-2.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-xl border border-indigo-100 dark:border-indigo-900/50">
-                        <i data-lucide="layers" class="w-5 h-5"></i>
-                    </div>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-100 dark:border-indigo-900/40">
+                    <i data-lucide="layers" class="w-5 h-5"></i>
                 </div>
-                <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
-                    Kelas di seluruh jenjang
+                <div class="min-w-0">
+                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Total Kelas</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <h3 class="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 font-mono">
+                            {{ number_format($stats['total_levels']) }}
+                        </h3>
+                        <span class="text-[10px] text-slate-400 font-medium truncate">Seluruh Jenjang</span>
+                    </div>
                 </div>
             </div>
 
             <!-- Stat 2: Total Kelompok / Rombel -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Rombel</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">{{ number_format($stats['total_classrooms']) }}</h3>
-                    </div>
-                    <div class="p-2.5 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-100 dark:border-blue-900/50">
-                        <i data-lucide="shapes" class="w-5 h-5"></i>
-                    </div>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 border border-blue-100 dark:border-blue-900/40">
+                    <i data-lucide="shapes" class="w-5 h-5"></i>
                 </div>
-                <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
-                    Rombel aktif terdaftar
+                <div class="min-w-0">
+                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Total Rombel</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <h3 class="text-xl font-bold tracking-tight text-blue-600 dark:text-blue-400 font-mono">
+                            {{ number_format($stats['total_classrooms']) }}
+                        </h3>
+                        <span class="text-[10px] text-slate-400 font-medium truncate">Kelompok Aktif</span>
+                    </div>
                 </div>
             </div>
 
             <!-- Stat 3: Total Kapasitas -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Daya Tampung</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">{{ number_format($stats['total_capacity']) }}</h3>
-                    </div>
-                    <div class="p-2.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-100 dark:border-emerald-900/50">
-                        <i data-lucide="door-open" class="w-5 h-5"></i>
-                    </div>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/40">
+                    <i data-lucide="door-open" class="w-5 h-5"></i>
                 </div>
-                <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
-                    Kapasitas daya tampung murid
+                <div class="min-w-0">
+                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Daya Tampung</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <h3 class="text-xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400 font-mono">
+                            {{ number_format($stats['total_capacity']) }}
+                        </h3>
+                        <span class="text-[10px] text-slate-400 font-medium truncate">Kapasitas Kuota</span>
+                    </div>
                 </div>
             </div>
 
             <!-- Stat 4: Total Murid Aktif -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Murid Aktif</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">{{ number_format($stats['total_students']) }}</h3>
-                    </div>
-                    <div class="p-2.5 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-xl border border-rose-100 dark:border-rose-900/50">
-                        <i data-lucide="users" class="w-5 h-5"></i>
-                    </div>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 border border-rose-100 dark:border-rose-900/40">
+                    <i data-lucide="users" class="w-5 h-5"></i>
                 </div>
-                <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
-                    Murid terdaftar di seluruh kelas
+                <div class="min-w-0">
+                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Murid Aktif</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <h3 class="text-xl font-bold tracking-tight text-rose-600 dark:text-rose-400 font-mono">
+                            {{ number_format($stats['total_students']) }}
+                        </h3>
+                        <span class="text-[10px] text-slate-400 font-medium truncate">Terdaftar</span>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- FILTER JENJANG TABS (DINAMIS DARI RELASI JENJANG - TANPA SEMUA JENJANG) -->
+        <!-- FILTER JENJANG TABS -->
         <div class="flex flex-wrap items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
             @foreach($jenjangs as $j)
                 <button type="button" @click="setJenjangTab({{ $j->id }})"
@@ -110,7 +110,7 @@
 
         <!-- TABLE DAFTAR KELAS -->
         <!-- Kolom: jenjang, kelas, status, aksi -->
-        <section class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden transition-all w-full">
+        <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden transition-all w-full">
             <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                 <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                     <i data-lucide="layers" class="w-4 h-4 text-indigo-600"></i>
@@ -121,7 +121,7 @@
                 <table class="w-full text-xs border-collapse">
                     <thead>
                         <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-900/50">
-                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-44">Jenjang</th>
+                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-56">Jenjang</th>
                             <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Kelas</th>
                             <th class="px-5 py-3.5 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-36">Status</th>
                             <th class="px-5 py-3.5 text-right text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28">Aksi</th>
@@ -133,19 +133,24 @@
                                 <!-- 1. Jenjang (Relasi dari Table Jenjang) -->
                                 <td class="px-5 py-3.5">
                                     @if($lvl->jenjang)
-                                        <span class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
-                                            {{ $lvl->jenjang->name }}
+                                        @php
+                                            $jCode = $lvl->jenjang->code;
+                                            $emoji = ($jCode === 'KB' || $jCode === 'PG') ? '🧸' : (($jCode === 'TK') ? '🎒' : (($jCode === 'DAYCARE' || $jCode === 'TPA') ? '👶' : (($jCode === 'TPQ') ? '📖' : '🎓')));
+                                        @endphp
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400 border border-indigo-200/80 dark:border-indigo-800/60 whitespace-nowrap">
+                                            <span>{{ $emoji }}</span>
+                                            <span>{{ $lvl->jenjang->name }}</span>
                                         </span>
                                     @else
-                                        <span class="text-slate-400 italic text-[11px]">-</span>
+                                        <span class="text-slate-400 italic text-xs">-</span>
                                     @endif
                                 </td>
 
                                 <!-- 2. Kelas -->
                                 <td class="px-5 py-3.5">
                                     <div class="flex items-center gap-2.5">
-                                        <div class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center font-bold text-xs shrink-0">
-                                            <i data-lucide="layers" class="w-4 h-4 text-indigo-600"></i>
+                                        <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0 border border-indigo-100 dark:border-indigo-900/40">
+                                            <i data-lucide="layers" class="w-4 h-4"></i>
                                         </div>
                                         <div>
                                             <span class="font-bold text-slate-900 dark:text-slate-100 text-xs">
@@ -153,6 +158,8 @@
                                             </span>
                                             @if($lvl->description)
                                                 <p class="text-[11px] text-slate-400 mt-0.5">{{ $lvl->description }}</p>
+                                            @elseif($lvl->code)
+                                                <p class="text-[10.5px] text-slate-400 font-mono mt-0.5">Kode: {{ $lvl->code }}</p>
                                             @endif
                                         </div>
                                     </div>
@@ -161,12 +168,12 @@
                                 <!-- 3. Status -->
                                 <td class="px-5 py-3.5 text-center">
                                     @if($lvl->is_active)
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800 shadow-2xs">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
                                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                                             Aktif
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
                                             <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
                                             Non-aktif
                                         </span>

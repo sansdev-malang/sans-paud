@@ -46,22 +46,20 @@
         </section>
 
         <!-- STAT CARDS GRID -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
             <!-- Total Logs -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Entri Log</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
+                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Total Entri</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <h3 class="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 font-mono">
                             {{ number_format($levelStats['total'], 0, ',', '.') }}
                         </h3>
+                        <span class="text-[10px] text-slate-400 font-medium truncate">{{ $selectedFile['size'] ?? '0 B' }}</span>
                     </div>
-                    <div class="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-400">
-                        <i data-lucide="file-text" class="w-5 h-5"></i>
-                    </div>
-                </div>
-                <div class="mt-3 text-xs text-slate-500 dark:text-slate-400">
-                    Ukuran Berkas: <span class="font-bold text-slate-700 dark:text-slate-300">{{ $selectedFile['size'] ?? '0 B' }}</span>
                 </div>
             </div>
 
@@ -69,42 +67,34 @@
             @php
                 $errorCount = $levelStats['error'] + $levelStats['critical'] + $levelStats['emergency'] + $levelStats['alert'];
             @endphp
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-xs font-semibold text-rose-600 dark:text-rose-400 uppercase tracking-wider">Error &amp; Kritis</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-rose-600 dark:text-rose-400 mt-1">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 border border-rose-100 dark:border-rose-900/40">
+                    <i data-lucide="alert-octagon" class="w-5 h-5"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[10.5px] font-semibold text-rose-600 dark:text-rose-400 uppercase tracking-wider truncate">Error &amp; Kritis</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <h3 class="text-xl font-bold tracking-tight text-rose-600 dark:text-rose-400 font-mono">
                             {{ number_format($errorCount, 0, ',', '.') }}
                         </h3>
+                        <span class="text-[10px] text-slate-400 font-medium truncate">{{ $errorCount > 0 ? 'Perlu dicek' : 'Aman' }}</span>
                     </div>
-                    <div class="p-2.5 bg-rose-50 dark:bg-rose-950/40 rounded-lg text-rose-600 dark:text-rose-400">
-                        <i data-lucide="alert-octagon" class="w-5 h-5"></i>
-                    </div>
-                </div>
-                <div class="mt-3 text-xs text-slate-500 dark:text-slate-400">
-                    @if($errorCount > 0)
-                        <span class="text-rose-600 dark:text-rose-400 font-bold">Perlu perhatian</span> segera
-                    @else
-                        <span class="text-emerald-600 dark:text-emerald-400 font-bold">Tidak ada error</span> kritis
-                    @endif
                 </div>
             </div>
 
             <!-- Warnings -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Peringatan (Warning)</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-amber-600 dark:text-amber-400 mt-1">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-100 dark:border-amber-900/40">
+                    <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[10.5px] font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider truncate">Peringatan</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <h3 class="text-xl font-bold tracking-tight text-amber-600 dark:text-amber-400 font-mono">
                             {{ number_format($levelStats['warning'], 0, ',', '.') }}
                         </h3>
+                        <span class="text-[10px] text-slate-400 font-medium truncate">Warning</span>
                     </div>
-                    <div class="p-2.5 bg-amber-50 dark:bg-amber-950/40 rounded-lg text-amber-600 dark:text-amber-400">
-                        <i data-lucide="alert-triangle" class="w-5 h-5"></i>
-                    </div>
-                </div>
-                <div class="mt-3 text-xs text-slate-500 dark:text-slate-400">
-                    Potensi kendala sistem
                 </div>
             </div>
 
@@ -112,20 +102,18 @@
             @php
                 $infoCount = $levelStats['info'] + $levelStats['debug'] + $levelStats['notice'];
             @endphp
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-xs font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider">Informasi &amp; Debug</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-sky-600 dark:text-sky-400 mt-1">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0 border border-sky-100 dark:border-sky-900/40">
+                    <i data-lucide="info" class="w-5 h-5"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[10.5px] font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider truncate">Info &amp; Debug</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <h3 class="text-xl font-bold tracking-tight text-sky-600 dark:text-sky-400 font-mono">
                             {{ number_format($infoCount, 0, ',', '.') }}
                         </h3>
+                        <span class="text-[10px] text-slate-400 font-medium truncate">Aktivitas</span>
                     </div>
-                    <div class="p-2.5 bg-sky-50 dark:bg-sky-950/40 rounded-lg text-sky-600 dark:text-sky-400">
-                        <i data-lucide="info" class="w-5 h-5"></i>
-                    </div>
-                </div>
-                <div class="mt-3 text-xs text-slate-500 dark:text-slate-400">
-                    Pembaruan: <span class="text-slate-700 dark:text-slate-300">{{ $selectedFile['modified_at'] ?? '-' }}</span>
                 </div>
             </div>
         </section>

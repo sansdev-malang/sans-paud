@@ -39,68 +39,66 @@
         </section>
 
         <!-- STATS CARDS GRID -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
             <!-- Stat 1: Total Tahun Ajaran -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Tahun Ajaran</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">{{ number_format($stats['total_years']) }}</h3>
-                    </div>
-                    <div class="p-2.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-xl border border-indigo-100 dark:border-indigo-900/50">
-                        <i data-lucide="calendar" class="w-5 h-5"></i>
-                    </div>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-100 dark:border-indigo-900/40">
+                    <i data-lucide="calendar" class="w-5 h-5"></i>
                 </div>
-                <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
-                    Periode tahun tersimpan
+                <div class="min-w-0">
+                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Total Tahun Ajaran</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <h3 class="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 font-mono">
+                            {{ number_format($stats['total_years']) }}
+                        </h3>
+                        <span class="text-[10px] text-slate-400 font-medium truncate">Periode</span>
+                    </div>
                 </div>
             </div>
 
             <!-- Stat 2: Tahun Ajaran Aktif -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tahun Ajaran Berjalan</p>
-                        <h3 class="text-xl font-bold tracking-tight text-indigo-600 dark:text-indigo-400 mt-1 truncate">{{ $stats['active_year'] }}</h3>
-                    </div>
-                    <div class="p-2.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-100 dark:border-emerald-900/50">
-                        <i data-lucide="check-circle-2" class="w-5 h-5"></i>
-                    </div>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/40">
+                    <i data-lucide="check-circle-2" class="w-5 h-5"></i>
                 </div>
-                <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
-                    Acuan operasional aktif
+                <div class="min-w-0">
+                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">TA Berjalan</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <h3 class="text-base font-bold tracking-tight text-emerald-600 dark:text-emerald-400 font-mono truncate">
+                            {{ $stats['active_year'] }}
+                        </h3>
+                    </div>
                 </div>
             </div>
 
             <!-- Stat 3: Total Semester Terdaftar -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Semester</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">{{ number_format($stats['total_semesters']) }}</h3>
-                    </div>
-                    <div class="p-2.5 bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 rounded-xl border border-purple-100 dark:border-purple-900/50">
-                        <i data-lucide="calendar-days" class="w-5 h-5"></i>
-                    </div>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 border border-purple-100 dark:border-purple-900/40">
+                    <i data-lucide="calendar-days" class="w-5 h-5"></i>
                 </div>
-                <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
-                    Tengah & Akhir Semester
+                <div class="min-w-0">
+                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Total Semester</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <h3 class="text-xl font-bold tracking-tight text-purple-600 dark:text-purple-400 font-mono">
+                            {{ number_format($stats['total_semesters']) }}
+                        </h3>
+                        <span class="text-[10px] text-slate-400 font-medium truncate">Terdaftar</span>
+                    </div>
                 </div>
             </div>
 
             <!-- Stat 4: Semester Aktif -->
-            <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Semester Berjalan</p>
-                        <h3 class="text-base font-bold tracking-tight text-emerald-600 dark:text-emerald-400 mt-1 truncate">{{ $stats['active_semester'] }}</h3>
-                    </div>
-                    <div class="p-2.5 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 rounded-xl border border-amber-100 dark:border-amber-900/50">
-                        <i data-lucide="clock" class="w-5 h-5"></i>
-                    </div>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-100 dark:border-amber-900/40">
+                    <i data-lucide="clock" class="w-5 h-5"></i>
                 </div>
-                <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
-                    Acuan penilaian rapor
+                <div class="min-w-0">
+                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Semester Berjalan</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <h3 class="text-base font-bold tracking-tight text-amber-600 dark:text-amber-400 truncate">
+                            {{ $stats['active_semester'] }}
+                        </h3>
+                    </div>
                 </div>
             </div>
         </section>
