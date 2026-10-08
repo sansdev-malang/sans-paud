@@ -8,6 +8,7 @@
         showDetailModal: false,
         
         openPreview(item) {
+            if (!item || item.status === 'belum_diisi') return;
             this.previewStudentName = item.full_name;
             this.previewPdfUrl = item.print_url;
         },
@@ -296,6 +297,7 @@
                             <!-- 6. Aksi (Hanya Menampilkan Data & Cetak Rapor) -->
                             <td class="px-4 py-3.5 text-right">
                                 <div class="inline-flex items-center justify-end gap-1.5">
+                                    @if($student->status !== 'belum_diisi')
                                     <!-- Tombol Pratinjau -->
                                     <button @click="openPreview({{ json_encode($student) }})" type="button"
                                         class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/50 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-2xs transition whitespace-nowrap cursor-pointer"
@@ -311,6 +313,11 @@
                                         <i data-lucide="printer" class="w-3.5 h-3.5 shrink-0"></i>
                                         <span>Cetak PDF</span>
                                     </a>
+                                    @else
+                                    <span class="inline-flex items-center px-2.5 py-1 text-xs font-medium text-slate-400 dark:text-slate-500 italic select-none">
+                                        Belum diisi
+                                    </span>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
