@@ -55,7 +55,7 @@
                     </div>
                 </div>
                 <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
-                    Periode: <span class="font-semibold text-slate-700 dark:text-slate-300">{{ $selectedYear === 'all' ? 'Semua Periode' : $selectedYear }}</span>
+                    Periode: <span class="font-semibold text-slate-700 dark:text-slate-300">{{ $selectedYear === 'all' ? 'Semua Periode' : 'TA ' . $selectedYear }}</span>
                 </div>
             </div>
 
@@ -91,11 +91,11 @@
                 </div>
             </div>
 
-            <!-- Stat 4: Sudah Siswa Aktif -->
+            <!-- Stat 4: Sudah Murid Aktif -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Sudah Siswa Aktif</p>
+                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Sudah Murid Aktif</p>
                         <h3 class="text-2xl font-bold tracking-tight text-purple-600 dark:text-purple-400 mt-1">{{ number_format($stats['enrolled']) }}</h3>
                     </div>
                     <div class="p-2.5 bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 rounded-xl border border-purple-100 dark:border-purple-900/50">
@@ -103,7 +103,7 @@
                     </div>
                 </div>
                 <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
-                    Telah dikonfirmasi masuk PAUD
+                    Telah resmi ditempatkan di rombel
                 </div>
             </div>
         </section>
@@ -115,7 +115,7 @@
 
                 <!-- Search input -->
                 <div class="relative flex-1 md:max-w-md">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama siswa, no. registrasi, NIK, nama orang tua..."
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama murid, no. registrasi, NIK, nama orang tua..."
                         class="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
                     <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
                 </div>
@@ -147,59 +147,65 @@
                         @endforeach
                     </select>
 
-                    <button type="submit" class="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-slate-200 text-white dark:text-slate-900 rounded-lg text-xs font-bold transition-colors cursor-pointer">
-                        <i data-lucide="filter" class="w-3.5 h-3.5"></i>
-                    </button>
+                    @if(request()->hasAny(['search', 'status', 'payment_status', 'wave']))
+                        <a href="{{ route('spmb.candidates.index', ['period' => $selectedYear]) }}" 
+                            class="px-3 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-700 transition-colors"
+                            title="Reset Filter">
+                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                        </a>
+                    @endif
                 </div>
             </form>
         </section>
 
         <!-- TABLE CANDIDATES -->
-        <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
+        <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden w-full">
+            <div class="overflow-x-auto w-full">
+                <table class="w-full text-left border-collapse min-w-[900px]">
                     <thead>
-                        <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-950/50 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                            <th class="px-4 py-3.5">No. Registrasi</th>
-                            <th class="px-4 py-3.5">Calon Siswa</th>
-                            <th class="px-4 py-3.5">Orang Tua & WhatsApp</th>
-                            <th class="px-4 py-3.5">Gelombang & Program</th>
-                            <th class="px-4 py-3.5">Pembayaran</th>
-                            <th class="px-4 py-3.5">Status Siswa</th>
-                            <th class="px-4 py-3.5 text-right">Aksi</th>
+                        <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-950/50 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            <th class="px-5 py-3.5 w-44">No. Registrasi</th>
+                            <th class="px-5 py-3.5 min-w-[220px]">Calon Murid</th>
+                            <th class="px-5 py-3.5 min-w-[190px]">Orang Tua & WhatsApp</th>
+                            <th class="px-5 py-3.5 w-40">Gelombang & Program</th>
+                            <th class="px-5 py-3.5 text-center w-32">Pembayaran</th>
+                            <th class="px-5 py-3.5 text-center w-36">Status Murid</th>
+                            <th class="px-5 py-3.5 text-right w-36">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs">
                         @forelse($candidates as $c)
-                            <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
-                                <!-- No Registrasi -->
-                                <td class="px-4 py-3.5 whitespace-nowrap">
+                            <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors group">
+                                <!-- 1. No Registrasi & Periode -->
+                                <td class="px-5 py-3.5 align-top whitespace-nowrap">
                                     <div class="font-bold font-mono text-slate-900 dark:text-slate-100">
                                         {{ $c->registration_number }}
                                     </div>
-                                    <div class="text-[11px] text-slate-400 mt-0.5">
-                                        {{ $c->created_at ? $c->created_at->translatedFormat('d M Y, H:i') . ' WIB' : '-' }}
+                                    <div class="mt-1 flex items-center gap-1.5 flex-wrap">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60">
+                                            TA {{ $c->academic_year }}
+                                        </span>
                                     </div>
-                                    <div class="text-[10px] text-slate-400 font-semibold mt-0.5">
-                                        TA {{ $c->academic_year }}
+                                    <div class="text-[11px] text-slate-400 mt-1">
+                                        {{ $c->created_at ? $c->created_at->translatedFormat('d M Y, H:i') : '-' }}
                                     </div>
                                 </td>
 
-                                <!-- Calon Siswa -->
-                                <td class="px-4 py-3.5">
-                                    <div class="flex items-center gap-3">
+                                <!-- 2. Calon Murid -->
+                                <td class="px-5 py-3.5 align-top">
+                                    <div class="flex items-start gap-3">
                                         @if($c->student_photo_url)
-                                            <img src="{{ $c->student_photo_url }}" alt="{{ $c->full_name }}" class="w-9 h-9 rounded-full object-cover ring-1 ring-slate-200 dark:ring-slate-700 shrink-0">
+                                            <img src="{{ $c->student_photo_url }}" alt="{{ $c->full_name }}" class="w-10 h-10 rounded-xl object-cover ring-1 ring-slate-200 dark:ring-slate-700 shrink-0 shadow-2xs">
                                         @else
-                                            <div class="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center justify-center shrink-0">
+                                            <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                                                 {{ strtoupper(substr($c->full_name, 0, 2)) }}
                                             </div>
                                         @endif
-                                        <div>
-                                            <div class="font-bold text-slate-900 dark:text-slate-100 text-xs hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer" @click="openDetail({{ $c->id }})">
+                                        <div class="min-w-0">
+                                            <div class="font-bold text-slate-900 dark:text-slate-100 text-xs hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer transition-colors" @click="openDetail({{ $c->id }})">
                                                 {{ $c->full_name }}
                                             </div>
-                                            <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5">
+                                            <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
                                                 <span>{{ $c->gender === 'L' ? '👦 Laki-laki' : ($c->gender === 'P' ? '👧 Perempuan' : $c->gender) }}</span>
                                                 @if($c->birth_date)
                                                     <span>• {{ \Carbon\Carbon::parse($c->birth_date)->age }} th ({{ \Carbon\Carbon::parse($c->birth_date)->format('d/m/Y') }})</span>
@@ -212,85 +218,85 @@
                                     </div>
                                 </td>
 
-                                <!-- Orang Tua & WhatsApp -->
-                                <td class="px-4 py-3.5">
-                                    <div class="font-medium text-slate-800 dark:text-slate-200 text-xs">
+                                <!-- 3. Orang Tua & WhatsApp -->
+                                <td class="px-5 py-3.5 align-top">
+                                    <div class="font-semibold text-slate-800 dark:text-slate-200 text-xs">
                                         {{ $c->father_name ?? ($c->mother_name ?? ($c->guardian_name ?? '-')) }}
                                     </div>
                                     @if($c->parent_phone)
-                                        <div class="mt-1 flex items-center gap-1.5">
-                                            <a href="{{ $c->whatsapp_url }}" target="_blank" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold border border-emerald-200 dark:border-emerald-800 transition-colors" title="Hubungi via WhatsApp">
-                                                <i data-lucide="message-circle" class="w-3 h-3 text-emerald-600"></i>
+                                        <div class="mt-1.5 flex items-center gap-1.5">
+                                            <a href="{{ $c->whatsapp_url }}" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold border border-emerald-200 dark:border-emerald-800 transition-colors shadow-2xs" title="Hubungi via WhatsApp">
+                                                <i data-lucide="message-circle" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400"></i>
                                                 <span>{{ $c->parent_phone }}</span>
                                             </a>
                                         </div>
                                     @else
-                                        <div class="text-[11px] text-slate-400 mt-0.5">Tidak ada no. WA</div>
+                                        <div class="text-[11px] text-slate-400 mt-1">Tidak ada no. WA</div>
                                     @endif
                                 </td>
 
-                                <!-- Gelombang & Program -->
-                                <td class="px-4 py-3.5 whitespace-nowrap">
-                                    <div class="font-semibold text-slate-800 dark:text-slate-200 text-xs">
+                                <!-- 4. Gelombang & Program -->
+                                <td class="px-5 py-3.5 align-top whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                                         {{ $c->wave ?? 'Gelombang 1' }}
-                                    </div>
-                                    <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                    </span>
+                                    <div class="text-[11px] font-medium text-slate-600 dark:text-slate-400 mt-1">
                                         {{ $c->class_program ?? 'Reguler' }}
                                     </div>
                                     @if($c->previous_school)
-                                        <div class="text-[10px] text-slate-400 mt-0.5 truncate max-w-[140px]" title="{{ $c->previous_school }}">
+                                        <div class="text-[10px] text-slate-400 mt-0.5 truncate max-w-[160px]" title="{{ $c->previous_school }}">
                                             Asal: {{ $c->previous_school }}
                                         </div>
                                     @endif
                                 </td>
 
-                                <!-- Status Pembayaran -->
-                                <td class="px-4 py-3.5 whitespace-nowrap">
+                                <!-- 5. Status Pembayaran -->
+                                <td class="px-5 py-3.5 align-top whitespace-nowrap text-center">
                                     @if(in_array(strtolower($c->payment_status), ['paid', 'lunas', 'settlement', 'success']))
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                                        <span class="inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
                                             <i data-lucide="check" class="w-3 h-3"></i> Lunas
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                                        <span class="inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
                                             <i data-lucide="clock" class="w-3 h-3"></i> Belum Lunas
                                         </span>
                                     @endif
                                 </td>
 
-                                <!-- Status Siswa Aktif -->
-                                <td class="px-4 py-3.5 whitespace-nowrap">
+                                <!-- 6. Status Murid Aktif -->
+                                <td class="px-5 py-3.5 align-top whitespace-nowrap text-center">
                                     @if($c->is_enrolled)
-                                        <div class="flex flex-col gap-0.5">
-                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-400 border border-purple-200 dark:border-purple-800">
-                                                <i data-lucide="sparkles" class="w-3 h-3"></i> Siswa Aktif
+                                        <div class="flex flex-col items-center gap-1">
+                                            <span class="inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-400 border border-purple-200 dark:border-purple-800 shadow-2xs">
+                                                <i data-lucide="sparkles" class="w-3 h-3"></i> Murid Aktif
                                             </span>
                                             @if($c->student)
-                                                <span class="text-[10px] text-slate-400 font-mono">NIS: {{ $c->student->nis }}</span>
+                                                <span class="text-[10px] text-slate-500 dark:text-slate-400 font-mono font-bold">NIS: {{ $c->student->nis }}</span>
                                             @endif
                                         </div>
                                     @else
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                        <span class="inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
                                             Belum Terdaftar
                                         </span>
                                     @endif
                                 </td>
 
-                                <!-- Aksi -->
-                                <td class="px-4 py-3.5 whitespace-nowrap text-right">
+                                <!-- 7. Aksi -->
+                                <td class="px-5 py-3.5 align-top whitespace-nowrap text-right">
                                     <div class="flex items-center justify-end gap-1.5">
                                         <!-- Tombol Detail -->
                                         <button type="button" @click="openDetail({{ $c->id }})"
-                                            class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 cursor-pointer" title="Lihat Biodata Lengkap">
-                                            <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                                            class="px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 shadow-2xs cursor-pointer" title="Lihat Biodata Lengkap">
+                                            <i data-lucide="eye" class="w-3.5 h-3.5 text-slate-500"></i>
                                             <span>Detail</span>
                                         </button>
 
-                                        <!-- Tombol Enrollment Siswa Aktif -->
+                                        <!-- Tombol Enrollment Murid Aktif -->
                                         <button type="button" @click="openEnrollModal({{ $c->id }})"
                                             class="px-2.5 py-1.5 {{ $c->is_enrolled ? 'bg-purple-100 hover:bg-purple-200 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800' : 'bg-purple-600 hover:bg-purple-700 text-white' }} rounded-lg text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer shadow-xs"
-                                            title="{{ $c->is_enrolled ? 'Kelola / Batalkan Siswa Aktif' : 'Tandai sebagai Siswa Aktif' }}">
+                                            title="{{ $c->is_enrolled ? 'Kelola / Batalkan Murid Aktif' : 'Daftarkan sebagai Murid Aktif' }}">
                                             <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i>
-                                            <span x-text="{{ $c->is_enrolled ? 'true' : 'false' }} ? 'Terdaftar' : ''"></span>
+                                            <span>{{ $c->is_enrolled ? 'Kelola' : 'Daftarkan' }}</span>
                                         </button>
                                     </div>
                                 </td>
@@ -314,15 +320,15 @@
 
             <!-- PAGINATION -->
             @if($candidates->hasPages())
-                <div class="p-4 border-t border-slate-100 dark:divide-slate-800">
+                <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
                     {{ $candidates->links() }}
                 </div>
             @endif
         </section>
 
         <!-- MODAL DETAIL PENDAFTAR -->
-        <div x-show="modalOpen" x-cloak class="fixed inset-0 z-[9999] flex items-center justify-center p-4" style="display: none; margin-top: 0px !important; z-index: 9999; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);">
-            <div @click.outside="modalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
+        <div x-show="modalOpen" x-cloak class="fixed inset-0 z-[9999] flex items-center justify-center p-4" style="display: none; margin-top: 0px !important; z-index: 9999; background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);">
+            <div @click.outside="modalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col text-left">
                 
                 <!-- Modal Header -->
                 <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex items-start justify-between sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm z-10">
@@ -336,7 +342,7 @@
                         </template>
                         <div>
                             <div class="flex items-center gap-2">
-                                <h3 class="text-lg font-bold text-slate-900 dark:text-slate-50" x-text="selectedCandidate?.full_name"></h3>
+                                <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-50" x-text="selectedCandidate?.full_name"></h3>
                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase"
                                     :class="selectedCandidate?.payment_status === 'paid' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300'"
                                     x-text="selectedCandidate?.payment_status === 'paid' ? 'Lunas' : 'Belum Lunas'">
@@ -356,7 +362,7 @@
                 <!-- Modal Body -->
                 <div class="p-6 space-y-6 text-xs" x-show="selectedCandidate">
                     
-                    <!-- Section 1: Biodata Siswa -->
+                    <!-- Section 1: Biodata Murid -->
                     <div>
                         <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider mb-3 flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
                             <i data-lucide="user" class="w-4 h-4 text-emerald-600"></i>
@@ -482,16 +488,16 @@
                         </button>
                         <button type="button" @click="modalOpen = false; openEnrollModal(selectedCandidate.id)" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold transition-colors shadow-xs flex items-center gap-1.5">
                             <i data-lucide="graduation-cap" class="w-4 h-4"></i>
-                            Kelola Siswa Aktif
+                            Kelola Murid Aktif
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- MODAL ENROLLMENT WIZARD (TANDAI / ALOKASI SISWA AKTIF) -->
-        <div x-show="enrollModalOpen" x-cloak class="fixed inset-0 z-[9999] flex items-center justify-center p-4" style="display: none; margin-top: 0px !important; z-index: 9999; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);">
-            <div @click.outside="enrollModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col">
+        <!-- MODAL ENROLLMENT WIZARD (TANDAI / ALOKASI MURID AKTIF) -->
+        <div x-show="enrollModalOpen" x-cloak class="fixed inset-0 z-[9999] flex items-center justify-center p-4" style="display: none; margin-top: 0px !important; z-index: 9999; background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);">
+            <div @click.outside="enrollModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col text-left">
                 
                 <form @submit.prevent="submitEnroll">
                     <!-- Modal Header -->
@@ -502,7 +508,7 @@
                             </div>
                             <div>
                                 <h3 class="text-base font-bold text-slate-900 dark:text-slate-50">
-                                    Penerimaan Siswa Baru PAUD
+                                    Penerimaan Murid Baru PAUD
                                 </h3>
                                 <p class="text-xs text-slate-400 mt-0.5">Penetapan NIS dan penempatan rombongan belajar.</p>
                             </div>
@@ -515,7 +521,7 @@
                     <!-- Modal Body -->
                     <div class="p-6 space-y-4 text-xs" x-show="enrollData.candidate">
                         
-                        <!-- Info Card Calon Siswa -->
+                        <!-- Info Card Calon Murid -->
                         <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 flex items-center gap-3">
                             <template x-if="enrollData.candidate?.student_photo_url">
                                 <img :src="enrollData.candidate.student_photo_url" class="w-10 h-10 rounded-full object-cover ring-1 ring-purple-500/30">
@@ -532,9 +538,9 @@
                         <!-- NIS Input (Auto-suggested) -->
                         <div>
                             <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                Nomor Induk Siswa (NIS) <span class="text-rose-500">*</span>
+                                Nomor Induk Murid (NIS) <span class="text-rose-500">*</span>
                             </label>
-                            <input type="text" x-model="enrollForm.nis" required placeholder="Contoh: 27.PAUD.001"
+                            <input type="text" x-model="enrollForm.nis" required placeholder="Contoh: 26.PAUD.001"
                                 class="w-full h-9 px-3 text-xs font-mono font-bold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-purple-700 dark:text-purple-300">
                             <p class="text-[10px] text-slate-400 mt-1">Saran format otomatis berdasarkan tahun masuk dan nomor urut.</p>
                         </div>
@@ -561,7 +567,7 @@
                                     class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-slate-900 dark:text-slate-50 cursor-pointer">
                                     <option value="">Pilih Rombel...</option>
                                     <template x-for="r in enrollData.classrooms" :key="r.id">
-                                        <option :value="r.id" x-text="r.name + ' (' + (r.class_level ? r.class_level.name : '') + ') • ' + r.active_students_count + '/' + r.capacity + ' siswa'"></option>
+                                        <option :value="r.id" x-text="r.name + ' (' + (r.class_level ? r.class_level.name : '') + ') • ' + r.active_students_count + '/' + r.capacity + ' murid'"></option>
                                     </template>
                                 </select>
                             </div>
@@ -579,7 +585,7 @@
                             <div class="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl flex items-start gap-2.5">
                                 <i data-lucide="info" class="w-4 h-4 text-amber-600 mt-0.5 shrink-0"></i>
                                 <div class="text-[11px] text-amber-800 dark:text-amber-200 leading-relaxed">
-                                    Calon murid ini telah berstatus <b>Siswa Aktif</b>. Anda dapat mengubah rombel atau membatalkan status siswa aktif melalui tombol di bawah.
+                                    Calon murid ini telah berstatus <b>Murid Aktif</b>. Anda dapat mengubah rombel atau membatalkan status murid aktif melalui tombol di bawah.
                                 </div>
                             </div>
                         </template>
@@ -590,7 +596,7 @@
                         <div>
                             <template x-if="enrollData.candidate?.is_enrolled">
                                 <button type="button" @click="unenrollStudent(enrollData.candidate.id)" class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200 dark:border-rose-800 rounded-lg text-xs font-semibold transition-colors">
-                                    Batalkan Status Siswa Aktif
+                                    Batalkan Status Murid Aktif
                                 </button>
                             </template>
                         </div>
@@ -600,7 +606,7 @@
                             </button>
                             <button type="submit" :disabled="enrolling" class="px-5 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-all shadow-xs flex items-center gap-1.5">
                                 <i data-lucide="check" class="w-3.5 h-3.5"></i>
-                                <span x-text="enrolling ? 'Menyimpan...' : (enrollData.candidate?.is_enrolled ? 'Perbarui Rombel' : 'Resmi Jadikan Siswa Aktif')"></span>
+                                <span x-text="enrolling ? 'Menyimpan...' : (enrollData.candidate?.is_enrolled ? 'Perbarui Rombel' : 'Resmi Jadikan Murid Aktif')"></span>
                             </button>
                         </div>
                     </div>
@@ -724,7 +730,7 @@
                     })
                     .catch(err => {
                         if (typeof window.showToast === 'function') {
-                            window.showToast('Perhatian!', "Gagal mengambil data persiapan siswa aktif: " + err.message, 'error');
+                            window.showToast('Perhatian!', "Gagal mengambil data persiapan murid aktif: " + err.message, 'error');
                         }
                     });
                 },
@@ -748,7 +754,7 @@
                         if (res.success) {
                             this.enrollModalOpen = false;
                             if (typeof window.setPendingToast === 'function') {
-                                window.setPendingToast(res.message || "Berhasil mendaftarkan siswa aktif!", 'success');
+                                window.setPendingToast(res.message || "Berhasil mendaftarkan murid aktif!", 'success');
                             }
                             window.location.reload();
                         } else {
@@ -779,7 +785,7 @@
                             if (res.success) {
                                 this.enrollModalOpen = false;
                                 if (typeof window.setPendingToast === 'function') {
-                                    window.setPendingToast(res.message || "Status siswa aktif berhasil dibatalkan.", 'success');
+                                    window.setPendingToast(res.message || "Status murid aktif berhasil dibatalkan.", 'success');
                                 }
                                 window.location.reload();
                             } else {
@@ -796,8 +802,8 @@
                     };
 
                     if (typeof showGlobalConfirmModal === 'function') {
-                        showGlobalConfirmModal("Apakah Anda yakin ingin membatalkan status siswa aktif untuk calon murid ini? Data kesiswaannya akan dihapus.", doUnenroll, true);
-                    } else if (confirm("Apakah Anda yakin ingin membatalkan status siswa aktif untuk calon murid ini? Data kesiswaannya akan dihapus.")) {
+                        showGlobalConfirmModal("Apakah Anda yakin ingin membatalkan status murid aktif untuk calon murid ini? Data kemuridannya akan dihapus.", doUnenroll, true);
+                    } else if (confirm("Apakah Anda yakin ingin membatalkan status murid aktif untuk calon murid ini? Data kemuridannya akan dihapus.")) {
                         doUnenroll();
                     }
                 },

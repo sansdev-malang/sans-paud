@@ -287,14 +287,14 @@ class SpmbCandidateController extends Controller
                     'homeroom_teacher_name' => $student->classroom?->homeroomTeacher?->name,
                     'status' => 'aktif',
                     'start_date' => $student->enrolled_date ?? now()->toDateString(),
-                    'notes' => "Pendaftaran Siswa Baru via SPMB ({$candidate->registration_number})",
+                    'notes' => "Pendaftaran Murid Baru via SPMB ({$candidate->registration_number})",
                 ]
             );
         }
 
         return response()->json([
             'success' => true,
-            'message' => "Ananda {$candidate->full_name} berhasil resmi terdaftar sebagai Siswa Aktif SANS PAUD (NIS: {$student->nis}).",
+            'message' => "Ananda {$candidate->full_name} berhasil resmi terdaftar sebagai Murid Aktif SANS PAUD (NIS: {$student->nis}).",
             'student' => $student,
         ]);
     }
@@ -320,7 +320,7 @@ class SpmbCandidateController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Status Siswa Aktif untuk {$candidate->full_name} berhasil dibatalkan.",
+            'message' => "Status Murid Aktif untuk {$candidate->full_name} berhasil dibatalkan.",
         ]);
     }
 }
