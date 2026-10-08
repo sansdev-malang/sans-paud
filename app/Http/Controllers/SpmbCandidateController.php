@@ -114,7 +114,25 @@ class SpmbCandidateController extends Controller
 
         $candidates = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
 
-        return view('admin.spmb-candidates.index', compact('candidates', 'academicYears', 'selectedYear', 'stats', 'availableWaves'));
+        $masterAcademicYears = AcademicYear::orderBy('name', 'desc')->get();
+        $masterJenjangs = \App\Models\Jenjang::where('is_active', true)->orderBy('order')->get();
+        $masterClassrooms = Classroom::with(['jenjang', 'classLevel', 'homeroomTeacher'])
+            ->where('is_active', true)
+            ->orderBy('jenjang_id')
+            ->orderBy('class_level_id')
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.spmb-candidates.index', compact(
+            'candidates', 
+            'academicYears', 
+            'selectedYear', 
+            'stats', 
+            'availableWaves',
+            'masterAcademicYears',
+            'masterJenjangs',
+            'masterClassrooms'
+        ));
     }
 
     /**
@@ -122,7 +140,17 @@ class SpmbCandidateController extends Controller
      */
     public function show($id): JsonResponse
     {
-        $candidate = SpmbCandidate::with('student.classroom.classLevel')->findOrFail($id);
+        $candidate = SpmbCandidate::with([
+            'student.classroom.classLevel',
+            'student.classroom.jenjang',
+            'student.classroom.homeroomTeacher',
+            'student.daycareClassroom',
+            'student.tpqClassroom',
+            'student.jenjang',
+            'student.classLevel',
+            'student.academicYear'
+        ])->findOrFail($id);
+
         return response()->json([
             'success' => true,
             'candidate' => $candidate,
@@ -158,7 +186,16 @@ class SpmbCandidateController extends Controller
      */
     public function getEnrollData($id): JsonResponse
     {
-        $candidate = SpmbCandidate::with('student.classroom')->findOrFail($id);
+        $candidate = SpmbCandidate::with([
+            'student.classroom.classLevel',
+            'student.classroom.jenjang',
+            'student.classroom.homeroomTeacher',
+            'student.daycareClassroom',
+            'student.tpqClassroom',
+            'student.jenjang',
+            'student.classLevel',
+            'student.academicYear'
+        ])->findOrFail($id);
 
         $academicYears = AcademicYear::orderBy('name', 'desc')->get();
 
@@ -169,21 +206,37 @@ class SpmbCandidateController extends Controller
             $matchedYear = AcademicYear::where('name', $cleanYear)->first();
         }
         if (!$matchedYear) {
-            $matchedYear = AcademicYear::where('is_active', true)->first();
+            $matchedYear = AcademicYear::where('is_active', true)->first() ?? $academicYears->first();
         }
 
-        // Get active classrooms
-        $classrooms = Classroom::with(['classLevel', 'homeroomTeacher'])
-            ->withCount(['students as active_students_count' => function ($q) {
+        // Get all active classrooms (with count of active students)
+        $classrooms = Classroom::with(['classLevel', 'jenjang', 'homeroomTeacher'])
+            ->withCount(['students as active_students_count' => function ($q) use ($matchedYear) {
                 $q->where('status', 'aktif');
+                if ($matchedYear) {
+                    $q->where('academic_year_id', $matchedYear->id);
+                }
             }])
             ->where('is_active', true)
-            ->when($matchedYear, function ($q) use ($matchedYear) {
-                $q->where('academic_year_id', $matchedYear->id);
-            })
+            ->orderBy('jenjang_id')
             ->orderBy('class_level_id')
             ->orderBy('name')
             ->get();
+
+        $jenjangs = \App\Models\Jenjang::where('is_active', true)->orderBy('order')->get();
+        $classLevels = \App\Models\ClassLevel::orderBy('jenjang_id')->orderBy('order')->get();
+
+        $daycareClassrooms = Classroom::where('is_active', true)
+            ->where(function($q) {
+                $q->where('sub_unit', 'DAYCARE')
+                  ->orWhereHas('jenjang', fn($jq) => $jq->where('code', 'DAYCARE')->orWhere('code', 'TPA'));
+            })->orderBy('name')->get();
+
+        $tpqClassrooms = Classroom::where('is_active', true)
+            ->where(function($q) {
+                $q->where('sub_unit', 'TPQ')
+                  ->orWhereHas('jenjang', fn($jq) => $jq->where('code', 'TPQ'));
+            })->orderBy('name')->get();
 
         // Generate suggested NIS
         $yearDigits = $matchedYear ? substr(explode('/', $matchedYear->name)[0] ?? '2027', -2) : date('y');
@@ -206,7 +259,11 @@ class SpmbCandidateController extends Controller
             'suggested_nis' => $suggestedNis,
             'academic_years' => $academicYears,
             'selected_year_id' => $matchedYear?->id,
+            'jenjangs' => $jenjangs,
+            'class_levels' => $classLevels,
             'classrooms' => $classrooms,
+            'daycare_classrooms' => $daycareClassrooms,
+            'tpq_classrooms' => $tpqClassrooms,
         ]);
     }
 
@@ -219,18 +276,34 @@ class SpmbCandidateController extends Controller
 
         $validated = $request->validate([
             'nis' => 'required|string|max:50|unique:students,nis,' . ($candidate->student_id ?? 'NULL'),
-            'classroom_id' => 'required|exists:classrooms,id',
             'academic_year_id' => 'required|exists:academic_years,id',
+            'jenjang_id' => 'nullable|exists:jenjangs,id',
+            'class_level_id' => 'nullable|exists:class_levels,id',
+            'classroom_id' => 'required|exists:classrooms,id',
+            'daycare_classroom_id' => 'nullable|exists:classrooms,id',
+            'is_tpq' => 'nullable|boolean',
+            'tpq_classroom_id' => 'nullable|exists:classrooms,id',
             'enrolled_date' => 'nullable|date',
             'notes' => 'nullable|string',
         ]);
+
+        $classroom = Classroom::with(['classLevel', 'jenjang'])->findOrFail($validated['classroom_id']);
+        $jenjangId = $validated['jenjang_id'] ?: $classroom->jenjang_id;
+        $classLevelId = $validated['class_level_id'] ?: $classroom->class_level_id;
+        $subUnit = $classroom->sub_unit ?: ($classroom->jenjang?->code ?? 'TK');
 
         $studentData = [
             'nis' => $validated['nis'],
             'nisn' => $candidate->nisn,
             'nik' => $candidate->nik,
             'spmb_candidate_id' => $candidate->id,
-            'classroom_id' => $validated['classroom_id'],
+            'jenjang_id' => $jenjangId,
+            'class_level_id' => $classLevelId,
+            'classroom_id' => $classroom->id,
+            'daycare_classroom_id' => $validated['daycare_classroom_id'] ?? null,
+            'is_tpq' => !empty($validated['is_tpq']),
+            'tpq_classroom_id' => $validated['tpq_classroom_id'] ?? null,
+            'sub_unit' => $subUnit,
             'academic_year_id' => $validated['academic_year_id'],
             'full_name' => $candidate->full_name,
             'nickname' => $candidate->nickname,
@@ -281,7 +354,7 @@ class SpmbCandidateController extends Controller
                     'classroom_id' => $student->classroom_id,
                 ],
                 [
-                    'sub_unit' => $student->classroom?->sub_unit ?? 'TK',
+                    'sub_unit' => $student->sub_unit ?: ($student->classroom?->sub_unit ?? 'TK'),
                     'classroom_name' => $student->classroom?->name,
                     'grade_level' => $student->classroom?->classLevel?->name,
                     'homeroom_teacher_name' => $student->classroom?->homeroomTeacher?->name,

@@ -74,7 +74,16 @@ class SpmbCandidate extends Model
         'whatsapp_url', 
         'formatted_birth_date',
         'student_photo_url',
-        'formatted_documents'
+        'formatted_documents',
+        'age_string',
+        'formatted_address',
+        'father_nik',
+        'mother_nik',
+        'father_education',
+        'mother_education',
+        'father_income',
+        'mother_income',
+        'formatted_payments',
     ];
 
     /**
@@ -91,7 +100,7 @@ class SpmbCandidate extends Model
     }
 
     /**
-     * URL Foto Calon Siswa
+     * URL Foto Calon Murid
      */
     public function getStudentPhotoUrlAttribute(): ?string
     {
@@ -170,6 +179,108 @@ class SpmbCandidate extends Model
     {
         if (!$this->birth_date) return null;
         return $this->birth_date->translatedFormat('d F Y');
+    }
+
+    /**
+     * Usia Calon Murid
+     */
+    public function getAgeStringAttribute(): ?string
+    {
+        if (!$this->birth_date) return null;
+        $diff = \Carbon\Carbon::parse($this->birth_date)->diff(\Carbon\Carbon::now());
+        return "{$diff->y} th " . ($diff->m > 0 ? "{$diff->m} bln" : "");
+    }
+
+    /**
+     * Alamat Lengkap Terstruktur
+     */
+    public function getFormattedAddressAttribute(): string
+    {
+        $bioAddr = $this->raw_payload['student_bio']['address'] ?? [];
+        if (is_array($bioAddr) && !empty($bioAddr)) {
+            $parts = [];
+            if (!empty($bioAddr['street'])) $parts[] = $bioAddr['street'];
+            $rtRw = '';
+            if (!empty($bioAddr['rt'])) $rtRw .= 'RT ' . $bioAddr['rt'];
+            if (!empty($bioAddr['rw'])) $rtRw .= ($rtRw ? ' / ' : '') . 'RW ' . $bioAddr['rw'];
+            if ($rtRw) $parts[] = $rtRw;
+            if (!empty($bioAddr['village'])) $parts[] = 'Kel. ' . $bioAddr['village'];
+            if (!empty($bioAddr['district'])) $parts[] = 'Kec. ' . $bioAddr['district'];
+            if (!empty($bioAddr['city'])) $parts[] = $bioAddr['city'];
+            if (!empty($bioAddr['province'])) $parts[] = $bioAddr['province'];
+            if (!empty($bioAddr['postal_code'])) $parts[] = 'Kode Pos: ' . $bioAddr['postal_code'];
+            if (!empty($parts)) {
+                return implode(', ', $parts);
+            }
+            if (!empty($bioAddr['full_address'])) {
+                return $bioAddr['full_address'];
+            }
+        }
+
+        return $this->address ?: '-';
+    }
+
+    public function getFatherNikAttribute(): ?string
+    {
+        return $this->raw_payload['parent_info']['father']['nik'] ?? null;
+    }
+
+    public function getMotherNikAttribute(): ?string
+    {
+        return $this->raw_payload['parent_info']['mother']['nik'] ?? null;
+    }
+
+    public function getFatherEducationAttribute(): ?string
+    {
+        return $this->raw_payload['parent_info']['father']['education'] ?? null;
+    }
+
+    public function getMotherEducationAttribute(): ?string
+    {
+        return $this->raw_payload['parent_info']['mother']['education'] ?? null;
+    }
+
+    public function getFatherIncomeAttribute(): ?string
+    {
+        return $this->raw_payload['parent_info']['father']['income'] ?? null;
+    }
+
+    public function getMotherIncomeAttribute(): ?string
+    {
+        return $this->raw_payload['parent_info']['mother']['income'] ?? null;
+    }
+
+    /**
+     * Riwayat Pembayaran Terstruktur
+     */
+    public function getFormattedPaymentsAttribute(): array
+    {
+        $rawPayments = $this->payments ?? ($this->raw_payload['payments'] ?? []);
+        if (!is_array($rawPayments) || empty($rawPayments)) {
+            return [];
+        }
+
+        $list = [];
+        foreach ($rawPayments as $p) {
+            if (!is_array($p)) continue;
+            $amount = (float)($p['amount'] ?? 0);
+            $paidAt = !empty($p['paid_at']) ? \Carbon\Carbon::parse($p['paid_at'])->translatedFormat('d M Y, H:i') : null;
+            $status = strtolower($p['status'] ?? 'pending');
+            $isPaid = in_array($status, ['paid', 'lunas', 'settlement', 'success']);
+
+            $list[] = [
+                'invoice_number' => $p['invoice_number'] ?? '-',
+                'payment_type' => $p['payment_type'] ?? 'Pendaftaran SPMB',
+                'amount' => $amount,
+                'formatted_amount' => 'Rp ' . number_format($amount, 0, ',', '.'),
+                'payment_method' => $p['payment_method'] ?? ($p['payment_channel'] ?? 'Online Payment'),
+                'status' => $status,
+                'is_paid' => $isPaid,
+                'paid_at' => $paidAt,
+            ];
+        }
+
+        return $list;
     }
 
     /**
