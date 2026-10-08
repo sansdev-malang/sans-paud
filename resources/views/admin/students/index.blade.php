@@ -180,10 +180,10 @@
                     <div>
                         <select name="academic_year_id" onchange="this.form.submit()"
                             class="h-9 px-3 text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer">
-                            <option value="all" {{ $selectedYearId === 'all' ? 'selected' : '' }}>-- Semua Tapel --</option>
+                            <option value="all" {{ $selectedYearId === 'all' ? 'selected' : '' }}>-- Semua Tahun Ajaran --</option>
                             @foreach($academicYears as $year)
                                 <option value="{{ $year->id }}" {{ $selectedYearId == $year->id ? 'selected' : '' }}>
-                                    T.A. {{ $year->name }} {{ $year->is_active ? '★ (Aktif)' : '' }}
+                                    TA {{ $year->name }} {{ $year->is_active ? '★ (Aktif)' : '' }}
                                 </option>
                             @endforeach
                         </select>
@@ -255,7 +255,7 @@
                 <table class="w-full text-xs border-collapse">
                     <thead>
                         <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-900/50">
-                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-36">Tahun Pelajaran</th>
+                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-36">Tahun Ajaran</th>
                             <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28">Jenjang</th>
                             <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28">Kelas</th>
                             <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-40">Rombel</th>
@@ -267,7 +267,7 @@
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
                         @forelse($students as $index => $s)
                             <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors group">
-                                <!-- 1. Tahun Pelajaran -->
+                                <!-- 1. Tahun Ajaran -->
                                 <td class="px-5 py-3.5 font-semibold text-slate-900 dark:text-slate-100">
                                     <span class="inline-flex items-center gap-1.5">
                                         <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400"></i>
@@ -679,7 +679,7 @@
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tahun Pelajaran <span class="text-rose-500">*</span></label>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tahun Ajaran <span class="text-rose-500">*</span></label>
                                         <select x-model="formData.academic_year_id" required
                                             class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-semibold">
                                             @foreach($academicYears as $year)

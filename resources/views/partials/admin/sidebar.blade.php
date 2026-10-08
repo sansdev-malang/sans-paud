@@ -288,7 +288,7 @@
                         </a>
                         <a href="{{ route('academic-years.index') }}"
                             class="flex items-center justify-between gap-2 py-1 text-xs font-medium {{ Request::routeIs('academic-years.*', 'semesters.*') ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100' }} transition-colors">
-                            <span>Tapel & Semester</span>
+                            <span>Tahun Ajaran & Semester</span>
                         </a>
                     </div>
                 </div>

@@ -94,7 +94,7 @@ class AcademicSummaryController extends Controller
         // Document Title
         $sheet->setCellValue('A1', 'DATA AKADEMIK PAUD ANAK SALEH');
         $sheet->setCellValue('A2', 'REKAPITULASI ROMBEL, JUMLAH MURID & WALI KELAS');
-        $sheet->setCellValue('A3', 'Tahun Pelajaran: ' . ($selectedYear ? $selectedYear->name : 'Semua') . ' | Tanggal Cetak: ' . date('d/m/Y H:i'));
+        $sheet->setCellValue('A3', 'Tahun Ajaran: ' . ($selectedYear ? $selectedYear->name : 'Semua') . ' | Tanggal Cetak: ' . date('d/m/Y H:i'));
 
         $sheet->getStyle('A1:A2')->getFont()->setBold(true)->setSize(13);
         $sheet->getStyle('A3')->getFont()->setItalic(true)->setSize(10)->getColor()->setARGB('FF475569');
@@ -102,7 +102,7 @@ class AcademicSummaryController extends Controller
         // Headers
         $headers = [
             'No',
-            'Tahun Pelajaran',
+            'Tahun Ajaran',
             'Jenjang',
             'Kelas',
             'Rombel',

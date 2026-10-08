@@ -4,8 +4,8 @@
         <!-- GREETING / PAGE TITLE -->
         <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3 w-full text-left">
             <div class="flex flex-col gap-0.5">
-                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Tapel & Semester</h2>
-                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Kelola master periode tahun pelajaran (Tapel) dan semester evaluasi rapor di SANS PAUD.</p>
+                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Tahun Ajaran & Semester</h2>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Kelola master periode tahun ajaran (TA) dan semester evaluasi rapor di SANS PAUD.</p>
             </div>
             <div class="flex flex-wrap items-center gap-3 shrink-0">
                 <!-- Info Badge Periode Berjalan -->
@@ -28,7 +28,7 @@
                 <button type="button" x-show="activeTab === 'years'" @click="openCreateYearModal()"
                     class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all duration-100 cursor-pointer">
                     <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                    Tambah Tahun Pelajaran
+                    Tambah Tahun Ajaran
                 </button>
                 <button type="button" x-show="activeTab === 'semesters'" @click="openCreateSemesterModal()"
                     class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all duration-100 cursor-pointer">
@@ -40,11 +40,11 @@
 
         <!-- STATS CARDS GRID -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- Stat 1: Total Tahun Pelajaran -->
+            <!-- Stat 1: Total Tahun Ajaran -->
             <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Tahun Pelajaran</p>
+                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Tahun Ajaran</p>
                         <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">{{ number_format($stats['total_years']) }}</h3>
                     </div>
                     <div class="p-2.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-xl border border-indigo-100 dark:border-indigo-900/50">
@@ -56,11 +56,11 @@
                 </div>
             </div>
 
-            <!-- Stat 2: Tapel Aktif -->
+            <!-- Stat 2: Tahun Ajaran Aktif -->
             <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tapel Berjalan</p>
+                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tahun Ajaran Berjalan</p>
                         <h3 class="text-xl font-bold tracking-tight text-indigo-600 dark:text-indigo-400 mt-1 truncate">{{ $stats['active_year'] }}</h3>
                     </div>
                     <div class="p-2.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-100 dark:border-emerald-900/50">
@@ -111,7 +111,7 @@
                 :class="activeTab === 'years' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'"
                 class="px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer inline-flex items-center gap-2">
                 <i data-lucide="calendar" class="w-4 h-4"></i>
-                <span>Tahun Pelajaran</span>
+                <span>Tahun Ajaran</span>
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
                     :class="activeTab === 'years' ? 'bg-indigo-700 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'">
                     {{ $academicYears->count() }}
@@ -131,22 +131,22 @@
         </div>
 
         <!-- ============================================================= -->
-        <!-- TAB 1: TABLE TAHUN PELAJARAN                                  -->
-        <!-- Kolom: tahun pelajaran, keterangan, status, aksi             -->
+        <!-- TAB 1: TABLE TAHUN AJARAN                                     -->
+        <!-- Kolom: tahun ajaran, keterangan, status, aksi                 -->
         <!-- ============================================================= -->
         <section x-show="activeTab === 'years'" class="space-y-4">
             <div class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden transition-all w-full">
                 <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                     <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                         <i data-lucide="list" class="w-4 h-4 text-indigo-600"></i>
-                        Daftar Tahun Pelajaran
+                        Daftar Tahun Ajaran
                     </h3>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-xs border-collapse">
                         <thead>
                             <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-900/50">
-                                <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tahun Pelajaran</th>
+                                <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tahun Ajaran</th>
                                 <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Keterangan</th>
                                 <th class="px-5 py-3.5 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-40">Status</th>
                                 <th class="px-5 py-3.5 text-right text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28">Aksi</th>
@@ -155,7 +155,7 @@
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
                             @forelse($academicYears as $year)
                                 <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors group {{ $year->is_active ? 'bg-indigo-50/20 dark:bg-indigo-950/10' : '' }}">
-                                    <!-- 1. Tahun Pelajaran -->
+                                    <!-- 1. Tahun Ajaran -->
                                     <td class="px-5 py-3.5">
                                         <div class="flex items-center gap-2.5">
                                             <div class="w-8 h-8 rounded-lg {{ $year->is_active ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500' }} flex items-center justify-center font-bold text-xs shrink-0">
@@ -184,7 +184,7 @@
                                         @else
                                             <button type="button" @click="confirmSetActiveYear({{ $year->id }}, '{{ $year->name }}')"
                                                 class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-semibold bg-white dark:bg-slate-800 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-400 dark:hover:border-emerald-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shadow-2xs transition-all duration-150 cursor-pointer"
-                                                title="Klik untuk mengaktifkan Tahun Pelajaran ini">
+                                                title="Klik untuk mengaktifkan Tahun Ajaran ini">
                                                 <i data-lucide="check-circle" class="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-500"></i>
                                                 <span>Jadikan Aktif</span>
                                             </button>
@@ -196,13 +196,13 @@
                                         <div class="flex items-center justify-end gap-1">
                                             <button type="button" @click="openEditYearModal({{ $year->id }})"
                                                 class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 rounded-lg transition-colors cursor-pointer"
-                                                title="Edit Tahun Pelajaran">
+                                                title="Edit Tahun Ajaran">
                                                 <i data-lucide="edit-2" class="w-4 h-4"></i>
                                             </button>
                                             @if(!$year->is_active)
                                                 <button type="button" @click="confirmDeleteYear({{ $year->id }}, '{{ $year->name }}')"
                                                     class="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg transition-colors cursor-pointer"
-                                                    title="Hapus Tahun Pelajaran">
+                                                    title="Hapus Tahun Ajaran">
                                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                                 </button>
                                             @endif
@@ -212,7 +212,7 @@
                             @empty
                                 <tr>
                                     <td colspan="4" class="px-6 py-12 text-center text-slate-400">
-                                        Belum ada data Tahun Pelajaran.
+                                        Belum ada data Tahun Ajaran.
                                     </td>
                                 </tr>
                             @endforelse
@@ -250,7 +250,7 @@
                                     <!-- 1. Semester -->
                                     <td class="px-5 py-3.5">
                                         <div class="flex items-center gap-2.5">
-                                            <div class="w-8 h-8 rounded-lg {{ $sem->is_active ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500' }} flex items-center justify-center font-bold text-xs shrink-0">
+                                             <div class="w-8 h-8 rounded-lg {{ $sem->is_active ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500' }} flex items-center justify-center font-bold text-xs shrink-0">
                                                 <i data-lucide="book-open-check" class="w-4 h-4"></i>
                                             </div>
                                             <div>
@@ -315,7 +315,7 @@
         </section>
 
         <!-- ============================================================= -->
-        <!-- MODAL TAMBAH / EDIT TAHUN PELAJARAN                           -->
+        <!-- MODAL TAMBAH / EDIT TAHUN AJARAN                              -->
         <!-- ============================================================= -->
         <div x-show="yearModalOpen" x-cloak style="display: none; margin-top: 0px !important; z-index: 9999;"
             class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto"
@@ -328,8 +328,8 @@
                 <form @submit.prevent="submitYearForm">
                     <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm z-10">
                         <div>
-                            <h3 class="text-base font-bold text-slate-900 dark:text-slate-50" x-text="isYearEdit ? 'Edit Tahun Pelajaran' : 'Tambah Tahun Pelajaran Baru'"></h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Atur nama tahun pelajaran dan keterangan.</p>
+                            <h3 class="text-base font-bold text-slate-900 dark:text-slate-50" x-text="isYearEdit ? 'Edit Tahun Ajaran' : 'Tambah Tahun Ajaran Baru'"></h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Atur nama tahun ajaran dan keterangan.</p>
                         </div>
                         <button type="button" @click="yearModalOpen = false" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
                             <i data-lucide="x" class="w-5 h-5"></i>
@@ -338,21 +338,21 @@
 
                     <div class="p-6 space-y-4 text-xs">
                         <div>
-                            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tahun Pelajaran <span class="text-rose-500">*</span></label>
+                            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tahun Ajaran <span class="text-rose-500">*</span></label>
                             <input type="text" x-model="yearFormData.name" required placeholder="Contoh: 2026/2027"
                                 class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
                         </div>
 
                         <div>
                             <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Keterangan</label>
-                            <textarea x-model="yearFormData.description" rows="3" placeholder="Keterangan opsional untuk tahun pelajaran ini..."
+                            <textarea x-model="yearFormData.description" rows="3" placeholder="Keterangan opsional untuk tahun ajaran ini..."
                                 class="w-full p-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50"></textarea>
                         </div>
 
                         <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50 flex items-center justify-between">
                             <div>
                                 <p class="font-semibold text-slate-800 dark:text-slate-200">Status Aktif</p>
-                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Jadikan tahun pelajaran ini sebagai periode aktif.</p>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Jadikan tahun ajaran ini sebagai periode aktif.</p>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" x-model="yearFormData.is_active" class="sr-only peer">
@@ -366,7 +366,7 @@
                             Batal
                         </button>
                         <button type="submit" :disabled="saving" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-all shadow-xs flex items-center gap-1.5">
-                            <span x-text="saving ? 'Menyimpan...' : (isYearEdit ? 'Simpan Perubahan' : 'Tambah Tahun Pelajaran')"></span>
+                            <span x-text="saving ? 'Menyimpan...' : (isYearEdit ? 'Simpan Perubahan' : 'Tambah Tahun Ajaran')"></span>
                         </button>
                     </div>
                 </form>
@@ -473,7 +473,7 @@
                     window.history.replaceState({}, '', url);
                 },
 
-                // ==================== TAPEL CRUD ====================
+                // ==================== TAHUN AJARAN CRUD ====================
                 openCreateYearModal() {
                     this.isYearEdit = false;
                     this.yearFormData = {
@@ -508,7 +508,7 @@
                     })
                     .catch(err => {
                         if (typeof window.showToast === 'function') {
-                            window.showToast('Perhatian!', "Gagal mengambil data tahun pelajaran: " + err.message, 'error');
+                            window.showToast('Perhatian!', "Gagal mengambil data tahun ajaran: " + err.message, 'error');
                         }
                     });
                 },
@@ -535,7 +535,7 @@
                         if (res.success) {
                             this.yearModalOpen = false;
                             if (typeof window.setPendingToast === 'function') {
-                                window.setPendingToast(res.message || 'Tahun Pelajaran berhasil disimpan!', 'success');
+                                window.setPendingToast(res.message || 'Tahun Ajaran berhasil disimpan!', 'success');
                             }
                             const url = new URL(window.location);
                             url.searchParams.set('tab', 'years');
@@ -568,7 +568,7 @@
                         .then(res => {
                             if (res.success) {
                                 if (typeof window.setPendingToast === 'function') {
-                                    window.setPendingToast(res.message || 'Tahun Pelajaran berhasil diaktifkan!', 'success');
+                                    window.setPendingToast(res.message || 'Tahun Ajaran berhasil diaktifkan!', 'success');
                                 }
                                 const url = new URL(window.location);
                                 url.searchParams.set('tab', 'years');
@@ -587,8 +587,8 @@
                     };
 
                     if (typeof showGlobalConfirmModal === 'function') {
-                        showGlobalConfirmModal(`Jadikan Tahun Pelajaran "${name}" sebagai periode aktif acuan sistem?`, action, false);
-                    } else if (confirm(`Jadikan Tahun Pelajaran "${name}" sebagai periode aktif acuan sistem?`)) {
+                        showGlobalConfirmModal(`Jadikan Tahun Ajaran "${name}" sebagai periode aktif acuan sistem?`, action, false);
+                    } else if (confirm(`Jadikan Tahun Ajaran "${name}" sebagai periode aktif acuan sistem?`)) {
                         action();
                     }
                 },
@@ -606,14 +606,14 @@
                         .then(res => {
                             if (res.success) {
                                 if (typeof window.setPendingToast === 'function') {
-                                    window.setPendingToast(res.message || 'Tahun Pelajaran berhasil dihapus!', 'success');
+                                    window.setPendingToast(res.message || 'Tahun Ajaran berhasil dihapus!', 'success');
                                 }
                                 const url = new URL(window.location);
                                 url.searchParams.set('tab', 'years');
                                 window.location.href = url.toString();
                             } else {
                                 if (typeof window.showToast === 'function') {
-                                    window.showToast('Perhatian!', res.message || 'Gagal menghapus tahun pelajaran.', 'error');
+                                    window.showToast('Perhatian!', res.message || 'Gagal menghapus tahun ajaran.', 'error');
                                 }
                             }
                         })
@@ -625,8 +625,8 @@
                     };
 
                     if (typeof showGlobalConfirmModal === 'function') {
-                        showGlobalConfirmModal(`Apakah Anda yakin ingin menghapus Tahun Pelajaran "${name}"?`, action, true);
-                    } else if (confirm(`Apakah Anda yakin ingin menghapus Tahun Pelajaran "${name}"?`)) {
+                        showGlobalConfirmModal(`Apakah Anda yakin ingin menghapus Tahun Ajaran "${name}"?`, action, true);
+                    } else if (confirm(`Apakah Anda yakin ingin menghapus Tahun Ajaran "${name}"?`)) {
                         action();
                     }
                 },

@@ -88,7 +88,7 @@ class AcademicYearController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Tahun Pelajaran {$academicYear->name} berhasil ditambahkan.",
+            'message' => "Tahun Ajaran {$academicYear->name} berhasil ditambahkan.",
             'academic_year' => $academicYear,
         ]);
     }
@@ -124,7 +124,7 @@ class AcademicYearController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Tahun Pelajaran {$academicYear->name} berhasil diperbarui.",
+            'message' => "Tahun Ajaran {$academicYear->name} berhasil diperbarui.",
             'academic_year' => $academicYear,
         ]);
     }
@@ -142,7 +142,7 @@ class AcademicYearController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Tahun Pelajaran {$academicYear->name} sekarang aktif sebagai acuan sistem.",
+            'message' => "Tahun Ajaran {$academicYear->name} sekarang aktif sebagai acuan sistem.",
         ]);
     }
 
@@ -156,7 +156,7 @@ class AcademicYearController extends Controller
         if ($academicYear->is_active) {
             return response()->json([
                 'success' => false,
-                'message' => 'Tahun Pelajaran yang sedang aktif tidak dapat dihapus. Aktifkan tahun ajaran lain terlebih dahulu.',
+                'message' => 'Tahun Ajaran yang sedang aktif tidak dapat dihapus. Aktifkan tahun ajaran lain terlebih dahulu.',
             ], 422);
         }
 
@@ -166,7 +166,7 @@ class AcademicYearController extends Controller
         if ($classroomsCount > 0 || $studentsCount > 0) {
             return response()->json([
                 'success' => false,
-                'message' => "Tahun Pelajaran tidak dapat dihapus karena masih terhubung dengan {$classroomsCount} rombel dan {$studentsCount} siswa.",
+                'message' => "Tahun Ajaran tidak dapat dihapus karena masih terhubung dengan {$classroomsCount} rombel dan {$studentsCount} siswa.",
             ], 422);
         }
 
@@ -175,7 +175,7 @@ class AcademicYearController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Tahun Pelajaran {$name} berhasil dihapus.",
+            'message' => "Tahun Ajaran {$name} berhasil dihapus.",
         ]);
     }
 }

@@ -76,14 +76,14 @@
     <div class="header">
         <h1>Data Akademik PAUD Anak Saleh Malang</h1>
         <h2>Rekapitulasi Rombel, Jumlah Murid & Wali Kelas</h2>
-        <p>Tahun Pelajaran: {{ $selectedYear ? $selectedYear->name : 'Semua Periode' }} | Tanggal Cetak: {{ date('d/m/Y H:i') }}</p>
+        <p>Tahun Ajaran: {{ $selectedYear ? $selectedYear->name : 'Semua Periode' }} | Tanggal Cetak: {{ date('d/m/Y H:i') }}</p>
     </div>
 
     <table>
         <thead>
             <tr>
                 <th style="width: 30px;">No</th>
-                <th>Tahun Pelajaran</th>
+                <th>Tahun Ajaran</th>
                 <th>Jenjang</th>
                 <th>Kelas</th>
                 <th>Rombel</th>

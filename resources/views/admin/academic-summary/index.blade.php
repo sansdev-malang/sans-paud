@@ -5,7 +5,7 @@
         <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3 w-full text-left">
             <div class="flex flex-col gap-0.5">
                 <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Data Akademik</h2>
-                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Matriks data akademik per tahun pelajaran, jenjang, kelas, rombel, jumlah murid dan penugasan wali kelas.</p>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Matriks data akademik per tahun ajaran, jenjang, kelas, rombel, jumlah murid dan penugasan wali kelas.</p>
             </div>
             <div class="flex items-center gap-2.5 shrink-0">
                 <a href="{{ route('academic-summary.export.excel', request()->query()) }}"
@@ -23,11 +23,11 @@
 
         <!-- STATS CARDS GRID -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- Stat 1: Tahun Pelajaran Aktif -->
+            <!-- Stat 1: Tahun Ajaran Aktif -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tahun Pelajaran</p>
+                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tahun Ajaran</p>
                         <h3 class="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
                             {{ $selectedYear ? $selectedYear->name : '-' }}
                         </h3>
@@ -119,9 +119,9 @@
         <form method="GET" action="{{ route('academic-summary.index') }}" class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs">
             <input type="hidden" name="jenjang_id" value="{{ $selectedJenjangId }}">
             <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                <!-- Filter 1: Tahun Pelajaran -->
+                <!-- Filter 1: Tahun Ajaran -->
                 <div>
-                    <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Tahun Pelajaran</label>
+                    <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Tahun Ajaran</label>
                     <select name="academic_year_id" onchange="this.form.submit()"
                         class="h-9 px-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-semibold cursor-pointer">
                         @foreach($academicYears as $ay)
@@ -162,7 +162,7 @@
         </form>
 
         <!-- TABLE DATA AKADEMIK -->
-        <!-- Kolom: tahun pelajaran, jenjang, kelas, rombel, jumlah murid, wali kelas -->
+        <!-- Kolom: tahun ajaran, jenjang, kelas, rombel, jumlah murid, wali kelas -->
         <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden w-full">
             <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                 <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
@@ -174,7 +174,7 @@
                 <table class="w-full text-xs border-collapse">
                     <thead>
                         <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-900/50">
-                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-40">Tahun Pelajaran</th>
+                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-40">Tahun Ajaran</th>
                             <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-32">Jenjang</th>
                             <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-32">Kelas</th>
                             <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Rombel</th>
@@ -187,7 +187,7 @@
                             <tr x-show="searchQuery === '' || '{{ strtolower($r['classroom_name'] . ' ' . $r['class_level_name'] . ' ' . $r['homeroom_teacher_name']) }}'.includes(searchQuery.toLowerCase())"
                                 class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors group">
                                 
-                                <!-- 1. Tahun Pelajaran -->
+                                <!-- 1. Tahun Ajaran -->
                                 <td class="px-5 py-3.5 font-semibold text-slate-900 dark:text-slate-100">
                                     <span class="inline-flex items-center gap-1.5 font-bold">
                                         <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400"></i>
