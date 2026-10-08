@@ -11,7 +11,7 @@
         <!-- HEADER SECTION -->
         <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3 w-full text-left">
             <div class="flex flex-col gap-0.5">
-                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Hasil & Rekap Rapor</h2>
+                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Data Rapor</h2>
                 <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Ringkasan capaian pembelajaran, narasi evaluasi, tumbuh kembang, dan cetak dokumen rapor murid.</p>
             </div>
 
@@ -294,7 +294,7 @@
                         <span class="font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
                             <i data-lucide="book" class="w-3.5 h-3.5"></i> Nilai Agama & Budi Pekerti
                         </span>
-                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed" x-text="selectedStudent?.narrative?.element_religion || 'Belum ada catatan'"></p>
+                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed" x-text="selectedStudent?.element_religion || selectedStudent?.narrative?.element_religion || 'Belum ada catatan'"></p>
                     </div>
 
                     <!-- Elemen Jati Diri -->
@@ -302,7 +302,7 @@
                         <span class="font-bold text-indigo-800 dark:text-indigo-300 flex items-center gap-1.5">
                             <i data-lucide="smile" class="w-3.5 h-3.5"></i> Jati Diri
                         </span>
-                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed" x-text="selectedStudent?.narrative?.element_identity || 'Belum ada catatan'"></p>
+                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed" x-text="selectedStudent?.element_identity || selectedStudent?.narrative?.element_identity || 'Belum ada catatan'"></p>
                     </div>
 
                     <!-- Elemen STEAM -->
@@ -310,7 +310,7 @@
                         <span class="font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
                             <i data-lucide="compass" class="w-3.5 h-3.5"></i> Dasar-dasar Literasi & STEAM
                         </span>
-                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed" x-text="selectedStudent?.narrative?.element_literacy_steam || 'Belum ada catatan'"></p>
+                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed" x-text="selectedStudent?.element_literacy_steam || selectedStudent?.narrative?.element_literacy_steam || 'Belum ada catatan'"></p>
                     </div>
 
                     <!-- Refleksi Guru -->

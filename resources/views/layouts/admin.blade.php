@@ -40,6 +40,7 @@
                     'students.index' => 'Data Siswa',
                     'classrooms.index' => 'Rombongan Belajar',
                     'spmb.candidates.index' => 'SPMB',
+                    'rekap-rapor.index' => 'Data Rapor',
                 ];
                 $title = $routeTitles[$routeName] ?? 'Dashboard';
             }

@@ -77,14 +77,22 @@ class RaporSummaryController extends Controller
             $narrative = $narratives->get($student->id);
             $attendance = $attendances->get($student->id);
 
-            $hasReligion = !empty($narrative?->element_religion);
-            $hasIdentity = !empty($narrative?->element_identity);
-            $hasSteam = !empty($narrative?->element_literacy_steam);
+            $elemNarratives = !empty($narrative?->element_narratives) 
+                ? (is_string($narrative->element_narratives) ? json_decode($narrative->element_narratives, true) : (array) $narrative->element_narratives) 
+                : [];
+
+            $hasReligion = !empty($narrative?->element_religion) || !empty($elemNarratives['religion']) || !empty($elemNarratives['agama']);
+            $hasIdentity = !empty($narrative?->element_identity) || !empty($elemNarratives['identity']) || !empty($elemNarratives['jati_diri']);
+            $hasSteam = !empty($narrative?->element_literacy_steam) || !empty($elemNarratives['literacy_steam']) || !empty($elemNarratives['steam']);
             $isComplete = $hasReligion && $hasIdentity && $hasSteam;
 
-            $hasGrowth = !empty($narrative?->growth_height) || !empty($narrative?->growth_weight);
+            $hasGrowth = !empty($narrative?->growth_height) || !empty($narrative?->growth_weight) || !empty($narrative?->growth_head_circ);
             if ($isComplete) $completedCount++;
             if ($hasGrowth) $growthRecordedCount++;
+
+            $relText = $narrative?->element_religion ?: ($elemNarratives['religion'] ?? ($elemNarratives['agama'] ?? null));
+            $idText = $narrative?->element_identity ?: ($elemNarratives['identity'] ?? ($elemNarratives['jati_diri'] ?? null));
+            $stText = $narrative?->element_literacy_steam ?: ($elemNarratives['literacy_steam'] ?? ($elemNarratives['steam'] ?? null));
 
             $printUrl = "{$raporUrl}/reports/print/{$student->id}?unit=paud&semester={$selectedSemester}&academic_year_id={$selectedYear?->id}";
 
@@ -92,6 +100,9 @@ class RaporSummaryController extends Controller
                 'student' => $student,
                 'narrative' => $narrative,
                 'attendance' => $attendance,
+                'element_religion' => $relText,
+                'element_identity' => $idText,
+                'element_literacy_steam' => $stText,
                 'is_complete' => $isComplete,
                 'has_religion' => $hasReligion,
                 'has_identity' => $hasIdentity,
