@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AcademicYear;
 use App\Models\Classroom;
+use App\Models\Semester;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -25,16 +26,38 @@ class RaporSummaryController extends Controller
         $selectedYearId = $request->get('academic_year_id', $activeAcademicYear?->id);
         $selectedYear = $academicYears->firstWhere('id', $selectedYearId) ?? $activeAcademicYear;
 
-        // 4 Semesters matching SANS Rapor standard
-        $semesters = [
-            ['code' => 'PTS-1', 'name' => 'Tengah Semester Ganjil', 'description' => 'Penilaian Tengah Semester 1', 'is_active' => true],
-            ['code' => 'PAS-1', 'name' => 'Semester Ganjil', 'description' => 'Akhir Semester 1', 'is_active' => false],
-            ['code' => 'PTS-2', 'name' => 'Tengah Semester Genap', 'description' => 'Penilaian Tengah Semester 2', 'is_active' => false],
-            ['code' => 'PAT-2', 'name' => 'Semester Genap', 'description' => 'Akhir Semester 2', 'is_active' => false],
-        ];
+        // Semesters (Diambil dinamis dari database Master Semester dengan fallback standar 4 semester)
+        try {
+            $dbSemesters = Semester::orderBy('order', 'asc')->get();
+            if ($dbSemesters->isNotEmpty()) {
+                $semesters = $dbSemesters->map(function ($s) {
+                    return [
+                        'id' => $s->id,
+                        'code' => $s->code ?: $s->name,
+                        'name' => $s->name,
+                        'description' => $s->description,
+                        'is_active' => (bool) $s->is_active,
+                    ];
+                });
+            } else {
+                throw new \Exception('No semesters in database');
+            }
+        } catch (\Throwable $e) {
+            $semesters = collect([
+                ['id' => 1, 'code' => 'PTS-1', 'name' => 'Tengah Semester Ganjil', 'description' => 'Penilaian Tengah Semester 1', 'is_active' => true],
+                ['id' => 2, 'code' => 'PAS-1', 'name' => 'Semester Ganjil', 'description' => 'Akhir Semester 1', 'is_active' => false],
+                ['id' => 3, 'code' => 'PTS-2', 'name' => 'Tengah Semester Genap', 'description' => 'Penilaian Tengah Semester 2', 'is_active' => false],
+                ['id' => 4, 'code' => 'PAT-2', 'name' => 'Semester Genap', 'description' => 'Akhir Semester 2', 'is_active' => false],
+            ]);
+        }
 
-        $selectedSemester = $request->get('semester', 'PTS-1');
-        // Normalisasi format lama
+        $activeSemester = $semesters->firstWhere('is_active', true) ?? $semesters->first();
+        $selectedSemester = $request->get('semester');
+        if (!$selectedSemester) {
+            $selectedSemester = $activeSemester ? $activeSemester['code'] : 'PTS-1';
+        }
+
+        // Normalisasi format lama jika ada
         if ($selectedSemester === 'ganjil') $selectedSemester = 'PAS-1';
         if ($selectedSemester === 'genap') $selectedSemester = 'PAT-2';
         if ($selectedSemester === 'tengah_ganjil') $selectedSemester = 'PTS-1';
@@ -60,7 +83,9 @@ class RaporSummaryController extends Controller
 
             // Fetch narratives and attendances from SANS Rapor database safely
             try {
-                config(['database.connections.sans_rapor.database' => $raporDb]);
+                $baseConfig = config('database.connections.sans_rapor') ?: config('database.connections.mysql');
+                $baseConfig['database'] = $raporDb;
+                config(['database.connections.sans_rapor' => $baseConfig]);
                 DB::purge('sans_rapor');
                 
                 $narratives = DB::connection('sans_rapor')
@@ -71,6 +96,8 @@ class RaporSummaryController extends Controller
                         $q->where('semester', $selectedSemester);
                         if ($selectedSemester === 'PAS-1') $q->orWhere('semester', 'ganjil');
                         if ($selectedSemester === 'PAT-2') $q->orWhere('semester', 'genap');
+                        if ($selectedSemester === 'PTS-1') $q->orWhere('semester', 'tengah_ganjil');
+                        if ($selectedSemester === 'PTS-2') $q->orWhere('semester', 'tengah_genap');
                     })
                     ->get()
                     ->keyBy('student_id');
@@ -84,6 +111,8 @@ class RaporSummaryController extends Controller
                         $q->where('semester', $selectedSemester);
                         if ($selectedSemester === 'PAS-1') $q->orWhere('semester', 'ganjil');
                         if ($selectedSemester === 'PAT-2') $q->orWhere('semester', 'genap');
+                        if ($selectedSemester === 'PTS-1') $q->orWhere('semester', 'tengah_ganjil');
+                        if ($selectedSemester === 'PTS-2') $q->orWhere('semester', 'tengah_genap');
                     })
                     ->get()
                     ->keyBy('student_id');
