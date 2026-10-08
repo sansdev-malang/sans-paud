@@ -70,6 +70,64 @@ class SpmbCandidateController extends Controller
             });
         }
 
+        // Category Filter (Reguler / MBK)
+        if ($category = $request->get('category')) {
+            if ($category !== 'all') {
+                if (strtolower($category) === 'mbk') {
+                    $query->where(function ($q) {
+                        $q->where('class_program', 'like', '%mbk%')
+                          ->orWhere('class_program', 'like', '%kebutuhan khusus%');
+                    });
+                } elseif (strtolower($category) === 'reguler') {
+                    $query->where(function ($q) {
+                        $q->where('class_program', 'not like', '%mbk%')
+                          ->where('class_program', 'not like', '%kebutuhan khusus%');
+                    });
+                } else {
+                    $query->where('class_program', $category);
+                }
+            }
+        }
+
+        // Jalur Masuk Filter (Murid Baru / Mutasi Masuk)
+        if ($regType = $request->get('registration_type')) {
+            if ($regType !== 'all') {
+                $query->where(function ($q) use ($regType) {
+                    $q->where('registration_type', 'like', "%{$regType}%")
+                      ->orWhere('raw_payload->registration_type', 'like', "%{$regType}%")
+                      ->orWhere('raw_payload->entry_type', 'like', "%{$regType}%");
+                });
+            }
+        }
+
+        // Kelas / Kelompok Pilihan Filter (TK A / TK B / KB / Daycare)
+        if ($admissionLevel = $request->get('admission_level')) {
+            if ($admissionLevel !== 'all') {
+                $query->where(function ($q) use ($admissionLevel) {
+                    $q->where('admission_level', 'like', "%{$admissionLevel}%")
+                      ->orWhere('class_program', 'like', "%{$admissionLevel}%");
+                });
+            }
+        }
+
+        // Layanan Tambahan Filter (Daycare / TPQ / Fullday)
+        if ($service = $request->get('service')) {
+            if ($service !== 'all') {
+                $query->where(function ($q) use ($service) {
+                    $q->where('extra_services', 'like', "%{$service}%")
+                      ->orWhere('raw_payload->extra_services', 'like', "%{$service}%")
+                      ->orWhere('raw_payload->services', 'like', "%{$service}%");
+                });
+            }
+        }
+
+        // Wave Filter
+        if ($wave = $request->get('wave')) {
+            if ($wave !== 'all') {
+                $query->where('wave', $wave);
+            }
+        }
+
         // Status Filter
         if ($status = $request->get('status')) {
             if ($status !== 'all') {
@@ -81,13 +139,6 @@ class SpmbCandidateController extends Controller
         if ($payment = $request->get('payment_status')) {
             if ($payment !== 'all') {
                 $query->where('payment_status', $payment);
-            }
-        }
-
-        // Wave Filter
-        if ($wave = $request->get('wave')) {
-            if ($wave !== 'all') {
-                $query->where('wave', $wave);
             }
         }
 
@@ -109,8 +160,16 @@ class SpmbCandidateController extends Controller
             'enrolled' => (clone $statsQuery)->where('is_enrolled', true)->count(),
         ];
 
-        // 4. Get available waves for filter dropdown
-        $availableWaves = (clone $statsQuery)->whereNotNull('wave')->distinct()->pluck('wave')->toArray();
+        // 4. Get filter option lists
+        $availableWaves = (clone $statsQuery)->whereNotNull('wave')->distinct()->pluck('wave')->filter()->values()->toArray();
+        if (empty($availableWaves)) {
+            $availableWaves = ['Gelombang 1', 'Gelombang 2', 'Gelombang 3', 'Indent'];
+        }
+
+        $categories = ['Reguler', 'MBK'];
+        $registrationTypes = ['Murid Baru', 'Mutasi Masuk / Pindahan'];
+        $availableAdmissionLevels = ['Kelompok Bermain (KB)', 'TK A', 'TK B', 'Daycare / TPA'];
+        $availableServices = ['Daycare', 'Fullday', 'TPQ'];
 
         $candidates = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
 
@@ -128,7 +187,11 @@ class SpmbCandidateController extends Controller
             'academicYears', 
             'selectedYear', 
             'stats', 
+            'categories',
+            'registrationTypes',
             'availableWaves',
+            'availableAdmissionLevels',
+            'availableServices',
             'masterAcademicYears',
             'masterJenjangs',
             'masterClassrooms'

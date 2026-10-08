@@ -19,6 +19,9 @@ class SpmbCandidate extends Model
         'unit_name',
         'wave',
         'class_program',
+        'registration_type',
+        'admission_level',
+        'extra_services',
         'full_name',
         'nickname',
         'nik',
@@ -61,6 +64,7 @@ class SpmbCandidate extends Model
         'synced_at' => 'datetime',
         'documents' => 'array',
         'payments' => 'array',
+        'extra_services' => 'array',
         'raw_payload' => 'array',
         'is_enrolled' => 'boolean',
     ];
@@ -84,6 +88,8 @@ class SpmbCandidate extends Model
         'father_income',
         'mother_income',
         'formatted_payments',
+        'category',
+        'services_list',
     ];
 
     /**
@@ -251,6 +257,40 @@ class SpmbCandidate extends Model
     }
 
     /**
+     * Kategori Murid (Reguler / MBK)
+     */
+    public function getCategoryAttribute(): string
+    {
+        $prog = strtolower($this->class_program ?? ($this->raw_payload['class_program'] ?? ''));
+        if (str_contains($prog, 'mbk') || str_contains($prog, 'kebutuhan khusus')) {
+            return 'MBK';
+        }
+        return 'Reguler';
+    }
+
+    /**
+     * Layanan Tambahan (Daycare, TPQ, Fullday, dll)
+     */
+    public function getServicesListAttribute(): array
+    {
+        if (is_array($this->extra_services) && !empty($this->extra_services)) {
+            return $this->extra_services;
+        }
+
+        $rawServices = $this->raw_payload['extra_services'] 
+            ?? ($this->raw_payload['services'] 
+            ?? ($this->raw_payload['additional_services'] ?? []));
+
+        if (is_array($rawServices) && !empty($rawServices)) {
+            return array_map(function($s) {
+                return is_array($s) ? ($s['name'] ?? 'Layanan') : (string)$s;
+            }, $rawServices);
+        }
+
+        return [];
+    }
+
+    /**
      * Riwayat Pembayaran Terstruktur
      */
     public function getFormattedPaymentsAttribute(): array
@@ -353,6 +393,35 @@ class SpmbCandidate extends Model
             }
         }
 
+        $regType = $payload['registration_type'] 
+            ?? ($payload['entry_type'] 
+            ?? ($payload['admission_type'] 
+            ?? ($payload['type'] ?? 'Murid Baru')));
+
+        $admLevel = $payload['admission_level'] 
+            ?? ($payload['target_class'] 
+            ?? ($payload['grade'] 
+            ?? ($payload['class_level'] ?? null)));
+
+        if (!$admLevel) {
+            $prog = strtolower($payload['class_program'] ?? '');
+            if (str_contains($prog, 'tk-a') || str_contains($prog, 'tk a')) {
+                $admLevel = 'TK A';
+            } elseif (str_contains($prog, 'tk-b') || str_contains($prog, 'tk b')) {
+                $admLevel = 'TK B';
+            } elseif (str_contains($prog, 'kb') || str_contains($prog, 'bermain')) {
+                $admLevel = 'Kelompok Bermain (KB)';
+            } elseif (str_contains($prog, 'daycare') || str_contains($prog, 'tpa')) {
+                $admLevel = 'Daycare / TPA';
+            } else {
+                $admLevel = 'TK A';
+            }
+        }
+
+        $services = $payload['extra_services'] 
+            ?? ($payload['services'] 
+            ?? ($payload['additional_services'] ?? []));
+
         return self::updateOrCreate(
             ['registration_number' => $regNumber],
             [
@@ -361,7 +430,10 @@ class SpmbCandidate extends Model
                 'unit_code' => $payload['unit']['code'] ?? 'PAUD',
                 'unit_name' => $payload['unit']['name'] ?? 'PAUD Terpadu Anak Saleh',
                 'wave' => $payload['wave'] ?? null,
-                'class_program' => $payload['class_program'] ?? null,
+                'class_program' => $payload['class_program'] ?? 'Reguler',
+                'registration_type' => $regType ?: 'Murid Baru',
+                'admission_level' => $admLevel,
+                'extra_services' => $services,
                 'full_name' => $bio['full_name'] ?? ($payload['full_name'] ?? 'Pendaftar SPMB'),
                 'nickname' => $bio['nickname'] ?? null,
                 'nik' => $bio['nik'] ?? null,
