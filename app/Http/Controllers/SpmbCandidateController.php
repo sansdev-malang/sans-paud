@@ -24,22 +24,37 @@ class SpmbCandidateController extends Controller
      */
     public function index(Request $request)
     {
-        // 1. Get available academic years
-        $academicYears = SpmbCandidate::select('academic_year')
+        // 1. Get available academic years and normalize to standard slash format (e.g. 2026/2027)
+        $rawYears = SpmbCandidate::select('academic_year')
             ->whereNotNull('academic_year')
             ->distinct()
-            ->orderBy('academic_year', 'desc')
             ->pluck('academic_year')
+            ->toArray();
+
+        $academicYears = collect($rawYears)
+            ->map(fn($y) => str_replace('-', '/', trim($y)))
+            ->filter()
+            ->unique()
+            ->sortDesc()
+            ->values()
             ->toArray();
 
         // Default to latest year or 'all' if empty
         $selectedYear = $request->get('period', $academicYears[0] ?? 'all');
+        if ($selectedYear && $selectedYear !== 'all') {
+            $selectedYear = str_replace('-', '/', trim($selectedYear));
+        }
 
         // 2. Base Query
         $query = SpmbCandidate::with('student.classroom');
 
         if ($selectedYear && $selectedYear !== 'all') {
-            $query->where('academic_year', $selectedYear);
+            $slashYear = str_replace('-', '/', $selectedYear);
+            $hyphenYear = str_replace('/', '-', $selectedYear);
+            $query->where(function ($q) use ($slashYear, $hyphenYear) {
+                $q->where('academic_year', $slashYear)
+                  ->orWhere('academic_year', $hyphenYear);
+            });
         }
 
         // Search Filter
@@ -79,7 +94,12 @@ class SpmbCandidateController extends Controller
         // 3. Stats Calculation (based on selected year)
         $statsQuery = SpmbCandidate::query();
         if ($selectedYear && $selectedYear !== 'all') {
-            $statsQuery->where('academic_year', $selectedYear);
+            $slashYear = str_replace('-', '/', $selectedYear);
+            $hyphenYear = str_replace('/', '-', $selectedYear);
+            $statsQuery->where(function ($q) use ($slashYear, $hyphenYear) {
+                $q->where('academic_year', $slashYear)
+                  ->orWhere('academic_year', $hyphenYear);
+            });
         }
 
         $stats = [

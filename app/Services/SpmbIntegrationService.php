@@ -184,7 +184,12 @@ class SpmbIntegrationService
             
             $pruneQuery = SpmbCandidate::query();
             if ($period && $period !== 'all') {
-                $pruneQuery->where('academic_year', $period);
+                $slashYear = str_replace('-', '/', $period);
+                $hyphenYear = str_replace('/', '-', $period);
+                $pruneQuery->where(function($q) use ($slashYear, $hyphenYear) {
+                    $q->where('academic_year', $slashYear)
+                      ->orWhere('academic_year', $hyphenYear);
+                });
             }
             if (!empty($syncedIds)) {
                 $pruneQuery->whereNotIn('spmb_registration_id', $syncedIds);

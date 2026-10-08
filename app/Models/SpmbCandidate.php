@@ -78,6 +78,19 @@ class SpmbCandidate extends Model
     ];
 
     /**
+     * Mutator & Accessor untuk normalisasi format Tahun Ajaran (misal 2026-2027 -> 2026/2027)
+     */
+    public function getAcademicYearAttribute($value): ?string
+    {
+        return $value ? str_replace('-', '/', $value) : null;
+    }
+
+    public function setAcademicYearAttribute($value): void
+    {
+        $this->attributes['academic_year'] = $value ? str_replace('-', '/', trim($value)) : null;
+    }
+
+    /**
      * URL Foto Calon Siswa
      */
     public function getStudentPhotoUrlAttribute(): ?string
