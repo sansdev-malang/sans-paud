@@ -160,15 +160,18 @@ class SpmbCandidateController extends Controller
             'enrolled' => (clone $statsQuery)->where('is_enrolled', true)->count(),
         ];
 
-        // 4. Get filter option lists
-        $availableWaves = (clone $statsQuery)->whereNotNull('wave')->distinct()->pluck('wave')->filter()->values()->toArray();
-        if (empty($availableWaves)) {
-            $availableWaves = ['Gelombang 1', 'Gelombang 2', 'Gelombang 3', 'Indent'];
-        }
+        // 4. Get filter option lists dynamically from database with defaults
+        $dbWaves = SpmbCandidate::whereNotNull('wave')->distinct()->pluck('wave')->filter()->values()->toArray();
+        $availableWaves = array_values(array_unique(array_merge(['Gelombang 1', 'Gelombang 2', 'Gelombang 3', 'Indent'], $dbWaves)));
 
         $categories = ['Reguler', 'MBK'];
-        $registrationTypes = ['Murid Baru', 'Mutasi Masuk / Pindahan'];
-        $availableAdmissionLevels = ['Kelompok Bermain (KB)', 'TK A', 'TK B', 'Daycare / TPA'];
+
+        $dbTypes = SpmbCandidate::whereNotNull('registration_type')->distinct()->pluck('registration_type')->filter()->values()->toArray();
+        $registrationTypes = array_values(array_unique(array_merge(['Murid Baru', 'Mutasi Masuk / Pindahan'], $dbTypes)));
+
+        $dbLevels = SpmbCandidate::whereNotNull('admission_level')->distinct()->pluck('admission_level')->filter()->values()->toArray();
+        $availableAdmissionLevels = array_values(array_unique(array_merge(['Kelompok Bermain (KB)', 'TK A', 'TK B', 'Daycare / TPA'], $dbLevels)));
+
         $availableServices = ['Daycare', 'Fullday', 'TPQ'];
 
         $candidates = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();

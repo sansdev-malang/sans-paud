@@ -18,69 +18,36 @@
             </div>
         </section>
 
-        <!-- STATS CARDS GRID -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- Stat 1: Total Pendaftar -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Pendaftar SPMB</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">{{ number_format($stats['total']) }}</h3>
-                    </div>
-                    <div class="p-2.5 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-100 dark:border-blue-900/50">
-                        <i data-lucide="users" class="w-5 h-5"></i>
-                    </div>
+        <!-- COMPACT STATS SUMMARY BAR -->
+        <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 shadow-xs">
+            <div class="flex flex-wrap items-center justify-between gap-3 sm:gap-6 text-xs divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-slate-800">
+                <!-- Stat 1: Total Pendaftar -->
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0"></span>
+                    <span class="text-slate-500 dark:text-slate-400 font-medium">Total Pendaftar:</span>
+                    <span class="font-bold font-mono text-slate-900 dark:text-slate-100 text-sm">{{ number_format($stats['total']) }}</span>
+                    <span class="text-[10.5px] text-slate-400">({{ $selectedYear === 'all' ? 'Semua TA' : 'TA ' . $selectedYear }})</span>
                 </div>
-                <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
-                    Periode: <span class="font-semibold text-slate-700 dark:text-slate-300">{{ $selectedYear === 'all' ? 'Semua Periode' : 'TA ' . $selectedYear }}</span>
-                </div>
-            </div>
 
-            <!-- Stat 2: Terverifikasi / Diterima -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Terverifikasi / Diterima</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400 mt-1">{{ number_format($stats['verified']) }}</h3>
-                    </div>
-                    <div class="p-2.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-100 dark:border-emerald-900/50">
-                        <i data-lucide="badge-check" class="w-5 h-5"></i>
-                    </div>
+                <!-- Stat 2: Terverifikasi / Diterima -->
+                <div class="flex items-center gap-2 sm:pl-6 pt-2 sm:pt-0">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+                    <span class="text-slate-500 dark:text-slate-400 font-medium">Terverifikasi:</span>
+                    <span class="font-bold font-mono text-emerald-600 dark:text-emerald-400 text-sm">{{ number_format($stats['verified']) }}</span>
                 </div>
-                <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
-                    Status berkas & pendaftaran valid
-                </div>
-            </div>
 
-            <!-- Stat 3: Pembayaran Lunas -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pembayaran Lunas</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-indigo-600 dark:text-indigo-400 mt-1">{{ number_format($stats['paid']) }}</h3>
-                    </div>
-                    <div class="p-2.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-xl border border-indigo-100 dark:border-indigo-900/50">
-                        <i data-lucide="wallet" class="w-5 h-5"></i>
-                    </div>
+                <!-- Stat 3: Pembayaran Lunas -->
+                <div class="flex items-center gap-2 sm:pl-6 pt-2 sm:pt-0">
+                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 shrink-0"></span>
+                    <span class="text-slate-500 dark:text-slate-400 font-medium">Lunas:</span>
+                    <span class="font-bold font-mono text-indigo-600 dark:text-indigo-400 text-sm">{{ number_format($stats['paid']) }}</span>
                 </div>
-                <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
-                    Formulir / Biaya Pendidikan Lunas
-                </div>
-            </div>
 
-            <!-- Stat 4: Sudah Murid Aktif -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Sudah Murid Aktif</p>
-                        <h3 class="text-2xl font-bold tracking-tight text-purple-600 dark:text-purple-400 mt-1">{{ number_format($stats['enrolled']) }}</h3>
-                    </div>
-                    <div class="p-2.5 bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 rounded-xl border border-purple-100 dark:border-purple-900/50">
-                        <i data-lucide="graduation-cap" class="w-5 h-5"></i>
-                    </div>
-                </div>
-                <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
-                    Telah resmi ditempatkan di rombel
+                <!-- Stat 4: Sudah Murid Aktif -->
+                <div class="flex items-center gap-2 sm:pl-6 pt-2 sm:pt-0">
+                    <span class="w-2.5 h-2.5 rounded-full bg-purple-500 shrink-0"></span>
+                    <span class="text-slate-500 dark:text-slate-400 font-medium">Murid Aktif:</span>
+                    <span class="font-bold font-mono text-purple-600 dark:text-purple-400 text-sm">{{ number_format($stats['enrolled']) }}</span>
                 </div>
             </div>
         </section>
