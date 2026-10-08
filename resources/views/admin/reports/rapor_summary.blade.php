@@ -254,42 +254,43 @@
                                 </div>
                             </td>
 
-                            <!-- 5. Status Badge -->
+                            <!-- 5. Status Rapor (Clean Indicator & Text) -->
                             <td class="px-4 py-3.5 text-center">
-                                <div class="inline-flex flex-col items-center justify-center gap-1">
+                                <div class="inline-flex flex-col items-center justify-center gap-0.5">
                                     @if($student->status === 'approved')
-                                    <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800 shadow-2xs dark:border-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 whitespace-nowrap"
+                                    <div class="inline-flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400 text-xs whitespace-nowrap"
                                         title="Rapor telah diperiksa dan disahkan oleh Kepala Sekolah">
-                                        <i data-lucide="check-circle-2" class="w-3.5 h-3.5 shrink-0"></i>
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
                                         <span>Disetujui</span>
-                                    </span>
+                                    </div>
                                     @elseif($student->status === 'submitted')
-                                    <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800 shadow-2xs dark:border-amber-700 dark:bg-amber-950/80 dark:text-amber-300 whitespace-nowrap"
+                                    <div class="inline-flex items-center gap-1.5 font-semibold text-amber-600 dark:text-amber-400 text-xs whitespace-nowrap"
                                         title="Menunggu verifikasi dan pengesahan Kepala Sekolah">
-                                        <i data-lucide="clock" class="w-3.5 h-3.5 shrink-0 animate-pulse"></i>
+                                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
                                         <span>Menunggu Review</span>
-                                    </span>
+                                    </div>
                                     @elseif($student->status === 'revisi')
-                                    <span class="inline-flex items-center gap-1.5 rounded-full border border-rose-300 bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-800 shadow-2xs dark:border-rose-700 dark:bg-rose-950/80 dark:text-rose-300 whitespace-nowrap"
+                                    <div class="inline-flex items-center gap-1.5 font-semibold text-rose-600 dark:text-rose-400 text-xs whitespace-nowrap"
                                         title="Rapor dikembalikan oleh Kepala Sekolah untuk direvisi">
-                                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 shrink-0"></i>
+                                        <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
                                         <span>Perlu Revisi</span>
-                                    </span>
+                                    </div>
                                     @if($student->review_notes)
-                                    <span class="text-[11px] text-rose-500 dark:text-rose-400 italic max-w-[160px] truncate block mt-0.5" title="{{ $student->review_notes }}">
+                                    <span class="text-[11px] text-rose-500 dark:text-rose-400 italic max-w-[160px] truncate block" title="{{ $student->review_notes }}">
                                         "{{ $student->review_notes }}"
                                     </span>
                                     @endif
                                     @elseif($student->status === 'draft')
-                                    <span class="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800 dark:border-blue-800 dark:bg-blue-950/80 dark:text-blue-300 whitespace-nowrap"
+                                    <div class="inline-flex items-center gap-1.5 font-semibold text-blue-600 dark:text-blue-400 text-xs whitespace-nowrap"
                                         title="Draft tersimpan, belum diajukan ke Kepala Sekolah">
-                                        <i data-lucide="file-edit" class="w-3.5 h-3.5 shrink-0"></i>
+                                        <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
                                         <span>Draft</span>
-                                    </span>
+                                    </div>
                                     @else
-                                    <span class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                                    <div class="inline-flex items-center gap-1.5 font-medium text-slate-400 dark:text-slate-500 text-xs whitespace-nowrap">
+                                        <span class="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0"></span>
                                         <span>Belum Diisi</span>
-                                    </span>
+                                    </div>
                                     @endif
                                 </div>
                             </td>
@@ -315,7 +316,7 @@
                                     </a>
                                     @else
                                     <span class="inline-flex items-center px-2.5 py-1 text-xs font-medium text-slate-400 dark:text-slate-500 italic select-none">
-                                        Belum diisi
+                                        Belum tersedia
                                     </span>
                                     @endif
                                 </div>
