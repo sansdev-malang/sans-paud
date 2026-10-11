@@ -219,13 +219,20 @@ class RaporSummaryController extends Controller
 
         // SSO Link to Edit in SANS Rapor
         $curUser = auth()->user();
-        $isAdmin = in_array($curUser?->role, ['super_admin', 'admin_sd', 'admin_paud', 'admin_smp']);
+        $ssoRole = $curUser?->role;
+        if ($curUser?->hasRole('super_admin')) {
+            $ssoRole = 'super_admin';
+        } elseif ($curUser?->hasRole('kepala_sekolah')) {
+            $ssoRole = 'kepala_sekolah';
+        } elseif ($curUser?->isActiveHomeroomTeacher()) {
+            $ssoRole = 'wali_kelas';
+        }
         $ssoPayload = base64_encode(json_encode([
             'id' => $curUser?->id,
             'name' => $curUser?->name,
             'email' => $curUser?->email,
             'employee_id' => $curUser?->employee_id,
-            'role' => $curUser?->role ?? ($isAdmin ? 'super_admin' : 'guru'),
+            'role' => $ssoRole ?? 'guru',
             'unit' => 'paud',
             'timestamp' => time(),
         ]));

@@ -61,11 +61,15 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if the user can access E-Rapor (Admins or Active Homeroom Teachers).
+     * Check if the user can access E-Rapor (Super Admin, Kepala Sekolah, Admin, or Active Homeroom Teachers).
      */
     public function canAccessRapor(): bool
     {
-        return $this->isAdmin() || $this->isActiveHomeroomTeacher();
+        if (in_array($this->role, ['super_admin', 'kepala_sekolah', 'admin_paud', 'admin_sd', 'admin_smp', 'waka', 'wali_kelas'])) {
+            return true;
+        }
+
+        return $this->isActiveHomeroomTeacher();
     }
 
     /**

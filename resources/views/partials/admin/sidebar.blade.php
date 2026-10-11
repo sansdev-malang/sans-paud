@@ -129,12 +129,20 @@
             $ssoSecret = \App\Models\Setting::get('rapor_sso_secret', env('SSO_SECRET_KEY', 'sans_rapor_secret_sso_key_2026'));
             $raporUrl = \App\Models\Setting::get('rapor_url', env('SANS_RAPOR_URL', 'http://sans-rapor.test'));
             $curUser = auth()->user();
+            $ssoRole = $curUser?->role;
+            if ($curUser?->hasRole('super_admin')) {
+                $ssoRole = 'super_admin';
+            } elseif ($curUser?->hasRole('kepala_sekolah')) {
+                $ssoRole = 'kepala_sekolah';
+            } elseif ($curUser?->isActiveHomeroomTeacher()) {
+                $ssoRole = 'wali_kelas';
+            }
             $ssoPayload = base64_encode(json_encode([
                 'id' => $curUser?->id,
                 'name' => $curUser?->name,
                 'email' => $curUser?->email,
                 'employee_id' => $curUser?->employee_id,
-                'role' => $curUser?->role ?? ($isAdmin ? 'super_admin' : 'guru'),
+                'role' => $ssoRole ?? 'guru',
                 'unit' => 'paud',
                 'timestamp' => time(),
             ]));
