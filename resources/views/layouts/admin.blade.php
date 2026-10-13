@@ -38,6 +38,7 @@
                     'announcements.index' => 'Pengumuman',
                     'zkteco-devices.index' => 'Mesin Absensi',
                     'students.index' => 'Data Siswa',
+                    'student-archives.index' => 'Arsip Murid',
                     'student-attendances.index' => 'Absensi Murid',
                     'student-ddtk.index' => 'DDTK & SDIDTK',
                     'classroom-journals.index' => 'Jurnal Kelas',

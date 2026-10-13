@@ -149,6 +149,103 @@ class Student extends Model
         return $this->hasMany(StudentDdtkRecord::class);
     }
 
+    public function uploadedDocuments()
+    {
+        return $this->hasMany(StudentDocument::class);
+    }
+
+    /**
+     * Unified document completeness checklist aggregated from StudentDocuments, Student.documents, and SPMB.
+     */
+    public function getDocumentChecklistAttribute(): array
+    {
+        $akta = null;
+        $kk = null;
+        $foto = $this->student_photo_url ?: null;
+        $ktp = null;
+        $kia = null;
+        $otherList = [];
+
+        // 1. Check from uploadedDocuments relation
+        $docs = $this->relationLoaded('uploadedDocuments') ? $this->uploadedDocuments : $this->uploadedDocuments()->get();
+
+        foreach ($docs as $d) {
+            $type = strtolower($d->document_type);
+            $url = $d->file_url;
+            if (str_contains($type, 'akta')) {
+                $akta = ['url' => $url, 'title' => $d->title, 'source' => 'Arsip Murid', 'id' => $d->id];
+            } elseif (str_contains($type, 'kk') || str_contains($type, 'kartu_keluarga')) {
+                $kk = ['url' => $url, 'title' => $d->title, 'source' => 'Arsip Murid', 'id' => $d->id];
+            } elseif (str_contains($type, 'foto')) {
+                $foto = $url;
+            } elseif (str_contains($type, 'ktp')) {
+                $ktp = ['url' => $url, 'title' => $d->title, 'source' => 'Arsip Murid', 'id' => $d->id];
+            } elseif (str_contains($type, 'kia') || str_contains($type, 'imunisasi')) {
+                $kia = ['url' => $url, 'title' => $d->title, 'source' => 'Arsip Murid', 'id' => $d->id];
+            } else {
+                $otherList[] = ['url' => $url, 'title' => $d->title, 'source' => 'Arsip Murid', 'type' => $d->type_label, 'id' => $d->id];
+            }
+        }
+
+        // 2. Check from students.documents JSON array
+        if (is_array($this->documents)) {
+            foreach ($this->documents as $k => $v) {
+                $url = is_array($v) ? ($v['url'] ?? null) : $v;
+                if (!$url || $url === '#') continue;
+                $key = strtolower(is_string($k) ? $k : ($v['key'] ?? ''));
+                if (!$akta && (str_contains($key, 'akta') || str_contains($key, 'birth_certificate'))) {
+                    $akta = ['url' => $url, 'title' => 'Akta Kelahiran', 'source' => 'Data Murid'];
+                } elseif (!$kk && (str_contains($key, 'kk') || str_contains($key, 'family_card'))) {
+                    $kk = ['url' => $url, 'title' => 'Kartu Keluarga', 'source' => 'Data Murid'];
+                } elseif (!$foto && (str_contains($key, 'foto') || str_contains($key, 'photo'))) {
+                    $foto = $url;
+                } elseif (!$ktp && str_contains($key, 'ktp')) {
+                    $ktp = ['url' => $url, 'title' => 'KTP Orang Tua', 'source' => 'Data Murid'];
+                } elseif (!$kia && (str_contains($key, 'kia') || str_contains($key, 'imunisasi'))) {
+                    $kia = ['url' => $url, 'title' => 'Buku KIA / Imunisasi', 'source' => 'Data Murid'];
+                }
+            }
+        }
+
+        // 3. Check from spmbCandidate if linked
+        if ($this->spmbCandidate && is_array($this->spmbCandidate->formatted_documents)) {
+            foreach ($this->spmbCandidate->formatted_documents as $sDoc) {
+                $url = $sDoc['url'] ?? null;
+                if (!$url || $url === '#') continue;
+                $key = strtolower($sDoc['key'] ?? '');
+                $name = strtolower($sDoc['name'] ?? '');
+
+                if (!$akta && (str_contains($key, 'birth_certificate') || str_contains($name, 'akta'))) {
+                    $akta = ['url' => $url, 'title' => 'Akta Kelahiran', 'source' => 'SPMB'];
+                } elseif (!$kk && (str_contains($key, 'family_card') || str_contains($name, 'kartu keluarga') || str_contains($name, 'kk'))) {
+                    $kk = ['url' => $url, 'title' => 'Kartu Keluarga', 'source' => 'SPMB'];
+                } elseif (!$foto && (str_contains($key, 'photo') || str_contains($name, 'foto'))) {
+                    $foto = $url;
+                } elseif (!$kia && (str_contains($key, 'kia') || str_contains($key, 'student_card'))) {
+                    $kia = ['url' => $url, 'title' => 'KIA / Kartu Pelajar', 'source' => 'SPMB'];
+                }
+            }
+            if (!$foto && $this->spmbCandidate->student_photo_url) {
+                $foto = $this->spmbCandidate->student_photo_url;
+            }
+        }
+
+        $coreCount = ($akta ? 1 : 0) + ($kk ? 1 : 0) + ($foto ? 1 : 0);
+        $totalCount = $coreCount + ($ktp ? 1 : 0) + ($kia ? 1 : 0) + count($otherList);
+
+        return [
+            'akta' => $akta,
+            'kk' => $kk,
+            'foto' => $foto,
+            'ktp' => $ktp,
+            'kia' => $kia,
+            'other_docs' => $otherList,
+            'is_complete' => ($akta !== null && $kk !== null && $foto !== null),
+            'core_count' => $coreCount,
+            'total_count' => $totalCount,
+        ];
+    }
+
     /**
      * Human-readable gender.
      */

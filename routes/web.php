@@ -138,6 +138,15 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,adm
     Route::get('teacher-documents/export/excel', [\App\Http\Controllers\TeacherDocumentController::class, 'exportMatrixExcel'])->name('teacher-documents.export.excel');
     Route::get('teacher-documents/print', [\App\Http\Controllers\TeacherDocumentController::class, 'printMatrix'])->name('teacher-documents.print');
     Route::get('/berkas-guru', fn() => redirect()->route('teacher-documents.index'))->name('berkas-guru');
+
+    // Arsip Murid (Dokumen Legalitas & Kelengkapan Berkas Siswa)
+    Route::get('student-archives', [\App\Http\Controllers\StudentArchiveController::class, 'index'])->name('student-archives.index');
+    Route::post('student-archives', [\App\Http\Controllers\StudentArchiveController::class, 'store'])->name('student-archives.store');
+    Route::delete('student-archives/{id}', [\App\Http\Controllers\StudentArchiveController::class, 'destroy'])->name('student-archives.destroy');
+    Route::get('student-archives/{id}/download', [\App\Http\Controllers\StudentArchiveController::class, 'download'])->name('student-archives.download');
+    Route::get('student-archives/export/excel', [\App\Http\Controllers\StudentArchiveController::class, 'exportExcel'])->name('student-archives.export.excel');
+    Route::get('student-archives/print', [\App\Http\Controllers\StudentArchiveController::class, 'print'])->name('student-archives.print');
+    Route::get('/arsip-murid', fn() => redirect()->route('student-archives.index'))->name('arsip-murid');
 });
 
 // Rekap & Hasil Rapor (Read-Only from SANS Rapor)
