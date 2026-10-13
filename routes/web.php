@@ -21,6 +21,10 @@ Route::get('/', function () {
 
 Route::view('/offline', 'errors.offline')->name('offline');
 
+// Buku Tamu Publik (Kiosk / Scan QR Mandiri)
+Route::get('/buku-tamu', [\App\Http\Controllers\GuestBookController::class, 'publicForm'])->name('buku-tamu.public');
+Route::post('/buku-tamu', [\App\Http\Controllers\GuestBookController::class, 'publicSubmit'])->name('buku-tamu.submit');
+
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 // Academic Master & Student Management (English Resource Standard)
@@ -88,6 +92,52 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,adm
     Route::post('alumni/{id}/restore', [\App\Http\Controllers\AlumniController::class, 'restoreToActive'])->name('alumni.restore');
     Route::resource('alumni', \App\Http\Controllers\AlumniController::class);
 
+});
+
+// Absensi Murid (Input Harian & Rekap Bulanan - Admin & Pendidik)
+Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,admin_smp,kepala_sekolah,waka,employee'])->group(function () {
+    Route::get('student-attendances', [\App\Http\Controllers\StudentAttendanceController::class, 'index'])->name('student-attendances.index');
+    Route::post('student-attendances', [\App\Http\Controllers\StudentAttendanceController::class, 'store'])->name('student-attendances.store');
+    Route::get('student-attendances/export/excel', [\App\Http\Controllers\StudentAttendanceController::class, 'exportMonthlyExcel'])->name('student-attendances.export.excel');
+    Route::get('student-attendances/print', [\App\Http\Controllers\StudentAttendanceController::class, 'printMonthly'])->name('student-attendances.print');
+    Route::get('/absensi-murid', fn() => redirect()->route('student-attendances.index'))->name('absensi-murid');
+
+    // DDTK & SDIDTK (Deteksi Dini Tumbuh Kembang & Skrining Kesehatan)
+    Route::get('student-ddtk', [\App\Http\Controllers\StudentDdtkController::class, 'index'])->name('student-ddtk.index');
+    Route::post('student-ddtk/store-ddtk', [\App\Http\Controllers\StudentDdtkController::class, 'storeDdtk'])->name('student-ddtk.store-ddtk');
+    Route::post('student-ddtk/store-sdidtk', [\App\Http\Controllers\StudentDdtkController::class, 'storeSdidtk'])->name('student-ddtk.store-sdidtk');
+    Route::get('student-ddtk/export/excel', [\App\Http\Controllers\StudentDdtkController::class, 'exportExcel'])->name('student-ddtk.export.excel');
+    Route::get('student-ddtk/print', [\App\Http\Controllers\StudentDdtkController::class, 'print'])->name('student-ddtk.print');
+    Route::get('/ddtk', fn() => redirect()->route('student-ddtk.index'))->name('ddtk');
+    Route::get('/sdidtk', fn() => redirect()->route('student-ddtk.index'))->name('sdidtk');
+
+    // Jurnal Kelas (Classroom Journals)
+    Route::get('classroom-journals', [\App\Http\Controllers\ClassroomJournalController::class, 'index'])->name('classroom-journals.index');
+    Route::post('classroom-journals', [\App\Http\Controllers\ClassroomJournalController::class, 'store'])->name('classroom-journals.store');
+    Route::put('classroom-journals/{id}', [\App\Http\Controllers\ClassroomJournalController::class, 'update'])->name('classroom-journals.update');
+    Route::delete('classroom-journals/{id}', [\App\Http\Controllers\ClassroomJournalController::class, 'destroy'])->name('classroom-journals.destroy');
+    Route::get('classroom-journals/export/excel', [\App\Http\Controllers\ClassroomJournalController::class, 'exportExcel'])->name('classroom-journals.export.excel');
+    Route::get('classroom-journals/print', [\App\Http\Controllers\ClassroomJournalController::class, 'print'])->name('classroom-journals.print');
+    Route::get('/jurnal-kelas', fn() => redirect()->route('classroom-journals.index'))->name('jurnal-kelas');
+
+    // Buku Tamu (Admin Management)
+    Route::get('guest-books', [\App\Http\Controllers\GuestBookController::class, 'index'])->name('guest-books.index');
+    Route::post('guest-books', [\App\Http\Controllers\GuestBookController::class, 'store'])->name('guest-books.store');
+    Route::put('guest-books/{id}', [\App\Http\Controllers\GuestBookController::class, 'update'])->name('guest-books.update');
+    Route::delete('guest-books/{id}', [\App\Http\Controllers\GuestBookController::class, 'destroy'])->name('guest-books.destroy');
+    Route::get('guest-books/export/excel', [\App\Http\Controllers\GuestBookController::class, 'exportExcel'])->name('guest-books.export.excel');
+    Route::get('guest-books/print', [\App\Http\Controllers\GuestBookController::class, 'print'])->name('guest-books.print');
+
+    // Berkas Guru (Arsip & Administrasi Perangkat Pembelajaran Guru)
+    Route::get('teacher-documents', [\App\Http\Controllers\TeacherDocumentController::class, 'index'])->name('teacher-documents.index');
+    Route::post('teacher-documents', [\App\Http\Controllers\TeacherDocumentController::class, 'store'])->name('teacher-documents.store');
+    Route::put('teacher-documents/{id}', [\App\Http\Controllers\TeacherDocumentController::class, 'update'])->name('teacher-documents.update');
+    Route::patch('teacher-documents/{id}/status', [\App\Http\Controllers\TeacherDocumentController::class, 'updateStatus'])->name('teacher-documents.update-status');
+    Route::delete('teacher-documents/{id}', [\App\Http\Controllers\TeacherDocumentController::class, 'destroy'])->name('teacher-documents.destroy');
+    Route::get('teacher-documents/{id}/download', [\App\Http\Controllers\TeacherDocumentController::class, 'download'])->name('teacher-documents.download');
+    Route::get('teacher-documents/export/excel', [\App\Http\Controllers\TeacherDocumentController::class, 'exportMatrixExcel'])->name('teacher-documents.export.excel');
+    Route::get('teacher-documents/print', [\App\Http\Controllers\TeacherDocumentController::class, 'printMatrix'])->name('teacher-documents.print');
+    Route::get('/berkas-guru', fn() => redirect()->route('teacher-documents.index'))->name('berkas-guru');
 });
 
 // Rekap & Hasil Rapor (Read-Only from SANS Rapor)

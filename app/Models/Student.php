@@ -14,6 +14,8 @@ class Student extends Model
         'nis',
         'nisn',
         'nik',
+        'no_kk',
+        'no_akta',
         'spmb_candidate_id',
         'jenjang_id',
         'classroom_id',
@@ -29,9 +31,27 @@ class Student extends Model
         'birth_place',
         'birth_date',
         'religion',
+        'citizenship',
         'address',
+        'rt',
+        'rw',
+        'kelurahan',
+        'kecamatan',
         'city',
         'province',
+        'postal_code',
+        'living_with',
+        'transportation',
+        'child_order',
+        'siblings_count',
+        'blood_type',
+        'special_needs',
+        'height',
+        'weight',
+        'head_circumference',
+        'arm_circumference',
+        'distance_to_school',
+        'travel_time_minutes',
         'previous_school',
         'student_photo_url',
         'father_name',
@@ -44,6 +64,9 @@ class Student extends Model
         'guardian_phone',
         'parent_phone',
         'parent_email',
+        'family_data',
+        'health_habits',
+        'development_psychology',
         'pin_access',
         'documents',
         'status',
@@ -56,6 +79,16 @@ class Student extends Model
         'enrolled_date' => 'date',
         'is_tpq' => 'boolean',
         'documents' => 'array',
+        'family_data' => 'array',
+        'health_habits' => 'array',
+        'development_psychology' => 'array',
+        'height' => 'float',
+        'weight' => 'float',
+        'head_circumference' => 'float',
+        'arm_circumference' => 'float',
+        'child_order' => 'integer',
+        'siblings_count' => 'integer',
+        'travel_time_minutes' => 'integer',
     ];
 
     protected $appends = [
@@ -104,6 +137,16 @@ class Student extends Model
     public function spmbCandidate(): BelongsTo
     {
         return $this->belongsTo(SpmbCandidate::class);
+    }
+
+    public function attendances()
+    {
+        return $this->hasMany(StudentAttendance::class);
+    }
+
+    public function ddtkRecords()
+    {
+        return $this->hasMany(StudentDdtkRecord::class);
     }
 
     /**

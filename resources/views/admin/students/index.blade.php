@@ -472,19 +472,25 @@
                         :class="detailTab === 'program' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'"
                         class="px-2.5 sm:px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0 text-[11px] sm:text-xs">
                         <i data-lucide="shapes" class="w-3.5 h-3.5"></i>
-                        <span>Program & Kelompok</span>
+                        <span>Program & Akademik</span>
                     </button>
                     <button type="button" @click="detailTab = 'biodata'"
                         :class="detailTab === 'biodata' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'"
                         class="px-2.5 sm:px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0 text-[11px] sm:text-xs">
                         <i data-lucide="user" class="w-3.5 h-3.5"></i>
-                        <span>Biodata Ananda</span>
+                        <span>Identitas & Domisili</span>
                     </button>
                     <button type="button" @click="detailTab = 'ortu'"
                         :class="detailTab === 'ortu' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'"
                         class="px-2.5 sm:px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0 text-[11px] sm:text-xs">
                         <i data-lucide="users-2" class="w-3.5 h-3.5"></i>
-                        <span>Orang Tua & Kontak</span>
+                        <span>Keluarga & Kontak</span>
+                    </button>
+                    <button type="button" @click="detailTab = 'fisik'"
+                        :class="detailTab === 'fisik' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'"
+                        class="px-2.5 sm:px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0 text-[11px] sm:text-xs">
+                        <i data-lucide="heart-pulse" class="w-3.5 h-3.5"></i>
+                        <span>Fisik & PAUD</span>
                     </button>
                     <button type="button" @click="detailTab = 'history'"
                         :class="detailTab === 'history' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'"
@@ -499,11 +505,10 @@
                     
                     <!-- TAB 1: Program & Penempatan Akademik -->
                     <div x-show="detailTab === 'program'" class="space-y-4">
-                        <!-- Main Academic Details -->
                         <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 space-y-3">
                             <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
                                 <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i>
-                                Penempatan Akademik
+                                Penempatan Akademik & Program
                             </h4>
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
                                 <div>
@@ -530,20 +535,32 @@
                                     <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Status Terdaftar</span>
                                     <span class="font-bold uppercase text-xs mt-0.5 block" :class="selectedStudent?.status === 'aktif' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400'" x-text="selectedStudent?.status || 'Aktif'"></span>
                                 </div>
+                                <div>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Kelompok Daycare</span>
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.daycare_classroom?.name || '-'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Program TPQ</span>
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="(selectedStudent?.is_tpq || selectedStudent?.tpq_classroom_id) ? ('Ikut TPQ ' + (selectedStudent?.tpq_classroom?.name ? ' (' + selectedStudent.tpq_classroom.name + ')' : '')) : 'Tidak Ikut TPQ'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">PIN Akses Ortu</span>
+                                    <span class="font-mono font-bold text-indigo-600 dark:text-indigo-400 text-xs mt-0.5 block" x-text="selectedStudent?.pin_access || '1234'"></span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- TAB 2: Biodata Ananda -->
+                    <!-- TAB 2: Identitas Pribadi & Domisili -->
                     <div x-show="detailTab === 'biodata'" class="space-y-4">
                         <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 space-y-3">
                             <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
                                 <i data-lucide="user" class="w-3.5 h-3.5"></i>
-                                Identitas Pribadi Ananda
+                                Identitas Resmi & Dokumen Kependudukan
                             </h4>
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
                                 <div class="sm:col-span-2">
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Nama Lengkap</span>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Nama Lengkap Ananda</span>
                                     <span class="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm mt-0.5 block" x-text="selectedStudent?.full_name || '-'"></span>
                                 </div>
                                 <div>
@@ -563,46 +580,109 @@
                                     <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.age || '-'"></span>
                                 </div>
                                 <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Agama</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.religion || 'Islam'"></span>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Agama / Kewarganegaraan</span>
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="(selectedStudent?.religion || 'Islam') + ' / ' + (selectedStudent?.citizenship || 'WNI')"></span>
                                 </div>
                                 <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">NISN</span>
-                                    <span class="font-mono font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.nisn || '-'"></span>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">NIS / NISN</span>
+                                    <span class="font-mono font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="(selectedStudent?.nis || '-') + ' / ' + (selectedStudent?.nisn || '-')"></span>
                                 </div>
                                 <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">NIK (KTP/KIA)</span>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">NIK Ananda</span>
                                     <span class="font-mono font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.nik || '-'"></span>
                                 </div>
-                                <div class="col-span-2 sm:col-span-3 pt-2 border-t border-slate-200/80 dark:border-slate-700/80">
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Alamat Lengkap & Domisili</span>
-                                    <span class="font-medium text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="(selectedStudent?.address || '-') + (selectedStudent?.city ? ', ' + selectedStudent.city : '')"></span>
+                                <div>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">No. Kartu Keluarga (KK)</span>
+                                    <span class="font-mono font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.no_kk || '-'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">No. Registrasi Akta Lahir</span>
+                                    <span class="font-mono font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.no_akta || '-'"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Domisili Details -->
+                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 space-y-3">
+                            <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-teal-600 dark:text-teal-400">
+                                <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+                                Domisili & Moda Transportasi
+                            </h4>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
+                                <div class="col-span-2 sm:col-span-3">
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Alamat Jalan Lengkap</span>
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.address || '-'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">RT / RW</span>
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="(selectedStudent?.rt ? 'RT ' + selectedStudent.rt : '-') + ' / ' + (selectedStudent?.rw ? 'RW ' + selectedStudent.rw : '-')"></span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Kelurahan & Kecamatan</span>
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="(selectedStudent?.kelurahan || '-') + ', ' + (selectedStudent?.kecamatan || '-')"></span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Kota / Kode Pos</span>
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="(selectedStudent?.city || 'Malang') + (selectedStudent?.postal_code ? ' (' + selectedStudent.postal_code + ')' : '')"></span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Tempat Tinggal</span>
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.living_with || 'Bersama orang tua'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Moda Transportasi</span>
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.transportation || '-'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Jarak & Waktu Tempuh</span>
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="(selectedStudent?.distance_to_school || '-') + (selectedStudent?.travel_time_minutes ? ' (' + selectedStudent.travel_time_minutes + ' menit)' : '')"></span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- TAB 3: Orang Tua & Kontak -->
+                    <!-- TAB 3: Data Orang Tua & Kontak -->
                     <div x-show="detailTab === 'ortu'" class="space-y-4">
                         <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 space-y-3">
                             <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
                                 <i data-lucide="users-2" class="w-3.5 h-3.5"></i>
-                                Data Orang Tua / Wali
+                                Profil Lengkap Orang Tua & Kontak
                             </h4>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                                <div class="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg space-y-1">
+                                <!-- Card Ayah -->
+                                <div class="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg space-y-2">
                                     <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Ayah Kandung</span>
                                     <p class="font-bold text-slate-900 dark:text-slate-100 text-xs" x-text="selectedStudent?.father_name || '-'"></p>
-                                    <p class="text-[11px] text-slate-500 font-mono" x-text="selectedStudent?.father_phone ? '📞 ' + selectedStudent.father_phone : 'Tidak ada no. HP'"></p>
+                                    <div class="text-[11px] space-y-0.5 text-slate-600 dark:text-slate-400">
+                                        <p>NIK: <span class="font-mono text-slate-800 dark:text-slate-200" x-text="selectedStudent?.family_data?.father?.nik || '-'"></span></p>
+                                        <p>Pendidikan: <span class="font-medium text-slate-800 dark:text-slate-200" x-text="selectedStudent?.family_data?.father?.education || '-'"></span></p>
+                                        <p>Pekerjaan: <span class="font-medium text-slate-800 dark:text-slate-200" x-text="selectedStudent?.father_job || selectedStudent?.family_data?.father?.job || '-'"></span></p>
+                                        <p class="font-mono text-indigo-600 dark:text-indigo-400" x-text="selectedStudent?.father_phone ? '📞 ' + selectedStudent.father_phone : '-'"></p>
+                                    </div>
                                 </div>
-                                <div class="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg space-y-1">
+                                <!-- Card Ibu -->
+                                <div class="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg space-y-2">
                                     <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Ibu Kandung</span>
                                     <p class="font-bold text-slate-900 dark:text-slate-100 text-xs" x-text="selectedStudent?.mother_name || '-'"></p>
-                                    <p class="text-[11px] text-slate-500 font-mono" x-text="selectedStudent?.mother_phone ? '📞 ' + selectedStudent.mother_phone : 'Tidak ada no. HP'"></p>
+                                    <div class="text-[11px] space-y-0.5 text-slate-600 dark:text-slate-400">
+                                        <p>NIK: <span class="font-mono text-slate-800 dark:text-slate-200" x-text="selectedStudent?.family_data?.mother?.nik || '-'"></span></p>
+                                        <p>Pendidikan: <span class="font-medium text-slate-800 dark:text-slate-200" x-text="selectedStudent?.family_data?.mother?.education || '-'"></span></p>
+                                        <p>Pekerjaan: <span class="font-medium text-slate-800 dark:text-slate-200" x-text="selectedStudent?.mother_job || selectedStudent?.family_data?.mother?.job || '-'"></span></p>
+                                        <p class="font-mono text-indigo-600 dark:text-indigo-400" x-text="selectedStudent?.mother_phone ? '📞 ' + selectedStudent.mother_phone : '-'"></p>
+                                    </div>
                                 </div>
+                                <!-- Card Wali (Jika ada) -->
+                                <template x-if="selectedStudent?.guardian_name || selectedStudent?.family_data?.guardian?.name">
+                                    <div class="col-span-1 sm:col-span-2 p-3 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-lg space-y-1">
+                                        <span class="text-amber-700 dark:text-amber-400 block text-[10.5px] uppercase font-bold tracking-wider">Wali Murid</span>
+                                        <p class="font-bold text-slate-900 dark:text-slate-100 text-xs" x-text="(selectedStudent?.guardian_name || selectedStudent?.family_data?.guardian?.name) + (selectedStudent?.family_data?.guardian?.relation ? ' (' + selectedStudent.family_data.guardian.relation + ')' : '')"></p>
+                                        <p class="text-[11px] text-slate-600 dark:text-slate-400 font-mono" x-text="selectedStudent?.guardian_phone ? '📞 ' + selectedStudent.guardian_phone : '-'"></p>
+                                    </div>
+                                </template>
+                                <!-- WhatsApp Utama Banner -->
                                 <div class="col-span-1 sm:col-span-2 p-3 bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
                                     <div>
-                                        <span class="text-[10.5px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider block">No. WhatsApp Utama</span>
+                                        <span class="text-[10.5px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider block">No. WhatsApp Utama Kontak</span>
                                         <p class="font-mono font-bold text-slate-900 dark:text-slate-100 text-sm mt-0.5" x-text="selectedStudent?.parent_phone || selectedStudent?.father_phone || selectedStudent?.mother_phone || '-'"></p>
                                     </div>
                                     <template x-if="selectedStudent?.whatsapp_url">
@@ -617,7 +697,86 @@
                         </div>
                     </div>
 
-                    <!-- TAB 4: Riwayat Perjalanan Belajar (Timeline) -->
+                    <!-- TAB 4: Fisik & Kebiasaan PAUD -->
+                    <div x-show="detailTab === 'fisik'" class="space-y-4">
+                        <!-- Antropometri & Fisik -->
+                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 space-y-3">
+                            <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
+                                <i data-lucide="ruler" class="w-3.5 h-3.5"></i>
+                                Antropometri & Kondisi Fisik Ananda
+                            </h4>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                                <div class="p-2.5 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+                                    <span class="text-slate-400 block text-[10px] uppercase font-semibold">Tinggi Badan</span>
+                                    <span class="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm mt-0.5 block" x-text="selectedStudent?.height ? selectedStudent.height + ' cm' : '-'"></span>
+                                </div>
+                                <div class="p-2.5 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+                                    <span class="text-slate-400 block text-[10px] uppercase font-semibold">Berat Badan</span>
+                                    <span class="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm mt-0.5 block" x-text="selectedStudent?.weight ? selectedStudent.weight + ' kg' : '-'"></span>
+                                </div>
+                                <div class="p-2.5 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+                                    <span class="text-slate-400 block text-[10px] uppercase font-semibold">Lingkar Kepala</span>
+                                    <span class="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm mt-0.5 block" x-text="selectedStudent?.head_circumference ? selectedStudent.head_circumference + ' cm' : '-'"></span>
+                                </div>
+                                <div class="p-2.5 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+                                    <span class="text-slate-400 block text-[10px] uppercase font-semibold">Lingkar Lengan (LiLa)</span>
+                                    <span class="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm mt-0.5 block" x-text="selectedStudent?.arm_circumference ? selectedStudent.arm_circumference + ' cm' : '-'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Golongan Darah</span>
+                                    <span class="font-bold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.blood_type || '-'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Kebutuhan Khusus</span>
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.special_needs || 'Tidak ada'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Urutan Anak</span>
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="'Anak ke-' + (selectedStudent?.child_order || '1') + ' dari ' + ((selectedStudent?.siblings_count || 0) + 1) + ' bersaudara'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Riwayat Alergi</span>
+                                    <span class="font-semibold text-rose-600 dark:text-rose-400 text-xs mt-0.5 block" x-text="selectedStudent?.health_habits?.allergy?.has_allergies ? selectedStudent.health_habits.allergy.types : 'Tidak ada alergi'"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Kebiasaan & Perkembangan PAUD -->
+                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 space-y-3">
+                            <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-purple-600 dark:text-purple-400">
+                                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                                Kebiasaan Makan, Tidur & Tumbuh Kembang
+                            </h4>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
+                                <div>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Pola/Selera Makan</span>
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.health_habits?.diet?.eating_morning ? ('Pagi: ' + selectedStudent.health_habits.diet.eating_morning + ', Siang: ' + selectedStudent.health_habits.diet.eating_afternoon) : '-'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Toilet Training</span>
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.health_habits?.habits?.toilet_training || '-'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Screen Time</span>
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.development_psychology?.habits?.screen_time_hours ? (selectedStudent.development_psychology.habits.screen_time_hours + ' jam/hari') : '-'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Pola Tidur</span>
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.development_psychology?.habits?.sleep_time ? (selectedStudent.development_psychology.habits.sleep_time + ' - ' + selectedStudent.development_psychology.habits.wake_time) : '-'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Milestone Jalan / Bicara</span>
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.development_psychology?.milestones?.walking_age_months ? ('Jalan: ' + selectedStudent.development_psychology.milestones.walking_age_months + ' bln, Bicara: ' + selectedStudent.development_psychology.milestones.speaking_age_months + ' bln') : '-'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Penjemput Resmi</span>
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.development_psychology?.security?.authorized_pickups || 'Orang tua kandung'"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 5: Riwayat Perjalanan Belajar (Timeline) -->
                     <div x-show="detailTab === 'history'" class="space-y-4">
                         <div class="relative pl-6 space-y-3.5 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
                             <template x-if="studentHistories.length === 0">
@@ -688,57 +847,77 @@
             </div>
         </template>
 
-        <!-- MODAL TAMBAH / EDIT MURID (STEPPED FORM LAYOUT) -->
+        <!-- MODAL TAMBAH / EDIT MURID (5-STEP WIZARD FORM) -->
         <template x-teleport="body">
             <div x-show="formModalOpen" x-cloak class="fixed inset-0 z-[99999] flex items-center justify-center p-2.5 sm:p-4" style="top: 0px !important; left: 0px !important; right: 0px !important; bottom: 0px !important; margin: 0px !important; z-index: 99999 !important; background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);">
-                <div @click.outside="formModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col text-left my-auto" style="height: 570px; max-height: min(570px, calc(100vh - 32px));">
+                <div @click.outside="formModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col text-left my-auto" style="height: 640px; max-height: min(640px, calc(100vh - 32px));">
                 
                 <form novalidate @submit.prevent="submitForm" class="flex flex-col h-full w-full overflow-hidden">
                     <!-- Modal Header -->
                     <div class="p-3.5 sm:p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-900/80 shrink-0">
-                        <div>
-                            <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-50" x-text="isEdit ? 'Edit Data Murid' : 'Tambah Murid Baru'"></h3>
-                            <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">Konfigurasi data penempatan kelompok, identitas ananda, dan kontak keluarga.</p>
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                                <i :data-lucide="isEdit ? 'edit-2' : 'user-plus'" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-50" x-text="isEdit ? 'Edit Formulir Data Siswa Lengkap' : 'Tambah Murid Baru (Formulir Lengkap)'"></h3>
+                                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">Konfigurasi lengkap 5 tahap: identitas diri, domisili, keluarga, fisik PAUD, dan tumbuh kembang.</p>
+                            </div>
                         </div>
                         <button type="button" @click="formModalOpen = false" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer">
                             <i data-lucide="x" class="w-4 h-4 sm:w-5 sm:h-5"></i>
                         </button>
                     </div>
 
-                    <!-- Stepper Step Navigation -->
-                    <div class="flex items-center border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs px-3.5 sm:px-5 py-2 sm:py-2.5 gap-2 overflow-x-auto no-scrollbar shrink-0">
-                        <button type="button" @click="formTab = 'program'"
-                            :class="formTab === 'program' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'"
-                            class="px-2.5 sm:px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0 relative text-[11px] sm:text-xs">
+                    <!-- 5-Step Stepper Navigation -->
+                    <div class="flex items-center border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs px-3.5 sm:px-5 py-2 sm:py-2.5 gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar shrink-0">
+                        <button type="button" @click="goToTab('tab1_identitas')"
+                            :class="formTab === 'tab1_identitas' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'"
+                            class="px-2.5 sm:px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0 relative text-[11px] sm:text-xs transition-colors">
                             <span class="w-4 h-4 rounded-full bg-white/20 text-[10px] flex items-center justify-center font-bold">1</span>
-                            <span>Penempatan Akademik</span>
-                            <span x-show="formErrors.academic_year_id || formErrors.jenjang_id" class="w-2 h-2 rounded-full bg-rose-500 shrink-0 ring-2 ring-white"></span>
+                            <span>Identitas & Akademik</span>
+                            <span x-show="hasTabError('tab1_identitas')" class="w-2 h-2 rounded-full bg-rose-500 shrink-0 ring-2 ring-white"></span>
                         </button>
-                        <button type="button" @click="formTab = 'ananda'"
-                            :class="formTab === 'ananda' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'"
-                            class="px-2.5 sm:px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0 relative text-[11px] sm:text-xs">
+                        <button type="button" @click="goToTab('tab2_domisili')"
+                            :class="formTab === 'tab2_domisili' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'"
+                            class="px-2.5 sm:px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0 relative text-[11px] sm:text-xs transition-colors">
                             <span class="w-4 h-4 rounded-full bg-white/20 text-[10px] flex items-center justify-center font-bold">2</span>
-                            <span>Biodata Ananda</span>
-                            <span x-show="formErrors.full_name || formErrors.gender || formErrors.status" class="w-2 h-2 rounded-full bg-rose-500 shrink-0 ring-2 ring-white"></span>
+                            <span>Domisili & Alamat</span>
+                            <span x-show="hasTabError('tab2_domisili')" class="w-2 h-2 rounded-full bg-rose-500 shrink-0 ring-2 ring-white"></span>
                         </button>
-                        <button type="button" @click="formTab = 'ortu'"
-                            :class="formTab === 'ortu' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'"
-                            class="px-2.5 sm:px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0 relative text-[11px] sm:text-xs">
+                        <button type="button" @click="goToTab('tab3_keluarga')"
+                            :class="formTab === 'tab3_keluarga' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'"
+                            class="px-2.5 sm:px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0 relative text-[11px] sm:text-xs transition-colors">
                             <span class="w-4 h-4 rounded-full bg-white/20 text-[10px] flex items-center justify-center font-bold">3</span>
-                            <span>Orang Tua & Kontak</span>
-                            <span x-show="formErrors.parent_phone" class="w-2 h-2 rounded-full bg-rose-500 shrink-0 ring-2 ring-white"></span>
+                            <span>Keluarga & Kontak</span>
+                            <span x-show="hasTabError('tab3_keluarga')" class="w-2 h-2 rounded-full bg-rose-500 shrink-0 ring-2 ring-white"></span>
+                        </button>
+                        <button type="button" @click="goToTab('tab4_fisik')"
+                            :class="formTab === 'tab4_fisik' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'"
+                            class="px-2.5 sm:px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0 relative text-[11px] sm:text-xs transition-colors">
+                            <span class="w-4 h-4 rounded-full bg-white/20 text-[10px] flex items-center justify-center font-bold">4</span>
+                            <span>Fisik & PAUD</span>
+                            <span x-show="hasTabError('tab4_fisik')" class="w-2 h-2 rounded-full bg-rose-500 shrink-0 ring-2 ring-white"></span>
+                        </button>
+                        <button type="button" @click="goToTab('tab5_tumbuhkembang')"
+                            :class="formTab === 'tab5_tumbuhkembang' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'"
+                            class="px-2.5 sm:px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0 relative text-[11px] sm:text-xs transition-colors">
+                            <span class="w-4 h-4 rounded-full bg-white/20 text-[10px] flex items-center justify-center font-bold">5</span>
+                            <span>Tumbuh Kembang</span>
+                            <span x-show="hasTabError('tab5_tumbuhkembang')" class="w-2 h-2 rounded-full bg-rose-500 shrink-0 ring-2 ring-white"></span>
                         </button>
                     </div>
 
-                    <!-- Modal Body (Fixed flex-1 container ensuring identical height across all tabs) -->
+                    <!-- Modal Body (Flex-1 container ensuring identical height across all tabs) -->
                     <div class="p-4 sm:p-5 space-y-4 text-xs overflow-y-auto flex-1 min-h-0 overscroll-contain" style="flex: 1 1 0%; min-height: 0;">
                         
-                        <!-- TAB 1: Penempatan Akademik & Program -->
-                        <div x-show="formTab === 'program'" class="space-y-4">
+                        <!-- TAB 1: IDENTITAS & PENEMPATAN AKADEMIK -->
+                        <div x-show="formTab === 'tab1_identitas'" class="space-y-4">
+                            <!-- Card 1: Penempatan Akademik -->
                             <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3.5">
                                 <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
                                     <i data-lucide="shapes" class="w-3.5 h-3.5"></i>
-                                    Penempatan Akademik & Kelompok
+                                    Penempatan Akademik & Kelompok Belajar
                                 </h4>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -757,7 +936,7 @@
                                         <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Jenjang Pendidikan <span class="text-rose-500">*</span></label>
                                         <select x-model="formData.jenjang_id" @change="onJenjangChange()"
                                             :class="formErrors.jenjang_id ? 'border-rose-500 ring-1 ring-rose-500/30' : 'border-slate-200 dark:border-slate-800'"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer font-semibold">
                                             <option value="">-- Pilih Jenjang --</option>
                                             @foreach($jenjangs as $j)
                                                 <option value="{{ $j->id }}">{{ $j->name }}</option>
@@ -767,7 +946,7 @@
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                     <div>
                                         <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tingkat Kelas</label>
                                         <select x-model="formData.class_level_id" @change="onClassLevelChange()"
@@ -781,204 +960,795 @@
                                     <div>
                                         <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kelompok Belajar</label>
                                         <select x-model="formData.classroom_id"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer font-semibold">
                                             <option value="">-- Pilih Kelompok --</option>
                                             <template x-for="rombel in availableClassrooms" :key="rombel.id">
                                                 <option :value="rombel.id" x-text="rombel.name + (rombel.homeroom_teacher ? ' (' + rombel.homeroom_teacher.name + ')' : '')"></option>
                                             </template>
                                         </select>
                                     </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Status Murid <span class="text-rose-500">*</span></label>
+                                        <select x-model="formData.status" @change="clearError('status')"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer font-semibold">
+                                            <option value="aktif">Aktif</option>
+                                            <option value="lulus">Lulus</option>
+                                            <option value="mutasi">Mutasi</option>
+                                            <option value="keluar">Keluar</option>
+                                            <option value="nonaktif">Nonaktif</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-slate-200/60 dark:border-slate-800/60">
+                                    <div class="flex items-center gap-2 pt-2">
+                                        <input type="checkbox" id="form_is_tpq" x-model="formData.is_tpq" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 dark:border-slate-700 cursor-pointer">
+                                        <label for="form_is_tpq" class="text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
+                                            Ikut Program TPQ Sekolah
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kelompok Daycare <span class="text-slate-400 font-normal">(Opsional)</span></label>
+                                        <select x-model="formData.daycare_classroom_id"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                                            <option value="">-- Tidak Ikut Daycare --</option>
+                                            @foreach($daycareClassrooms as $dc)
+                                                <option value="{{ $dc->id }}">{{ $dc->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="p-3.5 sm:p-4 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/40 rounded-xl space-y-2">
-                                <div class="flex items-center gap-2 text-indigo-700 dark:text-indigo-300 font-bold text-xs">
-                                    <i data-lucide="info" class="w-4 h-4 shrink-0"></i>
-                                    <span>Informasi Penempatan</span>
-                                </div>
-                                <p class="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
-                                    Pilih tahun ajaran aktif dan jenjang pendidikan. Tingkat kelas dan kelompok belajar akan terfilter otomatis berdasarkan jenjang yang dipilih.
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- TAB 2: Biodata Ananda -->
-                        <div x-show="formTab === 'ananda'" class="space-y-3.5">
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <div>
-                                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">NIS <span class="text-slate-400 font-normal">(Opsional)</span></label>
-                                    <input type="text" x-model="formData.nis" @input="if (formErrors.nis) clearError('nis')" placeholder="Contoh: 27.PAUD.001"
-                                        :class="formErrors.nis ? 'border-rose-500 ring-1 ring-rose-500/30' : 'border-slate-200 dark:border-slate-800'"
-                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
-                                    <p x-show="formErrors.nis" x-text="formErrors.nis" class="text-[10px] text-rose-500 font-semibold mt-1"></p>
-                                </div>
-                                <div>
-                                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">NISN <span class="text-slate-400 font-normal">(Opsional)</span></label>
-                                    <input type="text" x-model="formData.nisn" placeholder="Nomor NISN"
-                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
-                                </div>
-                                <div>
-                                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">NIK <span class="text-slate-400 font-normal">(Opsional)</span></label>
-                                    <input type="text" x-model="formData.nik" placeholder="Nomor NIK KTP/KIA"
-                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <div class="sm:col-span-2">
-                                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Lengkap Ananda <span class="text-rose-500">*</span></label>
-                                    <input type="text" x-model="formData.full_name" @input="if (formErrors.full_name) clearError('full_name')" placeholder="Nama lengkap sesuai akta kelahiran"
-                                        :class="formErrors.full_name ? 'border-rose-500 ring-1 ring-rose-500/30' : 'border-slate-200 dark:border-slate-800'"
-                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    <p x-show="formErrors.full_name" x-text="formErrors.full_name" class="text-[10px] text-rose-500 font-semibold mt-1"></p>
-                                </div>
-                                <div>
-                                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Panggilan</label>
-                                    <input type="text" x-model="formData.nickname" placeholder="Nama panggilan akrab"
-                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <div>
-                                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Jenis Kelamin <span class="text-rose-500">*</span></label>
-                                    <select x-model="formData.gender" @change="clearError('gender')"
-                                        :class="formErrors.gender ? 'border-rose-500 ring-1 ring-rose-500/30' : 'border-slate-200 dark:border-slate-800'"
-                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
-                                        <option value="L">Laki-laki (Putra)</option>
-                                        <option value="P">Perempuan (Putri)</option>
-                                    </select>
-                                    <p x-show="formErrors.gender" x-text="formErrors.gender" class="text-[10px] text-rose-500 font-semibold mt-1"></p>
-                                </div>
-                                <div>
-                                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tempat Lahir</label>
-                                    <input type="text" x-model="formData.birth_place" placeholder="Kota lahir"
-                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                </div>
-                                <div>
-                                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tanggal Lahir</label>
-                                    <input type="date" x-model="formData.birth_date"
-                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <div>
-                                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Agama</label>
-                                    <select x-model="formData.religion"
-                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
-                                        <option value="Islam">Islam</option>
-                                        <option value="Kristen">Kristen</option>
-                                        <option value="Katolik">Katolik</option>
-                                        <option value="Hindu">Hindu</option>
-                                        <option value="Buddha">Buddha</option>
-                                        <option value="Konghucu">Konghucu</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Status Murid <span class="text-rose-500">*</span></label>
-                                    <select x-model="formData.status" @change="clearError('status')"
-                                        :class="formErrors.status ? 'border-rose-500 ring-1 ring-rose-500/30' : 'border-slate-200 dark:border-slate-800'"
-                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer font-semibold">
-                                        <option value="aktif">Aktif</option>
-                                        <option value="lulus">Lulus</option>
-                                        <option value="mutasi">Mutasi</option>
-                                        <option value="keluar">Keluar</option>
-                                        <option value="nonaktif">Nonaktif</option>
-                                    </select>
-                                    <p x-show="formErrors.status" x-text="formErrors.status" class="text-[10px] text-rose-500 font-semibold mt-1"></p>
-                                </div>
-                                <div>
-                                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">PIN Akses Ortu</label>
-                                    <input type="text" x-model="formData.pin_access" placeholder="Contoh: 1234"
-                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- TAB 3: Data Orang Tua & Kontak -->
-                        <div x-show="formTab === 'ortu'" class="space-y-4">
+                            <!-- Card 2: Biodata Induk Ananda -->
                             <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3.5">
-                                <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-                                    <i data-lucide="users-2" class="w-3.5 h-3.5"></i>
-                                    Kontak Keluarga & Alamat
+                                <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
+                                    <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                                    Biodata & Legalitas Kependudukan Ananda
+                                </h4>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div class="sm:col-span-2">
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Lengkap Ananda <span class="text-rose-500">*</span></label>
+                                        <input type="text" x-model="formData.full_name" @input="if (formErrors.full_name) clearError('full_name')" placeholder="Nama lengkap sesuai akta kelahiran"
+                                            :class="formErrors.full_name ? 'border-rose-500 ring-1 ring-rose-500/30' : 'border-slate-200 dark:border-slate-800'"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-semibold">
+                                        <p x-show="formErrors.full_name" x-text="formErrors.full_name" class="text-[10px] text-rose-500 font-semibold mt-1"></p>
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Panggilan</label>
+                                        <input type="text" x-model="formData.nickname" placeholder="Nama panggilan akrab"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Jenis Kelamin <span class="text-rose-500">*</span></label>
+                                        <select x-model="formData.gender" @change="clearError('gender')"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer font-semibold">
+                                            <option value="L">Laki-laki (Putra)</option>
+                                            <option value="P">Perempuan (Putri)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tempat Lahir</label>
+                                        <input type="text" x-model="formData.birth_place" placeholder="Kota kelahiran (cth: Malang)"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tanggal Lahir</label>
+                                        <input type="date" x-model="formData.birth_date"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-semibold">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">NIS <span class="text-slate-400 font-normal">(Nomor Induk Siswa)</span></label>
+                                        <input type="text" x-model="formData.nis" placeholder="Contoh: 27.PAUD.001"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">NISN</label>
+                                        <input type="text" x-model="formData.nisn" placeholder="10 digit nomor NISN"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">NIK Anak (KTP/KIA)</label>
+                                        <input type="text" x-model="formData.nik" placeholder="16 digit NIK"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">No. Kartu Keluarga (KK)</label>
+                                        <input type="text" x-model="formData.no_kk" placeholder="16 digit nomor KK"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">No. Registrasi Akta Lahir</label>
+                                        <input type="text" x-model="formData.no_akta" placeholder="Nomor registrasi akta kelahiran"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Agama</label>
+                                        <select x-model="formData.religion"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                                            <option value="Islam">Islam</option>
+                                            <option value="Kristen">Kristen</option>
+                                            <option value="Katolik">Katolik</option>
+                                            <option value="Hindu">Hindu</option>
+                                            <option value="Buddha">Buddha</option>
+                                            <option value="Konghucu">Konghucu</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kewarganegaraan</label>
+                                        <select x-model="formData.citizenship"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                                            <option value="WNI">WNI (Warga Negara Indonesia)</option>
+                                            <option value="WNA">WNA (Warga Negara Asing)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 2: DOMISILI & ALAMAT -->
+                        <div x-show="formTab === 'tab2_domisili'" class="space-y-4">
+                            <!-- Card 1: Alamat Rumah -->
+                            <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3.5">
+                                <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-sky-600 dark:text-sky-400">
+                                    <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+                                    Alamat Domisili Tempat Tinggal
+                                </h4>
+
+                                <div>
+                                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Alamat Jalan / Tempat Tinggal</label>
+                                    <input type="text" x-model="formData.address" placeholder="Nama Jalan, Gang, Nomor Rumah"
+                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                </div>
+
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">RT</label>
+                                        <input type="text" x-model="formData.rt" placeholder="01"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">RW</label>
+                                        <input type="text" x-model="formData.rw" placeholder="05"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kelurahan / Desa</label>
+                                        <input type="text" x-model="formData.kelurahan" placeholder="Kelurahan"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kecamatan</label>
+                                        <input type="text" x-model="formData.kecamatan" placeholder="Kecamatan"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kota / Kabupaten</label>
+                                        <input type="text" x-model="formData.city" placeholder="Malang"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kode Pos</label>
+                                        <input type="text" x-model="formData.postal_code" placeholder="65141"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Card 2: Tempat Tinggal & Aksesibilitas Sekolah -->
+                            <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3.5">
+                                <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-sky-600 dark:text-sky-400">
+                                    <i data-lucide="home" class="w-3.5 h-3.5"></i>
+                                    Tempat Tinggal, Transportasi & Lingkungan
                                 </h4>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Ayah</label>
-                                        <input type="text" x-model="formData.father_name" placeholder="Nama ayah kandung"
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tinggal Bersama</label>
+                                        <select x-model="formData.living_with"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                                            <option value="Bersama Orang Tua">Bersama Orang Tua</option>
+                                            <option value="Bersama Wali">Bersama Wali</option>
+                                            <option value="Kos / Asrama">Kos / Asrama</option>
+                                            <option value="Panti Asuhan">Panti Asuhan</option>
+                                            <option value="Lainnya">Lainnya</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Transportasi ke Sekolah</label>
+                                        <select x-model="formData.transportation"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                                            <option value="Sepeda Motor">Sepeda Motor</option>
+                                            <option value="Mobil Pribadi">Mobil Pribadi</option>
+                                            <option value="Antar Jemput">Antar Jemput Sekolah</option>
+                                            <option value="Jalan Kaki">Jalan Kaki</option>
+                                            <option value="Angkutan Umum">Angkutan Umum</option>
+                                            <option value="Sepeda">Sepeda</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Jarak ke Sekolah (km)</label>
+                                        <input type="text" x-model="formData.distance_to_school" placeholder="Contoh: 2.5"
                                             class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
                                     </div>
                                     <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">No. HP Ayah</label>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Waktu Tempuh (menit)</label>
+                                        <input type="number" min="0" max="300" x-model="formData.travel_time_minutes" placeholder="Contoh: 15"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 border-t border-slate-200/60 dark:border-slate-800/60">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kondisi Sekitar Rumah</label>
+                                        <select x-model="formData.surroundings"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                                            <option value="Perumahan">Perumahan / Kompleks</option>
+                                            <option value="Perkampungan">Perkampungan</option>
+                                            <option value="Tepi Jalan Raya">Tepi Jalan Raya</option>
+                                            <option value="Dekat Sawah/Sungai">Dekat Sawah / Sungai</option>
+                                            <option value="Lainnya">Lainnya</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Dekat Masjid / Musholla?</label>
+                                        <select x-model="formData.near_mosque"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                                            <option value="Ya">Ya (Dekat)</option>
+                                            <option value="Tidak">Tidak</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Ikut TPQ Luar Rumah?</label>
+                                        <select x-model="formData.external_tpq"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                                            <option value="Tidak">Tidak</option>
+                                            <option value="Ya">Ya (Ikut TPQ Luar)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 3: DATA KELUARGA & KONTAK -->
+                        <div x-show="formTab === 'tab3_keluarga'" class="space-y-4">
+                            <!-- Banner No WA Utama -->
+                            <div class="p-3.5 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 rounded-xl space-y-1.5">
+                                <label class="block font-bold text-emerald-900 dark:text-emerald-200 text-xs flex items-center gap-1.5">
+                                    <i data-lucide="phone-call" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
+                                    Nomor WhatsApp Utama Kontak Keluarga <span class="text-rose-500">*</span>
+                                </label>
+                                <p class="text-[11px] text-emerald-700 dark:text-emerald-400">
+                                    Nomor ini digunakan untuk pengiriman laporan harian, notifikasi pengumuman, dan tautan e-Rapor resmi sekolah.
+                                </p>
+                                <input type="text" x-model="formData.parent_phone" @input="if (formErrors.parent_phone) clearError('parent_phone')" placeholder="Contoh: 081234567890"
+                                    :class="formErrors.parent_phone ? 'border-rose-500 ring-1 ring-rose-500/30' : 'border-emerald-300 dark:border-emerald-700'"
+                                    class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-900 dark:text-slate-50 font-mono font-bold">
+                                <p x-show="formErrors.parent_phone" x-text="formErrors.parent_phone" class="text-[10px] text-rose-500 font-semibold mt-1"></p>
+                            </div>
+
+                            <!-- Ayah Kandung -->
+                            <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3.5">
+                                <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
+                                    <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                                    Data Ayah Kandung
+                                </h4>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div class="sm:col-span-2">
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Lengkap Ayah</label>
+                                        <input type="text" x-model="formData.father_name" placeholder="Nama ayah kandung"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-semibold">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Gelar Ayah</label>
+                                        <input type="text" x-model="formData.father_title" placeholder="Contoh: S.T., M.M."
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">NIK Ayah</label>
+                                        <input type="text" x-model="formData.father_nik" placeholder="16 digit NIK"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tempat & Tgl Lahir Ayah</label>
+                                        <input type="text" x-model="formData.father_birth" placeholder="Malang, 12-05-1985"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Pendidikan Terakhir</label>
+                                        <select x-model="formData.father_education"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                                            <option value="">-- Pilih Pendidikan --</option>
+                                            <option value="SD / Sederajat">SD / Sederajat</option>
+                                            <option value="SMP / Sederajat">SMP / Sederajat</option>
+                                            <option value="SMA / SMK / Sederajat">SMA / SMK / Sederajat</option>
+                                            <option value="D3">Diploma (D3)</option>
+                                            <option value="S1 / D4">Sarjana (S1 / D4)</option>
+                                            <option value="S2">Magister (S2)</option>
+                                            <option value="S3">Doktor (S3)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Pekerjaan Ayah</label>
+                                        <input type="text" x-model="formData.father_job" placeholder="PNS / Swasta / Wiraswasta"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Instansi / Tempat Kerja</label>
+                                        <input type="text" x-model="formData.father_workplace" placeholder="Nama kantor / instansi"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">No. HP / WA Ayah</label>
                                         <input type="text" x-model="formData.father_phone" placeholder="08xxxxxxxxxx"
                                             class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
                                     </div>
                                 </div>
+                            </div>
 
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Ibu</label>
+                            <!-- Ibu Kandung -->
+                            <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3.5">
+                                <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-pink-600 dark:text-pink-400">
+                                    <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                                    Data Ibu Kandung
+                                </h4>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div class="sm:col-span-2">
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Lengkap Ibu</label>
                                         <input type="text" x-model="formData.mother_name" placeholder="Nama ibu kandung"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-semibold">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Gelar Ibu</label>
+                                        <input type="text" x-model="formData.mother_title" placeholder="Contoh: S.Pd."
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">NIK Ibu</label>
+                                        <input type="text" x-model="formData.mother_nik" placeholder="16 digit NIK"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tempat & Tgl Lahir Ibu</label>
+                                        <input type="text" x-model="formData.mother_birth" placeholder="Malang, 20-08-1988"
                                             class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
                                     </div>
                                     <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">No. HP Ibu</label>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Pendidikan Terakhir</label>
+                                        <select x-model="formData.mother_education"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                                            <option value="">-- Pilih Pendidikan --</option>
+                                            <option value="SD / Sederajat">SD / Sederajat</option>
+                                            <option value="SMP / Sederajat">SMP / Sederajat</option>
+                                            <option value="SMA / SMK / Sederajat">SMA / SMK / Sederajat</option>
+                                            <option value="D3">Diploma (D3)</option>
+                                            <option value="S1 / D4">Sarjana (S1 / D4)</option>
+                                            <option value="S2">Magister (S2)</option>
+                                            <option value="S3">Doktor (S3)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Pekerjaan Ibu</label>
+                                        <input type="text" x-model="formData.mother_job" placeholder="Ibu Rumah Tangga / Guru / PNS"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Instansi / Tempat Kerja</label>
+                                        <input type="text" x-model="formData.mother_workplace" placeholder="Nama kantor / instansi"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">No. HP / WA Ibu</label>
                                         <input type="text" x-model="formData.mother_phone" placeholder="08xxxxxxxxxx"
                                             class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
                                     </div>
                                 </div>
+                            </div>
+
+                            <!-- Data Wali Murid (Optional Toggle) -->
+                            <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                                        <i data-lucide="shield" class="w-3.5 h-3.5"></i>
+                                        Data Wali Murid <span class="text-slate-400 font-normal lowercase">(jika tinggal bersama wali)</span>
+                                    </h4>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" x-model="formData.has_guardian" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 dark:border-slate-700 cursor-pointer">
+                                        <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">Ada Data Wali</span>
+                                    </label>
+                                </div>
+
+                                <div x-show="formData.has_guardian" class="space-y-3 pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Lengkap Wali</label>
+                                            <input type="text" x-model="formData.guardian_name" placeholder="Nama wali murid"
+                                                class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                        </div>
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Hubungan dengan Ananda</label>
+                                            <input type="text" x-model="formData.guardian_relation" placeholder="Contoh: Kakek / Paman / Kakak"
+                                                class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">NIK Wali</label>
+                                            <input type="text" x-model="formData.guardian_nik" placeholder="16 digit NIK"
+                                                class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
+                                        </div>
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Pekerjaan Wali</label>
+                                            <input type="text" x-model="formData.guardian_job" placeholder="Pekerjaan"
+                                                class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                        </div>
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">No. HP Wali</label>
+                                            <input type="text" x-model="formData.guardian_phone" placeholder="08xxxxxxxxxx"
+                                                class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 4: FISIK & KEBIASAAN PAUD -->
+                        <div x-show="formTab === 'tab4_fisik'" class="space-y-4">
+                            <!-- Card 1: Antropometri & Kesehatan Fisik -->
+                            <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3.5">
+                                <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-teal-600 dark:text-teal-400">
+                                    <i data-lucide="heart-pulse" class="w-3.5 h-3.5"></i>
+                                    Pengukuran Fisik (Antropometri) & Medis Dasar
+                                </h4>
+
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tinggi Badan (cm)</label>
+                                        <input type="number" step="0.1" min="0" max="250" x-model="formData.height" placeholder="Contoh: 105"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-semibold font-mono">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Berat Badan (kg)</label>
+                                        <input type="number" step="0.1" min="0" max="150" x-model="formData.weight" placeholder="Contoh: 17.5"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-semibold font-mono">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Lingkar Kepala (cm)</label>
+                                        <input type="number" step="0.1" min="0" max="80" x-model="formData.head_circumference" placeholder="Contoh: 50"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">LiLa (cm)</label>
+                                        <input type="number" step="0.1" min="0" max="50" x-model="formData.arm_circumference" placeholder="Contoh: 15.5"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Golongan Darah</label>
+                                        <select x-model="formData.blood_type"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer font-semibold">
+                                            <option value="">-- Pilih Golongan --</option>
+                                            <option value="A">A</option>
+                                            <option value="B">B</option>
+                                            <option value="AB">AB</option>
+                                            <option value="O">O</option>
+                                            <option value="Belum Tahu">Belum Tahu</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Anak Ke-</label>
+                                        <input type="number" min="1" max="30" x-model="formData.child_order" placeholder="1"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-semibold font-mono">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Jumlah Saudara Kandung</label>
+                                        <input type="number" min="0" max="30" x-model="formData.siblings_count" placeholder="0"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kebutuhan Khusus / Diagnosa Khusus</label>
+                                    <input type="text" x-model="formData.special_needs" placeholder="Contoh: Tidak Ada / Speech Delay / Alergi Dingin"
+                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                </div>
+                            </div>
+
+                            <!-- Card 2: Pola Makan & Kebiasaan Nutrisi -->
+                            <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3.5">
+                                <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-teal-600 dark:text-teal-400">
+                                    <i data-lucide="utensils" class="w-3.5 h-3.5"></i>
+                                    Pola Makan & Kemandirian Sehari-hari
+                                </h4>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Sarapan Pagi</label>
+                                        <select x-model="formData.breakfast_pattern"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                                            <option value="Teratur">Teratur</option>
+                                            <option value="Kadang-kadang">Kadang-kadang</option>
+                                            <option value="Jarang">Jarang</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Makan Siang</label>
+                                        <select x-model="formData.lunch_pattern"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                                            <option value="Teratur">Teratur</option>
+                                            <option value="Kadang-kadang">Kadang-kadang</option>
+                                            <option value="Jarang">Jarang</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Makan Malam</label>
+                                        <select x-model="formData.dinner_pattern"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                                            <option value="Teratur">Teratur</option>
+                                            <option value="Kadang-kadang">Kadang-kadang</option>
+                                            <option value="Jarang">Jarang</option>
+                                        </select>
+                                    </div>
+                                </div>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">No. WhatsApp Utama Kontak <span class="text-rose-500">*</span></label>
-                                        <input type="text" x-model="formData.parent_phone" @input="if (formErrors.parent_phone) clearError('parent_phone')" placeholder="08xxxxxxxxxx (untuk notifikasi & WA rapor)"
-                                            :class="formErrors.parent_phone ? 'border-rose-500 ring-1 ring-rose-500/30' : 'border-slate-200 dark:border-slate-800'"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono font-bold">
-                                        <p x-show="formErrors.parent_phone" x-text="formErrors.parent_phone" class="text-[10px] text-rose-500 font-semibold mt-1"></p>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Makanan Kesukaan (Favorit)</label>
+                                        <input type="text" x-model="formData.favorite_food" placeholder="Nasi goreng, telur, sayur bayam, buah pisang..."
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
                                     </div>
                                     <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kota Domisili</label>
-                                        <input type="text" x-model="formData.city" placeholder="Malang"
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Makanan Dihindari / Tidak Disukai</label>
+                                        <input type="text" x-model="formData.avoided_food" placeholder="Sayur pedas, ikan amis, dll..."
                                             class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Alamat Rumah Lengkap</label>
-                                    <input type="text" x-model="formData.address" placeholder="Jalan, No. Rumah, RT/RW, Kelurahan, Kecamatan"
-                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Riwayat Alergi (Makanan / Obat / Debu)</label>
+                                        <input type="text" x-model="formData.allergy_details" placeholder="Contoh: Alergi udang, telur, debu"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Penanganan / Obat Darurat Alergi</label>
+                                        <input type="text" x-model="formData.allergy_treatment" placeholder="Beri obat sirup cetirizine, balur minyak telon..."
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 border-t border-slate-200/60 dark:border-slate-800/60">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Adab & Cara Makan</label>
+                                        <input type="text" x-model="formData.eating_manner" placeholder="Mandiri dan duduk tertib"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kebiasaan Menggosok Gigi</label>
+                                        <select x-model="formData.brush_teeth"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                                            <option value="Mandiri">Mandiri</option>
+                                            <option value="Dibantu orang tua">Dibantu orang tua</option>
+                                            <option value="Belum terbiasa">Belum terbiasa</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Toilet Training (BAK & BAB)</label>
+                                        <select x-model="formData.toilet_training"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer font-semibold">
+                                            <option value="Mandiri (Bisa BAK/BAB sendiri)">Mandiri (Bisa BAK/BAB sendiri)</option>
+                                            <option value="Mengatakan jika ingin tapi dibantu">Mengatakan jika ingin tapi dibantu</option>
+                                            <option value="Masih memakai diapers/popok">Masih memakai diapers/popok</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 5: TUMBUH KEMBANG & LAINNYA -->
+                        <div x-show="formTab === 'tab5_tumbuhkembang'" class="space-y-4">
+                            <!-- Card 1: Pola Tidur & Gadget -->
+                            <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3.5">
+                                <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-violet-600 dark:text-violet-400">
+                                    <i data-lucide="moon" class="w-3.5 h-3.5"></i>
+                                    Pola Tidur & Durasi Screen Time (Gadget)
+                                </h4>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Screen Time (Gadget) Harian</label>
+                                        <select x-model="formData.screen_time_daily"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                                            <option value="Tidak pernah">Tidak pernah</option>
+                                            <option value="Kurang dari 1 jam">Kurang dari 1 jam</option>
+                                            <option value="1 - 2 jam">1 - 2 jam</option>
+                                            <option value="Lebih dari 2 jam">Lebih dari 2 jam</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Jam Tidur Malam</label>
+                                        <input type="text" x-model="formData.bedtime_pattern" placeholder="Pukul 20:30"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Jam Bangun Pagi</label>
+                                        <input type="text" x-model="formData.wake_time_pattern" placeholder="Pukul 05:00"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Card 2: Riwayat Kehamilan & Persalinan -->
+                            <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3.5">
+                                <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-violet-600 dark:text-violet-400">
+                                    <i data-lucide="baby" class="w-3.5 h-3.5"></i>
+                                    Riwayat Kelahiran & Perkembangan Dini
+                                </h4>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Usia Kehamilan</label>
+                                        <select x-model="formData.gestational_age"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                                            <option value="Cukup Bulan (Aterm)">Cukup Bulan (Aterm)</option>
+                                            <option value="Prematur">Prematur</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Proses Persalinan</label>
+                                        <select x-model="formData.birth_type"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                                            <option value="Normal">Normal</option>
+                                            <option value="Operasi Caesar">Operasi Caesar</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Berat Lahir (gram/kg)</label>
+                                        <input type="text" x-model="formData.birth_weight" placeholder="3200 gram / 3.2 kg"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Panjang Badan Lahir (cm)</label>
+                                        <input type="text" x-model="formData.birth_length" placeholder="50 cm"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Riwayat ASI</label>
+                                        <select x-model="formData.exclusive_breastfeeding"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                                            <option value="Ya (ASI Eksklusif 6 Bulan)">Ya (ASI Eksklusif 6 Bulan)</option>
+                                            <option value="ASI + Susu Formula">ASI + Susu Formula</option>
+                                            <option value="Susu Formula Saja">Susu Formula Saja</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Usia Mulai MPASI</label>
+                                        <input type="text" x-model="formData.mpasi_start_age" placeholder="6 Bulan"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    </div>
+                                </div>
+
+                                <!-- Milestones -->
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 border-t border-slate-200/60 dark:border-slate-800/60">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Mulai Berjalan (Bulan)</label>
+                                        <input type="text" x-model="formData.walking_age_months" placeholder="Contoh: 12"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Mulai Bicara / Kata (Bulan)</label>
+                                        <input type="text" x-model="formData.talking_age_months" placeholder="Contoh: 14"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tumbuh Gigi Pertama (Bulan)</label>
+                                        <input type="text" x-model="formData.teeth_age_months" placeholder="Contoh: 7"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Card 3: Penjemputan, Keamanan & Akun Ortu -->
+                            <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3.5">
+                                <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-violet-600 dark:text-violet-400">
+                                    <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                                    Protokol Penjemputan, Deteksi Dini & Portal Ortu
+                                </h4>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Penjemput Resmi & Hubungan</label>
+                                        <input type="text" x-model="formData.official_pickup_person" placeholder="Ibu Kandung / Pengasuh (Mbak Sri)"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kontak Darurat Selain Ortu (Nama & No HP)</label>
+                                        <input type="text" x-model="formData.emergency_contact" placeholder="Kakek (08xxxxxxxxxx)"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">PIN Akses Portal Wali Murid</label>
+                                        <input type="text" x-model="formData.pin_access" placeholder="Contoh: 1234"
+                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono font-bold">
+                                    </div>
+                                    <div class="flex items-center gap-2 pt-6">
+                                        <input type="checkbox" id="form_early_detection" x-model="formData.early_detection_consent" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 dark:border-slate-700 cursor-pointer">
+                                        <label for="form_early_detection" class="text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
+                                            Persetujuan Deteksi Dini & Screening Tumbuh Kembang
+                                        </label>
+                                    </div>
                                 </div>
 
                                 <div>
-                                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Catatan Tambahan <span class="text-slate-400 font-normal">(Opsional)</span></label>
-                                    <textarea x-model="formData.notes" rows="2" placeholder="Catatan alergi, riwayat kesehatan, atau kebutuhan khusus ananda..."
+                                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Catatan Tambahan untuk Guru PAUD</label>
+                                    <textarea x-model="formData.notes" rows="2" placeholder="Catatan kebiasaan tidur siang, makanan khusus, atau instruksi perhatian pendampingan..."
                                         class="w-full p-2.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50"></textarea>
                                 </div>
                             </div>
                         </div>
+
                     </div>
 
-                    <!-- Modal Footer -->
+                    <!-- Modal Footer Navigation Buttons -->
                     <div class="p-3 sm:p-3.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70 flex justify-between items-center shrink-0">
                         <div class="flex items-center gap-2">
-                            <button type="button" x-show="formTab !== 'program'" @click="prevStep()"
-                                class="px-3.5 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1 cursor-pointer shadow-2xs">
+                            <button type="button" x-show="formTab !== 'tab1_identitas'" @click="prevStep()"
+                                class="px-3.5 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1 cursor-pointer shadow-2xs transition-colors">
                                 <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
                                 <span>Kembali</span>
                             </button>
                         </div>
                         <div class="flex items-center gap-2">
-                            <button type="button" @click="formModalOpen = false" class="px-3.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold cursor-pointer shadow-2xs">
+                            <button type="button" @click="formModalOpen = false" class="px-3.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold cursor-pointer shadow-2xs transition-colors">
                                 Batal
                             </button>
-                            <button type="button" x-show="formTab !== 'ortu'" @click="nextStep()"
-                                class="px-4 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 rounded-lg text-xs font-semibold flex items-center gap-1 cursor-pointer border border-indigo-200 dark:border-indigo-800 shadow-2xs">
+                            <button type="button" x-show="formTab !== 'tab5_tumbuhkembang'" @click="nextStep()"
+                                class="px-4 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 rounded-lg text-xs font-semibold flex items-center gap-1 cursor-pointer border border-indigo-200 dark:border-indigo-800 shadow-2xs transition-colors">
                                 <span>Selanjutnya</span>
                                 <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
                             </button>
-                            <button type="submit" x-show="formTab === 'ortu' || isEdit" :disabled="saving" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer">
+                            <button type="submit" x-show="formTab === 'tab5_tumbuhkembang' || isEdit" :disabled="saving" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer transition-colors">
                                 <i data-lucide="check" class="w-3.5 h-3.5"></i>
                                 <span x-text="saving ? 'Menyimpan...' : (isEdit ? 'Simpan Perubahan' : 'Tambah Murid')"></span>
                             </button>
@@ -1098,7 +1868,7 @@
                 isEdit: false,
                 saving: false,
                 detailTab: 'program',
-                formTab: 'program',
+                formTab: 'tab1_identitas',
                 selectedStudent: null,
                 studentHistories: [],
                 formErrors: {},
@@ -1113,24 +1883,103 @@
                     sub_unit: 'TK',
                     daycare_classroom_id: '',
                     is_tpq: false,
+                    
+                    // Tab 1: Identitas & Legalitas
                     nis: '',
                     nisn: '',
                     nik: '',
-                    pin_access: '1234',
+                    no_kk: '',
+                    no_akta: '',
                     full_name: '',
                     nickname: '',
                     gender: 'L',
                     birth_place: '',
                     birth_date: '',
                     religion: 'Islam',
-                    address: '',
-                    city: 'Malang',
-                    father_name: '',
-                    father_phone: '',
-                    mother_name: '',
-                    mother_phone: '',
-                    parent_phone: '',
+                    citizenship: 'WNI',
                     status: 'aktif',
+                    
+                    // Tab 2: Domisili & Transportasi
+                    address: '',
+                    rt: '',
+                    rw: '',
+                    kelurahan: '',
+                    kecamatan: '',
+                    city: 'Malang',
+                    postal_code: '',
+                    living_with: 'Bersama Orang Tua',
+                    transportation: 'Sepeda Motor',
+                    distance_to_school: '',
+                    travel_time_minutes: '',
+                    surroundings: 'Perumahan',
+                    near_mosque: 'Ya',
+                    external_tpq: 'Tidak',
+                    
+                    // Tab 3: Keluarga & Kontak
+                    parent_phone: '',
+                    father_name: '',
+                    father_title: '',
+                    father_nik: '',
+                    father_birth: '',
+                    father_education: '',
+                    father_job: '',
+                    father_workplace: '',
+                    father_phone: '',
+                    
+                    mother_name: '',
+                    mother_title: '',
+                    mother_nik: '',
+                    mother_birth: '',
+                    mother_education: '',
+                    mother_job: '',
+                    mother_workplace: '',
+                    mother_phone: '',
+                    
+                    has_guardian: false,
+                    guardian_name: '',
+                    guardian_relation: '',
+                    guardian_nik: '',
+                    guardian_education: '',
+                    guardian_job: '',
+                    guardian_phone: '',
+                    
+                    // Tab 4: Fisik & Kebiasaan PAUD
+                    height: '',
+                    weight: '',
+                    head_circumference: '',
+                    arm_circumference: '',
+                    blood_type: '',
+                    child_order: 1,
+                    siblings_count: 0,
+                    special_needs: '',
+                    breakfast_pattern: 'Teratur',
+                    lunch_pattern: 'Teratur',
+                    dinner_pattern: 'Teratur',
+                    favorite_food: '',
+                    avoided_food: '',
+                    allergy_details: '',
+                    allergy_treatment: '',
+                    eating_manner: 'Mandiri dan duduk tertib',
+                    brush_teeth: 'Mandiri',
+                    toilet_training: 'Mandiri (Bisa BAK/BAB sendiri)',
+                    
+                    // Tab 5: Tumbuh Kembang & Tambahan
+                    screen_time_daily: 'Kurang dari 1 jam',
+                    bedtime_pattern: 'Pukul 20:30',
+                    wake_time_pattern: 'Pukul 05:00',
+                    gestational_age: 'Cukup Bulan (Aterm)',
+                    birth_type: 'Normal',
+                    birth_weight: '',
+                    birth_length: '',
+                    exclusive_breastfeeding: 'Ya (ASI Eksklusif 6 Bulan)',
+                    mpasi_start_age: '6 Bulan',
+                    walking_age_months: '',
+                    talking_age_months: '',
+                    teeth_age_months: '',
+                    official_pickup_person: '',
+                    emergency_contact: '',
+                    pin_access: '1234',
+                    early_detection_consent: true,
                     notes: '',
                 },
 
@@ -1186,14 +2035,20 @@
                 hasTabError(tab) {
                     const errs = this.formErrors;
                     if (!errs || Object.keys(errs).length === 0) return false;
-                    if (tab === 'program') {
-                        return !!(errs.academic_year_id || errs.jenjang_id || errs.class_level_id || errs.classroom_id);
+                    if (tab === 'tab1_identitas') {
+                        return !!(errs.academic_year_id || errs.jenjang_id || errs.class_level_id || errs.classroom_id || errs.full_name || errs.gender || errs.status || errs.nis || errs.nisn || errs.nik || errs.no_kk || errs.no_akta);
                     }
-                    if (tab === 'ananda') {
-                        return !!(errs.full_name || errs.nis || errs.nisn || errs.nik || errs.gender || errs.birth_date || errs.status);
+                    if (tab === 'tab2_domisili') {
+                        return !!(errs.address || errs.rt || errs.rw || errs.kelurahan || errs.kecamatan || errs.city || errs.postal_code || errs.living_with || errs.transportation || errs.distance_to_school || errs.travel_time_minutes);
                     }
-                    if (tab === 'ortu') {
-                        return !!(errs.parent_phone || errs.father_phone || errs.mother_phone);
+                    if (tab === 'tab3_keluarga') {
+                        return !!(errs.parent_phone || errs.father_phone || errs.mother_phone || errs.father_name || errs.mother_name);
+                    }
+                    if (tab === 'tab4_fisik') {
+                        return !!(errs.height || errs.weight || errs.head_circumference || errs.arm_circumference || errs.blood_type || errs.child_order || errs.siblings_count);
+                    }
+                    if (tab === 'tab5_tumbuhkembang') {
+                        return !!(errs.pin_access || errs.notes || errs.official_pickup_person || errs.emergency_contact);
                     }
                     return false;
                 },
@@ -1204,7 +2059,7 @@
 
                 validateStep(step) {
                     let isValid = true;
-                    if (step === 'program') {
+                    if (step === 'tab1_identitas') {
                         if (!this.formData.academic_year_id) {
                             this.formErrors.academic_year_id = 'Tahun Ajaran wajib dipilih.';
                             isValid = false;
@@ -1213,7 +2068,6 @@
                             this.formErrors.jenjang_id = 'Jenjang Pendidikan wajib dipilih.';
                             isValid = false;
                         }
-                    } else if (step === 'ananda') {
                         if (!this.formData.full_name || !this.formData.full_name.trim()) {
                             this.formErrors.full_name = 'Nama lengkap ananda wajib diisi.';
                             isValid = false;
@@ -1226,63 +2080,63 @@
                             this.formErrors.status = 'Status murid wajib dipilih.';
                             isValid = false;
                         }
-                    } else if (step === 'ortu') {
+                    } else if (step === 'tab2_domisili') {
+                        // Optional step, always passes basic validation
+                        isValid = true;
+                    } else if (step === 'tab3_keluarga') {
                         if (!this.formData.parent_phone || !this.formData.parent_phone.trim()) {
-                            this.formErrors.parent_phone = 'No. WhatsApp utama kontak wajib diisi.';
+                            this.formErrors.parent_phone = 'Nomor WhatsApp utama kontak wajib diisi.';
                             isValid = false;
                         }
+                    } else if (step === 'tab4_fisik') {
+                        // Optional numeric sanity checks if filled
+                        if (this.formData.height && isNaN(this.formData.height)) {
+                            this.formErrors.height = 'Tinggi badan harus angka.';
+                            isValid = false;
+                        }
+                        if (this.formData.weight && isNaN(this.formData.weight)) {
+                            this.formErrors.weight = 'Berat badan harus angka.';
+                            isValid = false;
+                        }
+                    } else if (step === 'tab5_tumbuhkembang') {
+                        isValid = true;
                     }
                     return isValid;
                 },
 
                 validateAll() {
                     this.formErrors = {};
-                    let isValid = true;
 
-                    // Step 1
+                    // Step 1 Check
                     if (!this.formData.academic_year_id) {
                         this.formErrors.academic_year_id = 'Tahun Ajaran wajib dipilih.';
-                        isValid = false;
                     }
                     if (!this.formData.jenjang_id) {
                         this.formErrors.jenjang_id = 'Jenjang Pendidikan wajib dipilih.';
-                        isValid = false;
                     }
-                    if (!isValid) {
-                        this.formTab = 'program';
-                        if (typeof window.showToast === 'function') {
-                            window.showToast('Validasi Penempatan', 'Lengkapi Tahun Ajaran dan Jenjang Pendidikan terlebih dahulu.', 'warning');
-                        }
-                        return false;
-                    }
-
-                    // Step 2
                     if (!this.formData.full_name || !this.formData.full_name.trim()) {
                         this.formErrors.full_name = 'Nama lengkap ananda wajib diisi.';
-                        isValid = false;
                     }
                     if (!this.formData.gender) {
                         this.formErrors.gender = 'Jenis kelamin wajib dipilih.';
-                        isValid = false;
                     }
                     if (!this.formData.status) {
                         this.formErrors.status = 'Status murid wajib dipilih.';
-                        isValid = false;
                     }
-                    if (!isValid) {
-                        this.formTab = 'ananda';
+                    if (this.hasTabError('tab1_identitas')) {
+                        this.formTab = 'tab1_identitas';
                         if (typeof window.showToast === 'function') {
-                            window.showToast('Validasi Biodata Ananda', 'Nama Lengkap Ananda wajib diisi.', 'warning');
+                            window.showToast('Validasi Identitas', 'Lengkapi identitas ananda dan penempatan akademik.', 'warning');
                         }
                         return false;
                     }
 
-                    // Step 3
+                    // Step 3 Check (WA kontak)
                     if (!this.formData.parent_phone || !this.formData.parent_phone.trim()) {
-                        this.formErrors.parent_phone = 'No. WhatsApp utama kontak wajib diisi.';
-                        this.formTab = 'ortu';
+                        this.formErrors.parent_phone = 'Nomor WhatsApp utama kontak wajib diisi.';
+                        this.formTab = 'tab3_keluarga';
                         if (typeof window.showToast === 'function') {
-                            window.showToast('Validasi Kontak', 'No. WhatsApp Utama Kontak wajib diisi.', 'warning');
+                            window.showToast('Validasi Kontak', 'Nomor WhatsApp Utama Kontak wajib diisi untuk notifikasi rapor.', 'warning');
                         }
                         return false;
                     }
@@ -1298,18 +2152,19 @@
                         }
                         return;
                     }
-                    if (this.formTab === 'program') {
-                        this.formTab = 'ananda';
-                    } else if (this.formTab === 'ananda') {
-                        this.formTab = 'ortu';
+
+                    const steps = ['tab1_identitas', 'tab2_domisili', 'tab3_keluarga', 'tab4_fisik', 'tab5_tumbuhkembang'];
+                    const currentIndex = steps.indexOf(this.formTab);
+                    if (currentIndex >= 0 && currentIndex < steps.length - 1) {
+                        this.formTab = steps[currentIndex + 1];
                     }
                 },
 
                 prevStep() {
-                    if (this.formTab === 'ortu') {
-                        this.formTab = 'ananda';
-                    } else if (this.formTab === 'ananda') {
-                        this.formTab = 'program';
+                    const steps = ['tab1_identitas', 'tab2_domisili', 'tab3_keluarga', 'tab4_fisik', 'tab5_tumbuhkembang'];
+                    const currentIndex = steps.indexOf(this.formTab);
+                    if (currentIndex > 0) {
+                        this.formTab = steps[currentIndex - 1];
                     }
                 },
 
@@ -1357,7 +2212,7 @@
 
                 openCreateModal() {
                     this.isEdit = false;
-                    this.formTab = 'program';
+                    this.formTab = 'tab1_identitas';
                     this.formErrors = {};
                     const defaultJenjangId = '{{ $selectedJenjangId }}' || (allLevels.length > 0 ? allLevels[0].jenjang_id : '');
                     this.formData = {
@@ -1372,21 +2227,88 @@
                         nis: '',
                         nisn: '',
                         nik: '',
-                        pin_access: '1234',
+                        no_kk: '',
+                        no_akta: '',
                         full_name: '',
                         nickname: '',
                         gender: 'L',
                         birth_place: '',
                         birth_date: '',
                         religion: 'Islam',
+                        citizenship: 'WNI',
+                        status: 'aktif',
                         address: '',
+                        rt: '',
+                        rw: '',
+                        kelurahan: '',
+                        kecamatan: '',
                         city: 'Malang',
+                        postal_code: '',
+                        living_with: 'Bersama Orang Tua',
+                        transportation: 'Sepeda Motor',
+                        distance_to_school: '',
+                        travel_time_minutes: '',
+                        surroundings: 'Perumahan',
+                        near_mosque: 'Ya',
+                        external_tpq: 'Tidak',
+                        parent_phone: '',
                         father_name: '',
+                        father_title: '',
+                        father_nik: '',
+                        father_birth: '',
+                        father_education: '',
+                        father_job: '',
+                        father_workplace: '',
                         father_phone: '',
                         mother_name: '',
+                        mother_title: '',
+                        mother_nik: '',
+                        mother_birth: '',
+                        mother_education: '',
+                        mother_job: '',
+                        mother_workplace: '',
                         mother_phone: '',
-                        parent_phone: '',
-                        status: 'aktif',
+                        has_guardian: false,
+                        guardian_name: '',
+                        guardian_relation: '',
+                        guardian_nik: '',
+                        guardian_education: '',
+                        guardian_job: '',
+                        guardian_phone: '',
+                        height: '',
+                        weight: '',
+                        head_circumference: '',
+                        arm_circumference: '',
+                        blood_type: '',
+                        child_order: 1,
+                        siblings_count: 0,
+                        special_needs: '',
+                        breakfast_pattern: 'Teratur',
+                        lunch_pattern: 'Teratur',
+                        dinner_pattern: 'Teratur',
+                        favorite_food: '',
+                        avoided_food: '',
+                        allergy_details: '',
+                        allergy_treatment: '',
+                        eating_manner: 'Mandiri dan duduk tertib',
+                        brush_teeth: 'Mandiri',
+                        toilet_training: 'Mandiri (Bisa BAK/BAB sendiri)',
+                        screen_time_daily: 'Kurang dari 1 jam',
+                        bedtime_pattern: 'Pukul 20:30',
+                        wake_time_pattern: 'Pukul 05:00',
+                        gestational_age: 'Cukup Bulan (Aterm)',
+                        birth_type: 'Normal',
+                        birth_weight: '',
+                        birth_length: '',
+                        exclusive_breastfeeding: 'Ya (ASI Eksklusif 6 Bulan)',
+                        mpasi_start_age: '6 Bulan',
+                        walking_age_months: '',
+                        talking_age_months: '',
+                        teeth_age_months: '',
+                        official_pickup_person: '',
+                        emergency_contact: '',
+                        pin_access: '1234',
+                        early_detection_consent: true,
                         notes: '',
                     };
                     this.updateAvailableOptions();
@@ -1398,7 +2320,7 @@
                 },
 
                 openEditModal(id) {
-                    this.formTab = 'program';
+                    this.formTab = 'tab1_identitas';
                     this.formErrors = {};
                     fetch(`/students/${id}`, {
                         headers: {
@@ -1410,6 +2332,10 @@
                     .then(res => {
                         if (res.success) {
                             const s = res.student;
+                            const fd = s.family_data || {};
+                            const hh = s.health_habits || {};
+                            const dp = s.development_psychology || {};
+
                             this.isEdit = true;
                             this.formData = {
                                 id: s.id,
@@ -1420,24 +2346,103 @@
                                 sub_unit: s.sub_unit || (s.classroom ? s.classroom.sub_unit : 'TK'),
                                 daycare_classroom_id: s.daycare_classroom_id || '',
                                 is_tpq: !!s.is_tpq,
+                                
+                                // Tab 1: Identitas
                                 nis: s.nis || '',
                                 nisn: s.nisn || '',
                                 nik: s.nik || '',
-                                pin_access: s.pin_access || '1234',
+                                no_kk: s.no_kk || '',
+                                no_akta: s.no_akta || '',
                                 full_name: s.full_name || '',
                                 nickname: s.nickname || '',
                                 gender: s.gender || 'L',
                                 birth_place: s.birth_place || '',
                                 birth_date: s.birth_date ? s.birth_date.substring(0, 10) : '',
                                 religion: s.religion || 'Islam',
-                                address: s.address || '',
-                                city: s.city || 'Malang',
-                                father_name: s.father_name || '',
-                                father_phone: s.father_phone || '',
-                                mother_name: s.mother_name || '',
-                                mother_phone: s.mother_phone || '',
-                                parent_phone: s.parent_phone || '',
+                                citizenship: s.citizenship || 'WNI',
                                 status: s.status || 'aktif',
+                                
+                                // Tab 2: Domisili
+                                address: s.address || '',
+                                rt: s.rt || '',
+                                rw: s.rw || '',
+                                kelurahan: s.kelurahan || '',
+                                kecamatan: s.kecamatan || '',
+                                city: s.city || 'Malang',
+                                postal_code: s.postal_code || '',
+                                living_with: s.living_with || 'Bersama Orang Tua',
+                                transportation: s.transportation || 'Sepeda Motor',
+                                distance_to_school: s.distance_to_school || '',
+                                travel_time_minutes: s.travel_time_minutes || '',
+                                surroundings: hh.surroundings || 'Perumahan',
+                                near_mosque: hh.near_mosque || 'Ya',
+                                external_tpq: hh.external_tpq || 'Tidak',
+                                
+                                // Tab 3: Keluarga & Kontak
+                                parent_phone: s.parent_phone || '',
+                                father_name: s.father_name || fd.father?.name || '',
+                                father_title: fd.father?.title || '',
+                                father_nik: fd.father?.nik || '',
+                                father_birth: fd.father?.birth || '',
+                                father_education: fd.father?.education || '',
+                                father_job: s.father_job || fd.father?.job || '',
+                                father_workplace: fd.father?.workplace || '',
+                                father_phone: s.father_phone || fd.father?.phone || '',
+                                
+                                mother_name: s.mother_name || fd.mother?.name || '',
+                                mother_title: fd.mother?.title || '',
+                                mother_nik: fd.mother?.nik || '',
+                                mother_birth: fd.mother?.birth || '',
+                                mother_education: fd.mother?.education || '',
+                                mother_job: s.mother_job || fd.mother?.job || '',
+                                mother_workplace: fd.mother?.workplace || '',
+                                mother_phone: s.mother_phone || fd.mother?.phone || '',
+                                
+                                has_guardian: !!(s.guardian_name || fd.guardian?.name),
+                                guardian_name: s.guardian_name || fd.guardian?.name || '',
+                                guardian_relation: fd.guardian?.relation || '',
+                                guardian_nik: fd.guardian?.nik || '',
+                                guardian_education: fd.guardian?.education || '',
+                                guardian_job: fd.guardian?.job || '',
+                                guardian_phone: s.guardian_phone || fd.guardian?.phone || '',
+                                
+                                // Tab 4: Fisik & Kebiasaan PAUD
+                                height: s.height || '',
+                                weight: s.weight || '',
+                                head_circumference: s.head_circumference || '',
+                                arm_circumference: s.arm_circumference || '',
+                                blood_type: s.blood_type || '',
+                                child_order: s.child_order || 1,
+                                siblings_count: s.siblings_count || 0,
+                                special_needs: s.special_needs || '',
+                                breakfast_pattern: hh.meals?.breakfast || 'Teratur',
+                                lunch_pattern: hh.meals?.lunch || 'Teratur',
+                                dinner_pattern: hh.meals?.dinner || 'Teratur',
+                                favorite_food: hh.meals?.favorite || '',
+                                avoided_food: hh.meals?.avoided || '',
+                                allergy_details: hh.allergy?.details || '',
+                                allergy_treatment: hh.allergy?.treatment || '',
+                                eating_manner: hh.eating_manner || 'Mandiri dan duduk tertib',
+                                brush_teeth: hh.brush_teeth || 'Mandiri',
+                                toilet_training: hh.toilet_training || 'Mandiri (Bisa BAK/BAB sendiri)',
+                                
+                                // Tab 5: Tumbuh Kembang & Tambahan
+                                screen_time_daily: dp.screen_time_daily || 'Kurang dari 1 jam',
+                                bedtime_pattern: dp.bedtime || 'Pukul 20:30',
+                                wake_time_pattern: dp.wake_time || 'Pukul 05:00',
+                                gestational_age: dp.birth_history?.gestational_age || 'Cukup Bulan (Aterm)',
+                                birth_type: dp.birth_history?.birth_type || 'Normal',
+                                birth_weight: dp.birth_history?.birth_weight || '',
+                                birth_length: dp.birth_history?.birth_length || '',
+                                exclusive_breastfeeding: dp.birth_history?.exclusive_breastfeeding || 'Ya (ASI Eksklusif 6 Bulan)',
+                                mpasi_start_age: dp.birth_history?.mpasi_start_age || '6 Bulan',
+                                walking_age_months: dp.milestones?.walking_age || '',
+                                talking_age_months: dp.milestones?.talking_age || '',
+                                teeth_age_months: dp.milestones?.teeth_age || '',
+                                official_pickup_person: dp.official_pickup_person || '',
+                                emergency_contact: dp.emergency_contact || '',
+                                pin_access: s.pin_access || '1234',
+                                early_detection_consent: dp.early_detection_consent !== false,
                                 notes: s.notes || '',
                             };
                             this.updateAvailableOptions();
@@ -1466,6 +2471,81 @@
                     const url = this.isEdit ? `/students/${this.formData.id}` : '/students';
                     const method = this.isEdit ? 'PUT' : 'POST';
 
+                    // Bundle payload including structured JSON objects
+                    const payload = {
+                        ...this.formData,
+                        family_data: {
+                            father: {
+                                name: this.formData.father_name || null,
+                                title: this.formData.father_title || null,
+                                nik: this.formData.father_nik || null,
+                                birth: this.formData.father_birth || null,
+                                education: this.formData.father_education || null,
+                                job: this.formData.father_job || null,
+                                workplace: this.formData.father_workplace || null,
+                                phone: this.formData.father_phone || null,
+                            },
+                            mother: {
+                                name: this.formData.mother_name || null,
+                                title: this.formData.mother_title || null,
+                                nik: this.formData.mother_nik || null,
+                                birth: this.formData.mother_birth || null,
+                                education: this.formData.mother_education || null,
+                                job: this.formData.mother_job || null,
+                                workplace: this.formData.mother_workplace || null,
+                                phone: this.formData.mother_phone || null,
+                            },
+                            guardian: this.formData.has_guardian ? {
+                                name: this.formData.guardian_name || null,
+                                relation: this.formData.guardian_relation || null,
+                                nik: this.formData.guardian_nik || null,
+                                education: this.formData.guardian_education || null,
+                                job: this.formData.guardian_job || null,
+                                phone: this.formData.guardian_phone || null,
+                            } : null,
+                        },
+                        health_habits: {
+                            surroundings: this.formData.surroundings || null,
+                            near_mosque: this.formData.near_mosque || null,
+                            external_tpq: this.formData.external_tpq || null,
+                            meals: {
+                                breakfast: this.formData.breakfast_pattern || null,
+                                lunch: this.formData.lunch_pattern || null,
+                                dinner: this.formData.dinner_pattern || null,
+                                favorite: this.formData.favorite_food || null,
+                                avoided: this.formData.avoided_food || null,
+                            },
+                            allergy: {
+                                details: this.formData.allergy_details || null,
+                                treatment: this.formData.allergy_treatment || null,
+                            },
+                            eating_manner: this.formData.eating_manner || null,
+                            brush_teeth: this.formData.brush_teeth || null,
+                            toilet_training: this.formData.toilet_training || null,
+                        },
+                        development_psychology: {
+                            screen_time_daily: this.formData.screen_time_daily || null,
+                            bedtime: this.formData.bedtime_pattern || null,
+                            wake_time: this.formData.wake_time_pattern || null,
+                            birth_history: {
+                                gestational_age: this.formData.gestational_age || null,
+                                birth_type: this.formData.birth_type || null,
+                                birth_weight: this.formData.birth_weight || null,
+                                birth_length: this.formData.birth_length || null,
+                                exclusive_breastfeeding: this.formData.exclusive_breastfeeding || null,
+                                mpasi_start_age: this.formData.mpasi_start_age || null,
+                            },
+                            milestones: {
+                                walking_age: this.formData.walking_age_months || null,
+                                talking_age: this.formData.talking_age_months || null,
+                                teeth_age: this.formData.teeth_age_months || null,
+                            },
+                            official_pickup_person: this.formData.official_pickup_person || null,
+                            emergency_contact: this.formData.emergency_contact || null,
+                            early_detection_consent: !!this.formData.early_detection_consent,
+                        }
+                    };
+
                     fetch(url, {
                         method: method,
                         headers: {
@@ -1474,7 +2554,7 @@
                             'X-Requested-With': 'XMLHttpRequest',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}'
                         },
-                        body: JSON.stringify(this.formData)
+                        body: JSON.stringify(payload)
                     })
                     .then(async (res) => {
                         this.saving = false;
@@ -1498,12 +2578,16 @@
                                 for (let k in data.errors) {
                                     this.formErrors[k] = data.errors[k][0];
                                 }
-                                if (data.errors.academic_year_id || data.errors.jenjang_id || data.errors.classroom_id || data.errors.class_level_id) {
-                                    this.formTab = 'program';
-                                } else if (data.errors.full_name || data.errors.nis || data.errors.nisn || data.errors.nik || data.errors.gender || data.errors.birth_date || data.errors.status) {
-                                    this.formTab = 'ananda';
+                                if (data.errors.academic_year_id || data.errors.jenjang_id || data.errors.classroom_id || data.errors.class_level_id || data.errors.full_name || data.errors.nis || data.errors.nisn || data.errors.nik || data.errors.gender || data.errors.status) {
+                                    this.formTab = 'tab1_identitas';
+                                } else if (data.errors.address || data.errors.rt || data.errors.rw || data.errors.city) {
+                                    this.formTab = 'tab2_domisili';
                                 } else if (data.errors.parent_phone || data.errors.father_phone || data.errors.mother_phone) {
-                                    this.formTab = 'ortu';
+                                    this.formTab = 'tab3_keluarga';
+                                } else if (data.errors.height || data.errors.weight || data.errors.blood_type) {
+                                    this.formTab = 'tab4_fisik';
+                                } else {
+                                    this.formTab = 'tab5_tumbuhkembang';
                                 }
                             }
                             let msg = (data && (data.message || (data.errors ? Object.values(data.errors).flat().join('<br>') : null))) || 'Terjadi kesalahan saat menyimpan data murid.';

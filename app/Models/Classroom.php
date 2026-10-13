@@ -59,6 +59,21 @@ class Classroom extends Model
         return $this->hasMany(Student::class);
     }
 
+    public function studentAttendances(): HasMany
+    {
+        return $this->hasMany(StudentAttendance::class);
+    }
+
+    public function ddtkRecords(): HasMany
+    {
+        return $this->hasMany(StudentDdtkRecord::class);
+    }
+
+    public function journals(): HasMany
+    {
+        return $this->hasMany(ClassroomJournal::class);
+    }
+
     /**
      * Get the active students count.
      */

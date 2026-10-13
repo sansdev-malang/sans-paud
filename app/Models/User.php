@@ -30,6 +30,14 @@ class User extends Authenticatable
         return $this->role === $role;
     }
 
+    public function hasAnyRole(array|string $roles): bool
+    {
+        if (is_string($roles)) {
+            $roles = explode(',', $roles);
+        }
+        return in_array($this->role, $roles);
+    }
+
     /**
      * Check if user has an admin-level role.
      */

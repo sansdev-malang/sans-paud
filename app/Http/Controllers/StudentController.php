@@ -18,6 +18,7 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 class StudentController extends Controller
@@ -282,9 +283,18 @@ class StudentController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        // Normalize empty string foreign keys / dates to null
+        // Normalize empty string foreign keys / dates / numbers to null
         $input = $request->all();
-        foreach (['jenjang_id', 'class_level_id', 'classroom_id', 'academic_year_id', 'daycare_classroom_id', 'tpq_classroom_id', 'nis', 'nisn', 'nik', 'birth_date', 'notes', 'parent_phone', 'father_phone', 'mother_phone', 'nickname', 'birth_place', 'address', 'city', 'pin_access'] as $k) {
+        $nullableKeys = [
+            'jenjang_id', 'class_level_id', 'classroom_id', 'academic_year_id', 'daycare_classroom_id', 'tpq_classroom_id',
+            'nis', 'nisn', 'nik', 'no_kk', 'no_akta', 'citizenship', 'birth_date', 'notes', 'parent_phone', 'parent_email',
+            'father_name', 'father_phone', 'father_job', 'mother_name', 'mother_phone', 'mother_job', 'guardian_name', 'guardian_phone',
+            'nickname', 'birth_place', 'religion', 'address', 'rt', 'rw', 'kelurahan', 'kecamatan', 'city', 'province', 'postal_code',
+            'living_with', 'transportation', 'child_order', 'siblings_count', 'blood_type', 'special_needs',
+            'height', 'weight', 'head_circumference', 'arm_circumference', 'distance_to_school', 'travel_time_minutes',
+            'pin_access'
+        ];
+        foreach ($nullableKeys as $k) {
             if (isset($input[$k]) && ($input[$k] === '' || $input[$k] === 'null')) {
                 $input[$k] = null;
             }
@@ -295,12 +305,35 @@ class StudentController extends Controller
             'nis' => 'nullable|string|max:50|unique:students,nis',
             'nisn' => 'nullable|string|max:50',
             'nik' => 'nullable|string|max:50',
+            'no_kk' => 'nullable|string|max:50',
+            'no_akta' => 'nullable|string|max:50',
             'full_name' => 'required|string|max:255',
             'nickname' => 'nullable|string|max:100',
             'gender' => 'required|string|in:L,P,Laki-laki,Perempuan',
             'birth_place' => 'nullable|string|max:100',
             'birth_date' => 'nullable|date',
             'religion' => 'nullable|string|max:50',
+            'citizenship' => 'nullable|string|max:20',
+            'address' => 'nullable|string',
+            'rt' => 'nullable|string|max:10',
+            'rw' => 'nullable|string|max:10',
+            'kelurahan' => 'nullable|string|max:100',
+            'kecamatan' => 'nullable|string|max:100',
+            'city' => 'nullable|string|max:100',
+            'province' => 'nullable|string|max:100',
+            'postal_code' => 'nullable|string|max:10',
+            'living_with' => 'nullable|string|max:50',
+            'transportation' => 'nullable|string|max:50',
+            'child_order' => 'nullable|integer|min:1|max:30',
+            'siblings_count' => 'nullable|integer|min:0|max:30',
+            'blood_type' => 'nullable|string|max:10',
+            'special_needs' => 'nullable|string|max:100',
+            'height' => 'nullable|numeric|min:0|max:300',
+            'weight' => 'nullable|numeric|min:0|max:200',
+            'head_circumference' => 'nullable|numeric|min:0|max:100',
+            'arm_circumference' => 'nullable|numeric|min:0|max:100',
+            'distance_to_school' => 'nullable|string|max:50',
+            'travel_time_minutes' => 'nullable|integer|min:0|max:300',
             'jenjang_id' => 'nullable|exists:jenjangs,id',
             'sub_unit' => 'nullable|string|in:PG,TK,DAYCARE,TPQ',
             'class_level_id' => 'nullable|exists:class_levels,id',
@@ -311,18 +344,57 @@ class StudentController extends Controller
             'academic_year_id' => 'nullable|exists:academic_years,id',
             'father_name' => 'nullable|string|max:255',
             'father_phone' => 'nullable|string|max:50',
+            'father_job' => 'nullable|string|max:100',
             'mother_name' => 'nullable|string|max:255',
             'mother_phone' => 'nullable|string|max:50',
+            'mother_job' => 'nullable|string|max:100',
+            'guardian_name' => 'nullable|string|max:255',
+            'guardian_phone' => 'nullable|string|max:50',
             'parent_phone' => 'nullable|string|max:50',
-            'address' => 'nullable|string',
-            'city' => 'nullable|string|max:100',
+            'parent_email' => 'nullable|string|max:100',
             'pin_access' => 'nullable|string|max:50',
             'status' => 'required|string|in:aktif,lulus,mutasi,keluar,nonaktif',
             'enrolled_date' => 'nullable|date',
             'notes' => 'nullable|string',
+            'family_data' => 'nullable|array',
+            'health_habits' => 'nullable|array',
+            'development_psychology' => 'nullable|array',
         ]);
 
         $validated['nis'] = !empty($validated['nis']) ? trim($validated['nis']) : null;
+
+        // Synchronize legacy parent fields from family_data if provided
+        if (!empty($validated['family_data'])) {
+            $fd = $validated['family_data'];
+            if (!empty($fd['father']['name']) && empty($validated['father_name'])) {
+                $validated['father_name'] = $fd['father']['name'];
+            }
+            if (!empty($fd['father']['phone']) && empty($validated['father_phone'])) {
+                $validated['father_phone'] = $fd['father']['phone'];
+            }
+            if (!empty($fd['father']['job']) && empty($validated['father_job'])) {
+                $validated['father_job'] = $fd['father']['job'];
+            }
+            if (!empty($fd['mother']['name']) && empty($validated['mother_name'])) {
+                $validated['mother_name'] = $fd['mother']['name'];
+            }
+            if (!empty($fd['mother']['phone']) && empty($validated['mother_phone'])) {
+                $validated['mother_phone'] = $fd['mother']['phone'];
+            }
+            if (!empty($fd['mother']['job']) && empty($validated['mother_job'])) {
+                $validated['mother_job'] = $fd['mother']['job'];
+            }
+            if (!empty($fd['guardian']['name']) && empty($validated['guardian_name'])) {
+                $validated['guardian_name'] = $fd['guardian']['name'];
+            }
+            if (!empty($fd['guardian']['phone']) && empty($validated['guardian_phone'])) {
+                $validated['guardian_phone'] = $fd['guardian']['phone'];
+            }
+        }
+
+        if (empty($validated['parent_phone'])) {
+            $validated['parent_phone'] = $validated['father_phone'] ?? $validated['mother_phone'] ?? $validated['guardian_phone'] ?? null;
+        }
 
         if (empty($validated['academic_year_id'])) {
             $activeAY = AcademicYear::where('is_active', true)->first();
@@ -381,9 +453,18 @@ class StudentController extends Controller
     {
         $student = Student::findOrFail($id);
 
-        // Normalize empty string foreign keys / dates to null
+        // Normalize empty string foreign keys / dates / numbers to null
         $input = $request->all();
-        foreach (['jenjang_id', 'class_level_id', 'classroom_id', 'academic_year_id', 'daycare_classroom_id', 'tpq_classroom_id', 'nis', 'nisn', 'nik', 'birth_date', 'notes', 'parent_phone', 'father_phone', 'mother_phone', 'nickname', 'birth_place', 'address', 'city', 'pin_access'] as $k) {
+        $nullableKeys = [
+            'jenjang_id', 'class_level_id', 'classroom_id', 'academic_year_id', 'daycare_classroom_id', 'tpq_classroom_id',
+            'nis', 'nisn', 'nik', 'no_kk', 'no_akta', 'citizenship', 'birth_date', 'notes', 'parent_phone', 'parent_email',
+            'father_name', 'father_phone', 'father_job', 'mother_name', 'mother_phone', 'mother_job', 'guardian_name', 'guardian_phone',
+            'nickname', 'birth_place', 'religion', 'address', 'rt', 'rw', 'kelurahan', 'kecamatan', 'city', 'province', 'postal_code',
+            'living_with', 'transportation', 'child_order', 'siblings_count', 'blood_type', 'special_needs',
+            'height', 'weight', 'head_circumference', 'arm_circumference', 'distance_to_school', 'travel_time_minutes',
+            'pin_access'
+        ];
+        foreach ($nullableKeys as $k) {
             if (isset($input[$k]) && ($input[$k] === '' || $input[$k] === 'null')) {
                 $input[$k] = null;
             }
@@ -394,12 +475,35 @@ class StudentController extends Controller
             'nis' => 'nullable|string|max:50|unique:students,nis,' . $student->id,
             'nisn' => 'nullable|string|max:50',
             'nik' => 'nullable|string|max:50',
+            'no_kk' => 'nullable|string|max:50',
+            'no_akta' => 'nullable|string|max:50',
             'full_name' => 'required|string|max:255',
             'nickname' => 'nullable|string|max:100',
             'gender' => 'required|string|in:L,P,Laki-laki,Perempuan',
             'birth_place' => 'nullable|string|max:100',
             'birth_date' => 'nullable|date',
             'religion' => 'nullable|string|max:50',
+            'citizenship' => 'nullable|string|max:20',
+            'address' => 'nullable|string',
+            'rt' => 'nullable|string|max:10',
+            'rw' => 'nullable|string|max:10',
+            'kelurahan' => 'nullable|string|max:100',
+            'kecamatan' => 'nullable|string|max:100',
+            'city' => 'nullable|string|max:100',
+            'province' => 'nullable|string|max:100',
+            'postal_code' => 'nullable|string|max:10',
+            'living_with' => 'nullable|string|max:50',
+            'transportation' => 'nullable|string|max:50',
+            'child_order' => 'nullable|integer|min:1|max:30',
+            'siblings_count' => 'nullable|integer|min:0|max:30',
+            'blood_type' => 'nullable|string|max:10',
+            'special_needs' => 'nullable|string|max:100',
+            'height' => 'nullable|numeric|min:0|max:300',
+            'weight' => 'nullable|numeric|min:0|max:200',
+            'head_circumference' => 'nullable|numeric|min:0|max:100',
+            'arm_circumference' => 'nullable|numeric|min:0|max:100',
+            'distance_to_school' => 'nullable|string|max:50',
+            'travel_time_minutes' => 'nullable|integer|min:0|max:300',
             'jenjang_id' => 'nullable|exists:jenjangs,id',
             'sub_unit' => 'nullable|string|in:PG,TK,DAYCARE,TPQ',
             'class_level_id' => 'nullable|exists:class_levels,id',
@@ -410,17 +514,56 @@ class StudentController extends Controller
             'academic_year_id' => 'nullable|exists:academic_years,id',
             'father_name' => 'nullable|string|max:255',
             'father_phone' => 'nullable|string|max:50',
+            'father_job' => 'nullable|string|max:100',
             'mother_name' => 'nullable|string|max:255',
             'mother_phone' => 'nullable|string|max:50',
+            'mother_job' => 'nullable|string|max:100',
+            'guardian_name' => 'nullable|string|max:255',
+            'guardian_phone' => 'nullable|string|max:50',
             'parent_phone' => 'nullable|string|max:50',
-            'address' => 'nullable|string',
-            'city' => 'nullable|string|max:100',
+            'parent_email' => 'nullable|string|max:100',
             'pin_access' => 'nullable|string|max:50',
             'status' => 'required|string|in:aktif,lulus,mutasi,keluar,nonaktif',
             'notes' => 'nullable|string',
+            'family_data' => 'nullable|array',
+            'health_habits' => 'nullable|array',
+            'development_psychology' => 'nullable|array',
         ]);
 
         $validated['nis'] = !empty($validated['nis']) ? trim($validated['nis']) : null;
+
+        // Synchronize legacy parent fields from family_data if provided
+        if (!empty($validated['family_data'])) {
+            $fd = $validated['family_data'];
+            if (!empty($fd['father']['name']) && empty($validated['father_name'])) {
+                $validated['father_name'] = $fd['father']['name'];
+            }
+            if (!empty($fd['father']['phone']) && empty($validated['father_phone'])) {
+                $validated['father_phone'] = $fd['father']['phone'];
+            }
+            if (!empty($fd['father']['job']) && empty($validated['father_job'])) {
+                $validated['father_job'] = $fd['father']['job'];
+            }
+            if (!empty($fd['mother']['name']) && empty($validated['mother_name'])) {
+                $validated['mother_name'] = $fd['mother']['name'];
+            }
+            if (!empty($fd['mother']['phone']) && empty($validated['mother_phone'])) {
+                $validated['mother_phone'] = $fd['mother']['phone'];
+            }
+            if (!empty($fd['mother']['job']) && empty($validated['mother_job'])) {
+                $validated['mother_job'] = $fd['mother']['job'];
+            }
+            if (!empty($fd['guardian']['name']) && empty($validated['guardian_name'])) {
+                $validated['guardian_name'] = $fd['guardian']['name'];
+            }
+            if (!empty($fd['guardian']['phone']) && empty($validated['guardian_phone'])) {
+                $validated['guardian_phone'] = $fd['guardian']['phone'];
+            }
+        }
+
+        if (empty($validated['parent_phone'])) {
+            $validated['parent_phone'] = $validated['father_phone'] ?? $validated['mother_phone'] ?? $validated['guardian_phone'] ?? $student->parent_phone;
+        }
 
         if (!empty($validated['classroom_id'])) {
             $cls = Classroom::find($validated['classroom_id']);
@@ -606,42 +749,70 @@ class StudentController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Data Murid');
 
-        // Document Title
-        $sheet->setCellValue('A1', 'DAFTAR DATA MURID (PESERTA DIDIK)');
+        // Document Title Banner
+        $sheet->setCellValue('A1', 'DAFTAR DATA LENGKAP PESERTA DIDIK (MURID)');
         $sheet->setCellValue('A2', 'KB - TK - DAYCARE - TPQ ANAK SALEH MALANG');
         $sheet->setCellValue('A3', 'Tahun Ajaran: ' . ($selectedYear ? $selectedYear->name : 'Semua') . ' | Jenjang: ' . ($selectedJenjang ? $selectedJenjang->name : 'Semua') . ' | Total Murid: ' . $students->count() . ' | Tanggal Unduh: ' . date('d/m/Y H:i'));
 
         $sheet->getStyle('A1:A2')->getFont()->setBold(true)->setSize(14);
         $sheet->getStyle('A3')->getFont()->setItalic(true)->setSize(10)->getColor()->setARGB('FF475569');
 
-        // Table Headers
+        // Table Headers (Comprehensive)
         $headers = [
             'No',
             'NIS',
             'NISN',
-            'NIK',
+            'NIK Ananda',
+            'No. KK',
+            'No. Akta Kelahiran',
             'Nama Lengkap',
             'Nama Panggilan',
             'L/P',
             'Tempat Lahir',
             'Tanggal Lahir',
             'Usia',
+            'Agama',
+            'Kewarganegaraan',
+            'Alamat Jalan',
+            'RT',
+            'RW',
+            'Kelurahan / Desa',
+            'Kecamatan',
+            'Kota / Kab',
+            'Kode Pos',
+            'Tempat Tinggal',
+            'Moda Transportasi',
+            'Anak Ke-',
+            'Jumlah Saudara',
+            'Gol. Darah',
+            'Kebutuhan Khusus',
+            'TB (cm)',
+            'BB (kg)',
+            'LK (cm)',
+            'LiLa (cm)',
+            'Jarak Sekolah',
+            'Waktu Tempuh (menit)',
             'Sub Unit',
             'Jenjang',
             'Tingkat Kelas',
-            'Kelompok (Rombel)',
+            'Kelompok Belajar',
             'Kelompok Daycare',
             'Status TPQ',
             'Kelompok TPQ',
             'Nama Ayah',
+            'NIK Ayah',
+            'Pendidikan Ayah',
+            'Pekerjaan Ayah',
             'No. HP Ayah',
             'Nama Ibu',
+            'NIK Ibu',
+            'Pendidikan Ibu',
+            'Pekerjaan Ibu',
             'No. HP Ibu',
             'No. WhatsApp Kontak',
-            'Alamat',
-            'Kota',
-            'PIN Akses',
-            'Status'
+            'PIN Akses Ortu',
+            'Status',
+            'Catatan Khusus'
         ];
 
         $startRow = 5;
@@ -661,10 +832,10 @@ class StudentController extends Controller
             ->setVertical(Alignment::VERTICAL_CENTER);
         $sheet->getRowDimension($startRow)->setRowHeight(26);
 
-        // Populate Data
+        // Populate Data Rows
         $currentRow = $startRow + 1;
         foreach ($students as $index => $s) {
-            $genderLabel = in_array(strtoupper($s->gender), ['L', 'LAKI-LAKI', 'MALE']) ? 'L' : 'P';
+            $genderLabel = in_array(strtoupper((string)$s->gender), ['L', 'LAKI-LAKI', 'MALE']) ? 'L' : 'P';
             $birthDateFormatted = $s->birth_date ? date('Y-m-d', strtotime($s->birth_date)) : '-';
             $jenjangName = $s->jenjang?->name ?? $s->classroom?->jenjang?->name ?? $s->classLevel?->jenjang?->name ?? $s->sub_unit ?? '-';
             $classLevelName = $s->classroom?->classLevel?->name ?? $s->classLevel?->name ?? '-';
@@ -673,40 +844,79 @@ class StudentController extends Controller
             $tpqStatus = ($s->is_tpq || $s->tpq_classroom_id || $s->sub_unit === 'TPQ') ? 'Ya' : 'Tidak';
             $tpqName = $s->tpqClassroom?->name ?? ($tpqStatus === 'Ya' ? 'TPQ' : '-');
 
+            $fd = is_array($s->family_data) ? $s->family_data : [];
+            $fatherNik = $fd['father']['nik'] ?? '-';
+            $fatherEdu = $fd['father']['education'] ?? '-';
+            $fatherJob = $s->father_job ?? ($fd['father']['job'] ?? '-');
+            $motherNik = $fd['mother']['nik'] ?? '-';
+            $motherEdu = $fd['mother']['education'] ?? '-';
+            $motherJob = $s->mother_job ?? ($fd['mother']['job'] ?? '-');
+
             $sheet->setCellValue("A{$currentRow}", $index + 1);
             $sheet->setCellValueExplicit("B{$currentRow}", (string)($s->nis ?? ''), DataType::TYPE_STRING);
             $sheet->setCellValueExplicit("C{$currentRow}", (string)($s->nisn ?? ''), DataType::TYPE_STRING);
             $sheet->setCellValueExplicit("D{$currentRow}", (string)($s->nik ?? ''), DataType::TYPE_STRING);
-            $sheet->setCellValue("E{$currentRow}", $s->full_name);
-            $sheet->setCellValue("F{$currentRow}", $s->nickname ?? '-');
-            $sheet->setCellValue("G{$currentRow}", $genderLabel);
-            $sheet->setCellValue("H{$currentRow}", $s->birth_place ?? '-');
-            $sheet->setCellValue("I{$currentRow}", $birthDateFormatted);
-            $sheet->setCellValue("J{$currentRow}", $s->age ?? '-');
-            $sheet->setCellValue("K{$currentRow}", $s->sub_unit ?? 'TK');
-            $sheet->setCellValue("L{$currentRow}", $jenjangName);
-            $sheet->setCellValue("M{$currentRow}", $classLevelName);
-            $sheet->setCellValue("N{$currentRow}", $rombelName);
-            $sheet->setCellValue("O{$currentRow}", $daycareName);
-            $sheet->setCellValue("P{$currentRow}", $tpqStatus);
-            $sheet->setCellValue("Q{$currentRow}", $tpqName);
-            $sheet->setCellValue("R{$currentRow}", $s->father_name ?? '-');
-            $sheet->setCellValueExplicit("S{$currentRow}", (string)($s->father_phone ?? ''), DataType::TYPE_STRING);
-            $sheet->setCellValue("T{$currentRow}", $s->mother_name ?? '-');
-            $sheet->setCellValueExplicit("U{$currentRow}", (string)($s->mother_phone ?? ''), DataType::TYPE_STRING);
-            $sheet->setCellValueExplicit("V{$currentRow}", (string)($s->clean_parent_phone ?? $s->parent_phone ?? ''), DataType::TYPE_STRING);
-            $sheet->setCellValue("W{$currentRow}", $s->address ?? '-');
-            $sheet->setCellValue("X{$currentRow}", $s->city ?? 'Malang');
-            $sheet->setCellValueExplicit("Y{$currentRow}", (string)($s->pin_access ?? ''), DataType::TYPE_STRING);
-            $sheet->setCellValue("Z{$currentRow}", ucfirst($s->status ?? 'aktif'));
+            $sheet->setCellValueExplicit("E{$currentRow}", (string)($s->no_kk ?? ''), DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("F{$currentRow}", (string)($s->no_akta ?? ''), DataType::TYPE_STRING);
+            $sheet->setCellValue("G{$currentRow}", $s->full_name);
+            $sheet->setCellValue("H{$currentRow}", $s->nickname ?? '-');
+            $sheet->setCellValue("I{$currentRow}", $genderLabel);
+            $sheet->setCellValue("J{$currentRow}", $s->birth_place ?? '-');
+            $sheet->setCellValue("K{$currentRow}", $birthDateFormatted);
+            $sheet->setCellValue("L{$currentRow}", $s->age ?? '-');
+            $sheet->setCellValue("M{$currentRow}", $s->religion ?? 'Islam');
+            $sheet->setCellValue("N{$currentRow}", $s->citizenship ?? 'WNI');
+            $sheet->setCellValue("O{$currentRow}", $s->address ?? '-');
+            $sheet->setCellValue("P{$currentRow}", $s->rt ?? '-');
+            $sheet->setCellValue("Q{$currentRow}", $s->rw ?? '-');
+            $sheet->setCellValue("R{$currentRow}", $s->kelurahan ?? '-');
+            $sheet->setCellValue("S{$currentRow}", $s->kecamatan ?? '-');
+            $sheet->setCellValue("T{$currentRow}", $s->city ?? 'Malang');
+            $sheet->setCellValue("U{$currentRow}", $s->postal_code ?? '-');
+            $sheet->setCellValue("V{$currentRow}", $s->living_with ?? 'Bersama orang tua');
+            $sheet->setCellValue("W{$currentRow}", $s->transportation ?? '-');
+            $sheet->setCellValue("X{$currentRow}", $s->child_order ?? '-');
+            $sheet->setCellValue("Y{$currentRow}", $s->siblings_count ?? '-');
+            $sheet->setCellValue("Z{$currentRow}", $s->blood_type ?? '-');
+            $sheet->setCellValue("AA{$currentRow}", $s->special_needs ?? 'Tidak ada');
+            $sheet->setCellValue("AB{$currentRow}", $s->height ?? '-');
+            $sheet->setCellValue("AC{$currentRow}", $s->weight ?? '-');
+            $sheet->setCellValue("AD{$currentRow}", $s->head_circumference ?? '-');
+            $sheet->setCellValue("AE{$currentRow}", $s->arm_circumference ?? '-');
+            $sheet->setCellValue("AF{$currentRow}", $s->distance_to_school ?? '-');
+            $sheet->setCellValue("AG{$currentRow}", $s->travel_time_minutes ?? '-');
+            $sheet->setCellValue("AH{$currentRow}", $s->sub_unit ?? 'TK');
+            $sheet->setCellValue("AI{$currentRow}", $jenjangName);
+            $sheet->setCellValue("AJ{$currentRow}", $classLevelName);
+            $sheet->setCellValue("AK{$currentRow}", $rombelName);
+            $sheet->setCellValue("AL{$currentRow}", $daycareName);
+            $sheet->setCellValue("AM{$currentRow}", $tpqStatus);
+            $sheet->setCellValue("AN{$currentRow}", $tpqName);
+            $sheet->setCellValue("AO{$currentRow}", $s->father_name ?? '-');
+            $sheet->setCellValueExplicit("AP{$currentRow}", (string)$fatherNik, DataType::TYPE_STRING);
+            $sheet->setCellValue("AQ{$currentRow}", $fatherEdu);
+            $sheet->setCellValue("AR{$currentRow}", $fatherJob);
+            $sheet->setCellValueExplicit("AS{$currentRow}", (string)($s->father_phone ?? ''), DataType::TYPE_STRING);
+            $sheet->setCellValue("AT{$currentRow}", $s->mother_name ?? '-');
+            $sheet->setCellValueExplicit("AU{$currentRow}", (string)$motherNik, DataType::TYPE_STRING);
+            $sheet->setCellValue("AV{$currentRow}", $motherEdu);
+            $sheet->setCellValue("AW{$currentRow}", $motherJob);
+            $sheet->setCellValueExplicit("AX{$currentRow}", (string)($s->mother_phone ?? ''), DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("AY{$currentRow}", (string)($s->clean_parent_phone ?? $s->parent_phone ?? ''), DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("AZ{$currentRow}", (string)($s->pin_access ?? ''), DataType::TYPE_STRING);
+            $sheet->setCellValue("BA{$currentRow}", ucfirst($s->status ?? 'aktif'));
+            $sheet->setCellValue("BB{$currentRow}", $s->notes ?? '-');
 
-            // Center align for certain columns
+            // Alignment
             $sheet->getStyle("A{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("B{$currentRow}:D{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("G{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("I{$currentRow}:L{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("P{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("Y{$currentRow}:Z{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("B{$currentRow}:F{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("I{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("K{$currentRow}:N{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("P{$currentRow}:Q{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("X{$currentRow}:AE{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("AH{$currentRow}:AJ{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("AM{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("AZ{$currentRow}:BA{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
             // Zebra striping
             if ($index % 2 === 1) {
@@ -722,6 +932,9 @@ class StudentController extends Controller
         $dataEndRow = max($currentRow - 1, $startRow);
         $sheet->getStyle("A{$startRow}:{$lastCol}{$dataEndRow}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFE2E8F0'));
 
+        // Freeze pane
+        $sheet->freezePane('G6');
+
         // Auto-fit column widths
         foreach (range(1, count($headers)) as $colIndex) {
             $colLetter = Coordinate::stringFromColumnIndex($colIndex);
@@ -729,7 +942,7 @@ class StudentController extends Controller
         }
 
         $writer = new Xlsx($spreadsheet);
-        $filename = 'Data_Murid_PAUD_' . date('Ymd_His') . '.xlsx';
+        $filename = 'Data_Lengkap_Murid_PAUD_' . date('Ymd_His') . '.xlsx';
 
         if ($request->filled('download_token')) {
             setcookie('download_token', $request->query('download_token'), time() + 60, '/', '', false, false);
@@ -788,7 +1001,7 @@ class StudentController extends Controller
     }
 
     /**
-     * Download Excel template for importing students.
+     * Download Excel template for importing students with grouped categories and validations.
      */
     public function downloadTemplate()
     {
@@ -796,16 +1009,60 @@ class StudentController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Template Import Murid');
 
+        // CATEGORY HEADER (ROW 1)
+        $categories = [
+            ['range' => 'A1:E1', 'title' => '1. IDENTITAS & DOKUMEN RESMI', 'color' => 'FF4F46E5'], // Indigo 600
+            ['range' => 'F1:L1', 'title' => '2. BIODATA UTAMA ANANDA', 'color' => 'FF0284C7'],      // Sky 600
+            ['range' => 'M1:U1', 'title' => '3. DOMISILI & TEMPAT TINGGAL', 'color' => 'FF0D9488'],  // Teal 600
+            ['range' => 'V1:AE1', 'title' => '4. FISIK & ANTROPOMETRI', 'color' => 'FFD97706'],     // Amber 600
+            ['range' => 'AF1:AK1', 'title' => '5. PENEMPATAN KELAS & PROGRAM', 'color' => 'FF7C3AED'], // Violet 600
+            ['range' => 'AL1:AV1', 'title' => '6. DATA ORANG TUA & WALI', 'color' => 'FF059669'],    // Emerald 600
+            ['range' => 'AW1:AZ1', 'title' => '7. STATUS & CATATAN KHUSUS', 'color' => 'FF475569'],  // Slate 600
+        ];
+
+        foreach ($categories as $cat) {
+            $sheet->mergeCells($cat['range']);
+            $firstCell = explode(':', $cat['range'])[0];
+            $sheet->setCellValue($firstCell, $cat['title']);
+            $sheet->getStyle($cat['range'])->getFont()->setBold(true)->setSize(10)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFFFFFFF'));
+            $sheet->getStyle($cat['range'])->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($cat['color']);
+            $sheet->getStyle($cat['range'])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
+        }
+        $sheet->getRowDimension(1)->setRowHeight(24);
+
+        // COLUMN HEADERS (ROW 2)
         $headers = [
             'NIS (opsional)',
             'NISN (opsional)',
-            'NIK (opsional)',
-            'Nama Lengkap',
+            'NIK Ananda (opsional)',
+            'No. KK (opsional)',
+            'No. Akta Kelahiran (opsional)',
+            'Nama Lengkap Ananda *',
             'Nama Panggilan',
-            'Jenis Kelamin (L/P)',
+            'Jenis Kelamin (L/P) *',
             'Tempat Lahir',
             'Tanggal Lahir (YYYY-MM-DD)',
-            'Agama',
+            'Agama (Islam/Kristen/dll)',
+            'Kewarganegaraan (WNI/WNA)',
+            'Alamat Jalan',
+            'RT',
+            'RW',
+            'Kelurahan / Desa',
+            'Kecamatan',
+            'Kota / Kabupaten',
+            'Kode Pos',
+            'Tempat Tinggal',
+            'Moda Transportasi',
+            'Anak Ke-',
+            'Jumlah Saudara',
+            'Golongan Darah (A/B/AB/O/Tidak Tahu)',
+            'Kebutuhan Khusus (opsional)',
+            'Tinggi Badan (cm)',
+            'Berat Badan (kg)',
+            'Lingkar Kepala (cm)',
+            'Lingkar Lengan (cm)',
+            'Jarak ke Sekolah',
+            'Waktu Tempuh (menit)',
             'Sub Unit (PG/TK/DAYCARE/TPQ)',
             'Jenjang (KB-A/KB-B/TK-A/TK-B/Daycare/TPQ)',
             'Nama Kelompok / Rombel',
@@ -813,98 +1070,103 @@ class StudentController extends Controller
             'Ikut TPQ (Ya/Tidak)',
             'Kelompok TPQ (opsional)',
             'Nama Ayah',
+            'NIK Ayah',
+            'Pendidikan Ayah',
+            'Pekerjaan Ayah',
             'No HP Ayah',
             'Nama Ibu',
+            'NIK Ibu',
+            'Pendidikan Ibu',
+            'Pekerjaan Ibu',
             'No HP Ibu',
-            'No WhatsApp Kontak',
-            'Alamat',
-            'Kota',
-            'PIN Akses Wali',
-            'Status (aktif/lulus/mutasi/keluar/nonaktif)'
+            'No WhatsApp Kontak Utama *',
+            'PIN Akses Wali (default: 1234)',
+            'Status (aktif/lulus/mutasi/keluar/nonaktif)',
+            'Riwayat Alergi (opsional)',
+            'Catatan Tambahan (opsional)'
         ];
 
-        // Header row
         foreach ($headers as $colIndex => $header) {
             $colLetter = Coordinate::stringFromColumnIndex($colIndex + 1);
-            $sheet->setCellValue($colLetter . '1', $header);
+            $sheet->setCellValue($colLetter . '2', $header);
         }
 
-        // Example data rows
+        $lastCol = Coordinate::stringFromColumnIndex(count($headers));
+        $headerRange = "A2:{$lastCol}2";
+        $sheet->getStyle($headerRange)->getFont()->setBold(true)->setSize(9)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FF1E293B'));
+        $sheet->getStyle($headerRange)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF1F5F9'); // Slate 100
+        $sheet->getStyle($headerRange)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER)->setWrapText(true);
+        $sheet->getRowDimension(2)->setRowHeight(32);
+
+        // EXAMPLE DATA ROWS (ROW 3 & 4)
         $example1 = [
-            '0101',
-            '0192837465',
-            '3573010101210001',
-            'Muhammad Fatih Al-Faruq',
-            'Fatih',
-            'L',
-            'Malang',
-            '2021-03-15',
-            'Islam',
-            'TK',
-            'TK-A',
-            'TK A-1 (Bintang)',
-            'Daycare Toddler',
-            'Ya',
-            'TPQ Al-Fatih',
-            'Ahmad Fauzi',
-            '081234567890',
-            'Siti Aminah',
-            '081234567891',
-            '081234567890',
-            'Jl. Candi Mendut No. 12, Lowokwaru',
-            'Malang',
-            '1234',
-            'aktif'
+            '0101', '0192837465', '3573010101210001', '3573010101210001', '12345/DIS/2021',
+            'Muhammad Fatih Al-Faruq', 'Fatih', 'L', 'Malang', '2021-03-15', 'Islam', 'WNI',
+            'Jl. Candi Mendut No. 12', '03', '05', 'Mojolangu', 'Lowokwaru', 'Malang', '65142',
+            'Bersama orang tua', 'Mobil pribadi', '1', '2', 'O', 'Tidak ada',
+            '102.5', '16.5', '50.0', '16.0', '1-3 km', '15',
+            'TK', 'TK-A', 'TK A-1 (Bintang)', 'Daycare Toddler', 'Ya', 'TPQ Al-Fatih',
+            'Ahmad Fauzi, S.T.', '3573010101850001', 'S1', 'Karyawan Swasta', '081234567890',
+            'Siti Aminah, S.Pd.', '3573010101880002', 'S1', 'Guru', '081234567891',
+            '081234567890', '1234', 'aktif', 'Tidak ada alergi', 'Ananda aktif dan ramah'
         ];
 
         $example2 = [
-            '0102',
-            '0192837466',
-            '3573010101220002',
-            'Aisyah Humaira Putri',
-            'Aisyah',
-            'P',
-            'Malang',
-            '2022-06-20',
-            'Islam',
-            'PG',
-            'KB-A',
-            'KB Bulan',
-            '',
-            'Tidak',
-            '',
-            'Bambang Susanto',
-            '082198765432',
-            'Nurul Hidayah',
-            '082198765433',
-            '082198765432',
-            'Jl. Soekarno Hatta No. 45',
-            'Malang',
-            '5678',
-            'aktif'
+            '0102', '0192837466', '3573010101220002', '3573010101220002', '12346/DIS/2022',
+            'Aisyah Humaira Putri', 'Aisyah', 'P', 'Malang', '2022-06-20', 'Islam', 'WNI',
+            'Jl. Soekarno Hatta No. 45', '02', '01', 'Jatimulyo', 'Lowokwaru', 'Malang', '65141',
+            'Bersama orang tua', 'Motor', '2', '1', 'A', 'Tidak ada',
+            '92.0', '13.2', '47.5', '14.5', '< 1 km', '10',
+            'PG', 'KB-A', 'KB Bulan', '', 'Tidak', '',
+            'Bambang Susanto, M.M.', '3573010101820003', 'S2', 'Wiraswasta', '082198765432',
+            'Nurul Hidayah, S.E.', '3573010101860004', 'S1', 'Ibu Rumah Tangga', '082198765433',
+            '082198765432', '5678', 'aktif', 'Alergi dingin/seafood ringan', 'Ananda ceria dan suka menggambar'
         ];
 
         foreach ($example1 as $colIndex => $val) {
             $colLetter = Coordinate::stringFromColumnIndex($colIndex + 1);
-            $sheet->setCellValueExplicit($colLetter . '2', (string)$val, DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit($colLetter . '3', (string)$val, DataType::TYPE_STRING);
         }
 
         foreach ($example2 as $colIndex => $val) {
             $colLetter = Coordinate::stringFromColumnIndex($colIndex + 1);
-            $sheet->setCellValueExplicit($colLetter . '3', (string)$val, DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit($colLetter . '4', (string)$val, DataType::TYPE_STRING);
         }
 
-        // Header style
-        $lastCol = Coordinate::stringFromColumnIndex(count($headers));
-        $headerRange = 'A1:' . $lastCol . '1';
-        $sheet->getStyle($headerRange)->getFont()->setBold(true)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFFFFFFF'));
-        $sheet->getStyle($headerRange)->getFill()
-            ->setFillType(Fill::FILL_SOLID)
-            ->getStartColor()->setARGB('FF4F46E5');
-        $sheet->getStyle($headerRange)->getAlignment()
-            ->setHorizontal(Alignment::HORIZONTAL_CENTER)
-            ->setVertical(Alignment::VERTICAL_CENTER);
-        $sheet->getRowDimension(1)->setRowHeight(26);
+        $sheet->getStyle("A3:{$lastCol}4")->getFont()->setSize(9);
+        $sheet->getRowDimension(3)->setRowHeight(22);
+        $sheet->getRowDimension(4)->setRowHeight(22);
+
+        // Apply Borders
+        $sheet->getStyle("A1:{$lastCol}4")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFCBD5E1'));
+
+        // Setup Dropdown Data Validations for standard columns (applied on rows 3-200)
+        $dropdownConfigs = [
+            'H' => '"L,P"', // Gender
+            'L' => '"WNI,WNA"', // Citizenship
+            'X' => '"A,B,AB,O,Tidak Tahu"', // Blood type
+            'AF' => '"PG,TK,DAYCARE,TPQ"', // Sub Unit
+            'AJ' => '"Ya,Tidak"', // Ikut TPQ
+            'AX' => '"aktif,lulus,mutasi,keluar,nonaktif"', // Status
+        ];
+
+        foreach ($dropdownConfigs as $col => $formula) {
+            for ($r = 3; $r <= 100; $r++) {
+                $validation = $sheet->getCell("{$col}{$r}")->getDataValidation();
+                $validation->setType(DataValidation::TYPE_LIST);
+                $validation->setErrorStyle(DataValidation::STYLE_INFORMATION);
+                $validation->setAllowBlank(true);
+                $validation->setShowInputMessage(false);
+                $validation->setShowErrorMessage(true);
+                $validation->setShowDropDown(true);
+                $validation->setErrorTitle('Input Tidak Valid');
+                $validation->setError('Silakan pilih salah satu opsi dari menu dropdown.');
+                $validation->setFormula1($formula);
+            }
+        }
+
+        // Freeze Panes
+        $sheet->freezePane('G3');
 
         // Auto-size columns
         foreach (range(1, count($headers)) as $colIndex) {
@@ -920,7 +1182,7 @@ class StudentController extends Controller
 
         $response = response()->streamDownload(function () use ($writer) {
             $writer->save('php://output');
-        }, 'Template_Impor_Murid_PAUD.xlsx', [
+        }, 'Template_Impor_Murid_PAUD_Lengkap.xlsx', [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Cache-Control' => 'max-age=0',
         ]);
@@ -933,7 +1195,7 @@ class StudentController extends Controller
     }
 
     /**
-     * Import students from Excel spreadsheet.
+     * Import students from Excel spreadsheet with intelligent column detection & upsert.
      */
     public function import(Request $request)
     {
@@ -951,14 +1213,112 @@ class StudentController extends Controller
 
         $spreadsheet = IOFactory::load($path);
         $sheet = $spreadsheet->getActiveSheet();
-        $rows = $sheet->toArray(null, true, false, false);
+        $rawRows = $sheet->toArray(null, true, false, false);
 
-        if (count($rows) < 2) {
+        if (count($rawRows) < 2) {
             return redirect()->back()->with('error', 'File Excel kosong atau tidak memiliki data murid.');
         }
 
-        // Shift headers
-        array_shift($rows);
+        // Detect Header Row & Data Rows
+        $headerRowIdx = 0;
+        foreach (array_slice($rawRows, 0, 3) as $idx => $r) {
+            $rowString = strtolower(implode(' ', array_filter(array_map('strval', $r))));
+            if (str_contains($rowString, 'nama lengkap') || (str_contains($rowString, 'nama') && str_contains($rowString, 'nis'))) {
+                $headerRowIdx = $idx;
+                break;
+            }
+        }
+
+        $headers = $rawRows[$headerRowIdx];
+        $dataRows = array_slice($rawRows, $headerRowIdx + 1);
+
+        // Build dynamic header mapper
+        $colMap = [];
+        foreach ($headers as $cIdx => $hText) {
+            $h = strtolower(trim((string)$hText));
+            if ($h === '') continue;
+
+            if (str_contains($h, 'nisn')) $colMap['nisn'] = $cIdx;
+            elseif (str_contains($h, 'kelamin') || str_contains($h, 'l/p') || str_contains($h, 'gender') || $h === 'jk') $colMap['gender'] = $cIdx;
+            elseif ((str_contains($h, 'nis') || str_contains($h, 'nomor induk')) && !str_contains($h, 'nisn') && !str_contains($h, 'jenis') && !str_contains($h, 'teknis')) $colMap['nis'] = $cIdx;
+            elseif (str_contains($h, 'nik ananda') || str_contains($h, 'nik siswa') || ($h === 'nik') || (str_contains($h, 'nik') && !str_contains($h, 'ayah') && !str_contains($h, 'ibu') && !str_contains($h, 'wali'))) $colMap['nik'] = $cIdx;
+            elseif (str_contains($h, 'kartu keluarga') || str_contains($h, 'no. kk') || str_contains($h, 'nomor kk') || $h === 'kk') $colMap['no_kk'] = $cIdx;
+            elseif (str_contains($h, 'akta')) $colMap['no_akta'] = $cIdx;
+            elseif (str_contains($h, 'nama lengkap') || (str_contains($h, 'nama') && (str_contains($h, 'ananda') || str_contains($h, 'siswa')))) $colMap['full_name'] = $cIdx;
+            elseif (str_contains($h, 'panggilan')) $colMap['nickname'] = $cIdx;
+            elseif (str_contains($h, 'tempat lahir')) $colMap['birth_place'] = $cIdx;
+            elseif (str_contains($h, 'tanggal lahir') || str_contains($h, 'tgl lahir')) $colMap['birth_date'] = $cIdx;
+            elseif (str_contains($h, 'agama')) $colMap['religion'] = $cIdx;
+            elseif (str_contains($h, 'kewarganegaraan') || str_contains($h, 'wni')) $colMap['citizenship'] = $cIdx;
+            elseif (str_contains($h, 'alamat')) $colMap['address'] = $cIdx;
+            elseif ($h === 'rt') $colMap['rt'] = $cIdx;
+            elseif ($h === 'rw') $colMap['rw'] = $cIdx;
+            elseif (str_contains($h, 'kelurahan') || str_contains($h, 'desa')) $colMap['kelurahan'] = $cIdx;
+            elseif (str_contains($h, 'kecamatan')) $colMap['kecamatan'] = $cIdx;
+            elseif (str_contains($h, 'kota') || str_contains($h, 'kabupaten')) $colMap['city'] = $cIdx;
+            elseif (str_contains($h, 'kode pos') || str_contains($h, 'kodepos')) $colMap['postal_code'] = $cIdx;
+            elseif (str_contains($h, 'tempat tinggal')) $colMap['living_with'] = $cIdx;
+            elseif (str_contains($h, 'transportasi')) $colMap['transportation'] = $cIdx;
+            elseif (str_contains($h, 'anak ke')) $colMap['child_order'] = $cIdx;
+            elseif (str_contains($h, 'saudara')) $colMap['siblings_count'] = $cIdx;
+            elseif (str_contains($h, 'darah')) $colMap['blood_type'] = $cIdx;
+            elseif (str_contains($h, 'kebutuhan khusus') || str_contains($h, 'disabilitas')) $colMap['special_needs'] = $cIdx;
+            elseif (str_contains($h, 'tinggi') || $h === 'tb') $colMap['height'] = $cIdx;
+            elseif (str_contains($h, 'berat') || $h === 'bb') $colMap['weight'] = $cIdx;
+            elseif (str_contains($h, 'lingkar kepala') || $h === 'lk') $colMap['head_circumference'] = $cIdx;
+            elseif (str_contains($h, 'lingkar lengan') || str_contains($h, 'lila')) $colMap['arm_circumference'] = $cIdx;
+            elseif (str_contains($h, 'jarak')) $colMap['distance_to_school'] = $cIdx;
+            elseif (str_contains($h, 'waktu tempuh')) $colMap['travel_time_minutes'] = $cIdx;
+            elseif (str_contains($h, 'sub unit')) $colMap['sub_unit'] = $cIdx;
+            elseif (str_contains($h, 'jenjang')) $colMap['jenjang'] = $cIdx;
+            elseif (str_contains($h, 'daycare')) $colMap['daycare'] = $cIdx;
+            elseif (str_contains($h, 'ikut tpq')) $colMap['is_tpq'] = $cIdx;
+            elseif (str_contains($h, 'kelompok tpq')) $colMap['tpq_rombel'] = $cIdx;
+            elseif (str_contains($h, 'kelompok') || str_contains($h, 'rombel')) $colMap['classroom'] = $cIdx;
+            elseif (str_contains($h, 'nama ayah') || ($h === 'ayah')) $colMap['father_name'] = $cIdx;
+            elseif (str_contains($h, 'nik ayah')) $colMap['father_nik'] = $cIdx;
+            elseif (str_contains($h, 'pendidikan ayah')) $colMap['father_education'] = $cIdx;
+            elseif (str_contains($h, 'pekerjaan ayah')) $colMap['father_job'] = $cIdx;
+            elseif (str_contains($h, 'hp ayah') || str_contains($h, 'telepon ayah')) $colMap['father_phone'] = $cIdx;
+            elseif (str_contains($h, 'nama ibu') || ($h === 'ibu')) $colMap['mother_name'] = $cIdx;
+            elseif (str_contains($h, 'nik ibu')) $colMap['mother_nik'] = $cIdx;
+            elseif (str_contains($h, 'pendidikan ibu')) $colMap['mother_education'] = $cIdx;
+            elseif (str_contains($h, 'pekerjaan ibu')) $colMap['mother_job'] = $cIdx;
+            elseif (str_contains($h, 'hp ibu') || str_contains($h, 'telepon ibu')) $colMap['mother_phone'] = $cIdx;
+            elseif (str_contains($h, 'whatsapp') || str_contains($h, 'kontak') || str_contains($h, 'wa')) $colMap['parent_phone'] = $cIdx;
+            elseif (str_contains($h, 'pin')) $colMap['pin_access'] = $cIdx;
+            elseif (str_contains($h, 'status')) $colMap['status'] = $cIdx;
+            elseif (str_contains($h, 'alergi')) $colMap['allergy'] = $cIdx;
+            elseif (str_contains($h, 'catatan')) $colMap['notes'] = $cIdx;
+        }
+
+        // Positional fallback for legacy 24-column template
+        if (!isset($colMap['full_name'])) {
+            $colMap['full_name'] = 3;
+            $colMap['nis'] = 0;
+            $colMap['nisn'] = 1;
+            $colMap['nik'] = 2;
+            $colMap['nickname'] = 4;
+            $colMap['gender'] = 5;
+            $colMap['birth_place'] = 6;
+            $colMap['birth_date'] = 7;
+            $colMap['religion'] = 8;
+            $colMap['sub_unit'] = 9;
+            $colMap['jenjang'] = 10;
+            $colMap['classroom'] = 11;
+            $colMap['daycare'] = 12;
+            $colMap['is_tpq'] = 13;
+            $colMap['tpq_rombel'] = 14;
+            $colMap['father_name'] = 15;
+            $colMap['father_phone'] = 16;
+            $colMap['mother_name'] = 17;
+            $colMap['mother_phone'] = 18;
+            $colMap['parent_phone'] = 19;
+            $colMap['address'] = 20;
+            $colMap['city'] = 21;
+            $colMap['pin_access'] = 22;
+            $colMap['status'] = 23;
+        }
 
         $activeAY = AcademicYear::where('is_active', true)->first() ?? AcademicYear::first();
         $defaultAYId = $request->input('default_academic_year_id', $activeAY?->id);
@@ -968,45 +1328,76 @@ class StudentController extends Controller
         $importedCount = 0;
         $updatedCount = 0;
 
-        foreach ($rows as $index => $row) {
-            $rowNum = $index + 2;
+        foreach ($dataRows as $index => $row) {
+            $rowNum = $index + $headerRowIdx + 2;
 
-            $nis = !empty($row[0]) ? trim((string)$row[0]) : null;
-            $nisn = !empty($row[1]) ? trim((string)$row[1]) : null;
-            $nik = !empty($row[2]) ? trim((string)$row[2]) : null;
-            $fullName = !empty($row[3]) ? trim((string)$row[3]) : null;
+            $getVal = function ($key) use ($row, $colMap) {
+                if (isset($colMap[$key]) && isset($row[$colMap[$key]])) {
+                    $v = trim((string)$row[$colMap[$key]]);
+                    return $v !== '' ? $v : null;
+                }
+                return null;
+            };
 
-            // Skip empty rows
+            $fullName = $getVal('full_name');
             if (empty($fullName)) {
                 continue;
             }
 
-            $nickname = !empty($row[4]) ? trim((string)$row[4]) : null;
-            $genderRaw = !empty($row[5]) ? trim((string)$row[5]) : 'L';
-            $birthPlace = !empty($row[6]) ? trim((string)$row[6]) : null;
-            $birthDateRaw = !empty($row[7]) ? $row[7] : null;
-            $religion = !empty($row[8]) ? trim((string)$row[8]) : 'Islam';
-            $subUnitRaw = !empty($row[9]) ? strtoupper(trim((string)$row[9])) : 'TK';
-            $jenjangRaw = !empty($row[10]) ? trim((string)$row[10]) : null;
-            $kelompokRaw = !empty($row[11]) ? trim((string)$row[11]) : null;
-            $daycareRaw = !empty($row[12]) ? trim((string)$row[12]) : null;
-            $tpqRaw = !empty($row[13]) ? trim((string)$row[13]) : null;
-            $tpqKelompokRaw = !empty($row[14]) ? trim((string)$row[14]) : null;
-            $fatherName = !empty($row[15]) ? trim((string)$row[15]) : null;
-            $fatherPhone = !empty($row[16]) ? trim((string)$row[16]) : null;
-            $motherName = !empty($row[17]) ? trim((string)$row[17]) : null;
-            $motherPhone = !empty($row[18]) ? trim((string)$row[18]) : null;
-            $parentPhone = !empty($row[19]) ? trim((string)$row[19]) : ($fatherPhone ?: $motherPhone);
-            $address = !empty($row[20]) ? trim((string)$row[20]) : null;
-            $city = !empty($row[21]) ? trim((string)$row[21]) : 'Malang';
-            $pinAccess = !empty($row[22]) ? trim((string)$row[22]) : '1234';
-            $statusRaw = !empty($row[23]) ? strtolower(trim((string)$row[23])) : 'aktif';
+            $nis = $getVal('nis');
+            $nisn = $getVal('nisn');
+            $nik = $getVal('nik');
+            $noKk = $getVal('no_kk');
+            $noAkta = $getVal('no_akta');
+            $nickname = $getVal('nickname');
+            $genderRaw = $getVal('gender') ?? 'L';
+            $birthPlace = $getVal('birth_place');
+            $birthDateRaw = isset($colMap['birth_date']) ? ($row[$colMap['birth_date']] ?? null) : null;
+            $religion = $getVal('religion') ?? 'Islam';
+            $citizenship = $getVal('citizenship') ?? 'WNI';
+            $address = $getVal('address');
+            $rt = $getVal('rt');
+            $rw = $getVal('rw');
+            $kelurahan = $getVal('kelurahan');
+            $kecamatan = $getVal('kecamatan');
+            $city = $getVal('city') ?? 'Malang';
+            $postalCode = $getVal('postal_code');
+            $livingWith = $getVal('living_with') ?? 'Bersama orang tua';
+            $transportation = $getVal('transportation');
+            $childOrder = is_numeric($getVal('child_order')) ? (int)$getVal('child_order') : null;
+            $siblingsCount = is_numeric($getVal('siblings_count')) ? (int)$getVal('siblings_count') : null;
+            $bloodType = $getVal('blood_type');
+            $specialNeeds = $getVal('special_needs') ?? 'Tidak ada';
+            $height = is_numeric($getVal('height')) ? (float)$getVal('height') : null;
+            $weight = is_numeric($getVal('weight')) ? (float)$getVal('weight') : null;
+            $headCirc = is_numeric($getVal('head_circumference')) ? (float)$getVal('head_circumference') : null;
+            $armCirc = is_numeric($getVal('arm_circumference')) ? (float)$getVal('arm_circumference') : null;
+            $distanceToSchool = $getVal('distance_to_school');
+            $travelTime = is_numeric($getVal('travel_time_minutes')) ? (int)$getVal('travel_time_minutes') : null;
+            $subUnitRaw = strtoupper($getVal('sub_unit') ?? 'TK');
+            $jenjangRaw = $getVal('jenjang');
+            $kelompokRaw = $getVal('classroom');
+            $daycareRaw = $getVal('daycare');
+            $tpqRaw = $getVal('is_tpq');
+            $tpqKelompokRaw = $getVal('tpq_rombel');
+            $fatherName = $getVal('father_name');
+            $fatherNik = $getVal('father_nik');
+            $fatherEdu = $getVal('father_education');
+            $fatherJob = $getVal('father_job');
+            $fatherPhone = $getVal('father_phone');
+            $motherName = $getVal('mother_name');
+            $motherNik = $getVal('mother_nik');
+            $motherEdu = $getVal('mother_education');
+            $motherJob = $getVal('mother_job');
+            $motherPhone = $getVal('mother_phone');
+            $parentPhone = $getVal('parent_phone') ?? ($fatherPhone ?: $motherPhone);
+            $pinAccess = $getVal('pin_access') ?? '1234';
+            $statusRaw = strtolower($getVal('status') ?? 'aktif');
+            $allergy = $getVal('allergy');
+            $notes = $getVal('notes');
 
-            // Parse Gender
-            $gender = 'L';
-            if (in_array(strtoupper($genderRaw), ['P', 'PEREMPUAN', 'FEMALE', 'W'])) {
-                $gender = 'P';
-            }
+            // Normalize gender
+            $gender = in_array(strtoupper($genderRaw), ['P', 'PEREMPUAN', 'FEMALE', 'W']) ? 'P' : 'L';
 
             // Parse Birth Date
             $birthDate = null;
@@ -1018,18 +1409,18 @@ class StudentController extends Controller
                         $birthDate = null;
                     }
                 } else {
-                    $ts = strtotime(str_replace('/', '-', $birthDateRaw));
+                    $ts = strtotime(str_replace('/', '-', (string)$birthDateRaw));
                     if ($ts !== false) {
                         $birthDate = date('Y-m-d', $ts);
                     }
                 }
             }
 
-            // Resolve Classroom dynamically from Classroom table & relations
+            // Resolve Classroom dynamically
             $classroomId = $defaultClassroomId;
             $classLevelId = null;
             $jenjangId = null;
-            $subUnit = null;
+            $subUnit = in_array($subUnitRaw, ['PG', 'TK', 'DAYCARE', 'TPQ']) ? $subUnitRaw : 'TK';
 
             if (!empty($kelompokRaw)) {
                 $matchedClassroom = Classroom::with(['jenjang', 'classLevel.jenjang'])->where('name', 'like', "%{$kelompokRaw}%")->first();
@@ -1037,25 +1428,19 @@ class StudentController extends Controller
                     $classroomId = $matchedClassroom->id;
                     $classLevelId = $matchedClassroom->class_level_id;
                     $jenjangId = $matchedClassroom->jenjang_id ?? $matchedClassroom->classLevel?->jenjang_id;
-                    $subUnit = $matchedClassroom->jenjang?->code ?? $matchedClassroom->sub_unit;
+                    $subUnit = $matchedClassroom->jenjang?->code ?? $matchedClassroom->sub_unit ?? $subUnit;
                 }
             }
 
-            // Resolve Class Level if not set by classroom
             if (!$classLevelId && !empty($jenjangRaw)) {
                 $matchedLevel = ClassLevel::with('jenjang')->where('name', 'like', "%{$jenjangRaw}%")->first();
                 if ($matchedLevel) {
                     $classLevelId = $matchedLevel->id;
-                    if (!$jenjangId) {
-                        $jenjangId = $matchedLevel->jenjang_id;
-                    }
-                    if (!$subUnit) {
-                        $subUnit = $matchedLevel->jenjang?->code;
-                    }
+                    if (!$jenjangId) $jenjangId = $matchedLevel->jenjang_id;
+                    if (!$subUnit) $subUnit = $matchedLevel->jenjang?->code;
                 }
             }
 
-            // Resolve Jenjang directly if still not set
             if (!$jenjangId && !empty($jenjangRaw)) {
                 $matchedJenjang = Jenjang::where('name', 'like', "%{$jenjangRaw}%")->orWhere('code', 'like', "%{$jenjangRaw}%")->first();
                 if ($matchedJenjang) {
@@ -1064,55 +1449,101 @@ class StudentController extends Controller
                 }
             }
 
-            // Resolve Daycare Classroom dynamically via Jenjang
+            // Resolve Daycare
             $daycareClassroomId = null;
             if (!empty($daycareRaw)) {
                 $dc = Classroom::whereHas('jenjang', function($jq) {
                     $jq->whereIn('code', ['DAYCARE', 'TPA'])->orWhere('name', 'like', '%Daycare%')->orWhere('name', 'like', '%TPA%');
-                })->where('name', 'like', "%{$daycareRaw}%")->first();
-                
-                if (!$dc) {
-                    $dc = Classroom::where('name', 'like', "%{$daycareRaw}%")->first();
-                }
+                })->where('name', 'like', "%{$daycareRaw}%")->first() ?? Classroom::where('name', 'like', "%{$daycareRaw}%")->first();
                 $daycareClassroomId = $dc?->id;
             }
 
-            // Resolve TPQ dynamically via Jenjang
+            // Resolve TPQ
             $isTpq = in_array(strtolower($tpqRaw ?? ''), ['ya', 'true', '1', 'tpq', 'ikut']);
             $tpqClassroomId = null;
             if (!empty($tpqKelompokRaw)) {
                 $tpqCls = Classroom::whereHas('jenjang', function($jq) {
                     $jq->where('code', 'TPQ')->orWhere('name', 'like', '%TPQ%');
-                })->where('name', 'like', "%{$tpqKelompokRaw}%")->first();
-
-                if (!$tpqCls) {
-                    $tpqCls = Classroom::where('name', 'like', "%{$tpqKelompokRaw}%")->first();
-                }
+                })->where('name', 'like', "%{$tpqKelompokRaw}%")->first() ?? Classroom::where('name', 'like', "%{$tpqKelompokRaw}%")->first();
                 $tpqClassroomId = $tpqCls?->id;
-                if ($tpqClassroomId) {
-                    $isTpq = true;
-                }
+                if ($tpqClassroomId) $isTpq = true;
             }
 
-            // Find existing student by NIS (if provided) or exact Name + Birth Date
+            // Match student by NIS, NIK, or Full Name + Birth Date
             $student = null;
             if (!empty($nis)) {
                 $student = Student::where('nis', $nis)->first();
             }
+            if (!$student && !empty($nik)) {
+                $student = Student::where('nik', $nik)->first();
+            }
             if (!$student && $birthDate && $fullName) {
                 $student = Student::where('full_name', $fullName)->where('birth_date', $birthDate)->first();
+            }
+
+            // Prepare Family Data JSON
+            $familyData = [
+                'father' => [
+                    'name' => $fatherName,
+                    'nik' => $fatherNik,
+                    'education' => $fatherEdu,
+                    'job' => $fatherJob,
+                    'phone' => $fatherPhone,
+                ],
+                'mother' => [
+                    'name' => $motherName,
+                    'nik' => $motherNik,
+                    'education' => $motherEdu,
+                    'job' => $motherJob,
+                    'phone' => $motherPhone,
+                ],
+                'guardian' => [
+                    'is_active' => false,
+                ]
+            ];
+
+            // Prepare Health Habits JSON
+            $healthHabits = [];
+            if (!empty($allergy)) {
+                $healthHabits['allergy'] = [
+                    'has_allergies' => true,
+                    'types' => $allergy,
+                    'symptoms' => null,
+                ];
             }
 
             $data = [
                 'nis' => $nis,
                 'nisn' => $nisn,
                 'nik' => $nik,
+                'no_kk' => $noKk,
+                'no_akta' => $noAkta,
                 'full_name' => $fullName,
                 'nickname' => $nickname,
                 'gender' => $gender,
                 'birth_place' => $birthPlace,
                 'birth_date' => $birthDate,
                 'religion' => $religion,
+                'citizenship' => $citizenship,
+                'address' => $address,
+                'rt' => $rt,
+                'rw' => $rw,
+                'kelurahan' => $kelurahan,
+                'kecamatan' => $kecamatan,
+                'city' => $city,
+                'postal_code' => $postalCode,
+                'living_with' => $livingWith,
+                'transportation' => $transportation,
+                'child_order' => $childOrder,
+                'siblings_count' => $siblingsCount,
+                'blood_type' => $bloodType,
+                'special_needs' => $specialNeeds,
+                'height' => $height,
+                'weight' => $weight,
+                'head_circumference' => $headCirc,
+                'arm_circumference' => $armCirc,
+                'distance_to_school' => $distanceToSchool,
+                'travel_time_minutes' => $travelTime,
                 'jenjang_id' => $jenjangId,
                 'sub_unit' => $subUnit,
                 'class_level_id' => $classLevelId,
@@ -1123,13 +1554,16 @@ class StudentController extends Controller
                 'academic_year_id' => $defaultAYId,
                 'father_name' => $fatherName,
                 'father_phone' => $fatherPhone,
+                'father_job' => $fatherJob,
                 'mother_name' => $motherName,
                 'mother_phone' => $motherPhone,
+                'mother_job' => $motherJob,
                 'parent_phone' => $parentPhone,
-                'address' => $address,
-                'city' => $city,
+                'family_data' => $familyData,
+                'health_habits' => $healthHabits,
                 'pin_access' => $pinAccess,
-                'status' => $statusRaw,
+                'status' => in_array($statusRaw, ['aktif', 'lulus', 'mutasi', 'keluar', 'nonaktif']) ? $statusRaw : 'aktif',
+                'notes' => $notes,
                 'enrolled_date' => now()->toDateString(),
             ];
 
@@ -1141,7 +1575,7 @@ class StudentController extends Controller
                 $importedCount++;
             }
 
-            // Record classroom history
+            // Sync classroom history
             if ($student->classroom_id) {
                 $student->load(['classroom.classLevel', 'classroom.homeroomTeacher']);
                 StudentClassroomHistory::updateOrCreate(
@@ -1155,15 +1589,15 @@ class StudentController extends Controller
                         'classroom_name' => $student->classroom?->name,
                         'grade_level' => $student->classroom?->classLevel?->name,
                         'homeroom_teacher_name' => $student->classroom?->homeroomTeacher?->name,
-                        'status' => 'aktif',
+                        'status' => $student->status,
                         'start_date' => $student->enrolled_date ?? now()->toDateString(),
-                        'notes' => 'Impor Data Excel',
+                        'notes' => 'Impor Data Excel Lengkap',
                     ]
                 );
             }
         }
 
-        $msg = "Proses impor selesai. {$importedCount} data murid baru ditambahkan, {$updatedCount} data diperbarui.";
+        $msg = "Proses impor selesai! {$importedCount} data murid baru berhasil ditambahkan, {$updatedCount} data murid diperbarui.";
 
         if (!empty($errors)) {
             return redirect()->route('students.index')
