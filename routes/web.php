@@ -94,8 +94,8 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,adm
 
 });
 
-// Absensi Murid (Input Harian & Rekap Bulanan - Admin & Pendidik)
-Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,admin_smp,kepala_sekolah,waka,employee'])->group(function () {
+// Modul Khusus: Absensi Murid, DDTK & SDIDTK, Jurnal Kelas, Buku Tamu, Berkas Guru, Arsip Murid (Super Admin Only)
+Route::middleware(['auth', 'verified', 'role:super_admin'])->group(function () {
     Route::get('student-attendances', [\App\Http\Controllers\StudentAttendanceController::class, 'index'])->name('student-attendances.index');
     Route::post('student-attendances', [\App\Http\Controllers\StudentAttendanceController::class, 'store'])->name('student-attendances.store');
     Route::get('student-attendances/export/excel', [\App\Http\Controllers\StudentAttendanceController::class, 'exportMonthlyExcel'])->name('student-attendances.export.excel');
