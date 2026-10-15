@@ -5,7 +5,7 @@
         <section class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 w-full text-left">
             <div class="flex flex-col gap-0.5">
                 <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Wali Kelas</h2>
-                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Penugasan wali kelas / pendidik per rombongan belajar tersimpan per tahun ajaran.</p>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Penugasan wali kelas / pendidik per kelompok belajar tersimpan per tahun ajaran.</p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
                 <a href="{{ route('teachers.index') }}"
@@ -39,13 +39,13 @@
                 </div>
             </div>
 
-            <!-- Stat 2: Total Rombel Terisi -->
+            <!-- Stat 2: Total Kelompok Terisi -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
                 <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/40">
                     <i data-lucide="shapes" class="w-5 h-5"></i>
                 </div>
                 <div class="min-w-0">
-                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Rombel Terisi</p>
+                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Kelompok Terisi</p>
                     <div class="flex items-baseline gap-1.5 mt-0.5">
                         <h3 class="text-xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400 font-mono">
                             {{ number_format($stats['assigned_classrooms'] ?? 0) }}
@@ -72,13 +72,13 @@
             </div>
         </section>
 
-        <!-- FILTERS TOOLBAR (KIRI: TAHUN AJARAN, JENJANG, KELAS | KANAN: SEARCH MANDIRI) -->
+        <!-- FILTERS TOOLBAR (KIRI: TAHUN AJARAN, JENJANG, KELAS, STATUS, BARIS | KANAN: SEARCH MANDIRI) -->
         <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-xs">
             <form method="GET" action="{{ route('homeroom-assignments.index') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
                 
-                <!-- Left: Dropdown Tahun Ajaran, Jenjang & Kelas -->
+                <!-- Left: Dropdown Tahun Ajaran, Jenjang, Kelas & Status -->
                 <div class="flex flex-wrap items-center gap-2">
-                    <!-- 1. Tahun Ajaran (Tanpa Pilihan Semua) -->
+                    <!-- 1. Tahun Ajaran -->
                     <select name="academic_year_id" onchange="this.form.submit()"
                         class="h-9 px-3 text-xs font-semibold bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
                         @foreach($academicYears as $ay)
@@ -110,7 +110,15 @@
                         @endforeach
                     </select>
 
-                    <!-- 4. Jumlah Baris -->
+                    <!-- 4. Status Penugasan -->
+                    <select name="status" onchange="this.form.submit()"
+                        class="h-9 px-3 text-xs font-semibold bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
+                        <option value="all" {{ ($selectedStatus ?? 'all') === 'all' ? 'selected' : '' }}>Semua Status</option>
+                        <option value="active" {{ ($selectedStatus ?? '') === 'active' || ($selectedStatus ?? '') === '1' ? 'selected' : '' }}>Aktif</option>
+                        <option value="inactive" {{ ($selectedStatus ?? '') === 'inactive' || ($selectedStatus ?? '') === '0' ? 'selected' : '' }}>Non-aktif</option>
+                    </select>
+
+                    <!-- 5. Jumlah Baris -->
                     <select name="per_page" onchange="this.form.submit()"
                         class="h-9 px-3 text-xs font-semibold bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
                         <option value="10" {{ request('per_page', 15) == 10 ? 'selected' : '' }}>10 Data</option>
@@ -121,7 +129,7 @@
                         <option value="all" {{ request('per_page') == 'all' || request('per_page') == '99999' ? 'selected' : '' }}>Semua</option>
                     </select>
 
-                    @if(request()->filled('search') || (request('jenjang_id') && request('jenjang_id') !== 'all') || (request('class_level_id') && request('class_level_id') !== 'all') || (request()->filled('per_page') && request('per_page') != 15))
+                    @if(request()->filled('search') || (request('jenjang_id') && request('jenjang_id') !== 'all') || (request('class_level_id') && request('class_level_id') !== 'all') || (request('status') && request('status') !== 'all') || (request()->filled('per_page') && request('per_page') != 15))
                         <a href="{{ route('homeroom-assignments.index', ['academic_year_id' => $selectedYearId]) }}" class="h-9 px-2.5 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 rounded-lg transition-colors" title="Reset Filter">
                             <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
                         </a>
@@ -133,7 +141,7 @@
                     <span class="pl-3 text-slate-400">
                         <i data-lucide="search" class="w-3.5 h-3.5"></i>
                     </span>
-                    <input type="text" name="search" x-model="searchVal" placeholder="Cari nama guru, email, NUPTK, rombel..."
+                    <input type="text" name="search" x-model="searchVal" placeholder="Cari nama guru, email, NUPTK, kelompok..."
                         style="border: none !important; outline: none !important; box-shadow: none !important;"
                         class="w-full h-9 px-2.5 text-xs bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-0">
                     
@@ -168,9 +176,9 @@
                             <th class="px-4 py-3 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Tahun Ajaran</th>
                             <th class="px-4 py-3 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Jenjang</th>
                             <th class="px-4 py-3 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Kelas</th>
-                            <th class="px-4 py-3 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Rombel</th>
-                            <th class="px-4 py-3 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Wali Kelas</th>
-                            <th class="px-4 py-3 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-24">Status</th>
+                            <th class="px-4 py-3 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Kelompok</th>
+                            <th class="px-4 py-3 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[200px]">Wali Kelas</th>
+                            <th class="px-4 py-3 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-28">Status</th>
                             <th class="px-4 py-3 text-right text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-24">Aksi</th>
                         </tr>
                     </thead>
@@ -181,30 +189,50 @@
                                 <!-- 1. Tahun Ajaran -->
                                 <td class="px-4 py-3 font-semibold text-slate-900 dark:text-slate-100 whitespace-nowrap">
                                     <div class="flex items-center gap-1.5 font-bold">
-                                        <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400"></i>
-                                        <span>{{ $a->academicYear?->name ?? '-' }}</span>
-                                    </div>
-                                </td>
-                                <td class="px-4 py-3 font-semibold text-slate-900 dark:text-slate-100 whitespace-nowrap">
-                                    <div class="flex items-center gap-1.5 font-bold">
-                                        <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400"></i>
+                                        <i data-lucide="calendar" class="w-3.5 h-3.5 text-indigo-500"></i>
                                         <span>{{ $a->academicYear?->name ?? '-' }}</span>
                                     </div>
                                 </td>
 
                                 <!-- 2. Jenjang -->
-                                <td class="px-4 py-3 font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                                    {{ $a->jenjang?->name ?? $a->classroom?->jenjang?->name ?? $a->classLevel?->jenjang?->name ?? '-' }}
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    @php
+                                        $jenjangName = $a->jenjang?->name ?? $a->classroom?->jenjang?->name ?? $a->classLevel?->jenjang?->name;
+                                    @endphp
+                                    @if($jenjangName)
+                                        <span class="inline-flex px-2.5 py-1 rounded-md text-[11px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 whitespace-nowrap">
+                                            {{ $jenjangName }}
+                                        </span>
+                                    @else
+                                        <span class="text-slate-400">-</span>
+                                    @endif
                                 </td>
 
                                 <!-- 3. Kelas -->
-                                <td class="px-4 py-3 font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">
-                                    {{ $a->classLevel?->name ?? $a->classroom?->classLevel?->name ?? '-' }}
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <span class="font-bold text-slate-800 dark:text-slate-200 text-xs">
+                                        {{ $a->classLevel?->name ?? $a->classroom?->classLevel?->name ?? '-' }}
+                                    </span>
                                 </td>
 
-                                <!-- 4. Rombel -->
-                                <td class="px-4 py-3 font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap">
-                                    {{ $a->classroom?->name ?? '-' }}
+                                <!-- 4. Kelompok (sebelumnya Rombel) -->
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/40 font-bold text-xs">
+                                            <i data-lucide="shapes" class="w-3.5 h-3.5"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-900 dark:text-slate-100 text-xs">
+                                                {{ $a->classroom?->name ?? '-' }}
+                                            </p>
+                                            @if(isset($a->classroom->students_count))
+                                                <p class="text-[10.5px] text-slate-500 dark:text-slate-400 flex items-center gap-1 font-medium mt-0.5">
+                                                    <i data-lucide="users" class="w-3 h-3 text-slate-400"></i>
+                                                    <span>{{ $a->classroom->students_count }} Murid</span>
+                                                </p>
+                                            @endif
+                                        </div>
+                                    </div>
                                 </td>
 
                                 <!-- 5. Wali Kelas -->
@@ -236,8 +264,10 @@
                                             <div class="flex items-center gap-2 text-[10px] text-slate-400 font-mono mt-0.5">
                                                 @if($a->teacher?->nuptk)
                                                     <span>NUPTK: {{ $a->teacher->nuptk }}</span>
-                                                @elseif($a->teacher?->nip)
-                                                    <span>NIP: {{ $a->teacher->nip }}</span>
+                                                @elseif($a->teacher?->niy)
+                                                    <span>NIY: {{ $a->teacher->niy }}</span>
+                                                @elseif($a->teacher?->nik)
+                                                    <span>NIK: {{ $a->teacher->nik }}</span>
                                                 @elseif($a->teacher?->phone)
                                                     <span>{{ $a->teacher->phone }}</span>
                                                 @endif
@@ -246,25 +276,30 @@
                                     </div>
                                 </td>
 
-                                <!-- 6. Status -->
+                                <!-- 6. Status (Interactive Toggle) -->
                                 <td class="px-4 py-3 text-center whitespace-nowrap">
-                                    @if($a->is_active)
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                            Aktif
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                                            Non-aktif
-                                        </span>
-                                    @endif
+                                    <form action="{{ route('homeroom-assignments.toggle-status', $a->id) }}" method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit" class="cursor-pointer group/status" title="Klik untuk mengubah status penugasan aktif/non-aktif">
+                                            @if($a->is_active)
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 group-hover/status:bg-emerald-100 transition-colors">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                                    Aktif
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700 group-hover/status:bg-slate-200 transition-colors">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                                    Non-aktif
+                                                </span>
+                                            @endif
+                                        </button>
+                                    </form>
                                 </td>
 
                                 <!-- 7. Aksi -->
                                 <td class="px-4 py-3 text-right whitespace-nowrap">
                                     <div class="flex items-center justify-end gap-1">
-                                        <button type="button" @click="openEditModal({{ json_encode($a) }})"
+                                        <button type="button" @click="openEditModal({{ $a->id }})"
                                             class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 rounded-lg transition-colors cursor-pointer"
                                             title="Edit Penugasan">
                                             <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
@@ -313,7 +348,7 @@
                         <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm z-10">
                             <div>
                                 <h3 class="text-base font-bold text-slate-900 dark:text-slate-50" x-text="isEdit ? 'Edit Penugasan Wali Kelas' : 'Tugaskan Wali Kelas Baru'"></h3>
-                                <p class="text-xs text-slate-400 mt-0.5">Pilih tahun ajaran, jenjang, kelas, rombel, dan guru yang ditugaskan.</p>
+                                <p class="text-xs text-slate-400 mt-0.5">Pilih tahun ajaran, jenjang, kelas, kelompok, dan guru yang ditugaskan.</p>
                             </div>
                             <button type="button" @click="modalOpen = false" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                                 <i data-lucide="x" class="w-5 h-5"></i>
@@ -324,7 +359,7 @@
                             <!-- 1. Tahun Ajaran -->
                             <div>
                                 <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tahun Ajaran <span class="text-rose-500">*</span></label>
-                                <select x-model="formData.academic_year_id" required
+                                <select x-model="formData.academic_year_id" @change="onAcademicYearChange()" required
                                     class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-semibold">
                                     <option value="">-- Pilih Tahun Ajaran --</option>
                                     @foreach($academicYears as $ay)
@@ -359,12 +394,12 @@
                                 </div>
                             </div>
 
-                            <!-- 4. Rombel -->
+                            <!-- 4. Kelompok Belajar -->
                             <div>
-                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Rombel / Kelompok <span class="text-rose-500">*</span></label>
+                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kelompok Belajar <span class="text-rose-500">*</span></label>
                                 <select x-model="formData.classroom_id" required
                                     class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-bold">
-                                    <option value="">-- Pilih Rombel / Kelompok --</option>
+                                    <option value="">-- Pilih Kelompok Belajar --</option>
                                     <template x-for="c in filteredClassrooms" :key="c.id">
                                         <option :value="c.id" x-text="c.name"></option>
                                     </template>
@@ -392,7 +427,7 @@
                             <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50 flex items-center justify-between">
                                 <div>
                                     <p class="font-semibold text-slate-800 dark:text-slate-200">Status Penugasan</p>
-                                    <p class="text-[11px] text-slate-500 dark:text-slate-400">Tandai aktif agar otomatis tersambung ke data rombel dan rapor.</p>
+                                    <p class="text-[11px] text-slate-500 dark:text-slate-400">Tandai aktif agar otomatis tersambung ke data kelompok belajar dan rapor.</p>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" x-model="formData.is_active" class="sr-only peer">
@@ -422,12 +457,14 @@
         function homeroomApp() {
             const allLevels = @json($classLevels);
             const allClasses = @json($classrooms);
+            const allAssignments = @json($assignments->items());
             const activeAYId = '{{ $selectedYearId ?? ($activeAcademicYear?->id ?? '') }}';
 
             return {
                 modalOpen: false,
                 isEdit: false,
                 saving: false,
+                assignments: allAssignments,
 
                 formData: {
                     id: null,
@@ -447,6 +484,9 @@
 
                 get filteredClassrooms() {
                     let res = allClasses;
+                    if (this.formData.academic_year_id) {
+                        res = res.filter(c => !c.academic_year_id || c.academic_year_id == this.formData.academic_year_id);
+                    }
                     if (this.formData.jenjang_id) {
                         res = res.filter(c => c.jenjang_id == this.formData.jenjang_id || (c.class_level && c.class_level.jenjang_id == this.formData.jenjang_id));
                     }
@@ -454,6 +494,10 @@
                         res = res.filter(c => c.class_level_id == this.formData.class_level_id);
                     }
                     return res;
+                },
+
+                onAcademicYearChange() {
+                    this.onJenjangChange();
                 },
 
                 onJenjangChange() {
@@ -490,7 +534,9 @@
                     this.modalOpen = true;
                 },
 
-                openEditModal(assignment) {
+                openEditModal(id) {
+                    const assignment = this.assignments.find(a => a.id === id);
+                    if (!assignment) return;
                     this.isEdit = true;
                     this.formData = {
                         id: assignment.id,
@@ -549,7 +595,7 @@
                     });
                 },
 
-                deleteAssignment(id, rombelName, teacherName) {
+                deleteAssignment(id, kelompokName, teacherName) {
                     const action = () => {
                         fetch(`/homeroom-assignments/${id}`, {
                             method: 'DELETE',
@@ -584,8 +630,8 @@
                     };
 
                     if (typeof showGlobalConfirmModal === 'function') {
-                        showGlobalConfirmModal(`Apakah Anda yakin ingin menghapus penugasan wali kelas "${teacherName}" di rombel "${rombelName}"?`, action, true);
-                    } else if (confirm(`Apakah Anda yakin ingin menghapus penugasan wali kelas "${teacherName}" di rombel "${rombelName}"?`)) {
+                        showGlobalConfirmModal(`Apakah Anda yakin ingin menghapus penugasan wali kelas "${teacherName}" di kelompok "${kelompokName}"?`, action, true);
+                    } else if (confirm(`Apakah Anda yakin ingin menghapus penugasan wali kelas "${teacherName}" di kelompok "${kelompokName}"?`)) {
                         action();
                     }
                 }

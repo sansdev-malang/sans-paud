@@ -29,13 +29,18 @@ class HomeroomAssignmentController extends Controller
         $jenjangs = Jenjang::where('is_active', true)->orderBy('order')->get();
         $selectedJenjangId = $request->get('jenjang_id', 'all');
         $selectedClassLevelId = $request->get('class_level_id', 'all');
+        $selectedStatus = $request->get('status', 'all');
         $search = $request->get('search');
 
         $query = HomeroomAssignment::with([
             'academicYear',
             'jenjang',
             'classLevel',
-            'classroom',
+            'classroom' => function ($cq) {
+                $cq->withCount(['students' => function ($sq) {
+                    $sq->where('status', 'aktif');
+                }]);
+            },
             'teacher.user'
         ]);
 
@@ -61,15 +66,25 @@ class HomeroomAssignmentController extends Controller
             });
         }
 
+        if ($selectedStatus && $selectedStatus !== 'all') {
+            $query->where('is_active', $selectedStatus === 'active' || $selectedStatus === '1');
+        }
+
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->whereHas('teacher', function ($tq) use ($search) {
                     $tq->where('name', 'like', "%{$search}%")
                        ->orWhere('email', 'like', "%{$search}%")
                        ->orWhere('nuptk', 'like', "%{$search}%")
-                       ->orWhere('nip', 'like', "%{$search}%");
+                       ->orWhere('niy', 'like', "%{$search}%")
+                       ->orWhere('nik', 'like', "%{$search}%")
+                       ->orWhere('phone', 'like', "%{$search}%");
                 })->orWhereHas('classroom', function ($cq) use ($search) {
                     $cq->where('name', 'like', "%{$search}%");
+                })->orWhereHas('classLevel', function ($lq) use ($search) {
+                    $lq->where('name', 'like', "%{$search}%");
+                })->orWhereHas('jenjang', function ($jq) use ($search) {
+                    $jq->where('name', 'like', "%{$search}%");
                 });
             });
         }
@@ -88,7 +103,7 @@ class HomeroomAssignmentController extends Controller
 
         // Master data for dropdowns
         $jenjangs = Jenjang::where('is_active', true)->orderBy('order')->get();
-        $classLevels = ClassLevel::with('jenjang')->where('is_active', true)->orderBy('order')->get();
+        $classLevels = ClassLevel::with('jenjang')->whereNotNull('jenjang_id')->where('is_active', true)->orderBy('order')->get();
         $classrooms = Classroom::with(['jenjang', 'classLevel'])->where('is_active', true)->orderBy('name')->get();
 
         // Filter available class levels for toolbar filter
@@ -115,7 +130,9 @@ class HomeroomAssignmentController extends Controller
 
         $stats = [
             'total_assignments' => HomeroomAssignment::where('academic_year_id', $selectedYearId)->count(),
-            'total_classrooms' => Classroom::where('is_active', true)->count(),
+            'total_classrooms' => Classroom::where('is_active', true)
+                ->when($selectedYearId, fn($q) => $q->where('academic_year_id', $selectedYearId))
+                ->count(),
             'assigned_classrooms' => HomeroomAssignment::where('academic_year_id', $selectedYearId)
                 ->where('is_active', true)
                 ->distinct('classroom_id')
@@ -130,6 +147,7 @@ class HomeroomAssignmentController extends Controller
             'selectedYearId',
             'selectedJenjangId',
             'selectedClassLevelId',
+            'selectedStatus',
             'jenjangs',
             'classLevels',
             'availableClassLevels',

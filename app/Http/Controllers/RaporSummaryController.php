@@ -67,6 +67,9 @@ class RaporSummaryController extends Controller
 
         // Scoping Rombel / Classroom: Admin & Kepsek melihat semua rombel, Wali Kelas hanya melihat rombel binaannya
         $classroomQuery = Classroom::where('is_active', true)->orderBy('name');
+        if ($selectedYear?->id) {
+            $classroomQuery->where('academic_year_id', $selectedYear->id);
+        }
         $isPureWaliKelas = !$currentUser->isAdmin() && $currentUser->isActiveHomeroomTeacher();
 
         if ($isPureWaliKelas && $currentUser->employee_id) {
@@ -95,6 +98,7 @@ class RaporSummaryController extends Controller
         if ($selectedClassroom && $selectedYear) {
             $students = Student::where('classroom_id', $selectedClassroom->id)
                 ->where('status', 'aktif')
+                ->where('academic_year_id', $selectedYear->id)
                 ->orderBy('full_name')
                 ->get();
 

@@ -18,9 +18,21 @@ class ClassLevelController extends Controller
     {
         $jenjangs = Jenjang::orderBy('order', 'asc')->get();
 
-        $classLevels = ClassLevel::with(['jenjang', 'classrooms.academicYear'])
+        $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
+        $activeYearId = $activeYear?->id;
+
+        $classLevels = ClassLevel::with(['jenjang', 'classrooms' => function ($q) use ($activeYearId) {
+                if ($activeYearId) {
+                    $q->where('academic_year_id', $activeYearId);
+                }
+                $q->with('academicYear');
+            }])
             ->withCount([
-                'classrooms',
+                'classrooms' => function ($q) use ($activeYearId) {
+                    if ($activeYearId) {
+                        $q->where('academic_year_id', $activeYearId);
+                    }
+                },
             ])
             ->orderBy('order', 'asc')
             ->get();
@@ -28,15 +40,26 @@ class ClassLevelController extends Controller
         // Calculate student counts per class level via classrooms
         foreach ($classLevels as $lvl) {
             $classLevelId = $lvl->id;
-            $lvl->active_students_count = Student::whereHas('classroom', function ($q) use ($classLevelId) {
+            $lvl->active_students_count = Student::whereHas('classroom', function ($q) use ($classLevelId, $activeYearId) {
                 $q->where('class_level_id', $classLevelId);
-            })->where('status', 'aktif')->count();
+                if ($activeYearId) {
+                    $q->where('academic_year_id', $activeYearId);
+                }
+            })->where('status', 'aktif')
+            ->when($activeYearId, fn($q) => $q->where('academic_year_id', $activeYearId))
+            ->count();
         }
 
         $totalLevels = $classLevels->count();
-        $totalClassrooms = Classroom::where('is_active', true)->count();
-        $totalCapacity = Classroom::where('is_active', true)->sum('capacity');
-        $totalStudents = Student::where('status', 'aktif')->count();
+        $classroomsQuery = Classroom::where('is_active', true);
+        if ($activeYearId) {
+            $classroomsQuery->where('academic_year_id', $activeYearId);
+        }
+        $totalClassrooms = (clone $classroomsQuery)->count();
+        $totalCapacity = (clone $classroomsQuery)->sum('capacity');
+        $totalStudents = Student::where('status', 'aktif')
+            ->when($activeYearId, fn($q) => $q->where('academic_year_id', $activeYearId))
+            ->count();
 
         $stats = [
             'total_levels' => $totalLevels,

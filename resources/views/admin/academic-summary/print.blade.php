@@ -113,5 +113,22 @@
         </tfoot>
     </table>
 
+    <table style="width: 100%; border: none; margin-top: 30px; page-break-inside: avoid;">
+        <tr>
+            <td style="border: none; width: 50%; text-align: left; vertical-align: top;">
+                <div>Mengetahui,</div>
+                <div style="font-weight: bold; margin-bottom: 50px;">Kepala PAUD Anak Saleh</div>
+                <div style="font-weight: bold; text-decoration: underline;">{{ $headmasterName ?? 'Dra. Hj. Mike Supraptiwi, S.Psi, M.Pd.' }}</div>
+                <div style="font-size: 11px; color: #475569;">NIY: {{ $headmasterNiy ?? '-' }}</div>
+            </td>
+            <td style="border: none; width: 50%; text-align: right; vertical-align: top;">
+                <div>Malang, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</div>
+                <div style="font-weight: bold; margin-bottom: 50px;">Petugas Administrasi Akademik</div>
+                <div style="font-weight: bold; text-decoration: underline;">{{ auth()->user()->name ?? 'Petugas Akademik' }}</div>
+                <div style="font-size: 11px; color: #475569;">Staff Kurikulum & Rombel</div>
+            </td>
+        </tr>
+    </table>
+
 </body>
 </html>

@@ -29,10 +29,19 @@ class StudentArchiveController extends Controller
         $selectedYearId = $request->get('academic_year_id', $activeAcademicYear?->id);
 
         // 2. Classrooms
-        $classrooms = Classroom::where('is_active', true)
-            ->with(['classLevel', 'jenjang'])
-            ->withCount(['students' => function ($q) {
+        $classroomsQuery = Classroom::where('is_active', true)
+            ->with(['classLevel', 'jenjang']);
+
+        if ($selectedYearId && $selectedYearId !== 'all') {
+            $classroomsQuery->where('academic_year_id', $selectedYearId);
+        }
+
+        $classrooms = $classroomsQuery
+            ->withCount(['students' => function ($q) use ($selectedYearId) {
                 $q->where('status', 'aktif');
+                if ($selectedYearId && $selectedYearId !== 'all') {
+                    $q->where('academic_year_id', $selectedYearId);
+                }
             }])
             ->orderBy('name', 'asc')
             ->get();

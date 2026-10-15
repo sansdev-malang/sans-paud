@@ -74,6 +74,7 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,adm
     Route::get('academic-summary', [\App\Http\Controllers\AcademicSummaryController::class, 'index'])->name('academic-summary.index');
     Route::get('academic-summary/print', [\App\Http\Controllers\AcademicSummaryController::class, 'print'])->name('academic-summary.print');
     Route::get('academic-summary/export/excel', [\App\Http\Controllers\AcademicSummaryController::class, 'exportExcel'])->name('academic-summary.export.excel');
+    Route::get('academic-summary/export/pdf', [\App\Http\Controllers\AcademicSummaryController::class, 'exportPdf'])->name('academic-summary.export.pdf');
     Route::get('/data-akademik', fn() => redirect()->route('academic-summary.index'))->name('data-akademik');
 
     // Rekapitulasi Rombel & Kesiswaan (Student Reports)

@@ -29,6 +29,17 @@
                     Impor Excel
                 </button>
 
+                @php
+                    $currentFilterParams = array_merge([
+                        'academic_year_id' => $selectedYearId,
+                        'jenjang_id' => $selectedJenjangId,
+                    ], request()->query());
+
+                    $allStudentsParams = [
+                        'academic_year_id' => $selectedYearId,
+                        'jenjang_id' => 'all',
+                    ];
+                @endphp
                 <!-- Ekspor Dropdown (Excel & PDF) -->
                 <div x-data="{ exportOpen: false }" class="relative">
                     <button type="button" @click="exportOpen = !exportOpen" @click.outside="exportOpen = false"
@@ -45,16 +56,38 @@
                         x-transition:leave="transition ease-in duration-75"
                         x-transition:leave-start="transform opacity-100 scale-100"
                         x-transition:leave-end="transform opacity-0 scale-95"
-                        class="absolute right-0 mt-1.5 w-44 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 py-1 overflow-hidden">
-                        <a href="{{ route('students.export.excel', request()->query()) }}"
-                            class="flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">
+                        class="absolute right-0 mt-1.5 w-60 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 py-1.5 overflow-hidden">
+                        
+                        <!-- Group 1: Sesuai Filter Saat Ini -->
+                        <div class="px-3 py-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                            Sesuai Filter Saat Ini
+                        </div>
+                        <a href="{{ route('students.export.excel', $currentFilterParams) }}"
+                            class="flex items-center gap-2.5 px-3.5 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">
                             <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0"></i>
-                            <span>Excel (.xlsx)</span>
+                            <span>Excel (.xlsx) <span class="text-[10px] text-slate-400">({{ $students->total() }} murid)</span></span>
                         </a>
-                        <a href="{{ route('students.export.pdf', request()->query()) }}"
-                            class="flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 dark:hover:text-rose-400 transition-colors border-t border-slate-100 dark:border-slate-800">
+                        <a href="{{ route('students.export.pdf', $currentFilterParams) }}"
+                            class="flex items-center gap-2.5 px-3.5 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 dark:hover:text-rose-400 transition-colors">
                             <i data-lucide="file-text" class="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0"></i>
-                            <span>PDF (.pdf)</span>
+                            <span>PDF (.pdf) <span class="text-[10px] text-slate-400">({{ $students->total() }} murid)</span></span>
+                        </a>
+
+                        <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
+
+                        <!-- Group 2: Semua Jenjang / Semua Murid -->
+                        <div class="px-3 py-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                            Semua Murid (T.A. {{ $selectedYear?->name ?? 'Aktif' }})
+                        </div>
+                        <a href="{{ route('students.export.excel', $allStudentsParams) }}"
+                            class="flex items-center gap-2.5 px-3.5 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">
+                            <i data-lucide="sheet" class="w-4 h-4 text-emerald-500 shrink-0"></i>
+                            <span>Excel - Semua Jenjang</span>
+                        </a>
+                        <a href="{{ route('students.export.pdf', $allStudentsParams) }}"
+                            class="flex items-center gap-2.5 px-3.5 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 dark:hover:text-rose-400 transition-colors">
+                            <i data-lucide="printer" class="w-4 h-4 text-rose-500 shrink-0"></i>
+                            <span>PDF - Semua Jenjang</span>
                         </a>
                     </div>
                 </div>

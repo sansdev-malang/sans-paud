@@ -23,8 +23,12 @@ class StudentDdtkController extends Controller
      */
     public function index(Request $request)
     {
+        // Active academic year
+        $activeAcademicYear = AcademicYear::where('is_active', true)->first();
+
         $classrooms = Classroom::with(['homeroomTeacher', 'classLevel'])
             ->where('is_active', true)
+            ->when($activeAcademicYear, fn($q) => $q->where('academic_year_id', $activeAcademicYear->id))
             ->orderBy('sub_unit', 'asc')
             ->orderBy('name', 'asc')
             ->get();
@@ -55,13 +59,11 @@ class StudentDdtkController extends Controller
         // Active tab: 'inputDDTK', 'inputSDIDTK', 'rekap', 'grafik'
         $activeTab = $request->get('tab', 'inputDDTK');
 
-        // Active academic year
-        $activeAcademicYear = AcademicYear::where('is_active', true)->first();
-
         // Students in the selected classroom
         $students = collect();
         if ($selectedClassroom) {
-            $studentsQuery = Student::where('status', 'aktif');
+            $studentsQuery = Student::where('status', 'aktif')
+                ->when($activeAcademicYear, fn($q) => $q->where('academic_year_id', $activeAcademicYear->id));
 
             if ($selectedClassroom->sub_unit === 'DAYCARE') {
                 $studentsQuery->where(function ($q) use ($selectedClassroom) {

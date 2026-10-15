@@ -31,12 +31,21 @@ class DashboardController extends Controller
         $hrdUrl = \App\Models\Setting::get('hrd_api_url', config('app.hrd_url', 'http://sans-hrd.test'));
 
         if ($isAdmin) {
+            $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
+            $activeYearId = $activeYear?->id;
+
             // Smart Caching for Master Counts (5 minutes TTL)
-            $masterCounts = Cache::remember('dashboard_master_counts_' . $schoolUnitId, 300, function () {
+            $masterCounts = Cache::remember('dashboard_master_counts_' . $schoolUnitId . '_' . ($activeYearId ?? 'all'), 300, function () use ($activeYearId) {
+                $studentQuery = \App\Models\Student::whereIn('status', ['aktif', 'active']);
+                $classroomQuery = \App\Models\Classroom::where('is_active', true);
+                if ($activeYearId) {
+                    $studentQuery->where('academic_year_id', $activeYearId);
+                    $classroomQuery->where('academic_year_id', $activeYearId);
+                }
                 return [
                     'employeeCount' => \App\Models\Employee::count(),
-                    'studentCount' => \App\Models\Student::whereIn('status', ['aktif', 'active'])->count() ?: \App\Models\Student::count(),
-                    'classroomCount' => \App\Models\Classroom::where('is_active', true)->count(),
+                    'studentCount' => $studentQuery->count() ?: \App\Models\Student::count(),
+                    'classroomCount' => $classroomQuery->count(),
                 ];
             });
 

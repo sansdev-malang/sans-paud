@@ -23,8 +23,11 @@ class StudentAttendanceController extends Controller
      */
     public function index(Request $request)
     {
+        $activeYear = AcademicYear::where('is_active', true)->first();
+
         $classrooms = Classroom::with(['homeroomTeacher', 'classLevel'])
             ->where('is_active', true)
+            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
             ->orderBy('sub_unit', 'asc')
             ->orderBy('name', 'asc')
             ->get();

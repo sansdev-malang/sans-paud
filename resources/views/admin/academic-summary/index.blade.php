@@ -8,11 +8,30 @@
                 <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Matriks data akademik per tahun ajaran, jenjang, kelas, rombel, jumlah murid dan penugasan wali kelas.</p>
             </div>
             <div class="flex items-center gap-2.5 shrink-0">
-                <a href="{{ route('academic-summary.export.excel', request()->query()) }}"
-                    class="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-colors cursor-pointer">
-                    <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400"></i>
-                    Ekspor Excel
-                </a>
+                <!-- EXPORT DROPDOWN -->
+                <div x-data="{ exportOpen: false }" class="relative">
+                    <button type="button" @click="exportOpen = !exportOpen" @click.outside="exportOpen = false"
+                        class="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-colors cursor-pointer">
+                        <i data-lucide="download" class="w-3.5 h-3.5 text-slate-500"></i>
+                        <span>Ekspor</span>
+                        <i data-lucide="chevron-down" class="w-3.5 h-3.5 opacity-70"></i>
+                    </button>
+                    
+                    <div x-show="exportOpen" x-transition.opacity.duration.200ms style="display: none;"
+                        class="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg z-50 overflow-hidden">
+                        <a @click="exportOpen = false" href="{{ route('academic-summary.export.excel', request()->query()) }}"
+                            class="flex items-center gap-3 px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors border-b border-slate-100 dark:border-slate-800">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600 dark:text-emerald-500"></i>
+                            Excel (.xlsx)
+                        </a>
+                        <a @click="exportOpen = false" href="{{ route('academic-summary.export.pdf', request()->query()) }}"
+                            class="flex items-center gap-3 px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-900/30 hover:text-rose-700 dark:hover:text-rose-400 transition-colors">
+                            <i data-lucide="file-text" class="w-4 h-4 text-rose-600 dark:text-rose-500"></i>
+                            PDF (.pdf)
+                        </a>
+                    </div>
+                </div>
+
                 <a href="{{ route('academic-summary.print', request()->query()) }}" target="_blank"
                     class="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer">
                     <i data-lucide="printer" class="w-3.5 h-3.5"></i>
@@ -106,49 +125,40 @@
             @endforeach
         </div>
 
-        <!-- FILTERS BAR -->
-        <form method="GET" action="{{ route('academic-summary.index') }}" class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs">
+        <!-- FILTERS & SEARCH BAR (WITHOUT LABELS) -->
+        <form method="GET" action="{{ route('academic-summary.index') }}" class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs">
             <input type="hidden" name="jenjang_id" value="{{ $selectedJenjangId }}">
-            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                <!-- Filter 1: Tahun Ajaran -->
-                <div>
-                    <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Tahun Ajaran</label>
-                    <select name="academic_year_id" onchange="this.form.submit()"
-                        class="h-9 px-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-semibold cursor-pointer">
-                        @foreach($academicYears as $ay)
-                            <option value="{{ $ay->id }}" {{ $selectedYearId == $ay->id ? 'selected' : '' }}>
-                                {{ $ay->name }} {{ $ay->is_active ? ' (Aktif)' : '' }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+            <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+                <!-- Filter: Tahun Ajaran -->
+                <select name="academic_year_id" onchange="this.form.submit()"
+                    class="h-9 px-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-semibold cursor-pointer">
+                    @foreach($academicYears as $ay)
+                        <option value="{{ $ay->id }}" {{ $selectedYearId == $ay->id ? 'selected' : '' }}>
+                            T.A. {{ $ay->name }} {{ $ay->is_active ? ' (Aktif)' : '' }}
+                        </option>
+                    @endforeach
+                </select>
 
-                <!-- Filter 2: Kelas -->
-                <div>
-                    <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Kelas</label>
-                    <select name="class_level_id" onchange="this.form.submit()"
-                        class="h-9 px-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
-                        <option value="all" {{ empty($selectedClassLevelId) || $selectedClassLevelId === 'all' ? 'selected' : '' }}>Semua Kelas</option>
-                        @foreach($classLevels as $lvl)
-                            <option value="{{ $lvl->id }}" {{ $selectedClassLevelId == $lvl->id ? 'selected' : '' }}>
-                                [{{ $lvl->jenjang?->name ?? 'PAUD' }}] {{ $lvl->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+                <!-- Filter: Kelas -->
+                <select name="class_level_id" onchange="this.form.submit()"
+                    class="h-9 px-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                    <option value="all" {{ empty($selectedClassLevelId) || $selectedClassLevelId === 'all' ? 'selected' : '' }}>Semua Kelas</option>
+                    @foreach($classLevels as $lvl)
+                        <option value="{{ $lvl->id }}" {{ $selectedClassLevelId == $lvl->id ? 'selected' : '' }}>
+                            [{{ $lvl->jenjang?->name ?? 'PAUD' }}] {{ $lvl->name }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
 
-            <!-- Search box -->
-            <div class="w-full md:w-64 relative mt-2 md:mt-0">
-                <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Pencarian</label>
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400"></i>
-                    </span>
-                    <input type="text" x-model="searchQuery" placeholder="Cari nama rombel/kelompok..."
-                        style="padding-left: 2.25rem;"
-                        class="w-full h-9 pr-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                </div>
+            <!-- Search box (Without Label) -->
+            <div class="w-full sm:w-72 relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400"></i>
+                </span>
+                <input type="text" x-model="searchQuery" placeholder="Cari rombel atau wali kelas..."
+                    style="padding-left: 2.25rem;"
+                    class="w-full h-9 pr-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
             </div>
         </form>
 

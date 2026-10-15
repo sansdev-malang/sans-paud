@@ -30,10 +30,21 @@ class TeacherController extends Controller
      */
     public function index(Request $request)
     {
+        $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
+        $activeYearId = $activeYear?->id;
+
         $teacherType = $this->getTeacherType();
         $query = Employee::where('employee_type_id', $teacherType->id)
-            ->with(['classrooms.classLevel', 'classrooms.students' => function ($q) {
-                $q->where('status', 'aktif');
+            ->with(['classrooms' => function ($cq) use ($activeYearId) {
+                if ($activeYearId) {
+                    $cq->where('classrooms.academic_year_id', $activeYearId);
+                }
+                $cq->with(['classLevel', 'students' => function ($q) use ($activeYearId) {
+                    $q->where('status', 'aktif');
+                    if ($activeYearId) {
+                        $q->where('academic_year_id', $activeYearId);
+                    }
+                }]);
             }]);
 
         // Filter by school unit if configured
@@ -47,13 +58,19 @@ class TeacherController extends Controller
         $subUnits = [];
         if ($request->filled('sub_unit') && $subUnit !== 'all') {
             $subUnits = ($subUnit === 'KB' || $subUnit === 'PG') ? ['PG', 'KB'] : [$subUnit];
-            $query->whereHas('classrooms', function ($q) use ($subUnits) {
+            $query->whereHas('classrooms', function ($q) use ($subUnits, $activeYearId) {
+                if ($activeYearId) {
+                    $q->where('academic_year_id', $activeYearId);
+                }
                 $q->whereIn('sub_unit', $subUnits);
             });
         }
 
         // Ambil daftar kelompok terkait jenjang yang dipilih
         $classroomsQuery = \App\Models\Classroom::where('is_active', true);
+        if ($activeYearId) {
+            $classroomsQuery->where('academic_year_id', $activeYearId);
+        }
         if (!empty($subUnits)) {
             $classroomsQuery->whereIn('sub_unit', $subUnits);
         } else {

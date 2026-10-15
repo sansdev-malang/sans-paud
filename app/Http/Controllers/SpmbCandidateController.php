@@ -222,8 +222,18 @@ class SpmbCandidateController extends Controller
 
         $masterAcademicYears = AcademicYear::orderBy('name', 'desc')->get();
         $masterJenjangs = $availableJenjangs;
+
+        $selectedYearId = null;
+        if ($selectedYear && $selectedYear !== 'all') {
+            $matchedAcademicYear = $masterAcademicYears->first(function ($ay) use ($selectedYear) {
+                return $ay->name === $selectedYear || str_replace('-', '/', $ay->name) === str_replace('-', '/', $selectedYear);
+            });
+            $selectedYearId = $matchedAcademicYear?->id;
+        }
+
         $masterClassrooms = Classroom::with(['jenjang', 'classLevel', 'homeroomTeacher'])
             ->where('is_active', true)
+            ->when($selectedYearId, fn($q) => $q->where('academic_year_id', $selectedYearId))
             ->orderBy('jenjang_id')
             ->orderBy('class_level_id')
             ->orderBy('name')
@@ -320,7 +330,7 @@ class SpmbCandidateController extends Controller
             $matchedYear = AcademicYear::where('is_active', true)->first() ?? $academicYears->first();
         }
 
-        // Get all active classrooms (with count of active students)
+        // Get active classrooms for matched academic year (with count of active students)
         $classrooms = Classroom::with(['classLevel', 'jenjang', 'homeroomTeacher'])
             ->withCount(['students as active_students_count' => function ($q) use ($matchedYear) {
                 $q->where('status', 'aktif');
@@ -329,6 +339,7 @@ class SpmbCandidateController extends Controller
                 }
             }])
             ->where('is_active', true)
+            ->when($matchedYear?->id, fn($q) => $q->where('academic_year_id', $matchedYear->id))
             ->orderBy('jenjang_id')
             ->orderBy('class_level_id')
             ->orderBy('name')
@@ -338,12 +349,14 @@ class SpmbCandidateController extends Controller
         $classLevels = \App\Models\ClassLevel::orderBy('jenjang_id')->orderBy('order')->get();
 
         $daycareClassrooms = Classroom::where('is_active', true)
+            ->when($matchedYear?->id, fn($q) => $q->where('academic_year_id', $matchedYear->id))
             ->where(function($q) {
                 $q->where('sub_unit', 'DAYCARE')
                   ->orWhereHas('jenjang', fn($jq) => $jq->where('code', 'DAYCARE')->orWhere('code', 'TPA'));
             })->orderBy('name')->get();
 
         $tpqClassrooms = Classroom::where('is_active', true)
+            ->when($matchedYear?->id, fn($q) => $q->where('academic_year_id', $matchedYear->id))
             ->where(function($q) {
                 $q->where('sub_unit', 'TPQ')
                   ->orWhereHas('jenjang', fn($jq) => $jq->where('code', 'TPQ'));
@@ -398,7 +411,13 @@ class SpmbCandidateController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $classroom = Classroom::with(['classLevel', 'jenjang'])->findOrFail($validated['classroom_id']);
+        $classroom = Classroom::with(['classLevel', 'jenjang', 'academicYear'])->findOrFail($validated['classroom_id']);
+        if ($classroom->academic_year_id && $classroom->academic_year_id != $validated['academic_year_id']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kelompok yang dipilih tidak sesuai dengan tahun ajaran pendaftaran (' . ($classroom->academicYear?->name ?? 'Tahun lain') . ').'
+            ], 422);
+        }
         $jenjangId = $validated['jenjang_id'] ?: $classroom->jenjang_id;
         $classLevelId = $validated['class_level_id'] ?: $classroom->class_level_id;
         $subUnit = $classroom->sub_unit ?: ($classroom->jenjang?->code ?? 'TK');

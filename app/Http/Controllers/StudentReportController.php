@@ -149,12 +149,22 @@ class StudentReportController extends Controller
         $writer = new Xlsx($spreadsheet);
         $filename = 'Rekapitulasi_Rombel_PAUD_' . date('Ymd_His') . '.xlsx';
 
-        return response()->streamDownload(function () use ($writer) {
+        if ($request->filled('download_token')) {
+            @setcookie('download_token', $request->query('download_token'), time() + 60, '/', '', false, false);
+        }
+
+        $response = response()->streamDownload(function () use ($writer) {
             $writer->save('php://output');
         }, $filename, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Cache-Control' => 'max-age=0',
         ]);
+
+        if ($request->filled('download_token')) {
+            $response->headers->setCookie(cookie('download_token', $request->query('download_token'), 1, '/', null, false, false));
+        }
+
+        return $response;
     }
 
     /**

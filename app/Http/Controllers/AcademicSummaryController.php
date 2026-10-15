@@ -8,6 +8,8 @@ use App\Models\Classroom;
 use App\Models\HomeroomAssignment;
 use App\Models\Jenjang;
 use App\Models\Student;
+use App\Models\Employee;
+use App\Models\User;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -15,6 +17,7 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AcademicSummaryController extends Controller
 {
@@ -68,9 +71,12 @@ class AcademicSummaryController extends Controller
         $selectedYear = $academicYears->firstWhere('id', $selectedYearId) ?? $activeAcademicYear;
 
         $data = $this->getAcademicSummaryData($selectedYearId, $request->get('jenjang_id'), $request->get('class_level_id'), $request->get('search'));
+        $principalInfo = $this->getPrincipalInfo();
 
         return view('admin.academic-summary.print', array_merge($data, [
             'selectedYear' => $selectedYear,
+            'headmasterName' => $principalInfo['headmasterName'],
+            'headmasterNiy' => $principalInfo['headmasterNiy'],
         ]));
     }
 
@@ -168,12 +174,97 @@ class AcademicSummaryController extends Controller
         $writer = new Xlsx($spreadsheet);
         $filename = 'Data_Akademik_PAUD_' . date('Ymd_His') . '.xlsx';
 
-        return response()->streamDownload(function () use ($writer) {
+        if ($request->filled('download_token')) {
+            @setcookie('download_token', $request->query('download_token'), time() + 60, '/', '', false, false);
+        }
+
+        $response = response()->streamDownload(function () use ($writer) {
             $writer->save('php://output');
         }, $filename, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Cache-Control' => 'max-age=0',
         ]);
+
+        if ($request->filled('download_token')) {
+            $response->headers->setCookie(cookie('download_token', $request->query('download_token'), 1, '/', null, false, false));
+        }
+
+        return $response;
+    }
+
+    /**
+     * Export Data Akademik to PDF with download_token sync.
+     */
+    public function exportPdf(Request $request)
+    {
+        ini_set('memory_limit', '512M');
+        $academicYears = AcademicYear::orderBy('name', 'desc')->get();
+        $activeAcademicYear = $academicYears->firstWhere('is_active', true) ?? $academicYears->first();
+
+        $selectedYearId = $request->get('academic_year_id', $activeAcademicYear?->id);
+        $selectedYear = $academicYears->firstWhere('id', $selectedYearId) ?? $activeAcademicYear;
+
+        $jenjangs = Jenjang::where('is_active', true)->orderBy('order')->get();
+        $selectedJenjangId = $request->get('jenjang_id');
+        $selectedJenjang = $jenjangs->firstWhere('id', $selectedJenjangId);
+
+        $data = $this->getAcademicSummaryData($selectedYearId, $selectedJenjangId, $request->get('class_level_id'), $request->get('search'));
+
+        $filename = 'Data_Akademik_PAUD_' . date('Ymd_His') . '.pdf';
+
+        if ($request->filled('download_token')) {
+            @setcookie('download_token', $request->query('download_token'), time() + 60, '/', '', false, false);
+        }
+
+        $principalInfo = $this->getPrincipalInfo();
+
+        $pdf = Pdf::loadView('admin.academic-summary.pdf', array_merge($data, [
+            'selectedYear' => $selectedYear,
+            'selectedJenjang' => $selectedJenjang,
+            'headmasterName' => $principalInfo['headmasterName'],
+            'headmasterNiy' => $principalInfo['headmasterNiy'],
+        ]))->setPaper('a4', 'landscape');
+
+        $response = $pdf->download($filename);
+
+        if ($request->filled('download_token')) {
+            $response->headers->setCookie(cookie('download_token', $request->query('download_token'), 1, '/', null, false, false));
+        }
+
+        return $response;
+    }
+
+    /**
+     * Retrieve Principal (Kepala Sekolah) information with NIY from system.
+     */
+    private function getPrincipalInfo(): array
+    {
+        $principalUser = User::where('role', 'kepala_sekolah')->first();
+        $principalEmp = null;
+
+        if ($principalUser) {
+            if ($principalUser->employee_id) {
+                $principalEmp = Employee::find($principalUser->employee_id);
+            }
+            if (!$principalEmp && $principalUser->email) {
+                $principalEmp = Employee::where('email', $principalUser->email)->first();
+            }
+        }
+
+        if (!$principalEmp) {
+            $principalEmp = Employee::where(function ($q) {
+                $q->where('position', 'like', '%Kepala Sekolah%')
+                  ->orWhere('position', 'like', '%Kepsek%');
+            })->first();
+        }
+
+        $headmasterName = $principalEmp?->name ?? $principalUser?->name ?? 'Dra. Hj. Mike Supraptiwi, S.Psi, M.Pd.';
+        $headmasterNiy = $principalEmp?->niy ?? '-';
+
+        return [
+            'headmasterName' => $headmasterName,
+            'headmasterNiy' => $headmasterNiy,
+        ];
     }
 
     /**
@@ -190,6 +281,10 @@ class AcademicSummaryController extends Controller
             'classLevel.jenjang',
             'academicYear'
         ])->where('is_active', true);
+
+        if ($academicYearId && $academicYearId !== 'all') {
+            $classroomsQuery->where('academic_year_id', $academicYearId);
+        }
 
         if ($jenjangId && $jenjangId !== 'all') {
             $classroomsQuery->where(function ($q) use ($jenjangId) {
@@ -254,7 +349,7 @@ class AcademicSummaryController extends Controller
 
             $academicRows[] = [
                 'classroom_id' => $c->id,
-                'academic_year_name' => $tapelName,
+                'academic_year_name' => $c->academicYear?->name ?? $tapelName,
                 'jenjang_name' => $jenjangName,
                 'class_level_name' => $classLevelName,
                 'classroom_name' => $c->name,

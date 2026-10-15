@@ -96,7 +96,7 @@ class ClassroomController extends Controller
         ];
 
         $jenjangs = Jenjang::orderBy('order', 'asc')->get();
-        $classLevels = ClassLevel::with('jenjang')->orderBy('order')->get();
+        $classLevels = ClassLevel::with('jenjang')->whereNotNull('jenjang_id')->where('is_active', true)->orderBy('order')->get();
         $teachers = Employee::whereIn('status', ['Active', 'aktif', 'active', 'Aktif'])->orderBy('name')->get();
 
         return view('admin.classrooms.index', compact(

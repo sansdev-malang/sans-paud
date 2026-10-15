@@ -24,20 +24,24 @@ class ClassroomJournalController extends Controller
      */
     public function index(Request $request)
     {
-        $classrooms = Classroom::with(['homeroomTeacher', 'classLevel'])
-            ->withCount(['students' => function ($q) {
-                $q->where('status', 'aktif');
-            }])
-            ->where('is_active', true)
-            ->orderBy('sub_unit', 'asc')
-            ->orderBy('name', 'asc')
-            ->get();
-
         // Academic Years List & Selection
         $academicYears = AcademicYear::orderBy('name', 'desc')->get();
         $activeAcademicYear = $academicYears->firstWhere('is_active', true) ?? $academicYears->first();
         $selectedAcademicYearId = $request->get('academic_year_id', $activeAcademicYear?->id);
         $selectedAcademicYear = $academicYears->firstWhere('id', $selectedAcademicYearId) ?? $activeAcademicYear;
+
+        $classrooms = Classroom::with(['homeroomTeacher', 'classLevel'])
+            ->withCount(['students' => function ($q) use ($selectedAcademicYearId) {
+                $q->where('status', 'aktif');
+                if ($selectedAcademicYearId) {
+                    $q->where('academic_year_id', $selectedAcademicYearId);
+                }
+            }])
+            ->where('is_active', true)
+            ->when($selectedAcademicYearId, fn($q) => $q->where('academic_year_id', $selectedAcademicYearId))
+            ->orderBy('sub_unit', 'asc')
+            ->orderBy('name', 'asc')
+            ->get();
 
         // Default Classroom
         $user = auth()->user();

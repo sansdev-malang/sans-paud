@@ -180,9 +180,15 @@ class StudentController extends Controller
             'classrooms' => $totalClassrooms,
         ];
 
-        // Filter dropdowns: ClassLevels and Classrooms filtered by the active Jenjang tab & selected Kelas
-        $classLevels = ClassLevel::where('is_active', true)
+        // Filter dropdowns: ClassLevels and Classrooms filtered by the active Jenjang tab & selected Academic Year
+        $classLevels = ClassLevel::whereNotNull('jenjang_id')->where('is_active', true)
             ->when($selectedJenjangId && $selectedJenjangId !== 'all', fn($q) => $q->where('jenjang_id', $selectedJenjangId))
+            ->when($selectedYearId && $selectedYearId !== 'all', function ($q) use ($selectedYearId) {
+                $q->where(function ($sub) use ($selectedYearId) {
+                    $sub->whereHas('classrooms', fn($cq) => $cq->where('academic_year_id', $selectedYearId))
+                        ->orWhereHas('students', fn($sq) => $sq->where('academic_year_id', $selectedYearId));
+                });
+            })
             ->orderBy('order')
             ->get();
 
@@ -196,8 +202,13 @@ class StudentController extends Controller
             ->get();
 
         // Master lists for Modal dropdowns
-        $allClassLevels = ClassLevel::with('jenjang')->where('is_active', true)->orderBy('order')->get();
-        $allClassrooms = Classroom::with(['classLevel', 'academicYear', 'homeroomTeacher'])->where('is_active', true)->orderBy('academic_year_id', 'desc')->orderBy('name')->get();
+        $allClassLevels = ClassLevel::with('jenjang')->whereNotNull('jenjang_id')->where('is_active', true)->orderBy('order')->get();
+        $allClassrooms = Classroom::with(['classLevel', 'academicYear', 'homeroomTeacher'])
+            ->where('is_active', true)
+            ->when($selectedYearId && $selectedYearId !== 'all', fn($q) => $q->where('academic_year_id', $selectedYearId))
+            ->orderBy('academic_year_id', 'desc')
+            ->orderBy('name')
+            ->get();
 
         $daycareJenjangIds = Jenjang::where(function($q) {
             $q->where('code', 'DAYCARE')
@@ -209,6 +220,7 @@ class StudentController extends Controller
         $daycareClassrooms = Classroom::with(['classLevel', 'academicYear', 'jenjang'])
             ->where('is_active', true)
             ->whereIn('jenjang_id', $daycareJenjangIds)
+            ->when($selectedYearId && $selectedYearId !== 'all', fn($q) => $q->where('academic_year_id', $selectedYearId))
             ->orderBy('name')
             ->get();
 
@@ -220,6 +232,7 @@ class StudentController extends Controller
         $tpqClassrooms = Classroom::with(['classLevel', 'academicYear', 'jenjang'])
             ->where('is_active', true)
             ->whereIn('jenjang_id', $tpqJenjangIds)
+            ->when($selectedYearId && $selectedYearId !== 'all', fn($q) => $q->where('academic_year_id', $selectedYearId))
             ->orderBy('name')
             ->get();
 
@@ -660,7 +673,8 @@ class StudentController extends Controller
             'daycareClassroom',
             'tpqClassroom',
             'classLevel',
-            'academicYear'
+            'academicYear',
+            'spmbCandidate',
         ]);
 
         if ($selectedJenjangId && $selectedJenjangId !== 'all') {
@@ -729,59 +743,239 @@ class StudentController extends Controller
     }
 
     /**
-     * Export students data to Excel (.xlsx).
+     * Resolve document export metadata, dynamic titles, and filenames based on active filters.
      */
-    public function exportExcel(Request $request)
+    protected function resolveExportMeta(Request $request, $students)
     {
         $academicYears = AcademicYear::orderBy('name', 'desc')->get();
         $activeAcademicYear = $academicYears->firstWhere('is_active', true) ?? $academicYears->first();
 
         $selectedYearId = $request->get('academic_year_id', $activeAcademicYear?->id);
-        $selectedYear = $academicYears->firstWhere('id', $selectedYearId) ?? $activeAcademicYear;
+        $selectedYear = $selectedYearId === 'all' ? null : ($academicYears->firstWhere('id', $selectedYearId) ?? $activeAcademicYear);
 
         $jenjangs = Jenjang::where('is_active', true)->orderBy('order')->get();
         $selectedJenjangId = $request->get('jenjang_id');
-        $selectedJenjang = $jenjangs->firstWhere('id', $selectedJenjangId);
+        $selectedJenjang = ($selectedJenjangId && $selectedJenjangId !== 'all') ? $jenjangs->firstWhere('id', $selectedJenjangId) : null;
 
+        $selectedClassLevel = null;
+        if ($clId = $request->get('class_level_id')) {
+            if ($clId !== 'all') {
+                $selectedClassLevel = ClassLevel::find($clId);
+            }
+        }
+
+        $selectedClassroom = null;
+        if ($crId = $request->get('classroom_id')) {
+            if ($crId !== 'all') {
+                $selectedClassroom = Classroom::find($crId);
+            }
+        }
+
+        $selectedStatus = $request->get('status');
+        $selectedGender = $request->get('gender');
+
+        // Dynamic Document Title based on active filters
+        $titleParts = ['DAFTAR DATA LENGKAP MURID'];
+        $fileContextParts = ['Data_Lengkap_Murid'];
+
+        if ($selectedClassroom) {
+            $titleParts[] = 'KELOMPOK ' . strtoupper($selectedClassroom->name);
+            $fileContextParts[] = str_replace([' ', '/', '\\'], '_', $selectedClassroom->name);
+        } elseif ($selectedClassLevel) {
+            $titleParts[] = 'KELAS ' . strtoupper($selectedClassLevel->name);
+            $fileContextParts[] = str_replace([' ', '/', '\\'], '_', $selectedClassLevel->name);
+        } elseif ($selectedJenjang) {
+            $titleParts[] = strtoupper($selectedJenjang->name);
+            $fileContextParts[] = str_replace([' ', '/', '\\'], '_', $selectedJenjang->name);
+        } else {
+            $titleParts[] = 'SEMUA JENJANG';
+            $fileContextParts[] = 'Semua_Jenjang';
+        }
+
+        if ($selectedGender && $selectedGender !== 'all') {
+            $isL = in_array(strtoupper($selectedGender), ['L', 'LAKI-LAKI']);
+            $titleParts[] = $isL ? '(PUTRA)' : '(PUTRI)';
+            $fileContextParts[] = $isL ? 'Putra' : 'Putri';
+        }
+
+        if ($selectedStatus && !in_array($selectedStatus, ['all', 'aktif'])) {
+            $titleParts[] = '(' . strtoupper($selectedStatus) . ')';
+            $fileContextParts[] = ucfirst($selectedStatus);
+        }
+
+        $mainTitle = implode(' - ', $titleParts);
+
+        // Filter Details Array for meta info
+        $filterDetails = [];
+        if ($selectedClassLevel) {
+            $filterDetails['Kelas'] = $selectedClassLevel->name;
+        }
+        if ($selectedClassroom) {
+            $filterDetails['Kelompok'] = $selectedClassroom->name;
+        }
+        if ($selectedStatus && $selectedStatus !== 'all') {
+            $filterDetails['Status'] = ucfirst($selectedStatus);
+        }
+        if ($selectedGender && $selectedGender !== 'all') {
+            $filterDetails['Gender'] = in_array(strtoupper($selectedGender), ['L', 'LAKI-LAKI']) ? 'Putra' : 'Putri';
+        }
+
+        $maleCount = $students->where('gender', 'L')->count();
+        $femaleCount = $students->where('gender', 'P')->count();
+        $totalCount = $students->count();
+
+        // Subtitle text for Excel
+        $excelSubtitleParts = [];
+        $excelSubtitleParts[] = 'Tahun Ajaran: ' . ($selectedYear ? $selectedYear->name : 'Semua T.A.');
+        $excelSubtitleParts[] = 'Jenjang: ' . ($selectedJenjang ? $selectedJenjang->name : 'Semua Jenjang');
+        foreach ($filterDetails as $k => $v) {
+            $excelSubtitleParts[] = "{$k}: {$v}";
+        }
+        $excelSubtitleParts[] = "Total: {$totalCount} Murid (L: {$maleCount}, P: {$femaleCount})";
+        $excelSubtitleParts[] = "Tanggal Unduh: " . date('d/m/Y H:i') . " WIB";
+        $excelSubtitle = implode(' | ', $excelSubtitleParts);
+
+        $filePrefix = implode('_', $fileContextParts) . '_' . date('Ymd_His');
+
+        return [
+            'mainTitle' => $mainTitle,
+            'institution' => 'KB - TK - DAYCARE - TPQ ISLAM ANAK SALEH MALANG',
+            'excelSubtitle' => $excelSubtitle,
+            'selectedYear' => $selectedYear,
+            'selectedJenjang' => $selectedJenjang,
+            'selectedClassLevel' => $selectedClassLevel,
+            'selectedClassroom' => $selectedClassroom,
+            'filterDetails' => $filterDetails,
+            'maleCount' => $maleCount,
+            'femaleCount' => $femaleCount,
+            'totalCount' => $totalCount,
+            'filePrefix' => $filePrefix,
+        ];
+    }
+
+    /**
+     * Export students data to Excel (.xlsx).
+     */
+    public function exportExcel(Request $request)
+    {
         $students = $this->getFilteredStudentsQuery($request)->get();
+        $meta = $this->resolveExportMeta($request, $students);
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Data Murid');
 
-        // Document Title Banner
-        $sheet->setCellValue('A1', 'DAFTAR DATA LENGKAP PESERTA DIDIK (MURID)');
-        $sheet->setCellValue('A2', 'KB - TK - DAYCARE - TPQ ANAK SALEH MALANG');
-        $sheet->setCellValue('A3', 'Tahun Ajaran: ' . ($selectedYear ? $selectedYear->name : 'Semua') . ' | Jenjang: ' . ($selectedJenjang ? $selectedJenjang->name : 'Semua') . ' | Total Murid: ' . $students->count() . ' | Tanggal Unduh: ' . date('d/m/Y H:i'));
+        // CATEGORY HEADER (ROW 4) - Reordered with Biodata & Identitas first
+        $categories = [
+            ['range' => 'A4:O4', 'title' => '1. BIODATA & IDENTITAS UTAMA', 'color' => 'FF0284C7'], // Sky 600
+            ['range' => 'P4:AA4', 'title' => '2. AKADEMIK & PENEMPATAN KELAS', 'color' => 'FF4F46E5'], // Indigo 600
+            ['range' => 'AB4:AM4', 'title' => '3. DOMISILI & TRANSPORTASI', 'color' => 'FF0D9488'], // Teal 600
+            ['range' => 'AN4:BE4', 'title' => '4. DATA ORANG TUA & WALI', 'color' => 'FF059669'], // Emerald 600
+            ['range' => 'BF4:BO4', 'title' => '5. FISIK & KESEHATAN', 'color' => 'FFD97706'], // Amber 600
+            ['range' => 'BP4:BQ4', 'title' => '6. AKUN & CATATAN KHUSUS', 'color' => 'FF475569'], // Slate 600
+        ];
 
-        $sheet->getStyle('A1:A2')->getFont()->setBold(true)->setSize(14);
-        $sheet->getStyle('A3')->getFont()->setItalic(true)->setSize(10)->getColor()->setARGB('FF475569');
+        // Document Title Banner - Merged across full category width (A1:BQ1, A2:BQ2, A3:BQ3)
+        // Merging prevents truncation at the freeze pane boundary (Column C) while keeping clean layout
+        $lastCategory = end($categories);
+        $lastCol = explode(':', $lastCategory['range'])[1];
+        $lastCol = preg_replace('/[0-9]/', '', $lastCol) ?: 'BQ';
 
-        // Table Headers (Comprehensive)
+        $sheet->mergeCells("A1:{$lastCol}1");
+        $sheet->mergeCells("A2:{$lastCol}2");
+        $sheet->mergeCells("A3:{$lastCol}3");
+
+        $sheet->setCellValue('A1', $meta['mainTitle']);
+        $sheet->setCellValue('A2', $meta['institution']);
+        $sheet->setCellValue('A3', $meta['excelSubtitle']);
+
+        $sheet->getStyle("A1:{$lastCol}1")->getFont()->setBold(true)->setSize(13)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FF1E1B4B'));
+        $sheet->getStyle("A2:{$lastCol}2")->getFont()->setBold(true)->setSize(10.5)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FF4338CA'));
+        $sheet->getStyle("A3:{$lastCol}3")->getFont()->setItalic(true)->setSize(9)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FF475569'));
+
+        $sheet->getStyle("A1:{$lastCol}3")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT)->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet->getRowDimension(1)->setRowHeight(26);
+        $sheet->getRowDimension(2)->setRowHeight(20);
+        $sheet->getRowDimension(3)->setRowHeight(20);
+
+        foreach ($categories as $cat) {
+            $sheet->mergeCells($cat['range']);
+            $firstCell = explode(':', $cat['range'])[0];
+            $sheet->setCellValue($firstCell, $cat['title']);
+            $sheet->getStyle($cat['range'])->getFont()->setBold(true)->setSize(9)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFFFFFFF'));
+            $sheet->getStyle($cat['range'])->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($cat['color']);
+            $sheet->getStyle($cat['range'])->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
+        }
+        $sheet->getRowDimension(4)->setRowHeight(22);
+
+        // Table Headers (Comprehensive - 69 Columns) - Reordered with Biodata & Identitas first
         $headers = [
+            // 1-15: Biodata & Identitas Utama
             'No',
+            'Nama Lengkap',
+            'Nama Panggilan',
+            'L/P',
             'NIS',
             'NISN',
             'NIK Ananda',
             'No. KK',
             'No. Akta Kelahiran',
-            'Nama Lengkap',
-            'Nama Panggilan',
-            'L/P',
             'Tempat Lahir',
             'Tanggal Lahir',
             'Usia',
             'Agama',
             'Kewarganegaraan',
+            'Asal Sekolah Sebelumnya',
+
+            // 16-27: Penempatan Kelas & Akademik
+            'Status Murid',
+            'Tahun Ajaran',
+            'Sub Unit',
+            'Jenjang',
+            'Tingkat Kelas',
+            'Kelompok Belajar',
+            'Wali Kelas',
+            'Kelompok Daycare',
+            'Status TPQ',
+            'Kelompok TPQ',
+            'Tanggal Masuk / Diterima',
+            'No. SPMB',
+
+            // 28-39: Domisili & Transportasi
             'Alamat Jalan',
             'RT',
             'RW',
             'Kelurahan / Desa',
             'Kecamatan',
             'Kota / Kab',
+            'Provinsi',
             'Kode Pos',
             'Tempat Tinggal',
             'Moda Transportasi',
+            'Jarak Sekolah',
+            'Waktu Tempuh (menit)',
+
+            // 40-57: Data Orang Tua & Wali
+            'Nama Ayah',
+            'NIK Ayah',
+            'Pendidikan Ayah',
+            'Pekerjaan Ayah',
+            'Penghasilan Ayah',
+            'No. HP Ayah',
+            'Nama Ibu',
+            'NIK Ibu',
+            'Pendidikan Ibu',
+            'Pekerjaan Ibu',
+            'Penghasilan Ibu',
+            'No. HP Ibu',
+            'Nama Wali',
+            'Hubungan Wali',
+            'Pekerjaan Wali',
+            'No. HP Wali',
+            'No. WhatsApp Kontak Utama',
+            'Email Orang Tua',
+
+            // 58-67: Fisik & Kesehatan
             'Anak Ke-',
             'Jumlah Saudara',
             'Gol. Darah',
@@ -790,28 +984,11 @@ class StudentController extends Controller
             'BB (kg)',
             'LK (cm)',
             'LiLa (cm)',
-            'Jarak Sekolah',
-            'Waktu Tempuh (menit)',
-            'Sub Unit',
-            'Jenjang',
-            'Tingkat Kelas',
-            'Kelompok Belajar',
-            'Kelompok Daycare',
-            'Status TPQ',
-            'Kelompok TPQ',
-            'Nama Ayah',
-            'NIK Ayah',
-            'Pendidikan Ayah',
-            'Pekerjaan Ayah',
-            'No. HP Ayah',
-            'Nama Ibu',
-            'NIK Ibu',
-            'Pendidikan Ibu',
-            'Pekerjaan Ibu',
-            'No. HP Ibu',
-            'No. WhatsApp Kontak',
+            'Riwayat Alergi & Penyakit',
+            'Kebiasaan Makan & Toilet Training',
+
+            // 68-69: Akun & Catatan Khusus
             'PIN Akses Ortu',
-            'Status',
             'Catatan Khusus'
         ];
 
@@ -826,7 +1003,7 @@ class StudentController extends Controller
         $sheet->getStyle($headerRange)->getFont()->setBold(true)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFFFFFFF'));
         $sheet->getStyle($headerRange)->getFill()
             ->setFillType(Fill::FILL_SOLID)
-            ->getStartColor()->setARGB('FF4F46E5'); // Indigo 600
+            ->getStartColor()->setARGB('FF334155'); // Slate 700
         $sheet->getStyle($headerRange)->getAlignment()
             ->setHorizontal(Alignment::HORIZONTAL_CENTER)
             ->setVertical(Alignment::VERTICAL_CENTER);
@@ -840,83 +1017,145 @@ class StudentController extends Controller
             $jenjangName = $s->jenjang?->name ?? $s->classroom?->jenjang?->name ?? $s->classLevel?->jenjang?->name ?? $s->sub_unit ?? '-';
             $classLevelName = $s->classroom?->classLevel?->name ?? $s->classLevel?->name ?? '-';
             $rombelName = $s->classroom?->name ?? '-';
+            $homeroomName = $s->classroom?->homeroomTeacher?->name ?? '-';
             $daycareName = $s->daycareClassroom?->name ?? '-';
             $tpqStatus = ($s->is_tpq || $s->tpq_classroom_id || $s->sub_unit === 'TPQ') ? 'Ya' : 'Tidak';
             $tpqName = $s->tpqClassroom?->name ?? ($tpqStatus === 'Ya' ? 'TPQ' : '-');
+            $spmbNumber = $s->spmbCandidate?->registration_number ?? ($s->spmb_candidate_id ? '#' . $s->spmb_candidate_id : '-');
+            $enrolledDateFormatted = $s->enrolled_date ? date('Y-m-d', strtotime($s->enrolled_date)) : '-';
 
             $fd = is_array($s->family_data) ? $s->family_data : [];
+            $fatherName = $s->father_name ?? ($fd['father']['name'] ?? '-');
             $fatherNik = $fd['father']['nik'] ?? '-';
             $fatherEdu = $fd['father']['education'] ?? '-';
             $fatherJob = $s->father_job ?? ($fd['father']['job'] ?? '-');
+            $fatherIncome = $fd['father']['income'] ?? '-';
+            $fatherPhone = $s->father_phone ?? ($fd['father']['phone'] ?? '');
+
+            $motherName = $s->mother_name ?? ($fd['mother']['name'] ?? '-');
             $motherNik = $fd['mother']['nik'] ?? '-';
             $motherEdu = $fd['mother']['education'] ?? '-';
             $motherJob = $s->mother_job ?? ($fd['mother']['job'] ?? '-');
+            $motherIncome = $fd['mother']['income'] ?? '-';
+            $motherPhone = $s->mother_phone ?? ($fd['mother']['phone'] ?? '');
 
+            $guardianName = $s->guardian_name ?? ($fd['guardian']['name'] ?? '-');
+            $guardianRelation = $fd['guardian']['relation'] ?? ($s->guardian_name ? 'Wali' : '-');
+            $guardianJob = $fd['guardian']['job'] ?? '-';
+            $guardianPhone = $s->guardian_phone ?? ($fd['guardian']['phone'] ?? '');
+
+            $hh = is_array($s->health_habits) ? $s->health_habits : [];
+            $allergy = ($hh['allergy']['has_allergies'] ?? false) ? ($hh['allergy']['types'] ?? 'Ada Alergi') : 'Tidak ada';
+            $illness = !empty($hh['illness_history']) ? $hh['illness_history'] : '';
+            $healthNotes = trim(($allergy !== 'Tidak ada' ? "Alergi: {$allergy}. " : '') . ($illness ? "Penyakit: {$illness}" : ''));
+            if (empty($healthNotes)) $healthNotes = ($allergy === 'Tidak ada' ? 'Tidak ada riwayat alergi/penyakit' : '-');
+
+            $habits = [];
+            if (!empty($hh['diet']['eating_morning']) || !empty($hh['diet']['eating_afternoon'])) {
+                $habits[] = 'Makan: ' . ($hh['diet']['eating_morning'] ?? '-') . '/' . ($hh['diet']['eating_afternoon'] ?? '-');
+            }
+            if (!empty($hh['habits']['toilet_training'])) {
+                $habits[] = 'Toilet: ' . $hh['habits']['toilet_training'];
+            }
+            $habitsStr = !empty($habits) ? implode('; ', $habits) : '-';
+
+            // 1-15: Biodata & Identitas Utama
             $sheet->setCellValue("A{$currentRow}", $index + 1);
-            $sheet->setCellValueExplicit("B{$currentRow}", (string)($s->nis ?? ''), DataType::TYPE_STRING);
-            $sheet->setCellValueExplicit("C{$currentRow}", (string)($s->nisn ?? ''), DataType::TYPE_STRING);
-            $sheet->setCellValueExplicit("D{$currentRow}", (string)($s->nik ?? ''), DataType::TYPE_STRING);
-            $sheet->setCellValueExplicit("E{$currentRow}", (string)($s->no_kk ?? ''), DataType::TYPE_STRING);
-            $sheet->setCellValueExplicit("F{$currentRow}", (string)($s->no_akta ?? ''), DataType::TYPE_STRING);
-            $sheet->setCellValue("G{$currentRow}", $s->full_name);
-            $sheet->setCellValue("H{$currentRow}", $s->nickname ?? '-');
-            $sheet->setCellValue("I{$currentRow}", $genderLabel);
+            $sheet->setCellValue("B{$currentRow}", $s->full_name);
+            $sheet->setCellValue("C{$currentRow}", $s->nickname ?? '-');
+            $sheet->setCellValue("D{$currentRow}", $genderLabel);
+            $sheet->setCellValueExplicit("E{$currentRow}", (string)($s->nis ?? ''), DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("F{$currentRow}", (string)($s->nisn ?? ''), DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("G{$currentRow}", (string)($s->nik ?? ''), DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("H{$currentRow}", (string)($s->no_kk ?? ''), DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("I{$currentRow}", (string)($s->no_akta ?? ''), DataType::TYPE_STRING);
             $sheet->setCellValue("J{$currentRow}", $s->birth_place ?? '-');
             $sheet->setCellValue("K{$currentRow}", $birthDateFormatted);
             $sheet->setCellValue("L{$currentRow}", $s->age ?? '-');
             $sheet->setCellValue("M{$currentRow}", $s->religion ?? 'Islam');
             $sheet->setCellValue("N{$currentRow}", $s->citizenship ?? 'WNI');
-            $sheet->setCellValue("O{$currentRow}", $s->address ?? '-');
-            $sheet->setCellValue("P{$currentRow}", $s->rt ?? '-');
-            $sheet->setCellValue("Q{$currentRow}", $s->rw ?? '-');
-            $sheet->setCellValue("R{$currentRow}", $s->kelurahan ?? '-');
-            $sheet->setCellValue("S{$currentRow}", $s->kecamatan ?? '-');
-            $sheet->setCellValue("T{$currentRow}", $s->city ?? 'Malang');
-            $sheet->setCellValue("U{$currentRow}", $s->postal_code ?? '-');
-            $sheet->setCellValue("V{$currentRow}", $s->living_with ?? 'Bersama orang tua');
-            $sheet->setCellValue("W{$currentRow}", $s->transportation ?? '-');
-            $sheet->setCellValue("X{$currentRow}", $s->child_order ?? '-');
-            $sheet->setCellValue("Y{$currentRow}", $s->siblings_count ?? '-');
-            $sheet->setCellValue("Z{$currentRow}", $s->blood_type ?? '-');
-            $sheet->setCellValue("AA{$currentRow}", $s->special_needs ?? 'Tidak ada');
-            $sheet->setCellValue("AB{$currentRow}", $s->height ?? '-');
-            $sheet->setCellValue("AC{$currentRow}", $s->weight ?? '-');
-            $sheet->setCellValue("AD{$currentRow}", $s->head_circumference ?? '-');
-            $sheet->setCellValue("AE{$currentRow}", $s->arm_circumference ?? '-');
-            $sheet->setCellValue("AF{$currentRow}", $s->distance_to_school ?? '-');
-            $sheet->setCellValue("AG{$currentRow}", $s->travel_time_minutes ?? '-');
-            $sheet->setCellValue("AH{$currentRow}", $s->sub_unit ?? 'TK');
-            $sheet->setCellValue("AI{$currentRow}", $jenjangName);
-            $sheet->setCellValue("AJ{$currentRow}", $classLevelName);
-            $sheet->setCellValue("AK{$currentRow}", $rombelName);
-            $sheet->setCellValue("AL{$currentRow}", $daycareName);
-            $sheet->setCellValue("AM{$currentRow}", $tpqStatus);
-            $sheet->setCellValue("AN{$currentRow}", $tpqName);
-            $sheet->setCellValue("AO{$currentRow}", $s->father_name ?? '-');
-            $sheet->setCellValueExplicit("AP{$currentRow}", (string)$fatherNik, DataType::TYPE_STRING);
-            $sheet->setCellValue("AQ{$currentRow}", $fatherEdu);
-            $sheet->setCellValue("AR{$currentRow}", $fatherJob);
-            $sheet->setCellValueExplicit("AS{$currentRow}", (string)($s->father_phone ?? ''), DataType::TYPE_STRING);
-            $sheet->setCellValue("AT{$currentRow}", $s->mother_name ?? '-');
+            $sheet->setCellValue("O{$currentRow}", $s->previous_school ?? '-');
+
+            // 16-27: Penempatan Kelas & Akademik
+            $sheet->setCellValue("P{$currentRow}", ucfirst($s->status ?? 'aktif'));
+            $sheet->setCellValue("Q{$currentRow}", $s->academicYear?->name ?? ($selectedYear?->name ?? '-'));
+            $sheet->setCellValue("R{$currentRow}", $s->sub_unit ?? 'TK');
+            $sheet->setCellValue("S{$currentRow}", $jenjangName);
+            $sheet->setCellValue("T{$currentRow}", $classLevelName);
+            $sheet->setCellValue("U{$currentRow}", $rombelName);
+            $sheet->setCellValue("V{$currentRow}", $homeroomName);
+            $sheet->setCellValue("W{$currentRow}", $daycareName);
+            $sheet->setCellValue("X{$currentRow}", $tpqStatus);
+            $sheet->setCellValue("Y{$currentRow}", $tpqName);
+            $sheet->setCellValue("Z{$currentRow}", $enrolledDateFormatted);
+            $sheet->setCellValueExplicit("AA{$currentRow}", (string)$spmbNumber, DataType::TYPE_STRING);
+
+            // 28-39: Domisili & Transportasi
+            $sheet->setCellValue("AB{$currentRow}", $s->address ?? '-');
+            $sheet->setCellValue("AC{$currentRow}", $s->rt ?? '-');
+            $sheet->setCellValue("AD{$currentRow}", $s->rw ?? '-');
+            $sheet->setCellValue("AE{$currentRow}", $s->kelurahan ?? '-');
+            $sheet->setCellValue("AF{$currentRow}", $s->kecamatan ?? '-');
+            $sheet->setCellValue("AG{$currentRow}", $s->city ?? 'Malang');
+            $sheet->setCellValue("AH{$currentRow}", $s->province ?? 'Jawa Timur');
+            $sheet->setCellValue("AI{$currentRow}", $s->postal_code ?? '-');
+            $sheet->setCellValue("AJ{$currentRow}", $s->living_with ?? 'Bersama orang tua');
+            $sheet->setCellValue("AK{$currentRow}", $s->transportation ?? '-');
+            $sheet->setCellValue("AL{$currentRow}", $s->distance_to_school ?? '-');
+            $sheet->setCellValue("AM{$currentRow}", $s->travel_time_minutes ?? '-');
+
+            // 40-57: Data Orang Tua & Wali
+            $sheet->setCellValue("AN{$currentRow}", $fatherName);
+            $sheet->setCellValueExplicit("AO{$currentRow}", (string)$fatherNik, DataType::TYPE_STRING);
+            $sheet->setCellValue("AP{$currentRow}", $fatherEdu);
+            $sheet->setCellValue("AQ{$currentRow}", $fatherJob);
+            $sheet->setCellValue("AR{$currentRow}", $fatherIncome);
+            $sheet->setCellValueExplicit("AS{$currentRow}", (string)$fatherPhone, DataType::TYPE_STRING);
+            $sheet->setCellValue("AT{$currentRow}", $motherName);
             $sheet->setCellValueExplicit("AU{$currentRow}", (string)$motherNik, DataType::TYPE_STRING);
             $sheet->setCellValue("AV{$currentRow}", $motherEdu);
             $sheet->setCellValue("AW{$currentRow}", $motherJob);
-            $sheet->setCellValueExplicit("AX{$currentRow}", (string)($s->mother_phone ?? ''), DataType::TYPE_STRING);
-            $sheet->setCellValueExplicit("AY{$currentRow}", (string)($s->clean_parent_phone ?? $s->parent_phone ?? ''), DataType::TYPE_STRING);
-            $sheet->setCellValueExplicit("AZ{$currentRow}", (string)($s->pin_access ?? ''), DataType::TYPE_STRING);
-            $sheet->setCellValue("BA{$currentRow}", ucfirst($s->status ?? 'aktif'));
-            $sheet->setCellValue("BB{$currentRow}", $s->notes ?? '-');
+            $sheet->setCellValue("AX{$currentRow}", $motherIncome);
+            $sheet->setCellValueExplicit("AY{$currentRow}", (string)$motherPhone, DataType::TYPE_STRING);
+            $sheet->setCellValue("AZ{$currentRow}", $guardianName);
+            $sheet->setCellValue("BA{$currentRow}", $guardianRelation);
+            $sheet->setCellValue("BB{$currentRow}", $guardianJob);
+            $sheet->setCellValueExplicit("BC{$currentRow}", (string)$guardianPhone, DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("BD{$currentRow}", (string)($s->clean_parent_phone ?? $s->parent_phone ?? ''), DataType::TYPE_STRING);
+            $sheet->setCellValue("BE{$currentRow}", $s->parent_email ?? ($fd['parent_email'] ?? '-'));
+
+            // 58-67: Fisik & Kesehatan
+            $sheet->setCellValue("BF{$currentRow}", $s->child_order ?? '-');
+            $sheet->setCellValue("BG{$currentRow}", $s->siblings_count ?? '-');
+            $sheet->setCellValue("BH{$currentRow}", $s->blood_type ?? '-');
+            $sheet->setCellValue("BI{$currentRow}", $s->special_needs ?? 'Tidak ada');
+            $sheet->setCellValue("BJ{$currentRow}", $s->height ?? '-');
+            $sheet->setCellValue("BK{$currentRow}", $s->weight ?? '-');
+            $sheet->setCellValue("BL{$currentRow}", $s->head_circumference ?? '-');
+            $sheet->setCellValue("BM{$currentRow}", $s->arm_circumference ?? '-');
+            $sheet->setCellValue("BN{$currentRow}", $healthNotes);
+            $sheet->setCellValue("BO{$currentRow}", $habitsStr);
+
+            // 68-69: Akun & Catatan Khusus
+            $sheet->setCellValueExplicit("BP{$currentRow}", (string)($s->pin_access ?? ''), DataType::TYPE_STRING);
+            $sheet->setCellValue("BQ{$currentRow}", $s->notes ?? '-');
 
             // Alignment
             $sheet->getStyle("A{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("B{$currentRow}:F{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("I{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("D{$currentRow}:I{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("K{$currentRow}:N{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("P{$currentRow}:Q{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("X{$currentRow}:AE{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("AH{$currentRow}:AJ{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("AM{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("AZ{$currentRow}:BA{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("P{$currentRow}:T{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("X{$currentRow}:AA{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("AC{$currentRow}:AD{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("AI{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("AL{$currentRow}:AM{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("AO{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("AS{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("AU{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("AY{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("BC{$currentRow}:BD{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("BF{$currentRow}:BM{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("BP{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
             // Zebra striping
             if ($index % 2 === 1) {
@@ -930,19 +1169,24 @@ class StudentController extends Controller
 
         // Apply borders
         $dataEndRow = max($currentRow - 1, $startRow);
-        $sheet->getStyle("A{$startRow}:{$lastCol}{$dataEndRow}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFE2E8F0'));
+        $sheet->getStyle("A4:{$lastCol}{$dataEndRow}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFE2E8F0'));
 
-        // Freeze pane
-        $sheet->freezePane('G6');
+        // Freeze pane on column C: Freezes Column A (No) and Column B (Nama Lengkap) & Rows 1-5
+        // Allows smooth horizontal scrolling across the remaining 67 columns while keeping student name visible!
+        $sheet->freezePane('C6');
 
-        // Auto-fit column widths
-        foreach (range(1, count($headers)) as $colIndex) {
+        // Column A: FIXED WIDTH (No) -> compact and prevented from auto-sizing against the document banner
+        $sheet->getColumnDimension('A')->setAutoSize(false);
+        $sheet->getColumnDimension('A')->setWidth(7);
+
+        // Columns B through BQ: Auto-fit column widths
+        foreach (range(2, count($headers)) as $colIndex) {
             $colLetter = Coordinate::stringFromColumnIndex($colIndex);
             $sheet->getColumnDimension($colLetter)->setAutoSize(true);
         }
 
         $writer = new Xlsx($spreadsheet);
-        $filename = 'Data_Lengkap_Murid_PAUD_' . date('Ymd_His') . '.xlsx';
+        $filename = $meta['filePrefix'] . '.xlsx';
 
         if ($request->filled('download_token')) {
             setcookie('download_token', $request->query('download_token'), time() + 60, '/', '', false, false);
@@ -968,18 +1212,11 @@ class StudentController extends Controller
     public function exportPdf(Request $request)
     {
         ini_set('memory_limit', '512M');
-        $academicYears = AcademicYear::orderBy('name', 'desc')->get();
-        $activeAcademicYear = $academicYears->firstWhere('is_active', true) ?? $academicYears->first();
-
-        $selectedYearId = $request->get('academic_year_id', $activeAcademicYear?->id);
-        $selectedYear = $academicYears->firstWhere('id', $selectedYearId) ?? $activeAcademicYear;
-
-        $jenjangs = Jenjang::where('is_active', true)->orderBy('order')->get();
-        $selectedJenjangId = $request->get('jenjang_id');
-        $selectedJenjang = $jenjangs->firstWhere('id', $selectedJenjangId);
+        set_time_limit(180);
 
         $students = $this->getFilteredStudentsQuery($request)->get();
-        $fileName = 'Data_Murid_PAUD_' . date('Ymd_His') . '.pdf';
+        $meta = $this->resolveExportMeta($request, $students);
+        $fileName = $meta['filePrefix'] . '.pdf';
 
         if ($request->filled('download_token')) {
             setcookie('download_token', $request->query('download_token'), time() + 60, '/', '', false, false);
@@ -987,8 +1224,11 @@ class StudentController extends Controller
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.students.pdf', [
             'students' => $students,
-            'selectedYear' => $selectedYear,
-            'selectedJenjang' => $selectedJenjang,
+            'selectedYear' => $meta['selectedYear'],
+            'selectedJenjang' => $meta['selectedJenjang'],
+            'filterDetails' => $meta['filterDetails'],
+            'mainTitle' => $meta['mainTitle'],
+            'meta' => $meta,
         ])->setPaper('a4', 'landscape');
 
         $response = $pdf->download($fileName);
