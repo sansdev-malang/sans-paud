@@ -13,6 +13,11 @@ class BonusReportController extends Controller
 {
     public function index(Request $request)
     {
+        $user = auth()->user();
+        if (! $user || ! $user->hasRole('super_admin')) {
+            return redirect()->route('attendances.index')->with('info', 'Rincian kehadiran dan bonus harian Anda dapat dilihat langsung pada menu Data Kehadiran.');
+        }
+
         $cutoffDate = (int) Setting::get('payroll_cutoff_date', 26);
         $month = $request->query('month');
         if (empty($month)) {
@@ -64,40 +69,23 @@ class BonusReportController extends Controller
             // Preload employee positions for fast in-memory lookup
             $employeePositions = \App\Models\Employee::pluck('position', 'id')->toArray();
 
-            // Apply Role-based filtering:
-            // Hanya Super Admin yang melihat rekap seluruh pegawai.
-            // User lainnya (guru, staf, admin unit, kepala sekolah) hanya melihat bonus kehadiran miliknya sendiri (seperti Slip Gaji).
-            $user = auth()->user();
-            $isSuperAdmin = $user && $user->hasRole('super_admin');
+            // Apply Search filter
+            if (!empty($search)) {
+                $reports = $reports->filter(function ($item) use ($search) {
+                    $name = $item['employee']['name'] ?? '';
+                    $nip = $item['employee']['nuptk_nip_nik'] ?? ($item['employee']['nuptk'] ?? ($item['employee']['nip'] ?? ''));
+                    return stripos($name, $search) !== false || stripos($nip, $search) !== false;
+                })->values();
+            }
 
-            if (! $isSuperAdmin) {
-                // If not super admin, only show their own report
-                if ($user && $user->employee_id) {
-                    $reports = $reports->filter(function ($item) use ($user) {
-                        return ($item['employee']['id'] ?? 0) == $user->employee_id;
-                    })->values();
-                } else {
-                    $reports = collect();
-                }
-            } else {
-                // Apply Search filter for admins
-                if (!empty($search)) {
-                    $reports = $reports->filter(function ($item) use ($search) {
-                        $name = $item['employee']['name'] ?? '';
-                        $nip = $item['employee']['nuptk_nip_nik'] ?? ($item['employee']['nuptk'] ?? ($item['employee']['nip'] ?? ''));
-                        return stripos($name, $search) !== false || stripos($nip, $search) !== false;
-                    })->values();
-                }
-
-                // Apply Position filter for admins using preloaded array lookup
-                $position = $request->query('position');
-                if (!empty($position)) {
-                    $reports = $reports->filter(function ($item) use ($position, $employeePositions) {
-                        $empId = $item['employee']['id'] ?? 0;
-                        $empPos = $item['employee']['position'] ?? ($employeePositions[$empId] ?? '');
-                        return $empPos === $position;
-                    })->values();
-                }
+            // Apply Position filter using preloaded array lookup
+            $position = $request->query('position');
+            if (!empty($position)) {
+                $reports = $reports->filter(function ($item) use ($position, $employeePositions) {
+                    $empId = $item['employee']['id'] ?? 0;
+                    $empPos = $item['employee']['position'] ?? ($employeePositions[$empId] ?? '');
+                    return $empPos === $position;
+                })->values();
             }
 
             // Pagination
@@ -118,10 +106,6 @@ class BonusReportController extends Controller
                 );
             }
 
-            if (! $isSuperAdmin) {
-                return view('bonus-reports.employee-index', compact('paginatedReports', 'month', 'startDateReq', 'endDateReq', 'activeSchema', 'totalSemuaBonus'));
-            }
-
             return view('bonus-reports.index', compact('paginatedReports', 'month', 'startDateReq', 'endDateReq', 'activeSchema', 'totalSemuaBonus', 'positions'));
 
         } catch (\Exception $e) {
@@ -134,6 +118,11 @@ class BonusReportController extends Controller
 
     public function export(Request $request)
     {
+        $user = auth()->user();
+        if (! $user || ! $user->hasRole('super_admin')) {
+            return redirect()->route('attendances.index');
+        }
+
         ini_set('memory_limit', '512M');
         set_time_limit(300);
 
@@ -165,34 +154,21 @@ class BonusReportController extends Controller
             // Preload employee positions for fast filtering
             $employeePositions = \App\Models\Employee::pluck('position', 'id')->toArray();
 
-            $user = auth()->user();
-            $isSuperAdmin = $user && $user->hasRole('super_admin');
+            if (!empty($search)) {
+                $reports = $reports->filter(function ($item) use ($search) {
+                    $name = $item['employee']['name'] ?? '';
+                    $nip = $item['employee']['nuptk_nip_nik'] ?? ($item['employee']['nuptk'] ?? ($item['employee']['nip'] ?? ''));
+                    return stripos($name, $search) !== false || stripos($nip, $search) !== false;
+                })->values();
+            }
 
-            if (! $isSuperAdmin) {
-                if ($user && $user->employee_id) {
-                    $reports = $reports->filter(function ($item) use ($user) {
-                        return ($item['employee']['id'] ?? 0) == $user->employee_id;
-                    })->values();
-                } else {
-                    $reports = collect();
-                }
-            } else {
-                if (!empty($search)) {
-                    $reports = $reports->filter(function ($item) use ($search) {
-                        $name = $item['employee']['name'] ?? '';
-                        $nip = $item['employee']['nuptk_nip_nik'] ?? ($item['employee']['nuptk'] ?? ($item['employee']['nip'] ?? ''));
-                        return stripos($name, $search) !== false || stripos($nip, $search) !== false;
-                    })->values();
-                }
-
-                // Apply Position filter for export
-                if (!empty($position)) {
-                    $reports = $reports->filter(function ($item) use ($position, $employeePositions) {
-                        $empId = $item['employee']['id'] ?? 0;
-                        $empPos = $item['employee']['position'] ?? ($employeePositions[$empId] ?? '');
-                        return $empPos === $position;
-                    })->values();
-                }
+            // Apply Position filter for export
+            if (!empty($position)) {
+                $reports = $reports->filter(function ($item) use ($position, $employeePositions) {
+                    $empId = $item['employee']['id'] ?? 0;
+                    $empPos = $item['employee']['position'] ?? ($employeePositions[$empId] ?? '');
+                    return $empPos === $position;
+                })->values();
             }
 
             $dates = [];
@@ -207,8 +183,7 @@ class BonusReportController extends Controller
 
             $searchStr = !empty($search) ? '_Pencarian_' . preg_replace('/[^A-Za-z0-9]/', '', $search) : '';
             $posStr = !empty($position) ? '_Jabatan_' . preg_replace('/[^A-Za-z0-9]/', '', $position) : '';
-            $userEmpStr = (! $isSuperAdmin && $user && $user->name) ? '_' . preg_replace('/[^A-Za-z0-9]/', '_', $user->name) : '';
-            $baseFileName = 'Bonus_Kehadiran_' . $unitStr . '_' . $month . $userEmpStr . $searchStr . $posStr;
+            $baseFileName = 'Rekap_Bonus_' . $unitStr . '_' . $month . $searchStr . $posStr;
 
             if ($format === 'pdf') {
                 if ($request->filled('download_token')) {
