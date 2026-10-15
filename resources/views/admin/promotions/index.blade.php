@@ -238,16 +238,19 @@
                                 </tr>
                             </template>
                             <template x-for="(st, idx) in graduationStudents" :key="st.id">
-                                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                                <tr @click="st.is_graduated = !st.is_graduated"
+                                    :class="st.is_graduated ? 'bg-emerald-50/40 dark:bg-emerald-950/20' : ''"
+                                    class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer select-none">
                                     <td class="px-5 py-3 text-center">
-                                        <input type="checkbox" x-model="st.is_graduated" class="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4">
+                                        <input type="checkbox" x-model="st.is_graduated" @click.stop class="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer">
                                     </td>
                                     <td class="px-5 py-3 font-mono font-bold text-emerald-600 dark:text-emerald-400" x-text="st.nis"></td>
                                     <td class="px-5 py-3 font-bold text-slate-900 dark:text-slate-100" x-text="st.full_name"></td>
                                     <td class="px-5 py-3 text-slate-600 dark:text-slate-400 whitespace-nowrap" x-text="st.gender === 'P' ? '👧 Perempuan' : '👦 Laki-laki'"></td>
                                     <td class="px-5 py-3">
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                            Aktif
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold transition-colors"
+                                            :class="st.is_graduated ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 font-bold' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700'"
+                                            x-text="st.is_graduated ? 'Dipilih Lulus' : 'Batal / Lewati'">
                                         </span>
                                     </td>
                                 </tr>
