@@ -117,7 +117,7 @@
                                 <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase w-12">No</th>
                                 <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase w-28">NIS</th>
                                 <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase">Nama Ananda</th>
-                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase w-28">L/P</th>
+                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase w-36 whitespace-nowrap">L/P</th>
                                 <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase w-44">Status Kenaikan</th>
                             </tr>
                         </thead>
@@ -134,7 +134,7 @@
                                     <td class="px-5 py-3 text-slate-400 font-mono" x-text="idx + 1"></td>
                                     <td class="px-5 py-3 font-mono font-bold text-indigo-600 dark:text-indigo-400" x-text="st.nis"></td>
                                     <td class="px-5 py-3 font-bold text-slate-900 dark:text-slate-100" x-text="st.full_name"></td>
-                                    <td class="px-5 py-3 text-slate-600 dark:text-slate-400" x-text="st.gender === 'P' ? '👧 Perempuan' : '👦 Laki-laki'"></td>
+                                    <td class="px-5 py-3 text-slate-600 dark:text-slate-400 whitespace-nowrap" x-text="st.gender === 'P' ? '👧 Perempuan' : '👦 Laki-laki'"></td>
                                     <td class="px-5 py-3">
                                         <select x-model="st.action"
                                             class="w-full h-8 px-2.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 font-semibold"
@@ -225,7 +225,7 @@
                                 <th class="px-5 py-3 text-center text-[11px] font-semibold text-slate-500 uppercase w-12">Lulus</th>
                                 <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase w-28">NIS</th>
                                 <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase">Nama Ananda</th>
-                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase w-28">L/P</th>
+                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase w-36 whitespace-nowrap">L/P</th>
                                 <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase w-44">Status Saat Ini</th>
                             </tr>
                         </thead>
@@ -244,7 +244,7 @@
                                     </td>
                                     <td class="px-5 py-3 font-mono font-bold text-emerald-600 dark:text-emerald-400" x-text="st.nis"></td>
                                     <td class="px-5 py-3 font-bold text-slate-900 dark:text-slate-100" x-text="st.full_name"></td>
-                                    <td class="px-5 py-3 text-slate-600 dark:text-slate-400" x-text="st.gender === 'P' ? '👧 Perempuan' : '👦 Laki-laki'"></td>
+                                    <td class="px-5 py-3 text-slate-600 dark:text-slate-400 whitespace-nowrap" x-text="st.gender === 'P' ? '👧 Perempuan' : '👦 Laki-laki'"></td>
                                     <td class="px-5 py-3">
                                         <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                             Aktif
