@@ -349,9 +349,9 @@
                 </div>
 
                 <!-- Dropdown: Kepegawaian & HRD -->
-                <div x-data="{ openHrd: {{ Request::routeIs('employees.*', 'bonus-reports.*', 'leaves.*', 'leave-types.*', 'picket-schedules.admin', 'employee-types.*') ? 'true' : 'false' }} }">
+                <div x-data="{ openHrd: {{ Request::routeIs('employees.*', 'leaves.*', 'leave-types.*', 'picket-schedules.admin', 'employee-types.*') ? 'true' : 'false' }} }">
                     <button @click="openHrd = !openHrd"
-                        class="menu-item w-full flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors text-xs font-medium relative group cursor-pointer {{ Request::routeIs('employees.*', 'bonus-reports.*', 'leaves.*', 'leave-types.*', 'picket-schedules.admin', 'employee-types.*') ? 'text-slate-900 dark:text-slate-50 bg-slate-100 dark:bg-slate-800 font-medium' : '' }}">
+                        class="menu-item w-full flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors text-xs font-medium relative group cursor-pointer {{ Request::routeIs('employees.*', 'leaves.*', 'leave-types.*', 'picket-schedules.admin', 'employee-types.*') ? 'text-slate-900 dark:text-slate-50 bg-slate-100 dark:bg-slate-800 font-medium' : '' }}">
                         <div class="flex items-center gap-3">
                             <i data-lucide="users-2" class="menu-icon w-4 h-4 shrink-0"></i>
                             <span class="menu-text">Kepegawaian & HRD</span>
@@ -371,14 +371,6 @@
                             class="flex items-center justify-between gap-2 py-1 text-xs font-medium {{ Request::routeIs('employees.*') ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100' }} transition-colors">
                             <span>Data Pegawai</span>
                         </a>
-
-                        @if(auth()->user()->hasRole('super_admin'))
-                        <!-- Rekap Bonus (Hanya Super Admin) -->
-                        <a href="{{ route('bonus-reports.index') }}"
-                            class="flex items-center justify-between gap-2 py-1 text-xs font-medium {{ Request::routeIs('bonus-reports.*') ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100' }} transition-colors">
-                            <span>Rekap Bonus</span>
-                        </a>
-                        @endif
 
                         <!-- Riwayat Izin & Cuti -->
                         <a href="{{ route('leaves.index') }}"
