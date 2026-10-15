@@ -118,7 +118,7 @@
                                 <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase w-28">NIS</th>
                                 <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase">Nama Ananda</th>
                                 <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase w-36 whitespace-nowrap">L/P</th>
-                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase w-44">Status Kenaikan</th>
+                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase w-72 whitespace-nowrap">Status Kenaikan</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
@@ -135,7 +135,7 @@
                                     <td class="px-5 py-3 font-mono font-bold text-indigo-600 dark:text-indigo-400" x-text="st.nis"></td>
                                     <td class="px-5 py-3 font-bold text-slate-900 dark:text-slate-100" x-text="st.full_name"></td>
                                     <td class="px-5 py-3 text-slate-600 dark:text-slate-400 whitespace-nowrap" x-text="st.gender === 'P' ? '👧 Perempuan' : '👦 Laki-laki'"></td>
-                                    <td class="px-5 py-3">
+                                    <td class="px-5 py-3 min-w-[220px]">
                                         <select x-model="st.action"
                                             class="w-full h-8 px-2.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 font-semibold"
                                             :class="st.action === 'promote' ? 'text-indigo-600 dark:text-indigo-400' : (st.action === 'stay' ? 'text-amber-600' : 'text-rose-600')">
