@@ -64,13 +64,21 @@ class BonusReportController extends Controller
             // Preload employee positions for fast in-memory lookup
             $employeePositions = \App\Models\Employee::pluck('position', 'id')->toArray();
 
-            // Apply Role-based filtering
+            // Apply Role-based filtering:
+            // Hanya Super Admin yang melihat rekap seluruh pegawai.
+            // User lainnya (guru, staf, admin unit, kepala sekolah) hanya melihat bonus kehadiran miliknya sendiri (seperti Slip Gaji).
             $user = auth()->user();
-            if ($user && $user->role === 'employee' && $user->employee_id) {
-                // If it's a regular employee, only show their own report
-                $reports = $reports->filter(function ($item) use ($user) {
-                    return ($item['employee']['id'] ?? 0) == $user->employee_id;
-                })->values();
+            $isSuperAdmin = $user && $user->hasRole('super_admin');
+
+            if (! $isSuperAdmin) {
+                // If not super admin, only show their own report
+                if ($user && $user->employee_id) {
+                    $reports = $reports->filter(function ($item) use ($user) {
+                        return ($item['employee']['id'] ?? 0) == $user->employee_id;
+                    })->values();
+                } else {
+                    $reports = collect();
+                }
             } else {
                 // Apply Search filter for admins
                 if (!empty($search)) {
@@ -110,7 +118,7 @@ class BonusReportController extends Controller
                 );
             }
 
-            if ($user && $user->role === 'employee' && $user->employee_id) {
+            if (! $isSuperAdmin) {
                 return view('bonus-reports.employee-index', compact('paginatedReports', 'month', 'startDateReq', 'endDateReq', 'activeSchema', 'totalSemuaBonus'));
             }
 
@@ -158,10 +166,16 @@ class BonusReportController extends Controller
             $employeePositions = \App\Models\Employee::pluck('position', 'id')->toArray();
 
             $user = auth()->user();
-            if ($user && $user->role === 'employee' && $user->employee_id) {
-                $reports = $reports->filter(function ($item) use ($user) {
-                    return ($item['employee']['id'] ?? 0) == $user->employee_id;
-                })->values();
+            $isSuperAdmin = $user && $user->hasRole('super_admin');
+
+            if (! $isSuperAdmin) {
+                if ($user && $user->employee_id) {
+                    $reports = $reports->filter(function ($item) use ($user) {
+                        return ($item['employee']['id'] ?? 0) == $user->employee_id;
+                    })->values();
+                } else {
+                    $reports = collect();
+                }
             } else {
                 if (!empty($search)) {
                     $reports = $reports->filter(function ($item) use ($search) {
@@ -193,7 +207,8 @@ class BonusReportController extends Controller
 
             $searchStr = !empty($search) ? '_Pencarian_' . preg_replace('/[^A-Za-z0-9]/', '', $search) : '';
             $posStr = !empty($position) ? '_Jabatan_' . preg_replace('/[^A-Za-z0-9]/', '', $position) : '';
-            $baseFileName = 'Rekap_Bonus_' . $unitStr . '_' . $month . $searchStr . $posStr;
+            $userEmpStr = (! $isSuperAdmin && $user && $user->name) ? '_' . preg_replace('/[^A-Za-z0-9]/', '_', $user->name) : '';
+            $baseFileName = 'Bonus_Kehadiran_' . $unitStr . '_' . $month . $userEmpStr . $searchStr . $posStr;
 
             if ($format === 'pdf') {
                 if ($request->filled('download_token')) {

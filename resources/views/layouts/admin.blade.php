@@ -23,8 +23,8 @@
                 $routeName = request()->route() ? request()->route()->getName() : '';
                 $routeTitles = [
                     'dashboard' => 'Dashboard',
-                    'bonus-reports.index' => 'Rekap Bonus Ketepatan Waktu',
-                    'attendances.index' => 'Data Riwayat Absensi',
+                    'bonus-reports.index' => 'Bonus Kehadiran',
+                    'attendances.index' => 'Data Kehadiran',
                     'leaves.index' => 'Izin & Cuti',
                     'my-leaves.index' => 'Pengajuan Izin',
                     'my-attendance' => 'Absensi Saya',

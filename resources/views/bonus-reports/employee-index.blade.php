@@ -16,7 +16,7 @@
         <!-- HEADER SECTION -->
         <header class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
             <div class="flex flex-col gap-0.5">
-                <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">Rekap Bonus Ketepatan Waktu</h2>
+                <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">Bonus Kehadiran</h2>
                 <p class="text-xs text-slate-500 dark:text-slate-400">Rincian perolehan bonus Anda berdasarkan ketepatan waktu kehadiran harian.</p>
             </div>
             <div class="flex flex-wrap items-center gap-4 w-full md:w-auto justify-between md:justify-end">
