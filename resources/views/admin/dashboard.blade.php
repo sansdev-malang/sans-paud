@@ -764,6 +764,12 @@
                             <i data-lucide="user" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-600 dark:text-slate-400 group-hover:scale-105 transition-transform"></i>
                             <span class="text-[10px] sm:text-[11px] font-medium text-slate-700 dark:text-slate-300 mt-1.5">Profil</span>
                         </button>
+                        @if(auth()->user()->role !== 'employee')
+                        <button onclick="window.location='{{ route('bonus-reports.index') }}'" class="flex flex-col items-center justify-center p-2.5 sm:p-3 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg group transition-all duration-100 cursor-pointer">
+                            <i data-lucide="award" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-600 dark:text-slate-400 group-hover:scale-105 transition-transform"></i>
+                            <span class="text-[10px] sm:text-[11px] font-medium text-slate-700 dark:text-slate-300 mt-1.5">{{ auth()->user()->hasRole('super_admin') ? 'Rekap Bonus' : 'Bonus Kehadiran' }}</span>
+                        </button>
+                        @endif
                         <button onclick="window.location='{{ route('payslips.index') }}'" class="flex flex-col items-center justify-center p-2.5 sm:p-3 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg group transition-all duration-100 cursor-pointer">
                             <i data-lucide="receipt" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-600 dark:text-slate-400 group-hover:scale-105 transition-transform"></i>
                             <span class="text-[10px] sm:text-[11px] font-medium text-slate-700 dark:text-slate-300 mt-1.5">Slip Gaji</span>
