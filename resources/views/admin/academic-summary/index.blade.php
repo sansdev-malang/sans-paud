@@ -165,12 +165,12 @@
                 <table class="w-full text-xs border-collapse">
                     <thead>
                         <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-900/50">
-                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-40">Tahun Ajaran</th>
-                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-32">Jenjang</th>
-                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-32">Kelas</th>
-                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Rombel</th>
-                            <th class="px-5 py-3.5 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-36">Jumlah Murid</th>
-                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Wali Kelas</th>
+                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-40 whitespace-nowrap">Tahun Ajaran</th>
+                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-56 whitespace-nowrap">Jenjang</th>
+                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-52 whitespace-nowrap">Kelas</th>
+                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-44 whitespace-nowrap">Rombel</th>
+                            <th class="px-5 py-3.5 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-36 whitespace-nowrap">Jumlah Murid</th>
+                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[200px] whitespace-nowrap">Wali Kelas</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
@@ -179,7 +179,7 @@
                                 class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors group">
                                 
                                 <!-- 1. Tahun Ajaran -->
-                                <td class="px-5 py-3.5 font-semibold text-slate-900 dark:text-slate-100">
+                                <td class="px-5 py-3.5 font-semibold text-slate-900 dark:text-slate-100 whitespace-nowrap">
                                     <span class="inline-flex items-center gap-1.5 font-bold">
                                         <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400"></i>
                                         {{ $r['academic_year_name'] }}
@@ -187,19 +187,19 @@
                                 </td>
 
                                 <!-- 2. Jenjang -->
-                                <td class="px-5 py-3.5">
-                                    <span class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                                <td class="px-5 py-3.5 whitespace-nowrap">
+                                    <span class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 whitespace-nowrap">
                                         {{ $r['jenjang_name'] }}
                                     </span>
                                 </td>
 
                                 <!-- 3. Kelas -->
-                                <td class="px-5 py-3.5 font-bold text-slate-800 dark:text-slate-200">
+                                <td class="px-5 py-3.5 font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap">
                                     {{ $r['class_level_name'] }}
                                 </td>
 
                                 <!-- 4. Rombel -->
-                                <td class="px-5 py-3.5">
+                                <td class="px-5 py-3.5 whitespace-nowrap">
                                     <div class="flex items-center gap-2">
                                         <div class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center font-bold text-xs shrink-0">
                                             <i data-lucide="shapes" class="w-3.5 h-3.5 text-indigo-600"></i>
@@ -211,7 +211,7 @@
                                 </td>
 
                                 <!-- 5. Jumlah Murid -->
-                                <td class="px-5 py-3.5 text-center">
+                                <td class="px-5 py-3.5 text-center whitespace-nowrap">
                                     <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold {{ $r['student_count'] > 0 ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700' }}">
                                         <i data-lucide="users" class="w-3.5 h-3.5"></i>
                                         <span>{{ $r['student_count'] }} Murid</span>
@@ -219,7 +219,7 @@
                                 </td>
 
                                 <!-- 6. Wali Kelas -->
-                                <td class="px-5 py-3.5">
+                                <td class="px-5 py-3.5 whitespace-nowrap">
                                     <div class="flex items-center gap-2.5">
                                         @if($r['teacher_photo'])
                                             <img src="{{ asset('storage/' . $r['teacher_photo']) }}" alt="{{ $r['homeroom_teacher_name'] }}" class="w-7 h-7 rounded-full object-cover shrink-0 ring-1 ring-slate-200 dark:ring-slate-700">
