@@ -22,13 +22,13 @@
         <div class="flex border-b border-slate-200 dark:border-slate-800 gap-6 text-xs font-bold">
             <button type="button" @click="activeTab = 'promotion'"
                 :class="activeTab === 'promotion' ? 'border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'"
-                class="pb-3 border-b-2 transition-all flex items-center gap-2 cursor-pointer">
+                class="pb-3 border-b-2 transition-all flex items-center gap-2 cursor-pointer border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400">
                 <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
                 Kenaikan Kelas (Promosi Jenjang)
             </button>
             <button type="button" @click="activeTab = 'graduation'"
                 :class="activeTab === 'graduation' ? 'border-emerald-600 text-emerald-600 dark:border-emerald-400 dark:text-emerald-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'"
-                class="pb-3 border-b-2 transition-all flex items-center gap-2 cursor-pointer">
+                class="pb-3 border-b-2 transition-all flex items-center gap-2 cursor-pointer border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
                 <i data-lucide="graduation-cap" class="w-4 h-4"></i>
                 Kelulusan (KB-B, TK-B, TPA 3 & TPQ)
             </button>
@@ -161,7 +161,7 @@
         </div>
 
         <!-- ================= TAB 2: KELULUSAN (ALUMNI) ================= -->
-        <div x-show="activeTab === 'graduation'" class="space-y-6">
+        <div x-show="activeTab === 'graduation'" x-cloak style="display: none;" class="space-y-6">
             
             <!-- Setup Kelulusan Card -->
             <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
