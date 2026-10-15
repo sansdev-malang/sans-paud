@@ -42,20 +42,36 @@ class TeacherController extends Controller
             $query->where('unit', $schoolUnit);
         }
 
-        // Filter by Sub-Unit diampu
-        if ($request->filled('sub_unit') && $request->sub_unit !== 'all') {
-            $subUnit = $request->sub_unit;
-            $query->whereHas('classrooms', function ($q) use ($subUnit) {
-                $q->where('sub_unit', $subUnit);
+        // Filter by Sub-Unit diampu (Jenjang)
+        $subUnit = $request->input('sub_unit');
+        $subUnits = [];
+        if ($request->filled('sub_unit') && $subUnit !== 'all') {
+            $subUnits = ($subUnit === 'KB' || $subUnit === 'PG') ? ['PG', 'KB'] : [$subUnit];
+            $query->whereHas('classrooms', function ($q) use ($subUnits) {
+                $q->whereIn('sub_unit', $subUnits);
             });
         }
 
+        // Ambil daftar kelompok terkait jenjang yang dipilih
+        $classroomsQuery = \App\Models\Classroom::where('is_active', true);
+        if (!empty($subUnits)) {
+            $classroomsQuery->whereIn('sub_unit', $subUnits);
+        } else {
+            $classroomsQuery->orderBy('sub_unit');
+        }
+        $classrooms = $classroomsQuery->orderBy('name')->get();
+
         // Filter by Kelompok
-        if ($request->filled('classroom_id') && $request->classroom_id !== 'all') {
-            $classroomId = $request->classroom_id;
-            $query->whereHas('classrooms', function ($q) use ($classroomId) {
-                $q->where('id', $classroomId);
-            });
+        $classroomId = $request->input('classroom_id');
+        if ($request->filled('classroom_id') && $classroomId !== 'all') {
+            // Jika jenjang dipilih namun kelompok yang dipilih tidak termasuk dalam jenjang tersebut, reset filter kelompok
+            if (!empty($subUnits) && !$classrooms->contains('id', $classroomId)) {
+                $classroomId = null;
+            } else {
+                $query->whereHas('classrooms', function ($q) use ($classroomId) {
+                    $q->where('id', $classroomId);
+                });
+            }
         }
 
         // Apply Search
@@ -97,7 +113,6 @@ class TeacherController extends Controller
             $perPage = $query->count() > 0 ? $query->count() : 1;
         }
         $teachers = $query->orderBy('name', 'asc')->paginate($perPage)->withQueryString();
-        $classrooms = \App\Models\Classroom::where('is_active', true)->orderBy('sub_unit')->orderBy('name')->get();
 
         return view('admin.teachers.index', compact('teachers', 'totalGuru', 'guruMale', 'guruFemale', 'certifiedPercent', 'classrooms'));
     }
@@ -187,7 +202,10 @@ class TeacherController extends Controller
 
         $teacherType = $this->getTeacherType();
         $validated['employee_type_id'] = $teacherType->id;
-        $validated['unit'] = config('app.school_unit') ?: 'sd';
+        $validated['unit'] = config('app.school_unit') ?: 'paud';
+        if (empty($validated['position'])) {
+            $validated['position'] = 'Guru Kelas';
+        }
 
         Employee::create($validated);
 
@@ -286,6 +304,10 @@ class TeacherController extends Controller
             
             $image->save($fullPath, 80);
             $validated['photo'] = $filename;
+        }
+
+        if (empty($validated['position'])) {
+            $validated['position'] = 'Guru Kelas';
         }
 
         $teacher->update($validated);
@@ -412,14 +434,26 @@ class TeacherController extends Controller
             $sheet->getColumnDimension($colLetter)->setAutoSize(true);
         }
 
+        if (request()->filled('download_token')) {
+            if (!headers_sent()) {
+                @setcookie('download_token', request()->query('download_token'), time() + 60, '/', '', false, false);
+            }
+        }
+
         $writer = new Xlsx($spreadsheet);
 
-        return response()->streamDownload(function () use ($writer) {
+        $response = response()->streamDownload(function () use ($writer) {
             $writer->save('php://output');
         }, 'Template_Guru.xlsx', [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Cache-Control' => 'max-age=0',
         ]);
+
+        if (request()->filled('download_token')) {
+            $response->headers->setCookie(cookie('download_token', request()->query('download_token'), 1, '/', null, false, false));
+        }
+
+        return $response;
     }
 
     /**
@@ -586,6 +620,255 @@ class TeacherController extends Controller
         }
 
         return redirect()->back()->with('success', "Berhasil mengimpor {$importedCount} data guru!");
+    }
+
+    /**
+     * Get filtered teachers collection for export.
+     */
+    private function getFilteredTeachers(Request $request)
+    {
+        $teacherType = $this->getTeacherType();
+        $query = Employee::where('employee_type_id', $teacherType->id)
+            ->with(['classrooms.classLevel', 'classrooms.students' => function ($q) {
+                $q->where('status', 'aktif');
+            }]);
+
+        // Filter by school unit if configured
+        $schoolUnit = config('app.school_unit');
+        if ($schoolUnit) {
+            $query->where('unit', $schoolUnit);
+        }
+
+        // Filter by Sub-Unit diampu (Jenjang)
+        $subUnit = $request->input('sub_unit');
+        $subUnits = [];
+        if ($request->filled('sub_unit') && $subUnit !== 'all') {
+            $subUnits = ($subUnit === 'KB' || $subUnit === 'PG') ? ['PG', 'KB'] : [$subUnit];
+            $query->whereHas('classrooms', function ($q) use ($subUnits) {
+                $q->whereIn('sub_unit', $subUnits);
+            });
+        }
+
+        // Filter by Kelompok
+        $classroomId = $request->input('classroom_id');
+        if ($request->filled('classroom_id') && $classroomId !== 'all') {
+            $query->whereHas('classrooms', function ($q) use ($classroomId) {
+                $q->where('id', $classroomId);
+            });
+        }
+
+        // Apply Search
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('nik', 'like', "%{$search}%")
+                  ->orWhere('nuptk', 'like', "%{$search}%")
+                  ->orWhere('position', 'like', "%{$search}%");
+            });
+        }
+
+        // Apply Status
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        return $query->orderBy('name', 'asc')->get();
+    }
+
+    /**
+     * Export filtered teachers data to Excel (.xlsx).
+     */
+    public function exportExcel(Request $request)
+    {
+        $teachers = $this->getFilteredTeachers($request);
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Data Guru');
+
+        $headers = [
+            'No',
+            'Nama Lengkap & Gelar',
+            'Gelar Depan',
+            'Nama (Tanpa Gelar)',
+            'Gelar Belakang',
+            'Jenis Kelamin',
+            'Jabatan Utama',
+            'Jabatan Tambahan',
+            'Kelompok Diampu',
+            'Total Murid Asuhan',
+            'Status Keaktifan',
+            'Status Kepegawaian',
+            'NIK',
+            'NIY / NIP',
+            'NUPTK',
+            'No. UKG',
+            'NRG',
+            'Pangkat / Golongan',
+            'Pendidikan Terakhir',
+            'Jurusan',
+            'Tempat Lahir',
+            'Tanggal Lahir',
+            'No. HP / WA',
+            'Email',
+            'TMT (Mulai Tugas)',
+            'Tanggal Diangkat',
+            'Nomor SK Terakhir',
+            'Tanggal SK Terakhir',
+            'Masa Kerja',
+            'ID ZKTeco (PIN)',
+            'Alamat',
+            'Catatan'
+        ];
+
+        // Tulis Header di baris 1
+        foreach ($headers as $colIndex => $header) {
+            $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex + 1);
+            $sheet->setCellValue($colLetter . '1', $header);
+        }
+
+        // Tulis Data baris 2 dst
+        $row = 2;
+        $no = 1;
+        foreach ($teachers as $t) {
+            $fullName = ($t->front_title ? $t->front_title . ' ' : '') . $t->name . ($t->back_title ? ', ' . $t->back_title : '');
+            $genderText = in_array($t->gender, ['Female', 'P', 'Perempuan']) ? 'Perempuan' : 'Laki-laki';
+            
+            $statusText = 'Aktif';
+            if ($t->status == 'Leave') $statusText = 'Cuti';
+            if ($t->status == 'Inactive') $statusText = 'Nonaktif';
+
+            $assignedClassrooms = $t->classrooms;
+            $classroomsStr = $assignedClassrooms->map(fn($c) => "[{$c->sub_unit}] {$c->name}")->implode(', ');
+            if (empty($classroomsStr)) {
+                $classroomsStr = '-';
+            }
+            $totalMurid = $assignedClassrooms->sum(fn($c) => $c->students->count());
+
+            $sheet->setCellValue('A' . $row, $no++);
+            $sheet->setCellValue('B' . $row, $fullName);
+            $sheet->setCellValue('C' . $row, $t->front_title ?? '');
+            $sheet->setCellValue('D' . $row, $t->name);
+            $sheet->setCellValue('E' . $row, $t->back_title ?? '');
+            $sheet->setCellValue('F' . $row, $genderText);
+            $sheet->setCellValue('G' . $row, $t->position ?? 'Guru Kelas');
+            $sheet->setCellValue('H' . $row, $t->additional_position ?? '-');
+            $sheet->setCellValue('I' . $row, $classroomsStr);
+            $sheet->setCellValue('J' . $row, $totalMurid);
+            $sheet->setCellValue('K' . $row, $statusText);
+            $sheet->setCellValue('L' . $row, $t->employment_status ?? '-');
+            $sheet->setCellValueExplicit('M' . $row, (string) ($t->nik ?? ''), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit('N' . $row, (string) ($t->niy ?? ''), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit('O' . $row, (string) ($t->nuptk ?? ''), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit('P' . $row, (string) ($t->no_ukg ?? ''), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit('Q' . $row, (string) ($t->nrg ?? ''), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $sheet->setCellValue('R' . $row, $t->pangkat_golongan ?? '-');
+            $sheet->setCellValue('S' . $row, $t->last_education ?? '-');
+            $sheet->setCellValue('T' . $row, $t->major ?? '-');
+            $sheet->setCellValue('U' . $row, $t->birth_place ?? '-');
+            $sheet->setCellValue('V' . $row, !empty($t->birth_date) ? date('d/m/Y', strtotime($t->birth_date)) : '-');
+            $sheet->setCellValueExplicit('W' . $row, (string) ($t->phone ?? '-'), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $sheet->setCellValue('X' . $row, $t->email ?? '-');
+            $sheet->setCellValue('Y' . $row, !empty($t->task_start_date) ? date('d/m/Y', strtotime($t->task_start_date)) : '-');
+            $sheet->setCellValue('Z' . $row, !empty($t->appointment_date) ? date('d/m/Y', strtotime($t->appointment_date)) : '-');
+            $sheet->setCellValue('AA' . $row, $t->last_sk_number ?? '-');
+            $sheet->setCellValue('AB' . $row, !empty($t->last_sk_date) ? date('d/m/Y', strtotime($t->last_sk_date)) : '-');
+            $sheet->setCellValue('AC' . $row, $t->work_period ?? '-');
+            $sheet->setCellValueExplicit('AD' . $row, (string) ($t->zkteco_uid ?? ''), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $sheet->setCellValue('AE' . $row, $t->address ?? '-');
+            $sheet->setCellValue('AF' . $row, $t->notes ?? '-');
+
+            $row++;
+        }
+
+        // Styling Header
+        $lastCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(count($headers));
+        $headerRange = 'A1:' . $lastCol . '1';
+        $sheet->getStyle($headerRange)->getFont()->setBold(true)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_WHITE));
+        $sheet->getStyle($headerRange)->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FF4F46E5'); // Indigo 600
+        $sheet->getStyle($headerRange)->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+        $sheet->getRowDimension(1)->setRowHeight(28);
+
+        // Auto-size columns
+        foreach (range(1, count($headers)) as $colIndex) {
+            $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
+            $sheet->getColumnDimension($colLetter)->setAutoSize(true);
+        }
+
+        // Border styling untuk seluruh data
+        if ($row > 2) {
+            $dataRange = 'A1:' . $lastCol . ($row - 1);
+            $sheet->getStyle($dataRange)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFCBD5E1'));
+        }
+
+        $fileName = 'Data_Guru_PAUD_' . date('Ymd_His') . '.xlsx';
+
+        if ($request->filled('download_token')) {
+            setcookie('download_token', $request->query('download_token'), time() + 60, '/', '', false, false);
+        }
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $fileName . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer = new Xlsx($spreadsheet);
+        $writer->save('php://output');
+        exit;
+    }
+
+    /**
+     * Export filtered teachers data to PDF.
+     */
+    public function exportPdf(Request $request)
+    {
+        ini_set('memory_limit', '512M');
+        $teachers = $this->getFilteredTeachers($request);
+        $fileName = 'Data_Guru_PAUD_' . date('Ymd_His') . '.pdf';
+
+        $filterSubUnit = $request->input('sub_unit');
+        $filterClassroomId = $request->input('classroom_id');
+        $filterStatus = $request->input('status');
+
+        $activeSubUnitLabel = 'Semua Jenjang';
+        if ($filterSubUnit && $filterSubUnit !== 'all') {
+            $labels = ['PG' => 'Playgroup (KB)', 'TK' => 'TK', 'DAYCARE' => 'Daycare', 'TPQ' => 'TPQ'];
+            $activeSubUnitLabel = $labels[$filterSubUnit] ?? $filterSubUnit;
+        }
+
+        $activeClassroomLabel = 'Semua Kelompok';
+        if ($filterClassroomId && $filterClassroomId !== 'all') {
+            $cls = \App\Models\Classroom::find($filterClassroomId);
+            if ($cls) {
+                $activeClassroomLabel = $cls->name;
+            }
+        }
+
+        $principal = Employee::where(function($q) {
+            $q->where('position', 'like', '%Kepala Sekolah%')
+              ->orWhere('position', 'like', '%Kepsek%');
+        })->first();
+        $headmasterName = $principal?->name ?? setting('headmaster_name', setting('school_principal_name', 'Dra. Hj. Nurul Hidayati, M.Pd'));
+        $headmasterNip = $principal?->nip ?? setting('headmaster_nip', setting('school_principal_nip', '19750815 200212 2 003'));
+        $schoolCity = setting('school_city', 'Malang');
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.teachers.pdf', [
+            'teachers' => $teachers,
+            'activeSubUnitLabel' => $activeSubUnitLabel,
+            'activeClassroomLabel' => $activeClassroomLabel,
+            'filterStatus' => $filterStatus,
+            'headmasterName' => $headmasterName,
+            'headmasterNip' => $headmasterNip,
+            'schoolCity' => $schoolCity,
+        ])->setPaper('a4', 'landscape');
+
+        $response = $pdf->download($fileName);
+        if ($request->filled('download_token')) {
+            $response->headers->setCookie(cookie('download_token', $request->query('download_token'), 1, '/', null, false, false));
+        }
+        return $response;
     }
 }
 

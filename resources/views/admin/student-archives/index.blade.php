@@ -77,89 +77,45 @@
         @endif
 
         <!-- ========================================================================= -->
-        <!-- METRIC CARDS                                                              -->
+        <!-- ULTRA-COMPACT KPI STRIP                                                   -->
         <!-- ========================================================================= -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <section class="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full text-xs">
             <!-- Total Murid -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-4 shadow-xs">
-                <div class="flex items-center justify-between">
-                    <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Murid</span>
-                    <span class="p-1.5 rounded-lg bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400">
-                        <i data-lucide="users" class="w-4 h-4"></i>
-                    </span>
-                </div>
-                <div class="mt-2 text-xl sm:text-2xl font-black text-slate-900 dark:text-slate-50">
-                    {{ $stats['total'] }}
-                </div>
-                <div class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">
-                    Siswa Aktif di Rombel
-                </div>
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 shadow-2xs">
+                <i data-lucide="users" class="w-3.5 h-3.5 text-teal-600 dark:text-teal-400 shrink-0"></i>
+                <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Total Murid:</span>
+                <span class="font-bold font-mono text-slate-900 dark:text-slate-50">{{ $stats['total'] }}</span>
             </div>
 
             <!-- Berkas Lengkap -->
-            <div class="bg-white dark:bg-slate-900 border border-emerald-200/80 dark:border-emerald-900/60 rounded-xl p-3 sm:p-4 shadow-xs">
-                <div class="flex items-center justify-between">
-                    <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Berkas Lengkap</span>
-                    <span class="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400">
-                        <i data-lucide="check-check" class="w-4 h-4"></i>
-                    </span>
-                </div>
-                <div class="mt-2 text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">
-                    {{ $stats['complete'] }} <span class="text-xs font-normal text-slate-400">({{ $stats['percentage'] }}%)</span>
-                </div>
-                <div class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">
-                    Akta, KK & Foto Ada
-                </div>
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-900/40 rounded-lg text-emerald-800 dark:text-emerald-300 shadow-2xs">
+                <i data-lucide="check-check" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0"></i>
+                <span class="text-[11px] font-medium">Lengkap:</span>
+                <span class="font-bold font-mono">{{ $stats['complete'] }}</span>
+                <span class="text-[10px] font-semibold text-emerald-600/80 dark:text-emerald-400/80">({{ $stats['percentage'] }}%)</span>
             </div>
 
             <!-- Belum Lengkap -->
-            <div class="bg-white dark:bg-slate-900 border border-rose-200/80 dark:border-rose-900/60 rounded-xl p-3 sm:p-4 shadow-xs">
-                <div class="flex items-center justify-between">
-                    <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400">Belum Lengkap</span>
-                    <span class="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400">
-                        <i data-lucide="alert-circle" class="w-4 h-4"></i>
-                    </span>
-                </div>
-                <div class="mt-2 text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400">
-                    {{ $stats['incomplete'] }}
-                </div>
-                <div class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">
-                    Ada Berkas Kurang
-                </div>
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-rose-50/70 dark:bg-rose-955/30 border border-rose-200/60 dark:border-rose-900/40 rounded-lg text-rose-800 dark:text-rose-300 shadow-2xs">
+                <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0"></i>
+                <span class="text-[11px] font-medium">Belum Lengkap:</span>
+                <span class="font-bold font-mono">{{ $stats['incomplete'] }}</span>
             </div>
 
             <!-- Kurang Akta -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-4 shadow-xs">
-                <div class="flex items-center justify-between">
-                    <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Kurang Akta</span>
-                    <span class="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400">
-                        <i data-lucide="file-question" class="w-4 h-4"></i>
-                    </span>
-                </div>
-                <div class="mt-2 text-xl sm:text-2xl font-black text-slate-700 dark:text-slate-300">
-                    {{ $stats['missing_akta'] }}
-                </div>
-                <div class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">
-                    Belum Kumpul Akta
-                </div>
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 rounded-lg text-amber-800 dark:text-amber-300 shadow-2xs">
+                <i data-lucide="file-question" class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0"></i>
+                <span class="text-[11px] font-medium">Kurang Akta:</span>
+                <span class="font-bold font-mono">{{ $stats['missing_akta'] }}</span>
             </div>
 
             <!-- Kurang KK -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-4 shadow-xs col-span-2 sm:col-span-1">
-                <div class="flex items-center justify-between">
-                    <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Kurang KK</span>
-                    <span class="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400">
-                        <i data-lucide="file-warning" class="w-4 h-4"></i>
-                    </span>
-                </div>
-                <div class="mt-2 text-xl sm:text-2xl font-black text-slate-700 dark:text-slate-300">
-                    {{ $stats['missing_kk'] }}
-                </div>
-                <div class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">
-                    Belum Kumpul KK
-                </div>
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 rounded-lg text-amber-800 dark:text-amber-300 shadow-2xs">
+                <i data-lucide="file-warning" class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0"></i>
+                <span class="text-[11px] font-medium">Kurang KK:</span>
+                <span class="font-bold font-mono">{{ $stats['missing_kk'] }}</span>
             </div>
-        </div>
+        </section>
 
         <!-- ========================================================================= -->
         <!-- FILTER BAR: ROMBEL, TAHUN AJARAN, STATUS KELENGKAPAN, PENCARIAN          -->
@@ -179,7 +135,7 @@
                                 $groupedClasses = $classrooms->groupBy('sub_unit');
                             @endphp
                             @foreach($groupedClasses as $unit => $classes)
-                                <optgroup label="Sub-Unit {{ $unit }}">
+                                <optgroup label="{{ $unit }}">
                                     @foreach($classes as $c)
                                         <option value="{{ $c->id }}" {{ $selectedClassroomId == $c->id ? 'selected' : '' }}>
                                             {{ $c->name }} ({{ $c->students_count }} Murid)

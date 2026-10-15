@@ -124,13 +124,19 @@
 
     <div class="no-print">
         <button class="btn-print" onclick="window.print()">Cetak Dokumen / Simpan PDF</button>
+        <button class="btn-print" style="background: #475569; margin-left: 8px;" onclick="window.close()">Tutup Jendela</button>
     </div>
 
     <!-- KOP SEKOLAH -->
     <div class="header">
-        <h1>AGENDA / JURNAL PEMBELAJARAN KELAS</h1>
-        <h2>{{ setting('app_name', 'PAUD ANAK SALEH MALANG') }}</h2>
-        <p>{{ setting('school_address', 'Jl. Candi Kalasan No. 1, Blimbing, Malang, Jawa Timur') }} | Telp: {{ setting('school_phone', '(0341) 491234') }}</p>
+        @if(setting('app_logo'))
+            <img src="{{ asset('storage/' . setting('app_logo')) }}" alt="Logo" style="position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 55px; height: 55px; object-fit: contain;">
+        @endif
+        <div style="{{ setting('app_logo') ? 'padding: 0 65px;' : '' }}">
+            <h1>AGENDA / JURNAL PEMBELAJARAN KELAS</h1>
+            <h2>{{ strtoupper($appName ?? setting('unit_name', setting('app_name', 'PAUD ANAK SALEH MALANG'))) }}</h2>
+            <p>{{ setting('app_address', setting('school_address', 'Jl. Candi Panggung Indah No. 1-3, Mojolangu, Lowokwaru, Kota Malang, Jawa Timur')) }} | Telp/WA: {{ setting('app_phone', setting('school_phone', '+62 812-3456-7890')) }}</p>
+        </div>
     </div>
 
     <!-- META INFORMATION -->
@@ -140,6 +146,7 @@
             <p><span class="label">Wali Kelas</span>: {{ $classroom->homeroomTeacher?->name ?? 'Belum Ditugaskan' }}</p>
         </div>
         <div style="text-align: right;">
+            <p><span class="label" style="text-align: left;">Tahun Ajaran</span>: <strong>{{ $taName ?? '-' }}</strong></p>
             <p><span class="label" style="text-align: left;">Periode Bulan</span>: <strong>{{ $monthName }} {{ $year }}</strong></p>
             <p><span class="label" style="text-align: left;">Tanggal Cetak</span>: {{ date('d/m/Y H:i') }}</p>
         </div>
@@ -168,7 +175,7 @@
                         {{ $j->formatted_time }}
                     </td>
                     <td>
-                        {{ $j->teacher?->name ?? '-' }}
+                        {{ $j->teacher?->name ?? ($classroom->homeroomTeacher?->name ?? '-') }}
                     </td>
                     <td>
                         {{ $j->topic ?: '-' }}
@@ -201,17 +208,17 @@
             <p>Mengetahui,</p>
             <p><strong>Kepala Sekolah</strong></p>
             <div class="signature-space"></div>
-            <p class="signature-name">( ........................................ )</p>
-            <p style="font-size: 8pt; color: #64748b; margin-top: 2px;">NIP/NIY: -</p>
+            <p class="signature-name">{{ $principalName }}</p>
+            <p style="font-size: 8pt; color: #64748b; margin-top: 2px;">NIP/NIY: {{ $principalNip }}</p>
         </div>
 
         <div class="signature-box">
-            <p>Malang, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</p>
+            <p>{{ $schoolCity }}, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</p>
             <p><strong>Wali Kelas</strong></p>
             <div class="signature-space"></div>
             <p class="signature-name">{{ $classroom->homeroomTeacher?->name ?? '( ........................................ )' }}</p>
             <p style="font-size: 8pt; color: #64748b; margin-top: 2px;">
-                NIP/NIY: {{ $classroom->homeroomTeacher?->nip ?? '-' }}
+                NIP/NIY: {{ $classroom->homeroomTeacher?->nip ?? $classroom->homeroomTeacher?->niy ?? '-' }}
             </p>
         </div>
     </div>

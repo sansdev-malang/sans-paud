@@ -19,29 +19,41 @@
             background: #fff;
         }
         .header {
+            position: relative;
             text-align: center;
             border-bottom: 2px solid #0f172a;
             padding-bottom: 12px;
             margin-bottom: 18px;
+            min-height: 60px;
+        }
+        .header-logo {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
         }
         .header h1 {
-            font-size: 14pt;
+            font-size: 13pt;
             margin: 0 0 4px 0;
             font-weight: bold;
             color: #0f172a;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .header h2 {
             font-size: 11pt;
             margin: 0 0 4px 0;
-            font-weight: 600;
-            color: #334155;
+            font-weight: 700;
+            color: #1e293b;
             text-transform: uppercase;
         }
         .header p {
             font-size: 8.5pt;
             margin: 0;
-            color: #64748b;
+            color: #475569;
         }
         .meta-info {
             display: flex;
@@ -127,13 +139,30 @@
 
     <div class="no-print">
         <button class="btn-print" onclick="window.print()">Cetak Dokumen / Simpan PDF</button>
+        <button class="btn-print" style="background: #475569; margin-left: 8px;" onclick="window.close()">Tutup Jendela</button>
     </div>
 
     <!-- KOP / HEADER -->
     <div class="header">
-        <h1>REKAPITULASI PRESENSI KEHADIRAN MURID</h1>
-        <h2>{{ setting('app_name', 'PAUD ANAK SALEH MALANG') }}</h2>
-        <p>{{ setting('school_address', 'Jl. Candi Kalasan No. 1, Blimbing, Malang, Jawa Timur') }} | Telp: {{ setting('school_phone', '(0341) 491234') }}</p>
+        @if(setting('app_logo'))
+            <img src="{{ asset('storage/' . setting('app_logo')) }}" alt="Logo" class="header-logo">
+        @endif
+        <div class="header-text" style="{{ setting('app_logo') ? 'padding: 0 70px;' : '' }}">
+            <h1>REKAPITULASI PRESENSI KEHADIRAN MURID</h1>
+            <h2>{{ strtoupper(setting('unit_name', setting('app_name', 'PAUD ANAK SALEH MALANG'))) }}</h2>
+            <p>{{ setting('app_address', setting('school_address', 'Jl. Candi Panggung Indah No. 1-3, Mojolangu, Lowokwaru, Kota Malang, Jawa Timur')) }}</p>
+            <p style="margin-top: 2px;">
+                @if(setting('app_phone') || setting('school_phone'))
+                    Telp/WA: {{ setting('app_phone', setting('school_phone')) }}
+                @endif
+                @if((setting('app_phone') || setting('school_phone')) && setting('app_email'))
+                    &bull;
+                @endif
+                @if(setting('app_email'))
+                    Email: {{ setting('app_email') }}
+                @endif
+            </p>
+        </div>
     </div>
 
     <!-- META INFORMATION -->
@@ -144,7 +173,7 @@
         </div>
         <div style="text-align: right;">
             <p><span class="label" style="text-align: left;">Periode Bulan</span>: <strong>{{ $monthName }} {{ $year }}</strong></p>
-            <p><span class="label" style="text-align: left;">Tanggal Cetak</span>: {{ date('d/m/Y H:i') }}</p>
+            <p><span class="label" style="text-align: left;">Tanggal Cetak</span>: {{ date('d/m/Y H:i') }} WIB</p>
         </div>
     </div>
 
@@ -208,17 +237,19 @@
             <p>Mengetahui,</p>
             <p><strong>Kepala Sekolah</strong></p>
             <div class="signature-space"></div>
-            <p class="signature-name">( ........................................ )</p>
-            <p style="font-size: 8pt; color: #64748b; margin-top: 2px;">NIP/NIY: -</p>
+            <p class="signature-name">{{ setting('headmaster_name', setting('school_principal_name', '( ........................................ )')) }}</p>
+            <p style="font-size: 8pt; color: #64748b; margin-top: 2px;">
+                NIP/NIY: {{ setting('headmaster_nip', setting('school_principal_nip', '-')) }}
+            </p>
         </div>
 
         <div class="signature-box">
-            <p>Malang, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</p>
+            <p>{{ setting('school_city', 'Malang') }}, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</p>
             <p><strong>Wali Kelas</strong></p>
             <div class="signature-space"></div>
             <p class="signature-name">{{ $classroom->homeroomTeacher?->name ?? '( ........................................ )' }}</p>
             <p style="font-size: 8pt; color: #64748b; margin-top: 2px;">
-                NIP/NIY: {{ $classroom->homeroomTeacher?->nip ?? '-' }}
+                NIP/NIY: {{ $classroom->homeroomTeacher?->nip ?? $classroom->homeroomTeacher?->niy ?? $classroom->homeroomTeacher?->nuptk ?? '-' }}
             </p>
         </div>
     </div>

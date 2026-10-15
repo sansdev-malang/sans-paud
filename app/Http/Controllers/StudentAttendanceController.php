@@ -330,7 +330,7 @@ class StudentAttendanceController extends Controller
 
         // Header Title
         $sheet->setCellValue('A1', 'REKAPITULASI ABSENSI MURID BULANAN');
-        $sheet->setCellValue('A2', strtoupper(setting('app_name', 'PAUD ANAK SALEH MALANG')));
+        $sheet->setCellValue('A2', strtoupper(setting('unit_name', setting('app_name', 'PAUD ANAK SALEH MALANG'))));
         $sheet->setCellValue('A3', "Kelas / Rombel: {$classroom->name} ({$classroom->sub_unit}) | Periode: {$monthName} {$year} | Dicetak: " . date('d/m/Y H:i'));
 
         $sheet->getStyle('A1:A2')->getFont()->setBold(true)->setSize(13);
@@ -419,9 +419,15 @@ class StudentAttendanceController extends Controller
         // Teacher signature area
         $signRow = $currentRow + 3;
         $sheet->setCellValue("B{$signRow}", "Mengetahui,\nKepala Sekolah");
-        $sheet->setCellValue("G{$signRow}", "Malang, " . date('d F Y') . "\nWali Kelas");
+        $city = setting('school_city', 'Malang');
+        $sheet->setCellValue("G{$signRow}", "{$city}, " . \Carbon\Carbon::now()->translatedFormat('d F Y') . "\nWali Kelas");
         $sheet->getStyle("B{$signRow}")->getAlignment()->setWrapText(true)->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle("G{$signRow}")->getAlignment()->setWrapText(true)->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        $principalName = setting('headmaster_name', setting('school_principal_name', '( ................................ )'));
+        $sheet->setCellValue("B" . ($signRow + 4), $principalName);
+        $sheet->getStyle("B" . ($signRow + 4))->getFont()->setBold(true)->setUnderline(true);
+        $sheet->getStyle("B" . ($signRow + 4))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         $teacherName = $classroom->homeroomTeacher?->name ?? '( ................................ )';
         $sheet->setCellValue("G" . ($signRow + 4), $teacherName);
@@ -432,12 +438,24 @@ class StudentAttendanceController extends Controller
         $cleanClassName = preg_replace('/[^A-Za-z0-9_-]/', '_', $classroom->name);
         $filename = "Rekap_Absensi_{$cleanClassName}_{$monthName}_{$year}.xlsx";
 
-        return response()->streamDownload(function () use ($writer) {
+        if ($request->filled('download_token')) {
+            if (!headers_sent()) {
+                @setcookie('download_token', $request->query('download_token'), time() + 60, '/', '', false, false);
+            }
+        }
+
+        $response = response()->streamDownload(function () use ($writer) {
             $writer->save('php://output');
         }, $filename, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Cache-Control' => 'max-age=0',
         ]);
+
+        if ($request->filled('download_token')) {
+            $response->headers->setCookie(cookie('download_token', $request->query('download_token'), 1, '/', null, false, false));
+        }
+
+        return $response;
     }
 
     /**

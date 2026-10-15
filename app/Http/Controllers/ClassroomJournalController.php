@@ -9,6 +9,7 @@ use App\Models\Employee;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -24,10 +25,19 @@ class ClassroomJournalController extends Controller
     public function index(Request $request)
     {
         $classrooms = Classroom::with(['homeroomTeacher', 'classLevel'])
+            ->withCount(['students' => function ($q) {
+                $q->where('status', 'aktif');
+            }])
             ->where('is_active', true)
             ->orderBy('sub_unit', 'asc')
             ->orderBy('name', 'asc')
             ->get();
+
+        // Academic Years List & Selection
+        $academicYears = AcademicYear::orderBy('name', 'desc')->get();
+        $activeAcademicYear = $academicYears->firstWhere('is_active', true) ?? $academicYears->first();
+        $selectedAcademicYearId = $request->get('academic_year_id', $activeAcademicYear?->id);
+        $selectedAcademicYear = $academicYears->firstWhere('id', $selectedAcademicYearId) ?? $activeAcademicYear;
 
         // Default Classroom
         $user = auth()->user();
@@ -45,15 +55,17 @@ class ClassroomJournalController extends Controller
         $selectedClassroomId = $request->get('classroom_id', $defaultClassroomId);
         $selectedClassroom = $classrooms->firstWhere('id', $selectedClassroomId);
 
-        // Filter Month & Year
+        // Filter Month & Calculate Calendar Year based on Academic Year
         $selectedMonth = (int) $request->get('month', Carbon::now()->month);
-        $selectedYear = (int) $request->get('year', Carbon::now()->year);
-
-        // Active Academic Year
-        $activeAcademicYear = AcademicYear::where('is_active', true)->first();
+        
+        $parts = explode('/', $selectedAcademicYear?->name ?? '');
+        $startYear = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : (int)Carbon::now()->year;
+        $endYear = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : ($startYear + 1);
+        $calculatedYear = ($selectedMonth >= 7) ? $startYear : $endYear;
+        $selectedYear = (int) $request->get('year', $calculatedYear);
 
         // Teachers list for dropdown assignment
-        $teachers = Employee::where('status', 'active')
+        $teachers = Employee::whereIn('status', ['Active', 'aktif', 'active', 'Aktif'])
             ->orderBy('name', 'asc')
             ->get();
 
@@ -62,8 +74,17 @@ class ClassroomJournalController extends Controller
         if ($selectedClassroom) {
             $journals = ClassroomJournal::with(['teacher', 'classroom', 'recordedBy'])
                 ->where('classroom_id', $selectedClassroom->id)
-                ->whereYear('date', $selectedYear)
-                ->whereMonth('date', $selectedMonth)
+                ->where(function($q) use ($selectedAcademicYearId, $selectedYear, $selectedMonth) {
+                    $q->where(function($q1) use ($selectedAcademicYearId, $selectedMonth) {
+                        if ($selectedAcademicYearId) {
+                            $q1->where('academic_year_id', $selectedAcademicYearId)
+                               ->whereMonth('date', $selectedMonth);
+                        }
+                    })->orWhere(function($q2) use ($selectedYear, $selectedMonth) {
+                        $q2->whereYear('date', $selectedYear)
+                           ->whereMonth('date', $selectedMonth);
+                    });
+                })
                 ->orderBy('date', 'desc')
                 ->orderBy('start_time', 'desc')
                 ->get();
@@ -74,6 +95,15 @@ class ClassroomJournalController extends Controller
         $distinctDays = $journals->pluck('date')->map(fn($d) => Carbon::parse($d)->format('Y-m-d'))->unique()->count();
         $involvedTeachers = $journals->pluck('teacher_id')->filter()->unique()->count();
 
+        // Dynamic School & Principal Information
+        $principal = Employee::where(function($q) {
+            $q->where('position', 'like', '%Kepala Sekolah%')
+              ->orWhere('position', 'like', '%Kepsek%');
+        })->first();
+        $principalName = $principal?->name ?? setting('headmaster_name', setting('school_principal_name', 'Dra. Hj. Nurul Hidayati, M.Pd'));
+        $principalNip = $principal?->nip ?? setting('headmaster_nip', setting('school_principal_nip', '19750815 200212 2 003'));
+        $schoolCity = setting('school_city', 'Malang');
+
         // Indonesian Month Names
         $monthNames = [
             1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
@@ -81,24 +111,25 @@ class ClassroomJournalController extends Controller
             9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
         ];
 
-        // 5 Years Window
-        $currentYear = (int) Carbon::now()->year;
-        $yearsList = range($currentYear - 3, $currentYear + 2);
-
         return view('admin.classroom-journals.index', compact(
             'classrooms',
+            'academicYears',
+            'activeAcademicYear',
+            'selectedAcademicYear',
+            'selectedAcademicYearId',
             'selectedClassroom',
             'selectedClassroomId',
             'selectedMonth',
             'selectedYear',
-            'activeAcademicYear',
             'teachers',
             'journals',
             'totalEntries',
             'distinctDays',
             'involvedTeachers',
             'monthNames',
-            'yearsList'
+            'principalName',
+            'principalNip',
+            'schoolCity'
         ));
     }
 
@@ -110,6 +141,7 @@ class ClassroomJournalController extends Controller
         $validated = $request->validate([
             'classroom_id' => 'required|exists:classrooms,id',
             'teacher_id' => 'nullable|exists:employees,id',
+            'academic_year_id' => 'nullable|exists:academic_years,id',
             'date' => 'required|date',
             'start_time' => 'nullable',
             'end_time' => 'nullable',
@@ -119,7 +151,7 @@ class ClassroomJournalController extends Controller
         ]);
 
         $classroom = Classroom::find($validated['classroom_id']);
-        $academicYearId = $classroom?->academic_year_id ?? AcademicYear::where('is_active', true)->value('id');
+        $academicYearId = $validated['academic_year_id'] ?? ($classroom?->academic_year_id ?? AcademicYear::where('is_active', true)->value('id'));
 
         // Handle Photo Upload
         $photoPath = null;
@@ -148,8 +180,8 @@ class ClassroomJournalController extends Controller
 
         return redirect()->route('classroom-journals.index', [
             'classroom_id' => $validated['classroom_id'],
+            'academic_year_id' => $academicYearId,
             'month' => Carbon::parse($validated['date'])->month,
-            'year' => Carbon::parse($validated['date'])->year,
         ])->with('success', $message);
     }
 
@@ -163,6 +195,7 @@ class ClassroomJournalController extends Controller
         $validated = $request->validate([
             'classroom_id' => 'required|exists:classrooms,id',
             'teacher_id' => 'nullable|exists:employees,id',
+            'academic_year_id' => 'nullable|exists:academic_years,id',
             'date' => 'required|date',
             'start_time' => 'nullable',
             'end_time' => 'nullable',
@@ -179,7 +212,11 @@ class ClassroomJournalController extends Controller
             $journal->attachment_photo = $request->file('attachment_photo')->store('classroom-journals', 'public');
         }
 
+        $classroom = Classroom::find($validated['classroom_id']);
+        $academicYearId = $validated['academic_year_id'] ?? ($journal->academic_year_id ?? ($classroom?->academic_year_id ?? AcademicYear::where('is_active', true)->value('id')));
+
         $journal->classroom_id = $validated['classroom_id'];
+        $journal->academic_year_id = $academicYearId;
         $journal->teacher_id = ($validated['teacher_id'] ?? null) ?: $journal->teacher_id;
         $journal->date = $validated['date'];
         $journal->start_time = $validated['start_time'] ?? null;
@@ -192,8 +229,8 @@ class ClassroomJournalController extends Controller
 
         return redirect()->route('classroom-journals.index', [
             'classroom_id' => $journal->classroom_id,
+            'academic_year_id' => $journal->academic_year_id,
             'month' => Carbon::parse($journal->date)->month,
-            'year' => Carbon::parse($journal->date)->year,
         ])->with('success', $message);
     }
 
@@ -204,8 +241,8 @@ class ClassroomJournalController extends Controller
     {
         $journal = ClassroomJournal::findOrFail($id);
         $classroomId = $journal->classroom_id;
+        $academicYearId = $journal->academic_year_id;
         $month = Carbon::parse($journal->date)->month;
-        $year = Carbon::parse($journal->date)->year;
 
         if ($journal->attachment_photo && Storage::disk('public')->exists($journal->attachment_photo)) {
             Storage::disk('public')->delete($journal->attachment_photo);
@@ -215,26 +252,44 @@ class ClassroomJournalController extends Controller
 
         return redirect()->route('classroom-journals.index', [
             'classroom_id' => $classroomId,
+            'academic_year_id' => $academicYearId,
             'month' => $month,
-            'year' => $year,
         ])->with('success', 'Entri jurnal kelas berhasil dihapus.');
     }
 
     /**
-     * Export Monthly Classroom Journals to Excel.
+     * Export Monthly Classroom Journals to Excel with download_token sync.
      */
     public function exportExcel(Request $request)
     {
         $classroomId = $request->get('classroom_id');
         $month = (int) $request->get('month', Carbon::now()->month);
-        $year = (int) $request->get('year', Carbon::now()->year);
+        
+        $academicYears = AcademicYear::all();
+        $selectedYearId = $request->get('academic_year_id');
+        $selectedAcademicYear = $academicYears->firstWhere('id', $selectedYearId) ?? $academicYears->firstWhere('is_active', true);
+        
+        $parts = explode('/', $selectedAcademicYear?->name ?? '');
+        $startYear = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : (int)Carbon::now()->year;
+        $endYear = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : ($startYear + 1);
+        $calculatedYear = ($month >= 7) ? $startYear : $endYear;
+        $year = (int) $request->get('year', $calculatedYear);
 
         $classroom = Classroom::with(['homeroomTeacher', 'classLevel'])->findOrFail($classroomId);
 
         $journals = ClassroomJournal::with(['teacher'])
             ->where('classroom_id', $classroom->id)
-            ->whereYear('date', $year)
-            ->whereMonth('date', $month)
+            ->where(function($q) use ($selectedYearId, $year, $month) {
+                $q->where(function($q1) use ($selectedYearId, $month) {
+                    if ($selectedYearId) {
+                        $q1->where('academic_year_id', $selectedYearId)
+                           ->whereMonth('date', $month);
+                    }
+                })->orWhere(function($q2) use ($year, $month) {
+                    $q2->whereYear('date', $year)
+                       ->whereMonth('date', $month);
+                });
+            })
             ->orderBy('date', 'asc')
             ->orderBy('start_time', 'asc')
             ->get();
@@ -246,14 +301,25 @@ class ClassroomJournalController extends Controller
         ];
         $monthName = $monthNames[$month] ?? $month;
 
+        // Dynamic System Data
+        $principal = Employee::where(function($q) {
+            $q->where('position', 'like', '%Kepala Sekolah%')
+              ->orWhere('position', 'like', '%Kepsek%');
+        })->first();
+        $principalName = $principal?->name ?? setting('headmaster_name', setting('school_principal_name', 'Dra. Hj. Nurul Hidayati, M.Pd'));
+        $principalNip = $principal?->nip ?? setting('headmaster_nip', setting('school_principal_nip', '19750815 200212 2 003'));
+        $schoolCity = setting('school_city', 'Malang');
+        $appName = setting('unit_name', setting('app_name', 'PAUD ANAK SALEH MALANG'));
+        $taName = $selectedAcademicYear?->name ?? "{$year}";
+
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Jurnal ' . substr($monthName, 0, 3));
 
         // Header Title
         $sheet->setCellValue('A1', 'AGENDA / JURNAL PEMBELAJARAN KELAS');
-        $sheet->setCellValue('A2', strtoupper(setting('app_name', 'PAUD ANAK SALEH MALANG')));
-        $sheet->setCellValue('A3', "Kelas / Rombel: {$classroom->name} ({$classroom->sub_unit}) | Bulan: {$monthName} {$year} | Dicetak: " . date('d/m/Y H:i'));
+        $sheet->setCellValue('A2', strtoupper($appName));
+        $sheet->setCellValue('A3', "Kelas / Rombel: {$classroom->name} ({$classroom->sub_unit}) | T.A: {$taName} | Bulan: {$monthName} {$year} | Dicetak: " . date('d/m/Y H:i'));
 
         $sheet->getStyle('A1:A2')->getFont()->setBold(true)->setSize(12);
         $sheet->getStyle('A3')->getFont()->setItalic(true)->setSize(9.5)->getColor()->setARGB('FF475569');
@@ -280,7 +346,7 @@ class ClassroomJournalController extends Controller
         foreach ($journals as $j) {
             $dateFormatted = Carbon::parse($j->date)->translatedFormat('l, d/m/Y');
             $timeFormatted = $j->formatted_time;
-            $teacherName = $j->teacher?->name ?? '-';
+            $teacherName = $j->teacher?->name ?? ($classroom->homeroomTeacher?->name ?? '-');
 
             $sheet->setCellValue("A{$currentRow}", $no++);
             $sheet->setCellValue("B{$currentRow}", $dateFormatted);
@@ -314,42 +380,87 @@ class ClassroomJournalController extends Controller
         // Signatures
         $signRow = $currentRow + 2;
         $sheet->setCellValue("B{$signRow}", "Mengetahui,\nKepala Sekolah");
-        $sheet->setCellValue("E{$signRow}", "Malang, " . date('d F Y') . "\nWali Kelas");
+        $sheet->setCellValue("E{$signRow}", "{$schoolCity}, " . Carbon::now()->translatedFormat('d F Y') . "\nWali Kelas");
         $sheet->getStyle("B{$signRow}")->getAlignment()->setWrapText(true)->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle("E{$signRow}")->getAlignment()->setWrapText(true)->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
+        // Principal Name & NIP
+        $sheet->setCellValue("B" . ($signRow + 4), $principalName);
+        $sheet->getStyle("B" . ($signRow + 4))->getFont()->setBold(true)->setUnderline(true);
+        $sheet->getStyle("B" . ($signRow + 4))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->setCellValue("B" . ($signRow + 5), "NIP/NIY: " . $principalNip);
+        $sheet->getStyle("B" . ($signRow + 5))->getFont()->setSize(9);
+        $sheet->getStyle("B" . ($signRow + 5))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        // Homeroom Teacher Name & NIP
         $teacherName = $classroom->homeroomTeacher?->name ?? '( ................................ )';
+        $teacherNip = $classroom->homeroomTeacher?->nip ?? $classroom->homeroomTeacher?->niy ?? '-';
         $sheet->setCellValue("E" . ($signRow + 4), $teacherName);
         $sheet->getStyle("E" . ($signRow + 4))->getFont()->setBold(true)->setUnderline(true);
         $sheet->getStyle("E" . ($signRow + 4))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->setCellValue("E" . ($signRow + 5), "NIP/NIY: " . $teacherNip);
+        $sheet->getStyle("E" . ($signRow + 5))->getFont()->setSize(9);
+        $sheet->getStyle("E" . ($signRow + 5))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         $writer = new Xlsx($spreadsheet);
         $cleanClassName = preg_replace('/[^A-Za-z0-9_-]/', '_', $classroom->name);
-        $filename = "Jurnal_Kelas_{$cleanClassName}_{$monthName}_{$year}.xlsx";
+        $cleanTaName = preg_replace('/[^A-Za-z0-9_-]/', '_', $taName);
+        $filename = "Jurnal_Kelas_{$cleanClassName}_{$cleanTaName}_{$monthName}_{$year}.xlsx";
 
-        return response()->streamDownload(function () use ($writer) {
+        // Download Token Handling for Toast & Progress Bar Synchronization
+        if ($request->filled('download_token')) {
+            if (!headers_sent()) {
+                @setcookie('download_token', $request->query('download_token'), time() + 60, '/', '', false, false);
+            }
+        }
+
+        $response = response()->streamDownload(function () use ($writer) {
             $writer->save('php://output');
         }, $filename, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Cache-Control' => 'max-age=0',
         ]);
+
+        if ($request->filled('download_token')) {
+            $response->headers->setCookie(cookie('download_token', $request->query('download_token'), 1, '/', null, false, false));
+        }
+
+        return $response;
     }
 
     /**
-     * Printable view of Classroom Journals.
+     * Download Monthly Classroom Journals directly as PDF.
      */
-    public function print(Request $request)
+    public function downloadPdf(Request $request)
     {
         $classroomId = $request->get('classroom_id');
         $month = (int) $request->get('month', Carbon::now()->month);
-        $year = (int) $request->get('year', Carbon::now()->year);
+
+        $academicYears = AcademicYear::all();
+        $selectedYearId = $request->get('academic_year_id');
+        $selectedAcademicYear = $academicYears->firstWhere('id', $selectedYearId) ?? $academicYears->firstWhere('is_active', true);
+
+        $parts = explode('/', $selectedAcademicYear?->name ?? '');
+        $startYear = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : (int)Carbon::now()->year;
+        $endYear = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : ($startYear + 1);
+        $calculatedYear = ($month >= 7) ? $startYear : $endYear;
+        $year = (int) $request->get('year', $calculatedYear);
 
         $classroom = Classroom::with(['homeroomTeacher', 'classLevel'])->findOrFail($classroomId);
 
         $journals = ClassroomJournal::with(['teacher', 'recordedBy'])
             ->where('classroom_id', $classroom->id)
-            ->whereYear('date', $year)
-            ->whereMonth('date', $month)
+            ->where(function($q) use ($selectedYearId, $year, $month) {
+                $q->where(function($q1) use ($selectedYearId, $month) {
+                    if ($selectedYearId) {
+                        $q1->where('academic_year_id', $selectedYearId)
+                           ->whereMonth('date', $month);
+                    }
+                })->orWhere(function($q2) use ($year, $month) {
+                    $q2->whereYear('date', $year)
+                       ->whereMonth('date', $month);
+                });
+            })
             ->orderBy('date', 'asc')
             ->orderBy('start_time', 'asc')
             ->get();
@@ -361,12 +472,118 @@ class ClassroomJournalController extends Controller
         ];
         $monthName = $monthNames[$month] ?? $month;
 
+        // Dynamic System Data
+        $principal = Employee::where(function($q) {
+            $q->where('position', 'like', '%Kepala Sekolah%')
+              ->orWhere('position', 'like', '%Kepsek%');
+        })->first();
+        $principalName = $principal?->name ?? setting('headmaster_name', setting('school_principal_name', 'Dra. Hj. Nurul Hidayati, M.Pd'));
+        $principalNip = $principal?->nip ?? setting('headmaster_nip', setting('school_principal_nip', '19750815 200212 2 003'));
+        $schoolCity = setting('school_city', 'Malang');
+        $appName = setting('unit_name', setting('app_name', 'PAUD ANAK SALEH MALANG'));
+        $taName = $selectedAcademicYear?->name ?? "{$year}";
+
+        $cleanClassName = preg_replace('/[^A-Za-z0-9_-]/', '_', $classroom->name);
+        $cleanTaName = preg_replace('/[^A-Za-z0-9_-]/', '_', $taName);
+        $fileName = "Jurnal_Kelas_{$cleanClassName}_{$cleanTaName}_{$monthName}_{$year}.pdf";
+
+        if ($request->filled('download_token')) {
+            if (!headers_sent()) {
+                @setcookie('download_token', $request->query('download_token'), time() + 60, '/', '', false, false);
+            }
+        }
+
+        $pdf = Pdf::loadView('admin.classroom-journals.pdf', compact(
+            'classroom',
+            'journals',
+            'month',
+            'year',
+            'monthName',
+            'selectedAcademicYear',
+            'principalName',
+            'principalNip',
+            'schoolCity',
+            'appName',
+            'taName'
+        ))->setPaper('a4', 'portrait');
+
+        $response = $pdf->download($fileName);
+
+        if ($request->filled('download_token')) {
+            $response->headers->setCookie(cookie('download_token', $request->query('download_token'), 1, '/', null, false, false));
+        }
+
+        return $response;
+    }
+
+    /**
+     * Printable view of Classroom Journals.
+     */
+    public function print(Request $request)
+    {
+        $classroomId = $request->get('classroom_id');
+        $month = (int) $request->get('month', Carbon::now()->month);
+
+        $academicYears = AcademicYear::all();
+        $selectedYearId = $request->get('academic_year_id');
+        $selectedAcademicYear = $academicYears->firstWhere('id', $selectedYearId) ?? $academicYears->firstWhere('is_active', true);
+
+        $parts = explode('/', $selectedAcademicYear?->name ?? '');
+        $startYear = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : (int)Carbon::now()->year;
+        $endYear = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : ($startYear + 1);
+        $calculatedYear = ($month >= 7) ? $startYear : $endYear;
+        $year = (int) $request->get('year', $calculatedYear);
+
+        $classroom = Classroom::with(['homeroomTeacher', 'classLevel'])->findOrFail($classroomId);
+
+        $journals = ClassroomJournal::with(['teacher', 'recordedBy'])
+            ->where('classroom_id', $classroom->id)
+            ->where(function($q) use ($selectedYearId, $year, $month) {
+                $q->where(function($q1) use ($selectedYearId, $month) {
+                    if ($selectedYearId) {
+                        $q1->where('academic_year_id', $selectedYearId)
+                           ->whereMonth('date', $month);
+                    }
+                })->orWhere(function($q2) use ($year, $month) {
+                    $q2->whereYear('date', $year)
+                       ->whereMonth('date', $month);
+                });
+            })
+            ->orderBy('date', 'asc')
+            ->orderBy('start_time', 'asc')
+            ->get();
+
+        $monthNames = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
+        ];
+        $monthName = $monthNames[$month] ?? $month;
+
+        // Dynamic System Data
+        $principal = Employee::where(function($q) {
+            $q->where('position', 'like', '%Kepala Sekolah%')
+              ->orWhere('position', 'like', '%Kepsek%');
+        })->first();
+        $principalName = $principal?->name ?? setting('headmaster_name', setting('school_principal_name', 'Dra. Hj. Nurul Hidayati, M.Pd'));
+        $principalNip = $principal?->nip ?? setting('headmaster_nip', setting('school_principal_nip', '19750815 200212 2 003'));
+        $schoolCity = setting('school_city', 'Malang');
+        $appName = setting('unit_name', setting('app_name', 'PAUD ANAK SALEH MALANG'));
+        $taName = $selectedAcademicYear?->name ?? "{$year}";
+
         return view('admin.classroom-journals.print', compact(
             'classroom',
             'journals',
             'month',
             'year',
-            'monthName'
+            'monthName',
+            'selectedAcademicYear',
+            'principalName',
+            'principalNip',
+            'schoolCity',
+            'appName',
+            'taName'
         ));
     }
 }
+

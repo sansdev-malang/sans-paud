@@ -147,9 +147,21 @@
 
     <!-- Kop Laporan -->
     <div class="header">
-        <h1>{{ strtoupper(setting('app_name', 'PAUD ISLAM TERPADU ANAK SALEH MALANG')) }}</h1>
+        @php
+            $logoPath = null;
+            if (setting('app_logo')) {
+                $candidate = public_path('storage/' . setting('app_logo'));
+                if (file_exists($candidate)) {
+                    $logoPath = asset('storage/' . setting('app_logo'));
+                }
+            }
+        @endphp
+        @if($logoPath)
+            <img src="{{ $logoPath }}" alt="Logo" class="header-logo" style="max-height: 50px; float: left; margin-right: 15px;">
+        @endif
+        <h1>{{ strtoupper($appName ?? setting('unit_name', setting('app_name', 'SANS PAUD MALANG'))) }}</h1>
         <h2>BUKU REGISTER KUNJUNGAN TAMU & KEDINASAN</h2>
-        <p>{{ setting('school_address', 'Jl. Candi Panggung Barat No. 13 Kota Malang, Jawa Timur') }} | Telp/WA: {{ setting('school_phone', '0812-3456-7890') }}</p>
+        <p>{{ $appAddress ?? setting('app_address') }} | Telp/WA: {{ $appPhone ?? setting('app_phone') }}</p>
     </div>
 
     <!-- Metadata Informasi Periode -->
@@ -225,11 +237,11 @@
         </div>
 
         <div class="signature-box">
-            <p>Malang, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</p>
-            <p>Mengetahui,<br>Kepala {{ setting('app_name', 'PAUD Terpadu Anak Saleh') }}</p>
+            <p>{{ $schoolCity }}, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</p>
+            <p>Mengetahui,<br>Kepala Sekolah</p>
             <div class="signature-space"></div>
-            <p class="signature-name">{{ setting('headmaster_name', 'Dra. Hj. Nurul Hidayati, M.Pd') }}</p>
-            <p>NIP: {{ setting('headmaster_nip', '19750815 200212 2 003') }}</p>
+            <p class="signature-name">{{ $headmasterName }}</p>
+            <p>NIP: {{ $headmasterNip }}</p>
         </div>
     </div>
 

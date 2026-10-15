@@ -48,7 +48,7 @@
                 :class="activeTab === 'graduation' ? 'border-emerald-600 text-emerald-600 dark:border-emerald-400 dark:text-emerald-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'"
                 class="pb-3 border-b-2 transition-all flex items-center gap-2 cursor-pointer">
                 <i data-lucide="graduation-cap" class="w-4 h-4"></i>
-                Kelulusan (Alumni KB-B & TK-B)
+                Kelulusan (KB-B, TK-B, TPA 3 & TPQ)
             </button>
         </div>
 
@@ -68,9 +68,7 @@
                             class="w-full h-9 px-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-medium">
                             <option value="">-- Pilih Kelompok Asal --</option>
                             @foreach($sourceClassrooms as $c)
-                                <option value="{{ $c->id }}">
-                                    [{{ $c->sub_unit }}] {{ $c->name }} ({{ $c->classLevel?->name }})
-                                </option>
+                                <option value="{{ $c->id }}">{{ $c->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -84,9 +82,7 @@
                             class="w-full h-9 px-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-medium">
                             <option value="">-- Pilih Kelompok Tujuan --</option>
                             @foreach($allClassrooms as $c)
-                                <option value="{{ $c->id }}">
-                                    [{{ $c->sub_unit }}] {{ $c->name }} - T.A. {{ $c->academicYear?->name }}
-                                </option>
+                                <option value="{{ $c->id }}">{{ $c->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -108,7 +104,7 @@
                 <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
                     <span class="flex items-center gap-1.5">
                         <i data-lucide="info" class="w-3.5 h-3.5 text-indigo-500"></i>
-                        Aturan Alur: <strong>KB-A ➡️ KB-B</strong> (Playgroup) & <strong>TK-A ➡️ TK-B</strong> (Taman Kanak-Kanak).
+                        Aturan Alur: <strong>KB-A ➡️ KB-B</strong>, <strong>TK-A ➡️ TK-B</strong>, serta <strong>TPA 1 ➡️ TPA 2 ➡️ TPA 3</strong>.
                     </span>
                     <span x-text="'Total: ' + promotionStudents.length + ' Murid Terpilih'" class="font-bold text-slate-800 dark:text-slate-200"></span>
                 </div>
@@ -192,15 +188,13 @@
                     <!-- Pilihan Kelompok Akhir -->
                     <div>
                         <label class="block font-semibold text-slate-700 dark:text-slate-300 text-xs mb-1.5">
-                            Pilih Kelompok Akhir (KB-B / TK-B) <span class="text-rose-500">*</span>
+                            Pilih Kelompok Akhir (KB-B, TK-B, TPA 3, TPQ) <span class="text-rose-500">*</span>
                         </label>
                         <select x-model="gradClassroomId" @change="fetchGraduationStudents()"
                             class="w-full h-9 px-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-900 dark:text-slate-50 font-medium">
                             <option value="">-- Pilih Kelompok Akhir --</option>
                             @foreach($graduationClassrooms as $c)
-                                <option value="{{ $c->id }}">
-                                    [{{ $c->sub_unit }}] {{ $c->name }} ({{ $c->classLevel?->name }})
-                                </option>
+                                <option value="{{ $c->id }}">{{ $c->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -218,7 +212,7 @@
                 <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
                     <span class="flex items-center gap-1.5">
                         <i data-lucide="info" class="w-3.5 h-3.5 text-emerald-500"></i>
-                        Murid yang lulus dari <strong>KB-B</strong> menjadi Alumni Playgroup. Murid yang lulus dari <strong>TK-B</strong> menjadi Alumni TK.
+                        Murid yang lulus dari <strong>KB-B</strong> (Playgroup), <strong>TK-B</strong> (TK), <strong>TPA 3</strong> (Daycare), dan <strong>TPQ</strong> resmi tercatat sebagai Alumni.
                     </span>
                     <span x-text="'Total: ' + graduationStudents.length + ' Calon Lulusan'" class="font-bold text-slate-800 dark:text-slate-200"></span>
                 </div>
@@ -257,7 +251,7 @@
                             <template x-if="graduationStudents.length === 0">
                                 <tr>
                                     <td colspan="5" class="px-6 py-12 text-center text-slate-400">
-                                        Silakan pilih <strong>Kelompok Akhir (KB-B / TK-B)</strong> untuk menampilkan murid yang akan diluluskan.
+                                        Silakan pilih <strong>Kelompok Akhir (KB-B, TK-B, TPA 3, atau TPQ)</strong> untuk menampilkan murid yang akan diluluskan.
                                     </td>
                                 </tr>
                             </template>

@@ -1,14 +1,14 @@
 <x-admin-layout>
-    <div class="p-3.5 sm:p-5 lg:p-6 space-y-4 sm:space-y-5" x-data="studentAttendanceApp({
-        initialTab: '{{ $activeTab }}',
-        classroomId: '{{ $selectedClassroomId }}',
-        selectedDate: '{{ $selectedDate }}',
-        initialStatuses: {
-            @foreach($students as $st)
-                {{ $st->id }}: '{{ $existingDailyAttendances[$st->id]->status ?? '' }}',
-            @endforeach
+    @php
+        $initStatuses = [];
+        $initNotes = [];
+        foreach ($students as $st) {
+            $initStatuses[$st->id] = $existingDailyAttendances[$st->id]->status ?? '';
+            $initNotes[$st->id] = $existingDailyAttendances[$st->id]->notes ?? '';
         }
-    })">
+    @endphp
+
+    <div class="p-3.5 sm:p-5 lg:p-6 space-y-4" x-data="studentAttendanceApp()">
 
         <!-- HEADER SECTION -->
         <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 w-full text-left">
@@ -138,7 +138,7 @@
                                         $groupedClasses = $classrooms->groupBy('sub_unit');
                                     @endphp
                                     @foreach($groupedClasses as $unit => $classes)
-                                        <optgroup label="Sub-Unit {{ $unit }}">
+                                        <optgroup label="{{ $unit }}">
                                             @foreach($classes as $c)
                                                 <option value="{{ $c->id }}" {{ $selectedClassroomId == $c->id ? 'selected' : '' }}>
                                                     {{ $c->name }} ({{ $c->students_count ?? $c->active_students_count }} Murid)
@@ -186,97 +186,54 @@
                 </form>
             </div>
 
-            <!-- DAILY STATUS SUMMARY COUNTERS -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-2.5">
+            <!-- ULTRA-COMPACT DAILY STATUS SUMMARY STRIP -->
+            <section class="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full text-xs">
                 <!-- Total Murid -->
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 sm:p-3 shadow-xs">
-                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Murid</p>
-                    <div class="flex items-baseline justify-between mt-1">
-                        <h4 class="text-lg sm:text-xl font-bold font-mono text-slate-900 dark:text-slate-100" x-text="stats.total">
-                            {{ $dailyStats['total'] }}
-                        </h4>
-                        <span class="text-[10px] text-slate-400 font-medium">Anak</span>
-                    </div>
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 shadow-2xs">
+                    <i data-lucide="users" class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0"></i>
+                    <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Total Murid:</span>
+                    <span class="font-bold font-mono text-slate-900 dark:text-slate-50" x-text="stats.total">{{ $dailyStats['total'] }}</span>
                 </div>
 
                 <!-- Hadir (H) -->
-                <div class="bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-800/60 rounded-xl p-2.5 sm:p-3 shadow-xs">
-                    <div class="flex items-center justify-between">
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Hadir (H)</p>
-                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    </div>
-                    <div class="flex items-baseline justify-between mt-1">
-                        <h4 class="text-lg sm:text-xl font-bold font-mono text-emerald-700 dark:text-emerald-300" x-text="stats.h">
-                            {{ $dailyStats['h'] }}
-                        </h4>
-                        <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium" x-text="calcPct(stats.h) + '%'">
-                            {{ $dailyStats['total'] > 0 ? round(($dailyStats['h'] / $dailyStats['total']) * 100) : 0 }}%
-                        </span>
-                    </div>
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-900/40 rounded-lg text-emerald-800 dark:text-emerald-300 shadow-2xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                    <span class="text-[11px] font-medium">Hadir:</span>
+                    <span class="font-bold font-mono" x-text="stats.h">{{ $dailyStats['h'] }}</span>
+                    <span class="text-[10px] font-semibold text-emerald-600/80 dark:text-emerald-400/80" x-text="'(' + calcPct(stats.h) + '%)'">({{ $dailyStats['total'] > 0 ? round(($dailyStats['h'] / $dailyStats['total']) * 100) : 0 }}%)</span>
                 </div>
 
                 <!-- Sakit (S) -->
-                <div class="bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-800/60 rounded-xl p-2.5 sm:p-3 shadow-xs">
-                    <div class="flex items-center justify-between">
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">Sakit (S)</p>
-                        <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                    </div>
-                    <div class="flex items-baseline justify-between mt-1">
-                        <h4 class="text-lg sm:text-xl font-bold font-mono text-amber-700 dark:text-amber-300" x-text="stats.s">
-                            {{ $dailyStats['s'] }}
-                        </h4>
-                        <span class="text-[10px] text-amber-600 dark:text-amber-400 font-medium" x-text="calcPct(stats.s) + '%'">
-                            {{ $dailyStats['total'] > 0 ? round(($dailyStats['s'] / $dailyStats['total']) * 100) : 0 }}%
-                        </span>
-                    </div>
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 rounded-lg text-amber-800 dark:text-amber-300 shadow-2xs">
+                    <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                    <span class="text-[11px] font-medium">Sakit:</span>
+                    <span class="font-bold font-mono" x-text="stats.s">{{ $dailyStats['s'] }}</span>
+                    <span class="text-[10px] font-semibold text-amber-600/80 dark:text-amber-400/80" x-text="'(' + calcPct(stats.s) + '%)'">({{ $dailyStats['total'] > 0 ? round(($dailyStats['s'] / $dailyStats['total']) * 100) : 0 }}%)</span>
                 </div>
 
                 <!-- Izin (I) -->
-                <div class="bg-sky-50/60 dark:bg-sky-950/20 border border-sky-200/80 dark:border-sky-800/60 rounded-xl p-2.5 sm:p-3 shadow-xs">
-                    <div class="flex items-center justify-between">
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-sky-700 dark:text-sky-400">Izin (I)</p>
-                        <span class="w-2 h-2 rounded-full bg-sky-500"></span>
-                    </div>
-                    <div class="flex items-baseline justify-between mt-1">
-                        <h4 class="text-lg sm:text-xl font-bold font-mono text-sky-700 dark:text-sky-300" x-text="stats.i">
-                            {{ $dailyStats['i'] }}
-                        </h4>
-                        <span class="text-[10px] text-sky-600 dark:text-sky-400 font-medium" x-text="calcPct(stats.i) + '%'">
-                            {{ $dailyStats['total'] > 0 ? round(($dailyStats['i'] / $dailyStats['total']) * 100) : 0 }}%
-                        </span>
-                    </div>
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-sky-50/70 dark:bg-sky-950/30 border border-sky-200/60 dark:border-sky-900/40 rounded-lg text-sky-800 dark:text-sky-300 shadow-2xs">
+                    <span class="w-2 h-2 rounded-full bg-sky-500 shrink-0"></span>
+                    <span class="text-[11px] font-medium">Izin:</span>
+                    <span class="font-bold font-mono" x-text="stats.i">{{ $dailyStats['i'] }}</span>
+                    <span class="text-[10px] font-semibold text-sky-600/80 dark:text-sky-400/80" x-text="'(' + calcPct(stats.i) + '%)'">({{ $dailyStats['total'] > 0 ? round(($dailyStats['i'] / $dailyStats['total']) * 100) : 0 }}%)</span>
                 </div>
 
                 <!-- Alpa (A) -->
-                <div class="bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200/80 dark:border-rose-800/60 rounded-xl p-2.5 sm:p-3 shadow-xs">
-                    <div class="flex items-center justify-between">
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400">Alpa (A)</p>
-                        <span class="w-2 h-2 rounded-full bg-rose-500"></span>
-                    </div>
-                    <div class="flex items-baseline justify-between mt-1">
-                        <h4 class="text-lg sm:text-xl font-bold font-mono text-rose-700 dark:text-rose-300" x-text="stats.a">
-                            {{ $dailyStats['a'] }}
-                        </h4>
-                        <span class="text-[10px] text-rose-600 dark:text-rose-400 font-medium" x-text="calcPct(stats.a) + '%'">
-                            {{ $dailyStats['total'] > 0 ? round(($dailyStats['a'] / $dailyStats['total']) * 100) : 0 }}%
-                        </span>
-                    </div>
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/60 dark:border-rose-900/40 rounded-lg text-rose-800 dark:text-rose-300 shadow-2xs">
+                    <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
+                    <span class="text-[11px] font-medium">Alpa:</span>
+                    <span class="font-bold font-mono" x-text="stats.a">{{ $dailyStats['a'] }}</span>
+                    <span class="text-[10px] font-semibold text-rose-600/80 dark:text-rose-400/80" x-text="'(' + calcPct(stats.a) + '%)'">({{ $dailyStats['total'] > 0 ? round(($dailyStats['a'] / $dailyStats['total']) * 100) : 0 }}%)</span>
                 </div>
 
-                <!-- Belum Diabsen -->
-                <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-xl p-2.5 sm:p-3 shadow-xs">
-                    <div class="flex items-center justify-between">
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Belum Diisi</p>
-                        <span class="w-2 h-2 rounded-full bg-slate-400"></span>
-                    </div>
-                    <div class="flex items-baseline justify-between mt-1">
-                        <h4 class="text-lg sm:text-xl font-bold font-mono text-slate-800 dark:text-slate-200" x-text="stats.unrecorded">
-                            {{ $dailyStats['unrecorded'] }}
-                        </h4>
-                        <span class="text-[10px] text-slate-500 font-medium">Anak</span>
-                    </div>
+                <!-- Belum Diisi -->
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-300 shadow-2xs">
+                    <span class="w-2 h-2 rounded-full bg-slate-400 shrink-0"></span>
+                    <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Belum Diisi:</span>
+                    <span class="font-bold font-mono text-slate-800 dark:text-slate-200" x-text="stats.unrecorded">{{ $dailyStats['unrecorded'] }}</span>
                 </div>
-            </div>
+            </section>
 
             <!-- INLINE FORM & TABLE SECTION -->
             @if($students->isEmpty())
@@ -505,18 +462,19 @@
                                             </td>
 
                                             <!-- KETERANGAN INLINE INPUT -->
-                                            <td class="py-2.5 px-4">
-                                                <div class="flex items-center gap-2">
+                                            <td class="py-2.5 px-4 min-w-[240px]">
+                                                <div class="relative w-full flex items-center">
                                                     <input type="text" 
                                                         name="attendances[{{ $st->id }}][notes]" 
-                                                        value="{{ $curNotes }}"
+                                                        x-model="notes[{{ $st->id }}]"
                                                         placeholder="Catatan sakit, izin, atau alasan..." 
-                                                        class="w-full px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-800 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
+                                                        class="w-full pl-3 pr-8 py-1.5 text-xs bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-800 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
                                                     
-                                                    <!-- Clear student button -->
-                                                    <button type="button" @click="clearStudent({{ $st->id }})" title="Kosongkan status murid ini"
-                                                        x-show="statuses[{{ $st->id }}]"
-                                                        class="text-slate-400 hover:text-rose-500 transition-colors p-1 rounded">
+                                                    <!-- Clear student button (absolute inside input, zero layout shift) -->
+                                                    <button type="button" @click="clearStudent({{ $st->id }})" title="Kosongkan status & keterangan murid ini"
+                                                        x-show="hasValue({{ $st->id }})"
+                                                        x-cloak
+                                                        class="absolute right-1.5 p-1 text-slate-400 hover:text-rose-500 transition-colors rounded cursor-pointer">
                                                         <i data-lucide="x-circle" class="w-3.5 h-3.5"></i>
                                                     </button>
                                                 </div>
@@ -527,18 +485,10 @@
                             </table>
                         </div>
 
-                        <!-- BOTTOM SUBMIT BAR -->
-                        <div class="p-3.5 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
-                            <div class="text-xs text-slate-500 dark:text-slate-400">
-                                Total <strong>{{ $students->count() }}</strong> murid dalam rombel ini. Pastikan klik <strong>Simpan Absensi</strong> setelah melakukan perubahan.
-                            </div>
-                            <div class="flex items-center gap-2.5 w-full sm:w-auto">
-                                <button type="submit"
-                                    class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm hover:shadow transition-all cursor-pointer">
-                                    <i data-lucide="save" class="w-4 h-4"></i>
-                                    <span>Simpan Absensi Murid</span>
-                                </button>
-                            </div>
+                        <!-- Table Footer -->
+                        <div class="p-3 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                            <span>Total Murid: <strong>{{ $students->count() }}</strong> anak</span>
+                            <span>Rombel: <strong>{{ $selectedClassroom ? $selectedClassroom->name : 'Semua Rombel' }}</strong></span>
                         </div>
                     </div>
                 </form>
@@ -565,7 +515,7 @@
                             <select name="classroom_id" id="monthly_classroom_id" onchange="document.getElementById('monthlyFilterForm').submit()"
                                 class="w-full pl-3 pr-8 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors cursor-pointer">
                                 @foreach($groupedClasses as $unit => $classes)
-                                    <optgroup label="Sub-Unit {{ $unit }}">
+                                    <optgroup label="{{ $unit }}">
                                         @foreach($classes as $c)
                                             <option value="{{ $c->id }}" {{ $selectedClassroomId == $c->id ? 'selected' : '' }}>
                                                 {{ $c->name }} ({{ $c->students_count ?? $c->active_students_count }} Murid)
@@ -627,74 +577,57 @@
                 </form>
             </div>
 
-            <!-- MONTHLY SUMMARY STATS -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-2.5">
-                <!-- Total Siswa -->
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 sm:p-3 shadow-xs">
-                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Murid</p>
-                    <div class="flex items-baseline justify-between mt-1">
-                        <h4 class="text-lg sm:text-xl font-bold font-mono text-slate-900 dark:text-slate-100">
-                            {{ $monthlyStats['total_students'] }}
-                        </h4>
-                        <span class="text-[10px] text-slate-400 font-medium">Anak</span>
-                    </div>
+            <!-- ULTRA-COMPACT MONTHLY SUMMARY STRIP -->
+            <section class="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full text-xs">
+                <!-- Total Murid -->
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 shadow-2xs">
+                    <i data-lucide="users" class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0"></i>
+                    <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Total Murid:</span>
+                    <span class="font-bold font-mono text-slate-900 dark:text-slate-50">{{ $monthlyStats['total_students'] }}</span>
                 </div>
 
-                <!-- Hari Efektif Tercatat -->
-                <div class="bg-indigo-50/60 dark:bg-indigo-950/20 border border-indigo-200/80 dark:border-indigo-800/60 rounded-xl p-2.5 sm:p-3 shadow-xs">
-                    <p class="text-[10px] font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-400">Hari Tercatat</p>
-                    <div class="flex items-baseline justify-between mt-1">
-                        <h4 class="text-lg sm:text-xl font-bold font-mono text-indigo-700 dark:text-indigo-300">
-                            {{ $monthlyStats['effective_days'] }}
-                        </h4>
-                        <span class="text-[10px] text-indigo-500 font-medium">Pertemuan</span>
-                    </div>
+                <!-- Hari Tercatat -->
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/60 dark:border-indigo-900/40 rounded-lg text-indigo-800 dark:text-indigo-300 shadow-2xs">
+                    <i data-lucide="calendar-check" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0"></i>
+                    <span class="text-[11px] font-medium">Hari Tercatat:</span>
+                    <span class="font-bold font-mono">{{ $monthlyStats['effective_days'] }} Hari</span>
                 </div>
 
                 <!-- Total Hadir -->
-                <div class="bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-800/60 rounded-xl p-2.5 sm:p-3 shadow-xs">
-                    <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Total Hadir</p>
-                    <div class="flex items-baseline justify-between mt-1">
-                        <h4 class="text-lg sm:text-xl font-bold font-mono text-emerald-700 dark:text-emerald-300">
-                            {{ $monthlyStats['total_h'] }}
-                        </h4>
-                        <span class="text-[10px] text-emerald-600 font-medium">Presensi</span>
-                    </div>
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-900/40 rounded-lg text-emerald-800 dark:text-emerald-300 shadow-2xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                    <span class="text-[11px] font-medium">Total Hadir:</span>
+                    <span class="font-bold font-mono">{{ $monthlyStats['total_h'] }}</span>
                 </div>
 
                 <!-- Total Sakit -->
-                <div class="bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-800/60 rounded-xl p-2.5 sm:p-3 shadow-xs">
-                    <p class="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">Total Sakit</p>
-                    <div class="flex items-baseline justify-between mt-1">
-                        <h4 class="text-lg sm:text-xl font-bold font-mono text-amber-700 dark:text-amber-300">
-                            {{ $monthlyStats['total_s'] }}
-                        </h4>
-                        <span class="text-[10px] text-amber-600 font-medium">Kali</span>
-                    </div>
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 rounded-lg text-amber-800 dark:text-amber-300 shadow-2xs">
+                    <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                    <span class="text-[11px] font-medium">Total Sakit:</span>
+                    <span class="font-bold font-mono">{{ $monthlyStats['total_s'] }}</span>
                 </div>
 
                 <!-- Total Izin -->
-                <div class="bg-sky-50/60 dark:bg-sky-950/20 border border-sky-200/80 dark:border-sky-800/60 rounded-xl p-2.5 sm:p-3 shadow-xs">
-                    <p class="text-[10px] font-bold uppercase tracking-wider text-sky-700 dark:text-sky-400">Total Izin</p>
-                    <div class="flex items-baseline justify-between mt-1">
-                        <h4 class="text-lg sm:text-xl font-bold font-mono text-sky-700 dark:text-sky-300">
-                            {{ $monthlyStats['total_i'] }}
-                        </h4>
-                        <span class="text-[10px] text-sky-600 font-medium">Kali</span>
-                    </div>
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-sky-50/70 dark:bg-sky-950/30 border border-sky-200/60 dark:border-sky-900/40 rounded-lg text-sky-800 dark:text-sky-300 shadow-2xs">
+                    <span class="w-2 h-2 rounded-full bg-sky-500 shrink-0"></span>
+                    <span class="text-[11px] font-medium">Total Izin:</span>
+                    <span class="font-bold font-mono">{{ $monthlyStats['total_i'] }}</span>
                 </div>
 
                 <!-- Total Alpa -->
-                <div class="bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200/80 dark:border-rose-800/60 rounded-xl p-2.5 sm:p-3 shadow-xs">
-                    <p class="text-[10px] font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400">Total Alpa</p>
-                    <div class="flex items-baseline justify-between mt-1">
-                        <h4 class="text-lg sm:text-xl font-bold font-mono text-rose-700 dark:text-rose-300">
-                            {{ $monthlyStats['total_a'] }}
-                        </h4>
-                        <span class="text-[10px] text-rose-600 font-medium">Kali</span>
-                    </div>
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/60 dark:border-rose-900/40 rounded-lg text-rose-800 dark:text-rose-300 shadow-2xs">
+                    <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
+                    <span class="text-[11px] font-medium">Total Alpa:</span>
+                    <span class="font-bold font-mono">{{ $monthlyStats['total_a'] }}</span>
                 </div>
-            </div>
+
+                <!-- Rata-rata Kehadiran -->
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-900/40 rounded-lg text-emerald-800 dark:text-emerald-300 shadow-2xs">
+                    <i data-lucide="percent" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0"></i>
+                    <span class="text-[11px] font-medium">Rata-rata:</span>
+                    <span class="font-bold font-mono">{{ $monthlyStats['avg_attendance_rate'] }}%</span>
+                </div>
+            </section>
 
             <!-- REKAP TABLE: NIS, NAMA MURID, HADIR, SAKIT, IZIN, ALPA -->
             @if(empty($monthlyRecap))
@@ -853,12 +786,21 @@
 
     <!-- ALPINE.JS COMPONENT LOGIC -->
     <script>
-        function studentAttendanceApp(config) {
+        function studentAttendanceApp() {
+            const config = {
+                initialTab: @json($activeTab),
+                classroomId: @json($selectedClassroomId),
+                selectedDate: @json($selectedDate),
+                initialStatuses: @json($initStatuses),
+                initialNotes: @json($initNotes)
+            };
+
             return {
                 activeTab: config.initialTab || 'daily',
                 classroomId: config.classroomId,
                 selectedDate: config.selectedDate,
                 statuses: Object.assign({}, config.initialStatuses),
+                notes: Object.assign({}, config.initialNotes),
                 stats: {
                     total: 0,
                     h: 0,
@@ -871,6 +813,12 @@
 
                 init() {
                     this.updateCounters();
+                },
+
+                hasValue(studentId) {
+                    const s = this.statuses[studentId];
+                    const n = this.notes[studentId];
+                    return (s && s !== '') || (n && String(n).trim() !== '');
                 },
 
                 setTab(tabName) {
@@ -900,11 +848,15 @@
                     for (const id in this.statuses) {
                         this.statuses[id] = '';
                     }
+                    for (const id in this.notes) {
+                        this.notes[id] = '';
+                    }
                     this.updateCounters();
                 },
 
                 clearStudent(studentId) {
                     this.statuses[studentId] = '';
+                    this.notes[studentId] = '';
                     this.updateCounters();
                 },
 

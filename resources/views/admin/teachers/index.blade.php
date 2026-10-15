@@ -20,6 +20,40 @@
                     <i data-lucide="file-spreadsheet" class="w-4 h-4 text-slate-500"></i>
                     Impor Guru
                 </button>
+
+                <!-- Ekspor Dropdown (Excel & PDF) -->
+                <div x-data="{ exportOpen: false }" class="relative">
+                    <button type="button" @click="exportOpen = !exportOpen" @click.outside="exportOpen = false"
+                        id="btn_export_teacher"
+                        class="h-9 px-3.5 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-100 cursor-pointer flex items-center gap-2">
+                        <i data-lucide="download" class="w-4 h-4 text-slate-500"></i>
+                        <span>Ekspor</span>
+                        <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': exportOpen }"></i>
+                    </button>
+                    
+                    <div x-show="exportOpen" x-cloak
+                        x-transition:enter="transition ease-out duration-100"
+                        x-transition:enter-start="transform opacity-0 scale-95"
+                        x-transition:enter-end="transform opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-75"
+                        x-transition:leave-start="transform opacity-100 scale-100"
+                        x-transition:leave-end="transform opacity-0 scale-95"
+                        class="absolute right-0 mt-1.5 w-44 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 py-1 overflow-hidden">
+                        <a href="{{ route('teachers.export.excel', request()->query()) }}"
+                            id="btn_export_teacher_excel"
+                            class="flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0"></i>
+                            <span>Excel (.xlsx)</span>
+                        </a>
+                        <a href="{{ route('teachers.export.pdf', request()->query()) }}"
+                            id="btn_export_teacher_pdf"
+                            class="flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 dark:hover:text-rose-400 transition-colors border-t border-slate-100 dark:border-slate-800">
+                            <i data-lucide="file-text" class="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0"></i>
+                            <span>PDF (.pdf)</span>
+                        </a>
+                    </div>
+                </div>
+
                 <button type="button" @click.prevent="showCreateModal = true" class="h-9 px-4 bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-slate-200 text-white dark:text-slate-900 text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer flex items-center gap-2">
                     <i data-lucide="user-plus" class="w-4 h-4"></i>
                     Tambah Guru
@@ -134,22 +168,22 @@
                 <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
 
                     <!-- Filter Jenjang -->
-                    <select name="sub_unit" onchange="this.form.submit()"
+                    <select name="sub_unit" id="filter_sub_unit" onchange="if(this.form.classroom_id) { this.form.classroom_id.value = ''; } this.form.submit()"
                         class="h-9 px-2 flex-1 sm:flex-initial sm:w-32 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
                         <option value="">Semua Jenjang</option>
-                        <option value="PG" {{ request('sub_unit') == 'PG' ? 'selected' : '' }}>Playgroup (KB)</option>
+                        <option value="PG" {{ in_array(request('sub_unit'), ['PG', 'KB']) ? 'selected' : '' }}>Playgroup (KB)</option>
                         <option value="TK" {{ request('sub_unit') == 'TK' ? 'selected' : '' }}>TK</option>
                         <option value="DAYCARE" {{ request('sub_unit') == 'DAYCARE' ? 'selected' : '' }}>Daycare</option>
                         <option value="TPQ" {{ request('sub_unit') == 'TPQ' ? 'selected' : '' }}>TPQ</option>
                     </select>
 
                     <!-- Filter Kelompok -->
-                    <select name="classroom_id" onchange="this.form.submit()"
+                    <select name="classroom_id" id="filter_classroom_id" onchange="this.form.submit()"
                         class="h-9 px-2 flex-1 sm:flex-initial sm:w-36 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
                         <option value="">Semua Kelompok</option>
                         @foreach($classrooms as $c)
-                            <option value="{{ $c->id }}" {{ request('classroom_id') == $c->id ? 'selected' : '' }}>
-                                [{{ $c->sub_unit }}] {{ $c->name }}
+                            <option value="{{ $c->id }}" {{ (string)request('classroom_id') === (string)$c->id ? 'selected' : '' }}>
+                                {{ $c->name }}
                             </option>
                         @endforeach
                     </select>
@@ -520,7 +554,7 @@
                                         </div>
                                         <div class="min-w-0">
                                             <span class="block text-slate-400 text-[9px] uppercase font-semibold">Jabatan</span>
-                                            <span class="font-bold text-slate-900 dark:text-slate-100 break-words block" x-text="selectedEmp ? (selectedEmp.position || '-') : '-'"></span>
+                                            <span class="font-bold text-slate-900 dark:text-slate-100 break-words block" x-text="selectedEmp ? (selectedEmp.position || 'Guru Kelas') : '-'"></span>
                                         </div>
                                         <div class="min-w-0">
                                             <span class="block text-slate-400 text-[9px] uppercase font-semibold">Tugas Tambahan</span>

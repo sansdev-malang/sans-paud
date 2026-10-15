@@ -109,8 +109,8 @@
     <!-- KOP SURAT / HEADER -->
     <div class="header">
         <h1>REKAPITULASI ROMBONGAN BELAJAR & KESISWAAN</h1>
-        <h2>{{ setting('app_name', 'KB - TK - DAYCARE - TPQ ANAK SALEH MALANG') }}</h2>
-        <p>Alamat: Jl. Candi Mendut No. 9B, Mojolangu, Lowokwaru, Kota Malang | Telp: (0341) 492025</p>
+        <h2>{{ strtoupper(setting('unit_name', setting('app_name', 'KB - TK - DAYCARE - TPQ ANAK SALEH MALANG'))) }}</h2>
+        <p>{{ setting('app_address', 'Jl. Candi Panggung Indah No. 1-3, Mojolangu, Lowokwaru, Kota Malang, Jawa Timur') }} | Telp/WA: {{ setting('app_phone', setting('school_phone', '+62 812-3456-7890')) }}</p>
     </div>
 
     <!-- META INFO -->

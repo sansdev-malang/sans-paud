@@ -146,9 +146,9 @@
 
     <!-- Kop Lembaga -->
     <div class="header">
-        <h1>{{ strtoupper(setting('app_name', 'PAUD ISLAM TERPADU ANAK SALEH MALANG')) }}</h1>
+        <h1>{{ strtoupper(setting('unit_name', setting('app_name', 'PAUD ISLAM TERPADU ANAK SALEH MALANG'))) }}</h1>
         <h2>LEMBAR SUPERVISI & REKAPITULASI KELENGKAPAN BERKAS GURU</h2>
-        <p>{{ setting('school_address', 'Jl. Candi Panggung Barat No. 13 Kota Malang, Jawa Timur') }} | Telp/WA: {{ setting('school_phone', '0812-3456-7890') }}</p>
+        <p>{{ setting('app_address', setting('school_address', 'Jl. Candi Panggung Barat No. 13 Kota Malang, Jawa Timur')) }} | Telp/WA: {{ setting('app_phone', setting('school_phone', '0812-3456-7890')) }}</p>
     </div>
 
     <!-- Metadata Informasi -->

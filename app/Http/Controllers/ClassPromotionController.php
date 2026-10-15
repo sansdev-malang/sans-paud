@@ -44,14 +44,19 @@ class ClassPromotionController extends Controller
             ->select('classrooms.*')
             ->get();
 
-        // Separate graduation classrooms (KB-B for Playgroup & TK-B for TK)
+        // Separate graduation classrooms (KB-B, TK-B, TPA 3, and TPQ)
         $graduationClassrooms = $sourceClassrooms->filter(function ($c) {
             $code = strtoupper($c->classLevel?->code ?? '');
             $name = strtoupper($c->classLevel?->name ?? '');
             $clsName = strtoupper($c->name ?? '');
+            $subUnit = strtoupper($c->sub_unit ?? '');
 
-            return str_contains($code, 'KB-B') || str_contains($name, 'KB-B') || str_contains($clsName, 'KB B')
-                || str_contains($code, 'TK-B') || str_contains($name, 'TK-B') || str_contains($clsName, 'TK B');
+            $isKbB = str_contains($code, 'KB-B') || str_contains($name, 'KB-B') || str_contains($clsName, 'KB B') || str_contains($clsName, 'KB-B');
+            $isTkB = str_contains($code, 'TK-B') || str_contains($name, 'TK-B') || str_contains($clsName, 'TK B') || str_contains($clsName, 'TK-B');
+            $isTpa3 = str_contains($code, 'TPA-3') || str_contains($name, 'TPA 3') || str_contains($clsName, 'TPA 3');
+            $isTpq = $subUnit === 'TPQ' || str_contains($code, 'TPQ') || str_contains($name, 'TPQ') || str_contains($clsName, 'TPQ');
+
+            return $isKbB || $isTkB || $isTpa3 || $isTpq;
         });
 
         $classLevels = ClassLevel::orderBy('order')->get();

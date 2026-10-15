@@ -424,14 +424,26 @@ class EmployeeController extends Controller
             $sheet->getColumnDimension($colLetter)->setAutoSize(true);
         }
 
+        if (request()->filled('download_token')) {
+            if (!headers_sent()) {
+                @setcookie('download_token', request()->query('download_token'), time() + 60, '/', '', false, false);
+            }
+        }
+
         $writer = new Xlsx($spreadsheet);
 
-        return response()->streamDownload(function () use ($writer) {
+        $response = response()->streamDownload(function () use ($writer) {
             $writer->save('php://output');
         }, 'Template_Pegawai_PAUD.xlsx', [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Cache-Control' => 'max-age=0',
         ]);
+
+        if (request()->filled('download_token')) {
+            $response->headers->setCookie(cookie('download_token', request()->query('download_token'), 1, '/', null, false, false));
+        }
+
+        return $response;
     }
 
     /**

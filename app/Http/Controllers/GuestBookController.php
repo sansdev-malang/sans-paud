@@ -20,7 +20,10 @@ class GuestBookController extends Controller
     public function index(Request $request)
     {
         $selectedMonth = (int) $request->get('month', Carbon::now()->month);
-        $selectedYear = (int) $request->get('year', Carbon::now()->year);
+        $selectedYear = (int) $request->get('year', 2026);
+        if ($selectedYear < 2026 || $selectedYear > 2030) {
+            $selectedYear = 2026;
+        }
         $selectedCategory = $request->get('category', 'all');
         $search = $request->get('search');
 
@@ -64,9 +67,8 @@ class GuestBookController extends Controller
             9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
         ];
 
-        // 5 Years Window
-        $currentYear = (int) Carbon::now()->year;
-        $yearsList = range($currentYear - 3, $currentYear + 2);
+        // Rentang Tahun: 2026 sampai 2030
+        $yearsList = range(2026, 2030);
 
         $categories = ['Umum', 'Dinas', 'Puskesmas/Dinkes', 'SPMB'];
 
@@ -160,7 +162,10 @@ class GuestBookController extends Controller
     public function exportExcel(Request $request)
     {
         $selectedMonth = (int) $request->get('month', Carbon::now()->month);
-        $selectedYear = (int) $request->get('year', Carbon::now()->year);
+        $selectedYear = (int) $request->get('year', 2026);
+        if ($selectedYear < 2026 || $selectedYear > 2030) {
+            $selectedYear = 2026;
+        }
         $selectedCategory = $request->get('category', 'all');
 
         $query = GuestBook::whereYear('date', $selectedYear)->whereMonth('date', $selectedMonth);
@@ -176,18 +181,32 @@ class GuestBookController extends Controller
         ];
         $monthName = $monthNames[$selectedMonth] ?? $selectedMonth;
 
+        $principal = \App\Models\Employee::where(function($q) {
+            $q->where('position', 'like', '%Kepala Sekolah%')
+              ->orWhere('position', 'like', '%Kepsek%');
+        })->first();
+        $headmasterName = $principal?->name ?? setting('headmaster_name', setting('school_principal_name', 'Dra. Hj. Nurul Hidayati, M.Pd'));
+        $headmasterNip = $principal?->nip ?? setting('headmaster_nip', setting('school_principal_nip', '19750815 200212 2 003'));
+        $schoolCity = setting('school_city', 'Malang');
+        $appName = setting('unit_name', setting('app_name', 'SANS PAUD Malang'));
+        $appAddress = setting('app_address', 'Jl. Candi Panggung Indah No. 1-3, Mojolangu, Lowokwaru, Kota Malang, Jawa Timur');
+        $appPhone = setting('app_phone', '+62 812-3456-7890');
+
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Buku Tamu ' . substr($monthName, 0, 3));
 
         // Header Title
-        $sheet->setCellValue('A1', 'BUKU TAMU & KUNJUNGAN LEMBAGA');
-        $sheet->setCellValue('A2', strtoupper(setting('app_name', 'PAUD ANAK SALEH MALANG')));
+        $sheet->setCellValue('A1', 'BUKU REGISTER KUNJUNGAN TAMU & KEDINASAN');
+        $sheet->setCellValue('A2', strtoupper($appName));
+        $sheet->setCellValue('A3', "{$appAddress} | Telp: {$appPhone}");
         $catLabel = $selectedCategory !== 'all' ? "Kategori: {$selectedCategory} | " : "";
-        $sheet->setCellValue('A3', "{$catLabel}Periode: {$monthName} {$selectedYear} | Dicetak: " . date('d/m/Y H:i'));
+        $sheet->setCellValue('A4', "{$catLabel}Periode: {$monthName} {$selectedYear} | Dicetak: " . date('d/m/Y H:i') . ' WIB');
 
-        $sheet->getStyle('A1:A2')->getFont()->setBold(true)->setSize(12);
-        $sheet->getStyle('A3')->getFont()->setItalic(true)->setSize(9.5)->getColor()->setARGB('FF475569');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(11)->getColor()->setARGB('FF0F766E');
+        $sheet->getStyle('A2')->getFont()->setBold(true)->setSize(13);
+        $sheet->getStyle('A3')->getFont()->setSize(9)->getColor()->setARGB('FF475569');
+        $sheet->getStyle('A4')->getFont()->setItalic(true)->setSize(9)->getColor()->setARGB('FF64748B');
 
         // Table Headers
         $headers = [
@@ -195,7 +214,7 @@ class GuestBookController extends Controller
             'Institusi / Lembaga', 'Jabatan', 'Pekerjaan', 'Kota / Kab',
             'Provinsi', 'Alamat Lengkap', 'Keperluan / Tujuan', 'Penerima Tamu', 'Kesan & Pesan'
         ];
-        $startRow = 5;
+        $startRow = 6;
 
         foreach ($headers as $colIndex => $h) {
             $colLetter = Coordinate::stringFromColumnIndex($colIndex + 1);
@@ -240,30 +259,69 @@ class GuestBookController extends Controller
         }
 
         // Borders
-        $sheet->getStyle("A{$startRow}:{$lastCol}" . ($currentRow - 1))->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFCBD5E1'));
+        if ($currentRow > $startRow + 1) {
+            $sheet->getStyle("A{$startRow}:{$lastCol}" . ($currentRow - 1))->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFCBD5E1'));
+        }
 
         foreach (range(1, count($headers)) as $colIndex) {
             $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($colIndex))->setAutoSize(true);
         }
 
+        // Dynamic Signatures in Excel
+        $signRow = $currentRow + 2;
+        $sheet->setCellValue("C{$signRow}", "Petugas Penerima Tamu / Piket,");
+        $sheet->setCellValue("L{$signRow}", "{$schoolCity}, " . Carbon::now()->translatedFormat('d F Y') . "\nMengetahui, Kepala Sekolah");
+        $sheet->getStyle("C{$signRow}")->getAlignment()->setWrapText(true)->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("L{$signRow}")->getAlignment()->setWrapText(true)->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        $sheet->setCellValue("C" . ($signRow + 4), "( ................................................ )");
+        $sheet->getStyle("C" . ($signRow + 4))->getFont()->setBold(true);
+        $sheet->getStyle("C" . ($signRow + 4))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->setCellValue("C" . ($signRow + 5), "NIP/NIY: ................................................");
+        $sheet->getStyle("C" . ($signRow + 5))->getFont()->setSize(9);
+        $sheet->getStyle("C" . ($signRow + 5))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        $sheet->setCellValue("L" . ($signRow + 4), $headmasterName);
+        $sheet->getStyle("L" . ($signRow + 4))->getFont()->setBold(true)->setUnderline(true);
+        $sheet->getStyle("L" . ($signRow + 4))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->setCellValue("L" . ($signRow + 5), "NIP: " . $headmasterNip);
+        $sheet->getStyle("L" . ($signRow + 5))->getFont()->setSize(9);
+        $sheet->getStyle("L" . ($signRow + 5))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        if ($request->filled('download_token')) {
+            if (!headers_sent()) {
+                @setcookie('download_token', $request->query('download_token'), time() + 60, '/', '', false, false);
+            }
+        }
+
         $writer = new Xlsx($spreadsheet);
         $filename = "Buku_Tamu_{$monthName}_{$selectedYear}.xlsx";
 
-        return response()->streamDownload(function () use ($writer) {
+        $response = response()->streamDownload(function () use ($writer) {
             $writer->save('php://output');
         }, $filename, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Cache-Control' => 'max-age=0',
         ]);
+
+        if ($request->filled('download_token')) {
+            $response->headers->setCookie(cookie('download_token', $request->query('download_token'), 1, '/', null, false, false));
+        }
+
+        return $response;
     }
 
     /**
-     * Printable view of Guest Book.
+     * Direct download PDF for Guest Book.
      */
-    public function print(Request $request)
+    public function downloadPdf(Request $request)
     {
+        ini_set('memory_limit', '512M');
         $selectedMonth = (int) $request->get('month', Carbon::now()->month);
-        $selectedYear = (int) $request->get('year', Carbon::now()->year);
+        $selectedYear = (int) $request->get('year', 2026);
+        if ($selectedYear < 2026 || $selectedYear > 2030) {
+            $selectedYear = 2026;
+        }
         $selectedCategory = $request->get('category', 'all');
 
         $query = GuestBook::whereYear('date', $selectedYear)->whereMonth('date', $selectedMonth);
@@ -279,12 +337,88 @@ class GuestBookController extends Controller
         ];
         $monthName = $monthNames[$selectedMonth] ?? $selectedMonth;
 
+        $principal = \App\Models\Employee::where(function($q) {
+            $q->where('position', 'like', '%Kepala Sekolah%')
+              ->orWhere('position', 'like', '%Kepsek%');
+        })->first();
+        $headmasterName = $principal?->name ?? setting('headmaster_name', setting('school_principal_name', 'Dra. Hj. Nurul Hidayati, M.Pd'));
+        $headmasterNip = $principal?->nip ?? setting('headmaster_nip', setting('school_principal_nip', '19750815 200212 2 003'));
+        $schoolCity = setting('school_city', 'Malang');
+        $appName = setting('unit_name', setting('app_name', 'SANS PAUD Malang'));
+        $appAddress = setting('app_address', 'Jl. Candi Panggung Indah No. 1-3, Mojolangu, Lowokwaru, Kota Malang, Jawa Timur');
+        $appPhone = setting('app_phone', '+62 812-3456-7890');
+
+        $fileName = "Buku_Tamu_{$monthName}_{$selectedYear}.pdf";
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.guest-books.pdf', [
+            'guests' => $guests,
+            'selectedMonth' => $selectedMonth,
+            'selectedYear' => $selectedYear,
+            'selectedCategory' => $selectedCategory,
+            'monthName' => $monthName,
+            'schoolCity' => $schoolCity,
+            'headmasterName' => $headmasterName,
+            'headmasterNip' => $headmasterNip,
+            'appName' => $appName,
+            'appAddress' => $appAddress,
+            'appPhone' => $appPhone,
+        ])->setPaper('a4', 'landscape');
+
+        $response = $pdf->download($fileName);
+        if ($request->filled('download_token')) {
+            $response->headers->setCookie(cookie('download_token', $request->query('download_token'), 1, '/', null, false, false));
+        }
+        return $response;
+    }
+
+    /**
+     * Printable view of Guest Book.
+     */
+    public function print(Request $request)
+    {
+        $selectedMonth = (int) $request->get('month', Carbon::now()->month);
+        $selectedYear = (int) $request->get('year', 2026);
+        if ($selectedYear < 2026 || $selectedYear > 2030) {
+            $selectedYear = 2026;
+        }
+        $selectedCategory = $request->get('category', 'all');
+
+        $query = GuestBook::whereYear('date', $selectedYear)->whereMonth('date', $selectedMonth);
+        if ($selectedCategory && $selectedCategory !== 'all') {
+            $query->where('category', $selectedCategory);
+        }
+        $guests = $query->orderBy('date', 'asc')->orderBy('time', 'asc')->get();
+
+        $monthNames = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
+        ];
+        $monthName = $monthNames[$selectedMonth] ?? $selectedMonth;
+
+        $principal = \App\Models\Employee::where(function($q) {
+            $q->where('position', 'like', '%Kepala Sekolah%')
+              ->orWhere('position', 'like', '%Kepsek%');
+        })->first();
+        $headmasterName = $principal?->name ?? setting('headmaster_name', setting('school_principal_name', 'Dra. Hj. Nurul Hidayati, M.Pd'));
+        $headmasterNip = $principal?->nip ?? setting('headmaster_nip', setting('school_principal_nip', '19750815 200212 2 003'));
+        $schoolCity = setting('school_city', 'Malang');
+        $appName = setting('unit_name', setting('app_name', 'SANS PAUD Malang'));
+        $appAddress = setting('app_address', 'Jl. Candi Panggung Indah No. 1-3, Mojolangu, Lowokwaru, Kota Malang, Jawa Timur');
+        $appPhone = setting('app_phone', '+62 812-3456-7890');
+
         return view('admin.guest-books.print', compact(
             'guests',
             'selectedMonth',
             'selectedYear',
             'selectedCategory',
-            'monthName'
+            'monthName',
+            'schoolCity',
+            'headmasterName',
+            'headmasterNip',
+            'appName',
+            'appAddress',
+            'appPhone'
         ));
     }
 

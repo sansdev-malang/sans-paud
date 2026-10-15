@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full overflow-hidden">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -196,6 +195,10 @@
 
         <style>
             /* Responsive Root Typography & UI Density System */
+            html, body {
+                height: 100%;
+                overflow: hidden;
+            }
             html {
                 font-size: 15px;
                 -webkit-text-size-adjust: 100%;
@@ -339,8 +342,8 @@
             }
         </style>
     </head>
-    <body class="h-full bg-slate-50 dark:bg-[#09090b] text-[#09090b] dark:text-slate-50 antialiased overflow-x-hidden transition-colors duration-200">
-        <div class="flex h-screen overflow-hidden">
+    <body class="h-full bg-slate-50 dark:bg-[#09090b] text-[#09090b] dark:text-slate-50 antialiased overflow-hidden transition-colors duration-200">
+        <div class="flex h-full w-full overflow-hidden">
 
             <!-- SIDEBAR BACKDROP FOR MOBILE -->
             <div id="sidebar-backdrop" class="fixed inset-0 z-[55] bg-slate-950/55 backdrop-blur-sm hidden md:hidden transition-opacity duration-200 opacity-0"></div>
@@ -844,7 +847,11 @@
                         downloadFrame.src = url.toString();
                         document.body.appendChild(downloadFrame);
 
-                        const finishDownload = function () {
+                        let finished = false;
+                        const finishDownload = function (isSuccess = true) {
+                            if (finished) return;
+                            finished = true;
+                            clearInterval(intervalId);
                             link.classList.remove('pointer-events-none', 'opacity-50', 'cursor-not-allowed');
                             if (parentBtn) {
                                 parentBtn.classList.remove('pointer-events-none', 'opacity-60', 'cursor-not-allowed');
@@ -854,6 +861,9 @@
                                 NProgress.done();
                             }
                             deleteCookie('download_token');
+                            if (isSuccess) {
+                                window.showToastNotification('Berkas berhasil diunduh.', 'success');
+                            }
                             setTimeout(function () {
                                 if (downloadFrame && downloadFrame.parentNode) {
                                     downloadFrame.remove();
@@ -864,14 +874,12 @@
                         const intervalId = setInterval(function () {
                             const cookieVal = getCookie('download_token');
                             if (cookieVal === token) {
-                                clearInterval(intervalId);
-                                finishDownload();
+                                finishDownload(true);
                             }
                         }, 100);
                         
                         setTimeout(function () {
-                            clearInterval(intervalId);
-                            finishDownload();
+                            finishDownload(false);
                         }, 10000);
                         
                         return;
@@ -914,7 +922,7 @@
                     this.toasts.push({ id, message, type, token });
                     setTimeout(() => {
                         this.remove(id);
-                    }, 25000);
+                    }, type === 'success' ? 4000 : 25000);
                 },
                 remove(id) {
                     this.toasts = this.toasts.filter(t => t.id !== id);
@@ -939,6 +947,14 @@
                               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
+                     </template>
+
+                     <template x-if="t.type === 'success'">
+                          <div class="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center shrink-0">
+                              <svg class="h-3 w-3 text-emerald-600 dark:text-emerald-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                          </div>
                      </template>
                      
                      <span class="text-xs font-semibold text-slate-700 dark:text-slate-300" x-text="t.message"></span>

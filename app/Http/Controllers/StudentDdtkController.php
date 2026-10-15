@@ -121,13 +121,17 @@ class StudentDdtkController extends Controller
         $avgHeight = $countHeight > 0 ? round($sumHeight / $countHeight, 1) : 0;
         $avgWeight = $countWeight > 0 ? round($sumWeight / $countWeight, 1) : 0;
 
-        // Generate Available Periods (Last 12 Months)
+        // Generate Available Periods in Chronological Order starting from Januari to Desember
+        $selectedYear = Carbon::now()->year;
+        if ($selectedPeriod && preg_match('/^(\d{4})/', $selectedPeriod, $matches)) {
+            $selectedYear = (int) $matches[1];
+        }
+
         $availablePeriods = [];
-        for ($i = 0; $i < 12; $i++) {
-            $c = Carbon::now()->subMonths($i);
+        for ($m = 1; $m <= 12; $m++) {
+            $c = Carbon::create($selectedYear, $m, 1);
             $key = $c->format('Y-m');
-            $label = $c->translatedFormat('F Y');
-            $availablePeriods[$key] = $label;
+            $availablePeriods[$key] = $c->translatedFormat('F Y');
         }
 
         // Historical Records for Growth Charts (Tab 4)
@@ -390,7 +394,7 @@ class StudentDdtkController extends Controller
 
         // Document Title
         $sheet->setCellValue('A1', 'REKAPITULASI PEMERIKSAAN DDTK & SDIDTK MURID');
-        $sheet->setCellValue('A2', strtoupper(setting('app_name', 'PAUD ANAK SALEH MALANG')));
+        $sheet->setCellValue('A2', strtoupper(setting('unit_name', setting('app_name', 'PAUD ANAK SALEH MALANG'))));
         $sheet->setCellValue('A3', "Rombel: {$classroom->name} ({$classroom->sub_unit}) | Periode: {$periodLabel} | Tanggal Cetak: " . date('d/m/Y H:i'));
 
         $sheet->getStyle('A1:A2')->getFont()->setBold(true)->setSize(12);
@@ -485,9 +489,15 @@ class StudentDdtkController extends Controller
         // Signatures
         $signRow = $currentRow + 2;
         $sheet->setCellValue("C{$signRow}", "Mengetahui,\nKepala Sekolah");
-        $sheet->setCellValue("M{$signRow}", "Malang, " . date('d F Y') . "\nWali Kelas / Petugas UKS");
+        $city = setting('school_city', 'Malang');
+        $sheet->setCellValue("M{$signRow}", "{$city}, " . \Carbon\Carbon::now()->translatedFormat('d F Y') . "\nWali Kelas / Petugas UKS");
         $sheet->getStyle("C{$signRow}")->getAlignment()->setWrapText(true)->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle("M{$signRow}")->getAlignment()->setWrapText(true)->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        $principalName = setting('headmaster_name', setting('school_principal_name', '( ................................ )'));
+        $sheet->setCellValue("C" . ($signRow + 4), $principalName);
+        $sheet->getStyle("C" . ($signRow + 4))->getFont()->setBold(true)->setUnderline(true);
+        $sheet->getStyle("C" . ($signRow + 4))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         $teacherName = $classroom->homeroomTeacher?->name ?? '( ................................ )';
         $sheet->setCellValue("M" . ($signRow + 4), $teacherName);
@@ -498,12 +508,24 @@ class StudentDdtkController extends Controller
         $cleanClassName = preg_replace('/[^A-Za-z0-9_-]/', '_', $classroom->name);
         $filename = "Rekap_DDTK_SDIDTK_{$cleanClassName}_{$period}.xlsx";
 
-        return response()->streamDownload(function () use ($writer) {
+        if ($request->filled('download_token')) {
+            if (!headers_sent()) {
+                @setcookie('download_token', $request->query('download_token'), time() + 60, '/', '', false, false);
+            }
+        }
+
+        $response = response()->streamDownload(function () use ($writer) {
             $writer->save('php://output');
         }, $filename, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Cache-Control' => 'max-age=0',
         ]);
+
+        if ($request->filled('download_token')) {
+            $response->headers->setCookie(cookie('download_token', $request->query('download_token'), 1, '/', null, false, false));
+        }
+
+        return $response;
     }
 
     /**
