@@ -164,7 +164,7 @@
         </div>
 
         <!-- Group 2: Kesiswaan & Akademik -->
-        @if($isAdmin || $empId || $canAccessRapor)
+        @if($isAdmin || $canAccessRapor)
         <div>
             <h3 class="school-info px-2 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
                 Kesiswaan & Akademik
@@ -216,11 +216,13 @@
                     <!-- Dropdown content with line connector -->
                     <div x-show="openClassroom" x-collapse
                         class="sidebar-dropdown-content mt-1 ml-5 pl-4 border-l border-slate-200 dark:border-slate-800 space-y-1">
+                        @if($isAdmin || $canAccessRapor)
                         <!-- Absensi Murid -->
                         <a href="{{ route('student-attendances.index') }}"
                             class="flex items-center justify-between gap-2 py-1 text-xs font-medium {{ Request::routeIs('student-attendances.*') ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100' }} transition-colors">
                             <span>Absensi Murid</span>
                         </a>
+                        @endif
 
                         @if(auth()->user()->hasRole('super_admin'))
                         <!-- Jurnal Kelas -->
@@ -256,6 +258,7 @@
                     </div>
                 </div>
 
+                @if($isAdmin)
                 <!-- Dropdown: Siklus & Alumni -->
                 <div x-data="{ openLifecycle: {{ Request::routeIs('student-archives.*', 'promotions.*', 'alumni.*') ? 'true' : 'false' }} }">
                     <button @click="openLifecycle = !openLifecycle"
@@ -274,13 +277,11 @@
                     <!-- Dropdown content with line connector -->
                     <div x-show="openLifecycle" x-collapse
                         class="sidebar-dropdown-content mt-1 ml-5 pl-4 border-l border-slate-200 dark:border-slate-800 space-y-1">
-                        @if($empId || $isAdmin)
                         <!-- Arsip Murid -->
                         <a href="{{ route('student-archives.index') }}"
                             class="flex items-center justify-between gap-2 py-1 text-xs font-medium {{ Request::routeIs('student-archives.*') ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100' }} transition-colors">
                             <span>Arsip Murid</span>
                         </a>
-                        @endif
 
                         @if($isAdmin)
                         <!-- Kenaikan & Kelulusan -->
@@ -297,6 +298,7 @@
                         @endif
                     </div>
                 </div>
+                @endif
             </nav>
         </div>
         @endif
