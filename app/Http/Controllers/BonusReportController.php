@@ -19,9 +19,9 @@ class BonusReportController extends Controller
             abort(403);
         }
 
-        // Pegawai biasa diarahkan ke Data Kehadiran karena log absensi dan bonusnya sudah ada di sana
+        // Pegawai biasa diarahkan ke Data Kehadiran karena log absensi dan uang kehadirannya sudah ada di sana
         if ($user->role === 'employee') {
-            return redirect()->route('attendances.index')->with('info', 'Rincian kehadiran dan bonus harian Anda dapat dilihat langsung pada menu Data Kehadiran.');
+            return redirect()->route('attendances.index')->with('info', 'Rincian kehadiran dan uang kehadiran harian Anda dapat dilihat langsung pada menu Data Kehadiran.');
         }
 
         $cutoffDate = (int) Setting::get('payroll_cutoff_date', 26);
@@ -461,7 +461,7 @@ class BonusReportController extends Controller
             $searchStr = !empty($search) ? '_Pencarian_' . preg_replace('/[^A-Za-z0-9]/', '', $search) : '';
             $posStr = !empty($position) ? '_Jabatan_' . preg_replace('/[^A-Za-z0-9]/', '', $position) : '';
             $userEmpStr = (! $isSuperAdmin && $user && $user->name) ? '_' . preg_replace('/[^A-Za-z0-9]/', '_', $user->name) : '';
-            $baseFileName = ($isSuperAdmin ? 'Rekap_Bonus_' : 'Bonus_Kehadiran_') . $unitStr . '_' . $month . $userEmpStr . $searchStr . $posStr;
+            $baseFileName = ($isSuperAdmin ? 'Rekap_Uang_Kehadiran_' : 'Uang_Kehadiran_') . $unitStr . '_' . $month . $userEmpStr . $searchStr . $posStr;
 
             if ($format === 'pdf') {
                 if ($request->filled('download_token')) {
@@ -486,12 +486,12 @@ class BonusReportController extends Controller
             // Excel Export
             $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
-            $sheet->setTitle('Rekap Bonus');
+            $sheet->setTitle('Rekap Uang Kehadiran');
 
             $sheet->setCellValue('A1', 'No');
             $sheet->setCellValue('B1', 'Nama Pegawai');
             $sheet->setCellValue('C1', 'Unit');
-            $sheet->setCellValue('D1', 'Total Bonus (Rp)');
+            $sheet->setCellValue('D1', 'Total Uang Kehadiran (Rp)');
 
             // Build dynamic date headers starting from column E (Index 5)
             $colIndex = 5;
