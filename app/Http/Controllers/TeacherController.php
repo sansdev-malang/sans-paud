@@ -125,13 +125,44 @@ class TeacherController extends Controller
         $certifiedCount = (int) ($teacherStats->certified ?? 0);
         $certifiedPercent = $totalGuru > 0 ? round(($certifiedCount / $totalGuru) * 100) : 0;
 
+        // Hitung jumlah guru per jenjang
+        $jenjangCounts = \App\Models\Classroom::whereNotNull('homeroom_teacher_id')
+            ->when($activeYearId, fn($q) => $q->where('academic_year_id', $activeYearId))
+            ->select('sub_unit', \Illuminate\Support\Facades\DB::raw('COUNT(DISTINCT homeroom_teacher_id) as total'))
+            ->groupBy('sub_unit')
+            ->pluck('total', 'sub_unit')
+            ->toArray();
+
+        $jenjangStats = [
+            'KB' => ($jenjangCounts['PG'] ?? 0) + ($jenjangCounts['KB'] ?? 0),
+            'TK' => $jenjangCounts['TK'] ?? 0,
+            'DAYCARE' => $jenjangCounts['DAYCARE'] ?? 0,
+            'TPQ' => $jenjangCounts['TPQ'] ?? 0,
+        ];
+
+        // Fallback untuk kelompok yang sub_unit-nya kosong/null jika ada
+        $unassignedSubUnits = \App\Models\Classroom::whereNotNull('homeroom_teacher_id')
+            ->when($activeYearId, fn($q) => $q->where('academic_year_id', $activeYearId))
+            ->where(function($q) {
+                $q->whereNull('sub_unit')->orWhere('sub_unit', '');
+            })
+            ->get();
+        foreach ($unassignedSubUnits as $c) {
+            $uName = strtoupper($c->name);
+            if (str_contains($uName, 'TK')) {
+                $jenjangStats['TK']++;
+            } elseif (str_contains($uName, 'KB') || str_contains($uName, 'PG')) {
+                $jenjangStats['KB']++;
+            }
+        }
+
         $perPage = $request->input('per_page', 10);
         if ($perPage === 'all') {
             $perPage = $query->count() > 0 ? $query->count() : 1;
         }
         $teachers = $query->orderBy('name', 'asc')->paginate($perPage)->withQueryString();
 
-        return view('admin.teachers.index', compact('teachers', 'totalGuru', 'guruMale', 'guruFemale', 'certifiedPercent', 'classrooms'));
+        return view('admin.teachers.index', compact('teachers', 'totalGuru', 'guruMale', 'guruFemale', 'certifiedPercent', 'classrooms', 'jenjangStats'));
     }
 
     /**
@@ -769,7 +800,7 @@ class TeacherController extends Controller
             $sheet->setCellValue('D' . $row, $t->name);
             $sheet->setCellValue('E' . $row, $t->back_title ?? '');
             $sheet->setCellValue('F' . $row, $genderText);
-            $sheet->setCellValue('G' . $row, $t->position ?? 'Guru Kelas');
+            $sheet->setCellValue('G' . $row, $t->position ?? '-');
             $sheet->setCellValue('H' . $row, $t->additional_position ?? '-');
             $sheet->setCellValue('I' . $row, $classroomsStr);
             $sheet->setCellValue('J' . $row, $totalMurid);

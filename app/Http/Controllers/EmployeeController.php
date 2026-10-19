@@ -77,7 +77,23 @@ class EmployeeController extends Controller
             ]);
         }
 
-        return view('admin.employees.index', compact('employees', 'employeeTypes', 'positions'));
+        $statsQuery = Employee::query();
+        if ($schoolUnit) {
+            $statsQuery->where('unit', $schoolUnit);
+        }
+        $empStats = (clone $statsQuery)->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN employee_type_id = 1 THEN 1 ELSE 0 END) as guru,
+            SUM(CASE WHEN employee_type_id = 2 THEN 1 ELSE 0 END) as staf,
+            SUM(CASE WHEN employee_type_id = 3 THEN 1 ELSE 0 END) as manajemen
+        ")->first();
+
+        $totalPegawai = (int) ($empStats->total ?? 0);
+        $totalGuru = (int) ($empStats->guru ?? 0);
+        $totalStaf = (int) ($empStats->staf ?? 0);
+        $totalManajemen = (int) ($empStats->manajemen ?? 0);
+
+        return view('admin.employees.index', compact('employees', 'employeeTypes', 'positions', 'totalPegawai', 'totalGuru', 'totalStaf', 'totalManajemen'));
     }
 
     /**

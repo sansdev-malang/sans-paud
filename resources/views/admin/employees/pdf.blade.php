@@ -111,9 +111,9 @@
                     <!-- Pendidikan & Jabatan -->
                     <td>
                         <span class="label">Tipe:</span> <span class="val">{{ $emp['employeeType']['name'] ?? '-' }}</span><br>
-                        <span class="label">Jabatan:</span> <span class="val">{{ $emp['position'] ?? '-' }}</span><br>
+                        <span class="label">Jabatan Utama:</span> <span class="val">{{ $emp['position'] ?? '-' }}</span><br>
                         @if(!empty($emp['additional_position']))
-                            <span class="label">Tambahan:</span> <span class="val">{{ $emp['additional_position'] }}</span><br>
+                            <span class="label">Jabatan Tambahan:</span> <span class="val">{{ $emp['additional_position'] }}</span><br>
                         @endif
                         <span class="label">Pendidikan:</span> <span class="val">{{ $emp['last_education'] ?? '-' }}</span><br>
                         <span class="label">Jurusan:</span> <span class="val">{{ $emp['major'] ?? '-' }}</span>

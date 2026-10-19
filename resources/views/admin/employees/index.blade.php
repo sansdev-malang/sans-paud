@@ -69,51 +69,42 @@
             </div>
         @endif
 
-        <!-- FILTERS & SEARCH -->
-        <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm w-full">
-            <form method="GET" action="{{ route('employees.index') }}" class="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
-                <!-- Search Box Welded with Cari Button (Premium Input Group) -->
-                <div x-data="{ searchVal: '{{ request('search') }}' }" class="flex items-center w-full search-container bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden shadow-inner focus-within:ring-0 focus-within:border-slate-300 dark:focus-within:border-slate-700">
-                    <input type="text" name="search" x-model="searchVal" placeholder="Cari berdasarkan Nama, Email, atau NIP..."
-                        style="border: none !important; outline: none !important; box-shadow: none !important;"
-                        class="w-full h-9 px-3 text-xs bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-0">
-                    
-                    <!-- Clear Button (x) -->
-                    <button type="button" x-show="searchVal.trim() !== ''" @click="searchVal = ''; $el.closest('.search-container').querySelector('input').focus();" class="h-9 px-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer bg-transparent border-0 flex items-center justify-center" title="Bersihkan pencarian">
-                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
-                    </button>
+        <!-- TABLE SECTION -->
+        <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden transition-all w-full text-left">
+            <!-- Table Header Bar: Filters & KPI Status Strip -->
+            <div class="p-3 sm:p-4 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                <!-- Filters Form -->
+                <form method="GET" action="{{ route('employees.index') }}" class="flex flex-wrap items-center gap-2 m-0 p-0">
+                    <!-- Search Input (Placeholder cukup nama saja) -->
+                    <div x-data="{ searchVal: '{{ request('search') }}' }" class="flex items-center w-full sm:w-52 search-container bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-lg overflow-hidden focus-within:ring-1 focus-within:ring-indigo-500 focus-within:border-indigo-500">
+                        <input type="text" name="search" x-model="searchVal" placeholder="Cari nama..."
+                            style="border: none !important; outline: none !important; box-shadow: none !important;"
+                            class="w-full h-8 px-2.5 text-xs bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:ring-0">
+                        
+                        <button type="button" x-show="searchVal.trim() !== ''" @click="searchVal = ''; $el.closest('.search-container').querySelector('input').focus();" class="h-8 px-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer bg-transparent border-0 flex items-center justify-center" title="Bersihkan pencarian">
+                            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                        </button>
 
-                    <button type="submit" 
-                        :class="searchVal.trim() !== '' ? 'bg-indigo-600 text-white dark:bg-indigo-500 dark:text-white' : 'bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300'"
-                        class="h-9 px-4 font-bold text-xs transition-all duration-150 cursor-pointer whitespace-nowrap flex items-center justify-center border-l border-slate-200 dark:border-slate-800">
-                        Cari
-                    </button>
-                </div>
+                        <button type="submit" 
+                            :class="searchVal.trim() !== '' ? 'bg-indigo-600 text-white dark:bg-indigo-500 dark:text-white' : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300'"
+                            class="h-8 px-2.5 font-bold text-xs transition-all duration-150 cursor-pointer flex items-center justify-center border-l border-slate-200 dark:border-slate-700">
+                            <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
 
-                <!-- Filters -->
-                <div class="flex items-center gap-2 w-full md:w-auto">
-
-                      <select name="per_page" onchange="this.form.submit()"
-                          class="h-9 px-2 flex-1 sm:flex-initial sm:w-28 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer appearance-none" style="padding-right: 1.5rem; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.5rem top 50%; background-size: 0.65rem auto;">
-                          <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10 Data</option>
-                          <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25 Data</option>
-                          <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 Data</option>
-                          <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100 Data</option>
-                          <option value="99999" {{ request('per_page') == 99999 ? 'selected' : '' }}>Semua</option>
-                      </select>
-                    <!-- Type -->
+                    <!-- Filter Peran/Tipe -->
                     <select name="type" onchange="this.form.submit()"
-                        class="h-9 px-2 flex-1 sm:flex-initial sm:w-36 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
-                        <option value="">Semua Peran</option>
+                        class="h-8 px-2.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
+                        <option value="">Semua Tipe User</option>
                         @foreach($employeeTypes as $type)
                             <option value="{{ $type->id }}" {{ request('type') == $type->id ? 'selected' : '' }}>{{ $type->name }}</option>
                         @endforeach
                     </select>
 
-                    <!-- Unit -->
+                    <!-- Filter Unit -->
                     @if(!config('app.school_unit'))
                     <select name="unit" onchange="this.form.submit()"
-                        class="h-9 px-2 flex-1 sm:flex-initial sm:w-36 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
+                        class="h-8 px-2.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
                         <option value="">Semua Unit</option>
                         <option value="paud" {{ request('unit') == 'paud' ? 'selected' : '' }}>PAUD & TK</option>
                         <option value="sd" {{ request('unit') == 'sd' ? 'selected' : '' }}>Sekolah Dasar (SD)</option>
@@ -121,69 +112,98 @@
                     </select>
                     @endif
 
-                    <!-- Status -->
+                    <!-- Filter Status -->
                     <select name="status" onchange="this.form.submit()"
-                        class="h-9 px-2 flex-1 sm:flex-initial sm:w-36 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
+                        class="h-8 px-2.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
                         <option value="">Semua Status</option>
                         <option value="Active" {{ request('status') == 'Active' ? 'selected' : '' }}>Aktif</option>
                         <option value="Leave" {{ request('status') == 'Leave' ? 'selected' : '' }}>Cuti</option>
                         <option value="Inactive" {{ request('status') == 'Inactive' ? 'selected' : '' }}>Nonaktif</option>
                     </select>
 
+                    <!-- Per Page -->
+                    <select name="per_page" onchange="this.form.submit()"
+                        class="h-8 px-2.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
+                        <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10 Data</option>
+                        <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25 Data</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 Data</option>
+                        <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100 Data</option>
+                        <option value="99999" {{ request('per_page') == 99999 ? 'selected' : '' }}>Semua</option>
+                    </select>
+
                     @if(request()->anyFilled(['search', 'type', 'unit', 'status']))
-                        <a href="{{ route('employees.index') }}" class="h-9 px-3 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 rounded-lg transition-colors" title="Reset Filter">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                        <a href="{{ route('employees.index') }}" class="h-8 px-2.5 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 rounded-lg transition-colors" title="Reset Filter">
+                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
                         </a>
                     @endif
-                </div>
-            </form>
-        </section>
+                </form>
 
-        <!-- TABLE SECTION -->
-        <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden w-full">
-            <div class="overflow-x-auto overflow-y-auto" style="max-height: calc(100vh - 240px);">
+                <!-- Status KPI Dots (Pojok Kanan Sejajar dengan Filter) -->
+                <div class="flex items-center gap-2.5 shrink-0 ml-auto">
+                    <span class="inline-flex flex-wrap items-center gap-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span> Total: <strong class="text-slate-800 dark:text-slate-200 font-mono">{{ $totalPegawai }}</strong>
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+                            <span class="w-2 h-2 rounded-full bg-blue-500 inline-block"></span> Guru: <strong class="text-blue-600 dark:text-blue-400 font-mono">{{ $totalGuru }}</strong>
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+                            <span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span> Staf: <strong class="text-amber-600 dark:text-amber-400 font-mono">{{ $totalStaf }}</strong>
+                        </span>
+                        @if($totalManajemen > 0)
+                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+                            <span class="w-2 h-2 rounded-full bg-purple-500 inline-block"></span> Manajemen: <strong class="text-purple-600 dark:text-purple-400 font-mono">{{ $totalManajemen }}</strong>
+                        </span>
+                        @endif
+                    </span>
+                </div>
+            </div>
+            <div class="overflow-x-auto overflow-y-auto" style="max-height: calc(100vh - 220px);">
                 <table class="w-full text-xs border-collapse">
                     <thead class="sticky top-0 z-10 shadow-sm">
                         <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-14">No</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[200px]">Nama & Email</th>
+                            <th class="px-3 py-2.5 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-10 whitespace-nowrap">No</th>
+                            <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Nama & Email</th>
                             @if(!config('app.school_unit'))
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28">Unit</th>
+                            <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-24">Unit</th>
                             @endif
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-40">Tipe</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-56">Jabatan</th>
+                            <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Tipe User</th>
+                            <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Jabatan Utama</th>
+                            <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Jabatan Tambahan</th>
                             
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-32">ZK ID</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-24">Status</th>
-                            <th class="px-6 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-24">Aksi</th>
+                            <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-28">ZK ID</th>
+                            <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-24">Status</th>
+                            <th class="px-4 py-2.5 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-24">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-900">
                         @forelse($employees as $index => $employee)
                             <tr class="hover:bg-slate-50/40 dark:hover:bg-slate-900/20 transition-colors">
-                                <td class="px-6 py-4 text-slate-900 dark:text-slate-50 font-medium">{{ $index + 1 }}</td>
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center gap-3">
+                                <td class="px-3 py-2.5 text-center text-slate-900 dark:text-slate-50 font-medium whitespace-nowrap w-10">
+                                    {{ $employees->firstItem() ? ($employees->firstItem() + $index) : ($index + 1) }}
+                                </td>
+                                <td class="px-4 py-2.5 whitespace-nowrap">
+                                    <div class="flex items-center gap-2.5">
                                         @if($employee->photo)
-                                            <img src="{{ str_contains($employee->photo, 'photos/') ? asset('storage/' . $employee->photo) : asset('storage/photos/' . $employee->photo) }}" class="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-200/50 dark:border-slate-800/40">
+                                            <img src="{{ str_contains($employee->photo, 'photos/') ? asset('storage/' . $employee->photo) : asset('storage/photos/' . $employee->photo) }}" class="w-7 h-7 rounded-full object-cover shrink-0 border border-slate-200/50 dark:border-slate-800/40">
                                         @else
-                                            <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-900 flex items-center justify-center text-xs font-bold text-slate-700 dark:text-slate-300 shrink-0">
+                                            <div class="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-900 flex items-center justify-center text-[10px] font-bold text-slate-700 dark:text-slate-300 shrink-0">
                                                 {{ strtoupper(substr($employee->raw_name, 0, 2)) }}
                                             </div>
                                         @endif
-                                        <div>
+                                        <div class="min-w-0">
                                             @php
                                                 $empData = $employee->toArray();
                                                 $empData['photo_url'] = $employee->photo ? (str_contains($employee->photo, 'photos/') ? asset('storage/' . $employee->photo) : asset('storage/photos/' . $employee->photo)) : '';
                                                 $empData['unit_name'] = 'PAUD';
                                             @endphp
-                                            <span @click='selectedEmp = @json($empData); showEmpDetailModal = true' class="text-slate-900 dark:text-slate-50 font-bold tracking-tight block cursor-pointer hover:underline hover:text-indigo-600 dark:hover:text-indigo-400">{{ $employee->name }}</span>
-                                            <span class="text-[10px] text-slate-500 dark:text-slate-400 block">{{ $employee->email ?? 'Tidak ada email' }}</span>
+                                            <span @click='selectedEmp = @json($empData); showEmpDetailModal = true' class="text-slate-900 dark:text-slate-50 font-bold tracking-tight block cursor-pointer hover:underline hover:text-indigo-600 dark:hover:text-indigo-400 whitespace-nowrap text-xs">{{ $employee->name }}</span>
+                                            <span class="text-[10px] text-slate-400 block whitespace-nowrap">{{ $employee->email ?? 'Tidak ada email' }}</span>
                                         </div>
                                     </div>
                                 </td>
                                 @if(!config('app.school_unit'))
-                                <td class="px-6 py-4">
+                                <td class="px-4 py-2.5 whitespace-nowrap">
                                     @if($employee->unit == 'paud')
                                         <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 border border-teal-200/50 dark:border-teal-800/40 uppercase">PAUD & TK</span>
                                     @elseif($employee->unit == 'sd')
@@ -193,24 +213,24 @@
                                     @endif
                                 </td>
                                 @endif
-                                <td class="px-6 py-4 text-slate-700 dark:text-slate-300 font-medium">
+                                <td class="px-4 py-2.5 text-slate-700 dark:text-slate-300 font-medium whitespace-nowrap">
                                     {{ $employee->employeeType->name ?? '-' }}
                                 </td>
-                                <td class="px-6 py-4">
-                                    <span class="block text-slate-700 dark:text-slate-300 font-medium">{{ $employee->position ?? '-' }}</span>
-                                    @if(!empty($employee->additional_position))
-                                        <span class="block text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{{ $employee->additional_position }}</span>
-                                    @endif
+                                <td class="px-4 py-2.5 whitespace-nowrap">
+                                    <span class="block text-slate-700 dark:text-slate-300 font-medium whitespace-nowrap">{{ $employee->position ?: '-' }}</span>
+                                </td>
+                                <td class="px-4 py-2.5 whitespace-nowrap">
+                                    <span class="block text-slate-700 dark:text-slate-300 font-medium whitespace-nowrap">{{ $employee->additional_position ?: '-' }}</span>
                                 </td>
                                 
-                                <td class="px-6 py-4">
+                                <td class="px-4 py-2.5 whitespace-nowrap">
                                     @if($employee->zkteco_uid)
                                         <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 font-mono text-[10px]">ID: {{ $employee->zkteco_uid }}</span>
                                     @else
                                         <span class="text-slate-400 dark:text-slate-600">-</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4">
+                                <td class="px-4 py-2.5 whitespace-nowrap">
                                     @if($employee->status == 'Active')
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/40">Aktif</span>
                                     @elseif($employee->status == 'Leave')
@@ -219,18 +239,20 @@
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200/50 dark:border-red-800/40">Nonaktif</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 text-right">
+                                <td class="px-4 py-2.5 text-right whitespace-nowrap">
                                     <div class="flex items-center justify-end gap-1.5">
                                         @if(!$employee->user && auth()->user()->role === 'super_admin')
-                                        <form action="{{ route('employees.generate-account', $employee->id) }}" method="POST" class="inline">
+                                        <form action="{{ route('employees.generate-account', $employee->id) }}" method="POST" class="inline-flex items-center m-0 p-0">
                                             @csrf
-                                            <button type="submit" class="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors cursor-pointer" title="Buatkan Akun" onclick="return confirm('Buat akun untuk {{ $employee->name }} dengan password default: sans1234?')">
+                                            <button type="submit" class="w-8 h-8 flex items-center justify-center hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors cursor-pointer" title="Buatkan Akun" onclick="return confirm('Buat akun untuk {{ $employee->name }} dengan password default: sans1234?')">
                                                 <i data-lucide="user-plus" class="w-4 h-4"></i>
                                             </button>
                                         </form>
                                         @endif
-                                        <button @click='selectedEmp = @json($employee); showEditModal = true' class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors cursor-pointer" title="Edit Data"><i data-lucide="edit" class="w-4 h-4"></i></button>
-                                        <button onclick="deleteEmployee('{{ $employee->id }}', '{{ $employee->name }}')" class="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-red-600 dark:text-red-400 hover:text-red-700 transition-colors cursor-pointer" title="Hapus Data">
+                                        <button @click='selectedEmp = @json($employee); showEditModal = true' class="w-8 h-8 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors cursor-pointer" title="Edit Data">
+                                            <i data-lucide="edit" class="w-4 h-4"></i>
+                                        </button>
+                                        <button onclick="deleteEmployee('{{ $employee->id }}', '{{ $employee->name }}')" class="w-8 h-8 flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-red-600 dark:text-red-400 hover:text-red-700 transition-colors cursor-pointer" title="Hapus Data">
                                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                                         </button>
                                     </div>
@@ -238,7 +260,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
+                                <td colspan="{{ !config('app.school_unit') ? 9 : 8 }}" class="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
                                     <div class="flex flex-col items-center justify-center gap-2">
                                         <i data-lucide="users" class="w-8 h-8 text-slate-300 dark:text-slate-700"></i>
                                         <p class="font-medium text-xs">Belum ada data pegawai terdaftar.</p>
@@ -451,7 +473,7 @@
                                 </div>
                                 <div class="space-y-1">
                                     <h4 class="text-sm font-bold text-slate-900 dark:text-slate-50" x-text="selectedEmp ? selectedEmp.name : ''"></h4>
-                                    <p class="text-slate-500 dark:text-slate-400 font-mono text-[11px]" x-text="selectedEmp ? 'NIP/NUPTK: ' + ((selectedEmp.nik_nuptk || selectedEmp.nuptk || selectedEmp.nik || '-')) : ''"></p>
+                                    <p class="text-slate-500 dark:text-slate-400 font-mono text-[11px]" x-text="selectedEmp ? 'NIY: ' + (selectedEmp.niy || '-') : ''"></p>
                                     <span class="inline-flex px-2 py-0.5 rounded text-[9px] font-bold bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 uppercase" x-text="selectedEmp ? (selectedEmp.position || selectedEmp.subject_position || '') : ''"></span>
                                 </div>
                             </div>
@@ -495,11 +517,11 @@
                                             <span class="font-bold text-slate-900 dark:text-slate-100 block" x-text="selectedEmp ? (selectedEmp.employment_status || '-') : '-'"></span>
                                         </div>
                                         <div class="min-w-0">
-                                            <span class="block text-slate-400 text-[9px] uppercase font-semibold">Jabatan</span>
+                                            <span class="block text-slate-400 text-[9px] uppercase font-semibold">Jabatan Utama</span>
                                             <span class="font-bold text-slate-900 dark:text-slate-100 break-words block" x-text="selectedEmp ? (selectedEmp.position || '-') : '-'"></span>
                                         </div>
                                         <div class="min-w-0">
-                                            <span class="block text-slate-400 text-[9px] uppercase font-semibold">Tugas Tambahan</span>
+                                            <span class="block text-slate-400 text-[9px] uppercase font-semibold">Jabatan Tambahan</span>
                                             <span class="font-bold text-slate-900 dark:text-slate-100 break-words block" x-text="selectedEmp ? (selectedEmp.additional_position || '-') : '-'"></span>
                                         </div>
                                         <div class="min-w-0">

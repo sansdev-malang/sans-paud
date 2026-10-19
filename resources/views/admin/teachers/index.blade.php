@@ -76,100 +76,32 @@
             </div>
         @endif
 
-        <!-- SECTION 2: STATS CARDS GRID -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
-            <!-- Stat Card 1 -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
-                <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-100 dark:border-indigo-900/40">
-                    <i data-lucide="users" class="w-5 h-5"></i>
-                </div>
-                <div class="min-w-0">
-                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Total Guru Aktif</p>
-                    <div class="flex items-baseline gap-1.5 mt-0.5">
-                        <h3 class="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 font-mono">
-                            <span class="stat-counter" data-target="{{ $totalGuru }}">{{ $totalGuru }}</span>
-                        </h3>
-                        <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold truncate">Aktif Mengajar</span>
+        <!-- SECTION 2: TABLE CARD (STYLE ADAPTED FROM MATRIKS BERKAS GURU) -->
+        <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden transition-all w-full text-left">
+            <!-- Table Header Bar: Filters & KPI Status Strip -->
+            <div class="p-3 sm:p-4 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                <!-- Filters Form -->
+                <form method="GET" action="{{ route('teachers.index') }}" class="flex flex-wrap items-center gap-2 m-0 p-0">
+                    <!-- Search Input (Placeholder cukup nama saja) -->
+                    <div x-data="{ searchVal: '{{ request('search') }}' }" class="flex items-center w-full sm:w-52 search-container bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-lg overflow-hidden focus-within:ring-1 focus-within:ring-indigo-500 focus-within:border-indigo-500">
+                        <input type="text" name="search" x-model="searchVal" placeholder="Cari nama..."
+                            style="border: none !important; outline: none !important; box-shadow: none !important;"
+                            class="w-full h-8 px-2.5 text-xs bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:ring-0">
+                        
+                        <button type="button" x-show="searchVal.trim() !== ''" @click="searchVal = ''; $el.closest('.search-container').querySelector('input').focus();" class="h-8 px-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer bg-transparent border-0 flex items-center justify-center" title="Bersihkan pencarian">
+                            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                        </button>
+
+                        <button type="submit" 
+                            :class="searchVal.trim() !== '' ? 'bg-indigo-600 text-white dark:bg-indigo-500 dark:text-white' : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300'"
+                            class="h-8 px-2.5 font-bold text-xs transition-all duration-150 cursor-pointer flex items-center justify-center border-l border-slate-200 dark:border-slate-700">
+                            <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                        </button>
                     </div>
-                </div>
-            </div>
-
-            <!-- Stat Card 2 -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
-                <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 border border-blue-100 dark:border-blue-900/40">
-                    <i data-lucide="user" class="w-5 h-5"></i>
-                </div>
-                <div class="min-w-0">
-                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Guru Laki-laki</p>
-                    <div class="flex items-baseline gap-1.5 mt-0.5">
-                        <h3 class="text-xl font-bold tracking-tight text-blue-600 dark:text-blue-400 font-mono">
-                            <span class="stat-counter" data-target="{{ $guruMale }}">{{ $guruMale }}</span>
-                        </h3>
-                        <span class="text-[10px] text-slate-400 font-medium truncate">Ustadz</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Stat Card 3 -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
-                <div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 border border-rose-100 dark:border-rose-900/40">
-                    <i data-lucide="user-check" class="w-5 h-5"></i>
-                </div>
-                <div class="min-w-0">
-                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Guru Perempuan</p>
-                    <div class="flex items-baseline gap-1.5 mt-0.5">
-                        <h3 class="text-xl font-bold tracking-tight text-rose-600 dark:text-rose-400 font-mono">
-                            <span class="stat-counter" data-target="{{ $guruFemale }}">{{ $guruFemale }}</span>
-                        </h3>
-                        <span class="text-[10px] text-slate-400 font-medium truncate">Ustadzah</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Stat Card 4 -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
-                <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-100 dark:border-amber-900/40">
-                    <i data-lucide="award" class="w-5 h-5"></i>
-                </div>
-                <div class="min-w-0">
-                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Identitas NUPTK</p>
-                    <div class="flex items-baseline gap-1.5 mt-0.5">
-                        <h3 class="text-xl font-bold tracking-tight text-amber-600 dark:text-amber-400 font-mono">
-                            <span class="stat-counter" data-target="{{ $certifiedPercent }}">{{ $certifiedPercent }}</span>%
-                        </h3>
-                        <span class="text-[10px] text-slate-400 font-medium truncate">Valid NUPTK/NIP</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- SECTION 3: SEARCH & FILTERS -->
-        <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm w-full text-left">
-            <form method="GET" action="{{ route('teachers.index') }}" class="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
-                <!-- Search Box Welded with Cari Button (Premium Input Group) -->
-                <div x-data="{ searchVal: '{{ request('search') }}' }" class="flex items-center w-full md:max-w-md search-container bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden shadow-inner focus-within:ring-0 focus-within:border-slate-300 dark:focus-within:border-slate-700">
-                    <input type="text" name="search" x-model="searchVal" placeholder="Cari berdasarkan nama, email, NIP, mapel..."
-                        style="border: none !important; outline: none !important; box-shadow: none !important;"
-                        class="w-full h-9 px-3 text-xs bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-0">
-                    
-                    <!-- Clear Button (x) -->
-                    <button type="button" x-show="searchVal.trim() !== ''" @click="searchVal = ''; $el.closest('.search-container').querySelector('input').focus();" class="h-9 px-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer bg-transparent border-0 flex items-center justify-center" title="Bersihkan pencarian">
-                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
-                    </button>
-
-                    <button type="submit" 
-                        :class="searchVal.trim() !== '' ? 'bg-indigo-600 text-white dark:bg-indigo-500 dark:text-white' : 'bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300'"
-                        class="h-9 px-4 font-bold text-xs transition-all duration-150 cursor-pointer whitespace-nowrap flex items-center justify-center border-l border-slate-200 dark:border-slate-800">
-                        Cari
-                    </button>
-                </div>
-
-                <!-- Filters -->
-                <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
 
                     <!-- Filter Jenjang -->
                     <select name="sub_unit" id="filter_sub_unit" onchange="if(this.form.classroom_id) { this.form.classroom_id.value = ''; } this.form.submit()"
-                        class="h-9 px-2 flex-1 sm:flex-initial sm:w-32 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
+                        class="h-8 px-2.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
                         <option value="">Semua Jenjang</option>
                         <option value="PG" {{ in_array(request('sub_unit'), ['PG', 'KB']) ? 'selected' : '' }}>Playgroup (KB)</option>
                         <option value="TK" {{ request('sub_unit') == 'TK' ? 'selected' : '' }}>TK</option>
@@ -179,7 +111,7 @@
 
                     <!-- Filter Kelompok -->
                     <select name="classroom_id" id="filter_classroom_id" onchange="this.form.submit()"
-                        class="h-9 px-2 flex-1 sm:flex-initial sm:w-36 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
+                        class="h-8 px-2.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
                         <option value="">Semua Kelompok</option>
                         @foreach($classrooms as $c)
                             <option value="{{ $c->id }}" {{ (string)request('classroom_id') === (string)$c->id ? 'selected' : '' }}>
@@ -190,15 +122,16 @@
 
                     <!-- Filter Status -->
                     <select name="status" onchange="this.form.submit()"
-                        class="h-9 px-2 flex-1 sm:flex-initial sm:w-28 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
+                        class="h-8 px-2.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
                         <option value="">Semua Status</option>
                         <option value="Active" {{ request('status') == 'Active' ? 'selected' : '' }}>Aktif</option>
                         <option value="Leave" {{ request('status') == 'Leave' ? 'selected' : '' }}>Cuti</option>
                         <option value="Inactive" {{ request('status') == 'Inactive' ? 'selected' : '' }}>Nonaktif</option>
                     </select>
 
+                    <!-- Per Page -->
                     <select name="per_page" onchange="this.form.submit()"
-                        class="h-9 px-2 flex-1 sm:flex-initial sm:w-24 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer appearance-none" style="padding-right: 1.5rem; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.5rem top 50%; background-size: 0.65rem auto;">
+                        class="h-8 px-2.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
                         <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10 Data</option>
                         <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25 Data</option>
                         <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 Data</option>
@@ -207,27 +140,45 @@
                     </select>
 
                     @if(request()->anyFilled(['search', 'status', 'sub_unit', 'classroom_id']))
-                        <a href="{{ route('teachers.index') }}" class="h-9 px-3 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 rounded-lg transition-colors" title="Reset Filter">
+                        <a href="{{ route('teachers.index') }}" class="h-8 px-2.5 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 rounded-lg transition-colors" title="Reset Filter">
                             <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
                         </a>
                     @endif
-                </div>
-            </form>
-        </section>
+                </form>
 
-        <!-- SECTION 4: TABLE (PREMIUM DESIGN) -->
-        <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden transition-all w-full">
-            <div class="overflow-x-auto overflow-y-auto" style="max-height: calc(100vh - 240px);">
+                <!-- Status KPI Dots (Pojok Kanan Sejajar dengan Filter) -->
+                <div class="flex items-center gap-2.5 shrink-0 ml-auto">
+                    <span class="inline-flex flex-wrap items-center gap-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span> Total: <strong class="text-slate-800 dark:text-slate-200 font-mono">{{ $totalGuru }}</strong>
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+                            <span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span> KB: <strong class="text-amber-600 dark:text-amber-400 font-mono">{{ $jenjangStats['KB'] ?? 0 }}</strong>
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+                            <span class="w-2 h-2 rounded-full bg-blue-500 inline-block"></span> TK: <strong class="text-blue-600 dark:text-blue-400 font-mono">{{ $jenjangStats['TK'] ?? 0 }}</strong>
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+                            <span class="w-2 h-2 rounded-full bg-purple-500 inline-block"></span> Daycare: <strong class="text-purple-600 dark:text-purple-400 font-mono">{{ $jenjangStats['DAYCARE'] ?? 0 }}</strong>
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+                            <span class="w-2 h-2 rounded-full bg-teal-500 inline-block"></span> TPQ: <strong class="text-teal-600 dark:text-teal-400 font-mono">{{ $jenjangStats['TPQ'] ?? 0 }}</strong>
+                        </span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto overflow-y-auto" style="max-height: calc(100vh - 220px);">
                 <table class="w-full text-xs border-collapse">
                     <thead class="sticky top-0 z-10 shadow-sm">
                         <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-14">No</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[200px]">Nama Guru & Email</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[200px]">Kelompok & Murid Diampu</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-40">Jabatan</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-24">Gender</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28">Status</th>
-                            <th class="px-6 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-24">Aksi</th>
+                            <th class="px-3 py-2.5 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-10 whitespace-nowrap">No</th>
+                            <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Nama Guru & Email</th>
+                            <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Jabatan Utama</th>
+                            <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Jabatan Tambahan</th>
+                            <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Kelompok</th>
+                            <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-24">Status</th>
+                            <th class="px-4 py-2.5 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-24">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-900">
@@ -237,86 +188,43 @@
                                 $totalMuridAsuhan = $assignedClassrooms->sum(fn($cl) => $cl->students->count());
                             @endphp
                             <tr class="hover:bg-slate-50/40 dark:hover:bg-slate-900/20 transition-colors">
-                                <td class="px-6 py-4 text-slate-900 dark:text-slate-50 font-medium">
+                                <td class="px-3 py-2.5 text-center text-slate-900 dark:text-slate-50 font-medium whitespace-nowrap w-10">
                                     {{ $teachers->firstItem() + $index }}
                                 </td>
                                 
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center gap-3">
+                                <td class="px-4 py-2.5 whitespace-nowrap">
+                                    <div class="flex items-center gap-2.5">
                                         @if($teacher->photo)
-                                            <img src="{{ str_contains($teacher->photo, 'photos/') ? asset('storage/' . $teacher->photo) : asset('storage/photos/' . $teacher->photo) }}" class="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-800" alt="{{ $teacher->name }}">
+                                            <img src="{{ str_contains($teacher->photo, 'photos/') ? asset('storage/' . $teacher->photo) : asset('storage/photos/' . $teacher->photo) }}" class="w-7 h-7 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-800" alt="{{ $teacher->name }}">
                                         @else
-                                            <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-700 dark:text-slate-300 shrink-0 border border-slate-200 dark:border-slate-800 uppercase">
+                                            <div class="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-700 dark:text-slate-300 shrink-0 border border-slate-200 dark:border-slate-800 uppercase">
                                                 {{ substr($teacher->name, 0, 2) }}
                                             </div>
                                         @endif
-                                        <div class="flex flex-col text-left">
+                                        <div class="min-w-0">
                                             @php
                                                 $empData = $teacher->toArray();
                                                 $empData['photo_url'] = $teacher->photo ? (str_contains($teacher->photo, 'photos/') ? asset('storage/' . $teacher->photo) : asset('storage/photos/' . $teacher->photo)) : '';
                                                 $empData['unit_name'] = 'PAUD';
                                             @endphp
-                                            <span @click='selectedEmp = @json($empData); showEmpDetailModal = true' class="text-slate-900 dark:text-slate-50 font-bold tracking-tight block cursor-pointer hover:underline hover:text-indigo-600 dark:hover:text-indigo-400">{{ $teacher->name }}</span>
-                                            <span class="text-[10px] text-slate-400 font-mono">{{ $teacher->email }}</span>
+                                            <span @click='selectedEmp = @json($empData); showEmpDetailModal = true' class="text-slate-900 dark:text-slate-50 font-bold tracking-tight block cursor-pointer hover:underline hover:text-indigo-600 dark:hover:text-indigo-400 whitespace-nowrap text-xs">{{ $teacher->name }}</span>
+                                            <span class="text-[10px] text-slate-400 font-mono whitespace-nowrap">{{ $teacher->email }}</span>
                                         </div>
                                     </div>
                                 </td>
 
-                                <!-- Kelompok & Murid Diampu -->
-                                <td class="px-6 py-4">
-                                    @if($assignedClassrooms->count() > 0)
-                                        @php
-                                            $teacherModalData = [
-                                                'teacher_name' => $teacher->name,
-                                                'teacher_photo' => $teacher->photo ? (str_contains($teacher->photo, 'photos/') ? asset('storage/' . $teacher->photo) : asset('storage/photos/' . $teacher->photo)) : null,
-                                                'position' => $teacher->position ?? 'Guru Kelas',
-                                                'total_murid' => $totalMuridAsuhan,
-                                                'classrooms' => $assignedClassrooms->map(function($c) {
-                                                    return [
-                                                        'id' => $c->id,
-                                                        'name' => $c->name,
-                                                        'sub_unit' => $c->sub_unit,
-                                                        'class_level' => $c->classLevel ? $c->classLevel->name : $c->sub_unit,
-                                                        'students' => $c->students,
-                                                    ];
-                                                })->values(),
-                                            ];
-                                        @endphp
-                                        <div class="flex flex-col gap-1.5 items-start">
-                                            <div class="flex flex-wrap gap-1">
-                                                @foreach($assignedClassrooms as $cls)
-                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold
-                                                        {{ $cls->sub_unit === 'PG' ? 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border border-amber-200/60' : '' }}
-                                                        {{ $cls->sub_unit === 'TK' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200/60' : '' }}
-                                                        {{ $cls->sub_unit === 'DAYCARE' ? 'bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 border border-purple-200/60' : '' }}
-                                                        {{ $cls->sub_unit === 'TPQ' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200/60' : '' }}">
-                                                        <span>[{{ $cls->sub_unit }}] {{ $cls->name }}</span>
-                                                        <span class="opacity-75">({{ $cls->students->count() }})</span>
-                                                    </span>
-                                                @endforeach
-                                            </div>
-                                            <button type="button" 
-                                                @click="selectedTeacherStudents = @js($teacherModalData); showTeacherStudentsModal = true;"
-                                                class="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer">
-                                                <i data-lucide="users" class="w-3.5 h-3.5"></i>
-                                                Daftar {{ $totalMuridAsuhan }} Murid Asuhan
-                                            </button>
-                                        </div>
-                                    @else
-                                        <span class="text-slate-400 text-xs italic">Belum ada kelompok</span>
-                                    @endif
+                                <td class="px-4 py-2.5 whitespace-nowrap">
+                                    <span class="block text-slate-700 dark:text-slate-300 font-medium whitespace-nowrap">{{ $teacher->position ?: '-' }}</span>
                                 </td>
-
-                                <td class="px-6 py-4">
-                                    <span class="block text-slate-700 dark:text-slate-300 font-medium">{{ $teacher->position ?? 'Guru Kelas' }}</span>
-                                    @if(!empty($teacher->additional_position))
-                                        <span class="block text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{{ $teacher->additional_position }}</span>
-                                    @endif
+                                <td class="px-4 py-2.5 whitespace-nowrap">
+                                    <span class="block text-slate-700 dark:text-slate-300 font-medium whitespace-nowrap">{{ $teacher->additional_position ?: '-' }}</span>
                                 </td>
-                                <td class="px-6 py-4 text-slate-600 dark:text-slate-400">
-                                    {{ $teacher->gender == 'Male' ? 'L' : 'P' }}
+                                <td class="px-4 py-2.5 whitespace-nowrap">
+                                    <span class="block text-slate-700 dark:text-slate-300 font-medium whitespace-nowrap">
+                                        {{ $assignedClassrooms->isNotEmpty() ? $assignedClassrooms->pluck('name')->join(', ') : '-' }}
+                                    </span>
                                 </td>
-                                <td class="px-6 py-4">
+                                <td class="px-4 py-2.5 whitespace-nowrap">
                                     @if($teacher->status == 'Active')
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/40">
                                             Aktif
@@ -331,15 +239,40 @@
                                         </span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 text-right">
+                                <td class="px-4 py-2.5 text-right whitespace-nowrap">
                                     <div class="flex items-center justify-end gap-1.5">
-                                        <a href="#" @click.prevent='selectedTeacher = @json($teacher); showEditModal = true' class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors cursor-pointer" title="Edit Data">
+                                        @if($assignedClassrooms->count() > 0)
+                                            @php
+                                                $teacherModalData = [
+                                                    'teacher_name' => $teacher->name,
+                                                    'teacher_photo' => $teacher->photo ? (str_contains($teacher->photo, 'photos/') ? asset('storage/' . $teacher->photo) : asset('storage/photos/' . $teacher->photo)) : null,
+                                                    'position' => $teacher->position ?? 'Guru Kelas',
+                                                    'total_murid' => $totalMuridAsuhan,
+                                                    'classrooms' => $assignedClassrooms->map(function($c) {
+                                                        return [
+                                                            'id' => $c->id,
+                                                            'name' => $c->name,
+                                                            'sub_unit' => $c->sub_unit,
+                                                            'class_level' => $c->classLevel ? $c->classLevel->name : $c->sub_unit,
+                                                            'students' => $c->students,
+                                                        ];
+                                                    })->values(),
+                                                ];
+                                            @endphp
+                                            <button type="button" 
+                                                @click="selectedTeacherStudents = @js($teacherModalData); showTeacherStudentsModal = true;"
+                                                class="w-8 h-8 flex items-center justify-center hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 transition-colors cursor-pointer" 
+                                                title="Lihat {{ $totalMuridAsuhan }} Murid Asuhan">
+                                                <i data-lucide="users" class="w-4 h-4"></i>
+                                            </button>
+                                        @endif
+                                        <a href="#" @click.prevent='selectedTeacher = @json($teacher); showEditModal = true' class="w-8 h-8 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors cursor-pointer" title="Edit Data">
                                             <i data-lucide="edit" class="w-4 h-4"></i>
                                         </a>
-                                        <form action="{{ route('teachers.destroy', $teacher->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data guru ini?')" class="inline-block">
+                                        <form action="{{ route('teachers.destroy', $teacher->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data guru ini?')" class="inline-flex items-center m-0 p-0">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-red-600 dark:text-red-400 hover:text-red-700 transition-colors cursor-pointer" title="Hapus Data">
+                                            <button type="submit" class="w-8 h-8 flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-red-600 dark:text-red-400 hover:text-red-700 transition-colors cursor-pointer" title="Hapus Data">
                                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                                             </button>
                                         </form>
@@ -509,7 +442,7 @@
                                 </div>
                                 <div class="space-y-1">
                                     <h4 class="text-sm font-bold text-slate-900 dark:text-slate-50" x-text="selectedEmp ? selectedEmp.name : ''"></h4>
-                                    <p class="text-slate-500 dark:text-slate-400 font-mono text-[11px]" x-text="selectedEmp ? 'NIP/NUPTK: ' + ((selectedEmp.nik_nuptk || selectedEmp.nuptk || selectedEmp.nik || '-')) : ''"></p>
+                                    <p class="text-slate-500 dark:text-slate-400 font-mono text-[11px]" x-text="selectedEmp ? 'NIY: ' + (selectedEmp.niy || '-') : ''"></p>
                                     <span class="inline-flex px-2 py-0.5 rounded text-[9px] font-bold bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 uppercase" x-text="selectedEmp ? (selectedEmp.position || selectedEmp.subject_position || '') : ''"></span>
                                 </div>
                             </div>
@@ -553,11 +486,11 @@
                                             <span class="font-bold text-slate-900 dark:text-slate-100 block" x-text="selectedEmp ? (selectedEmp.employment_status || '-') : '-'"></span>
                                         </div>
                                         <div class="min-w-0">
-                                            <span class="block text-slate-400 text-[9px] uppercase font-semibold">Jabatan</span>
-                                            <span class="font-bold text-slate-900 dark:text-slate-100 break-words block" x-text="selectedEmp ? (selectedEmp.position || 'Guru Kelas') : '-'"></span>
+                                            <span class="block text-slate-400 text-[9px] uppercase font-semibold">Jabatan Utama</span>
+                                            <span class="font-bold text-slate-900 dark:text-slate-100 break-words block" x-text="selectedEmp ? (selectedEmp.position || '-') : '-'"></span>
                                         </div>
                                         <div class="min-w-0">
-                                            <span class="block text-slate-400 text-[9px] uppercase font-semibold">Tugas Tambahan</span>
+                                            <span class="block text-slate-400 text-[9px] uppercase font-semibold">Jabatan Tambahan</span>
                                             <span class="font-bold text-slate-900 dark:text-slate-100 break-words block" x-text="selectedEmp ? (selectedEmp.additional_position || '-') : '-'"></span>
                                         </div>
                                         <div class="min-w-0">

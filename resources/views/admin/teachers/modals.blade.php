@@ -520,7 +520,7 @@
                         </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Jabatan Utama</label>
-                        <input type="text" name="position" :value="selectedTeacher ? (selectedTeacher.position || 'Guru Kelas') : '{{ old('position', 'Guru Kelas') }}'" 
+                        <input type="text" name="position" :value="selectedTeacher ? (selectedTeacher.position || '') : '{{ old('position', '') }}'" 
                             class="w-full h-9 px-3 bg-white dark:bg-slate-900 border rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 @error('position') border-rose-500 focus:ring-rose-200 dark:focus:ring-rose-900/40 @else border-slate-200 dark:border-slate-800 focus:ring-slate-100 @enderror">
                     
                             @error('position')
