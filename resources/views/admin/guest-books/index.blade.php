@@ -72,14 +72,72 @@
 
 
         <!-- ========================================================================= -->
-        <!-- TABLE CONTAINER WITH INTEGRATED FILTER TOOLBAR & KPI INDICATORS           -->
+        <!-- ========================================================================= -->
+        <!-- TABLE CONTAINER WITH CATEGORY TABS & FILTER TOOLBAR                       -->
         <!-- ========================================================================= -->
         <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden transition-all w-full text-left">
-            <!-- Table Header Bar: Filters Toolbar on Left & KPI Indicators on Right -->
-            <div class="p-2 sm:px-3 sm:py-2.5 border-b border-slate-100 dark:border-slate-800 flex flex-col xl:flex-row xl:items-center justify-between gap-2.5 overflow-x-auto">
-                <form method="GET" action="{{ route('guest-books.index') }}" id="guestFilterForm" class="flex items-center gap-1.5 flex-nowrap shrink-0">
+            <!-- Category Tabs Header Bar -->
+            <div class="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70 px-3 sm:px-4 pt-2.5 flex items-center justify-between gap-2 overflow-x-auto">
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <!-- Tab: Semua -->
+                    <a href="{{ route('guest-books.index', array_merge(request()->query(), ['category' => 'all', 'page' => 1])) }}"
+                        class="flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-t-lg transition-all border-b-2 {{ $selectedCategory === 'all' ? 'border-teal-600 text-teal-700 dark:text-teal-400 bg-white dark:bg-slate-900 shadow-xs' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100/60 dark:hover:bg-slate-800/40' }}">
+                        <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+                        <span>Semua</span>
+                        <span class="px-1.5 py-0.5 text-[10px] rounded-full {{ $selectedCategory === 'all' ? 'bg-teal-100 dark:bg-teal-950/80 text-teal-700 dark:text-teal-300' : 'bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-400' }} font-bold font-mono">
+                            {{ $stats['total'] }}
+                        </span>
+                    </a>
+
+                    <!-- Tab: SPMB -->
+                    <a href="{{ route('guest-books.index', array_merge(request()->query(), ['category' => 'SPMB', 'page' => 1])) }}"
+                        class="flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-t-lg transition-all border-b-2 {{ $selectedCategory === 'SPMB' ? 'border-amber-500 text-amber-700 dark:text-amber-400 bg-white dark:bg-slate-900 shadow-xs' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100/60 dark:hover:bg-slate-800/40' }}">
+                        <i data-lucide="baby" class="w-3.5 h-3.5"></i>
+                        <span>SPMB</span>
+                        <span class="px-1.5 py-0.5 text-[10px] rounded-full {{ $selectedCategory === 'SPMB' ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300' : 'bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-400' }} font-bold font-mono">
+                            {{ $stats['spmb'] }}
+                        </span>
+                    </a>
+
+                    <!-- Tab: Dinas -->
+                    <a href="{{ route('guest-books.index', array_merge(request()->query(), ['category' => 'Dinas', 'page' => 1])) }}"
+                        class="flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-t-lg transition-all border-b-2 {{ $selectedCategory === 'Dinas' ? 'border-indigo-500 text-indigo-700 dark:text-indigo-400 bg-white dark:bg-slate-900 shadow-xs' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100/60 dark:hover:bg-slate-800/40' }}">
+                        <i data-lucide="building-2" class="w-3.5 h-3.5"></i>
+                        <span>Kedinasan</span>
+                        <span class="px-1.5 py-0.5 text-[10px] rounded-full {{ $selectedCategory === 'Dinas' ? 'bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300' : 'bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-400' }} font-bold font-mono">
+                            {{ $stats['dinas'] }}
+                        </span>
+                    </a>
+
+                    <!-- Tab: Puskesmas / Dinkes -->
+                    <a href="{{ route('guest-books.index', array_merge(request()->query(), ['category' => 'Puskesmas/Dinkes', 'page' => 1])) }}"
+                        class="flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-t-lg transition-all border-b-2 {{ in_array($selectedCategory, ['Puskesmas/Dinkes', 'Puskesmas', 'Dinkes']) ? 'border-emerald-500 text-emerald-700 dark:text-emerald-400 bg-white dark:bg-slate-900 shadow-xs' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100/60 dark:hover:bg-slate-800/40' }}">
+                        <i data-lucide="stethoscope" class="w-3.5 h-3.5"></i>
+                        <span>Puskesmas / Dinkes</span>
+                        <span class="px-1.5 py-0.5 text-[10px] rounded-full {{ in_array($selectedCategory, ['Puskesmas/Dinkes', 'Puskesmas', 'Dinkes']) ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300' : 'bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-400' }} font-bold font-mono">
+                            {{ $stats['puskesmas'] }}
+                        </span>
+                    </a>
+
+                    <!-- Tab: Umum -->
+                    <a href="{{ route('guest-books.index', array_merge(request()->query(), ['category' => 'Umum', 'page' => 1])) }}"
+                        class="flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-t-lg transition-all border-b-2 {{ $selectedCategory === 'Umum' ? 'border-slate-600 text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-900 shadow-xs' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100/60 dark:hover:bg-slate-800/40' }}">
+                        <i data-lucide="users" class="w-3.5 h-3.5"></i>
+                        <span>Umum</span>
+                        <span class="px-1.5 py-0.5 text-[10px] rounded-full {{ $selectedCategory === 'Umum' ? 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200' : 'bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-400' }} font-bold font-mono">
+                            {{ $stats['umum'] }}
+                        </span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Table Header Bar: Filters Toolbar -->
+            <div class="p-2 sm:px-3 sm:py-2.5 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2.5">
+                <form method="GET" action="{{ route('guest-books.index') }}" id="guestFilterForm" class="flex items-center gap-1.5 flex-wrap shrink-0">
+                    <input type="hidden" name="category" value="{{ $selectedCategory }}">
+
                     <!-- Search Input -->
-                    <div x-data="{ searchVal: '{{ $search }}' }" class="flex items-center w-44 sm:w-60 search-container bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-lg overflow-hidden focus-within:ring-1 focus-within:ring-teal-500 focus-within:border-teal-500 shrink-0">
+                    <div x-data="{ searchVal: '{{ $search }}' }" class="flex items-center w-48 sm:w-64 search-container bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-lg overflow-hidden focus-within:ring-1 focus-within:ring-teal-500 focus-within:border-teal-500 shrink-0">
                         <input type="text" name="search" x-model="searchVal" placeholder="Cari nama, kontak, instansi..."
                             style="border: none !important; outline: none !important; box-shadow: none !important;"
                             class="w-full h-8 pl-2.5 pr-1 text-xs bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:ring-0">
@@ -95,7 +153,7 @@
                         </button>
                     </div>
 
-                    <!-- 1. Filter Tahun (Sebelum Bulan & tanpa kata "Tahun") -->
+                    <!-- 1. Filter Tahun -->
                     <select name="year" onchange="this.form.submit()"
                         class="h-8 pl-2.5 pr-7 text-xs font-semibold bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-teal-500 cursor-pointer shrink-0">
                         @foreach($yearsList as $yr)
@@ -115,18 +173,7 @@
                         @endforeach
                     </select>
 
-                    <!-- 3. Filter Kategori Layanan -->
-                    <select name="category" onchange="this.form.submit()"
-                        class="h-8 pl-2.5 pr-7 text-xs font-semibold bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-teal-500 cursor-pointer max-w-[145px] truncate shrink-0">
-                        <option value="all" {{ $selectedCategory === 'all' ? 'selected' : '' }}>Semua Kategori</option>
-                        @foreach($categories as $cat)
-                            <option value="{{ $cat }}" {{ $selectedCategory === $cat ? 'selected' : '' }}>
-                                {{ $cat }}
-                            </option>
-                        @endforeach
-                    </select>
-
-                    <!-- 4. Jumlah Baris (per_page) -->
+                    <!-- 3. Jumlah Baris (per_page) -->
                     <select name="per_page" onchange="this.form.submit()" title="Jumlah data per halaman"
                         class="h-8 pl-2.5 pr-6 text-xs font-semibold bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-teal-500 cursor-pointer shrink-0">
                         <option value="10" {{ ($perPage ?? 15) == 10 ? 'selected' : '' }}>10 baris</option>
@@ -138,31 +185,18 @@
                     </select>
 
                     <!-- Reset Button -->
-                    @if($search || $selectedCategory !== 'all' || $selectedMonth != \Carbon\Carbon::now()->month || $selectedYear != 2026 || (request()->filled('per_page') && request('per_page') != 15))
-                        <a href="{{ route('guest-books.index') }}" class="h-8 w-8 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 rounded-lg transition-colors shrink-0" title="Reset Filter">
+                    @if($search || $selectedMonth != \Carbon\Carbon::now()->month || $selectedYear != 2026 || (request()->filled('per_page') && request('per_page') != 15))
+                        <a href="{{ route('guest-books.index', ['category' => $selectedCategory]) }}" class="h-8 w-8 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 rounded-lg transition-colors shrink-0" title="Reset Filter">
                             <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
                         </a>
                     @endif
                 </form>
 
-                <!-- KPI Status Indicators (Pojok Kanan Sejajar dengan Filter) -->
-                <div class="flex items-center gap-2.5 shrink-0 xl:ml-auto">
-                    <span class="inline-flex flex-wrap items-center gap-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
-                            <span class="w-2 h-2 rounded-full bg-teal-500 inline-block"></span> Total: <strong class="text-slate-800 dark:text-slate-200 font-mono">{{ $stats['total'] }}</strong>
-                        </span>
-                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
-                            <span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span> SPMB: <strong class="text-amber-600 dark:text-amber-400 font-mono">{{ $stats['spmb'] }}</strong>
-                        </span>
-                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
-                            <span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span> Dinas: <strong class="text-indigo-600 dark:text-indigo-400 font-mono">{{ $stats['dinas'] }}</strong>
-                        </span>
-                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span> Puskesmas: <strong class="text-emerald-600 dark:text-emerald-400 font-mono">{{ $stats['puskesmas'] }}</strong>
-                        </span>
-                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
-                            <span class="w-2 h-2 rounded-full bg-slate-400 inline-block"></span> Umum: <strong class="text-slate-700 dark:text-slate-300 font-mono">{{ $stats['umum'] }}</strong>
-                        </span>
+                <!-- Active tab helper badge -->
+                <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400 ml-auto shrink-0 flex items-center gap-1.5">
+                    <span>Kategori aktif:</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                        {{ $selectedCategory === 'all' ? 'Semua Kategori' : $selectedCategory }}
                     </span>
                 </div>
             </div>
@@ -170,184 +204,635 @@
             <!-- Table Container with Horizontal Scroll -->
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-xs">
-                    <thead class="sticky top-0 z-10 shadow-xs">
-                        <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
-                            <th class="px-3 py-2.5 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-10 whitespace-nowrap">No</th>
-                            <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-32">Waktu & Tanggal</th>
-                            <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[200px]">Nama Tamu & Kontak</th>
-                            <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-28">Kategori</th>
-                            <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[180px]">Institusi / Pekerjaan</th>
-                            <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[140px]">Kota / Alamat</th>
-                            <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[200px]">Keperluan</th>
-                            <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[130px]">Penerima Tamu</th>
-                            <th class="px-4 py-2.5 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-24">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-medium text-slate-700 dark:text-slate-300">
-                        @forelse($guests as $index => $g)
-                            <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                                <!-- No -->
-                                <td class="px-3 py-2.5 text-center text-slate-400 font-bold whitespace-nowrap">
-                                    {{ $guests->firstItem() ? ($guests->firstItem() + $index) : ($index + 1) }}
-                                </td>
-
-                                <!-- Tanggal & Waktu -->
-                                <td class="px-4 py-2.5 whitespace-nowrap">
-                                    <div class="font-bold text-slate-900 dark:text-slate-100">
-                                        {{ \Carbon\Carbon::parse($g->date)->format('d/m/Y') }}
-                                    </div>
-                                    <div class="text-[11px] text-teal-600 dark:text-teal-400 font-mono flex items-center gap-1 mt-0.5">
-                                        <i data-lucide="clock" class="w-3 h-3"></i>
-                                        <span>{{ $g->formatted_time }}</span>
-                                    </div>
-                                </td>
-
-                                <!-- Nama & Kontak -->
-                                <td class="px-4 py-2.5">
-                                    <div class="flex items-start gap-2.5">
-                                        <div class="w-7 h-7 rounded-full bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 font-bold flex items-center justify-center text-xs shrink-0 mt-0.5">
-                                            {{ strtoupper(substr($g->name, 0, 1)) }}
+                    @if($selectedCategory === 'SPMB')
+                        {{-- ========================================================================= --}}
+                        {{-- TABEL KHUSUS KATEGORI: SPMB (WALI MURID)                                  --}}
+                        {{-- ========================================================================= --}}
+                        <thead class="sticky top-0 z-10 shadow-xs">
+                            <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
+                                <th class="px-3 py-2.5 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-10 whitespace-nowrap">No</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-28">Waktu & Tanggal</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[170px]">Nama Ortu / Wali</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[180px]">Calon Murid</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[160px]">Riwayat Terapi</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[150px]">Alamat Rumah</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[180px]">Keperluan</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[130px]">Penerima Tamu</th>
+                                <th class="px-4 py-2.5 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-24">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-medium text-slate-700 dark:text-slate-300">
+                            @forelse($guests as $index => $g)
+                                <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                                    <td class="px-3 py-2.5 text-center text-slate-400 font-bold whitespace-nowrap">
+                                        {{ $guests->firstItem() ? ($guests->firstItem() + $index) : ($index + 1) }}
+                                    </td>
+                                    <td class="px-4 py-2.5 whitespace-nowrap">
+                                        <div class="font-bold text-slate-900 dark:text-slate-100">
+                                            {{ \Carbon\Carbon::parse($g->date)->format('d/m/Y') }}
                                         </div>
-                                        <div class="space-y-0.5">
-                                            <div class="font-bold text-slate-900 dark:text-slate-100 text-xs">
-                                                {{ $g->name }}
-                                                @if($g->category === 'SPMB')
-                                                    <span class="text-[10px] font-normal text-slate-400">(Ortu)</span>
-                                                @endif
+                                        <div class="text-[11px] text-teal-600 dark:text-teal-400 font-mono flex items-center gap-1 mt-0.5">
+                                            <i data-lucide="clock" class="w-3 h-3"></i>
+                                            <span>{{ $g->formatted_time }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-2.5">
+                                        <div class="flex items-start gap-2.5">
+                                            <div class="w-7 h-7 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-bold flex items-center justify-center text-xs shrink-0 mt-0.5">
+                                                {{ strtoupper(substr($g->name, 0, 1)) }}
                                             </div>
-                                            @if($g->category === 'SPMB' && $g->student_name)
-                                                <div class="text-[11px] text-teal-700 dark:text-teal-400 font-semibold flex items-center gap-1">
-                                                    <i data-lucide="baby" class="w-3 h-3"></i>
-                                                    <span>{{ $g->student_name }}</span>
+                                            <div class="space-y-0.5">
+                                                <div class="font-bold text-slate-900 dark:text-slate-100 text-xs">
+                                                    {{ $g->name }}
                                                 </div>
-                                            @endif
-                                            <div class="flex items-center gap-1.5 text-[11px]">
-                                                <span class="text-slate-500 font-mono">{{ $g->phone }}</span>
-                                                @if($g->whatsapp_url)
-                                                    <a href="{{ $g->whatsapp_url }}" target="_blank" title="Hubungi via WhatsApp"
-                                                        class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-[10px] font-semibold border border-emerald-200 dark:border-emerald-800 transition-colors">
-                                                        <i data-lucide="message-circle" class="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400"></i>
-                                                        <span>WA</span>
-                                                    </a>
-                                                @endif
+                                                <div class="text-[11px] text-slate-500 font-mono">
+                                                    {{ $g->phone }}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </td>
-
-                                <!-- Kategori -->
-                                <td class="px-4 py-2.5 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border {{ $g->category_badge_class }}">
-                                        {{ $g->category }}
-                                    </span>
-                                </td>
-
-                                <!-- Institusi & Jabatan -->
-                                <td class="px-4 py-2.5">
-                                    @if($g->category === 'SPMB')
-                                        <div class="font-semibold text-slate-800 dark:text-slate-200">
-                                            Terapi: {{ $g->therapy_history ?: 'Tidak' }}
+                                    </td>
+                                    <td class="px-4 py-2.5">
+                                        <div class="font-bold text-slate-900 dark:text-slate-100 text-xs flex items-center gap-1.5">
+                                            <i data-lucide="baby" class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0"></i>
+                                            <span>{{ $g->student_name ?: '-' }}</span>
+                                        </div>
+                                        @if($g->student_birth_date)
+                                            <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                                Lahir: {{ \Carbon\Carbon::parse($g->student_birth_date)->format('d/m/Y') }}
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-2.5">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold {{ $g->therapy_history === 'Ya' ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' }}">
+                                                {{ $g->therapy_history === 'Ya' ? 'Pernah Terapi' : 'Tidak Terapi' }}
+                                            </span>
                                         </div>
                                         @if($g->therapy_diagnosis)
-                                            <div class="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[170px]" title="{{ $g->therapy_diagnosis }}">
+                                            <div class="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 line-clamp-1" title="{{ $g->therapy_diagnosis }}">
                                                 {{ $g->therapy_diagnosis }}
                                             </div>
                                         @endif
-                                    @else
-                                        <div class="font-semibold text-slate-800 dark:text-slate-200">
-                                            {{ $g->institution ?: '-' }}
-                                        </div>
-                                        <div class="text-[11px] text-slate-500 dark:text-slate-400">
-                                            {{ $g->position ?: ($g->occupation ?: 'Tamu') }}
-                                        </div>
-                                    @endif
-                                </td>
-
-                                <!-- Kota / Alamat -->
-                                <td class="px-4 py-2.5">
-                                    @if($g->category === 'SPMB')
-                                        <div class="text-slate-800 dark:text-slate-200 truncate max-w-[140px]" title="{{ $g->address }}">
+                                    </td>
+                                    <td class="px-4 py-2.5">
+                                        <div class="text-xs text-slate-800 dark:text-slate-200 line-clamp-2 max-w-[160px]" title="{{ $g->address }}">
                                             {{ $g->address ?: '-' }}
                                         </div>
-                                    @else
-                                        <div class="text-slate-800 dark:text-slate-200">
+                                    </td>
+                                    <td class="px-4 py-2.5">
+                                        <div class="text-xs text-slate-800 dark:text-slate-200 line-clamp-2 max-w-[200px]" title="{{ $g->purpose }}">
+                                            {{ $g->purpose ?: 'Informasi Pendaftaran SPMB' }}
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-2.5 whitespace-nowrap">
+                                        <div class="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                                            <i data-lucide="user-check" class="w-3.5 h-3.5 text-slate-400"></i>
+                                            <span>{{ $g->host_recipient ?: '-' }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-2.5 text-center whitespace-nowrap">
+                                        <div class="inline-flex items-center justify-center gap-1">
+                                            <button type="button" @click="openViewModal({{ json_encode($g) }})" title="Lihat Detail Tamu"
+                                                class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
+                                                <i data-lucide="eye" class="w-4 h-4"></i>
+                                            </button>
+                                            <button type="button" @click="openEditModal({{ json_encode($g) }})" title="Edit Data Tamu"
+                                                class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
+                                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                            </button>
+                                            <form method="POST" action="{{ route('guest-books.destroy', $g->id) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus catatan tamu ini?')" class="inline-flex items-center m-0 p-0">
+                                                @csrf
+                                                @method('DELETE')
+                                                <input type="hidden" name="current_category" value="{{ $selectedCategory }}">
+                                                <input type="hidden" name="per_page" value="{{ $perPage ?? 15 }}">
+                                                <button type="submit" title="Hapus Catatan"
+                                                    class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
+                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="9" class="py-12 text-center text-slate-400">
+                                        <div class="flex flex-col items-center justify-center gap-2">
+                                            <i data-lucide="baby" class="w-8 h-8 text-amber-300 dark:text-amber-600"></i>
+                                            <p class="font-medium text-xs">Belum ada kunjungan calon wali murid SPMB pada filter ini.</p>
+                                            <button type="button" @click="openCreateModal()" class="mt-2 text-teal-600 dark:text-teal-400 text-xs font-semibold hover:underline">
+                                                + Catat Tamu Baru
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    @elseif($selectedCategory === 'Dinas')
+                        {{-- ========================================================================= --}}
+                        {{-- TABEL KHUSUS KATEGORI: KEDINASAN                                          --}}
+                        {{-- ========================================================================= --}}
+                        <thead class="sticky top-0 z-10 shadow-xs">
+                            <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
+                                <th class="px-3 py-2.5 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-10 whitespace-nowrap">No</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-28">Waktu & Tanggal</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[170px]">Nama Pejabat / Tamu</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[180px]">Instansi Kedinasan</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[150px]">Jabatan & Profesi</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[130px]">Asal Wilayah</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[200px]">Agenda Kedinasan</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[130px]">Penerima Tamu</th>
+                                <th class="px-4 py-2.5 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-24">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-medium text-slate-700 dark:text-slate-300">
+                            @forelse($guests as $index => $g)
+                                <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                                    <td class="px-3 py-2.5 text-center text-slate-400 font-bold whitespace-nowrap">
+                                        {{ $guests->firstItem() ? ($guests->firstItem() + $index) : ($index + 1) }}
+                                    </td>
+                                    <td class="px-4 py-2.5 whitespace-nowrap">
+                                        <div class="font-bold text-slate-900 dark:text-slate-100">
+                                            {{ \Carbon\Carbon::parse($g->date)->format('d/m/Y') }}
+                                        </div>
+                                        <div class="text-[11px] text-teal-600 dark:text-teal-400 font-mono flex items-center gap-1 mt-0.5">
+                                            <i data-lucide="clock" class="w-3 h-3"></i>
+                                            <span>{{ $g->formatted_time }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-2.5">
+                                        <div class="flex items-start gap-2.5">
+                                            <div class="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold flex items-center justify-center text-xs shrink-0 mt-0.5">
+                                                {{ strtoupper(substr($g->name, 0, 1)) }}
+                                            </div>
+                                            <div class="space-y-0.5">
+                                                <div class="font-bold text-slate-900 dark:text-slate-100 text-xs">
+                                                    {{ $g->name }}
+                                                </div>
+                                                <div class="text-[11px] text-slate-500 font-mono">
+                                                    {{ $g->phone }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-2.5">
+                                        <div class="font-bold text-slate-800 dark:text-slate-200 text-xs">
+                                            {{ $g->institution ?: '-' }}
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-2.5">
+                                        <div class="font-semibold text-slate-800 dark:text-slate-200 text-xs">
+                                            {{ $g->position ?: '-' }}
+                                        </div>
+                                        @if($g->occupation && $g->occupation !== $g->position)
+                                            <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                                {{ $g->occupation }}
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-2.5">
+                                        <div class="text-xs text-slate-800 dark:text-slate-200">
                                             {{ $g->city ?: '-' }}
                                         </div>
-                                        <div class="text-[11px] text-slate-400 truncate max-w-[130px]">
-                                            {{ $g->province ?: '' }}
-                                        </div>
-                                    @endif
-                                </td>
-
-                                <!-- Keperluan -->
-                                <td class="px-4 py-2.5">
-                                    @if($g->category === 'SPMB' && $g->student_birth_date)
-                                        <div class="text-xs text-slate-800 dark:text-slate-200 font-medium">
-                                            Lahir: {{ \Carbon\Carbon::parse($g->student_birth_date)->format('d/m/Y') }}
-                                        </div>
-                                    @endif
-                                    <p class="text-slate-700 dark:text-slate-300 line-clamp-2 max-w-[220px]" title="{{ $g->purpose }}">
-                                        @if($g->category === 'Puskesmas/Dinkes')
-                                            <span class="font-bold text-[10px] text-teal-600 dark:text-teal-400 uppercase">Kegiatan: </span>
+                                        @if($g->province)
+                                            <div class="text-[11px] text-slate-400">
+                                                {{ $g->province }}
+                                            </div>
                                         @endif
-                                        {{ $g->purpose }}
-                                    </p>
-                                    @if($g->feedback)
-                                        <div class="text-[10px] text-teal-600 dark:text-teal-400 italic line-clamp-1 mt-0.5" title="Kesan: {{ $g->feedback }}">
-                                            "{{ $g->feedback }}"
+                                    </td>
+                                    <td class="px-4 py-2.5">
+                                        <p class="text-xs text-slate-800 dark:text-slate-200 line-clamp-2 max-w-[220px]" title="{{ $g->purpose }}">
+                                            {{ $g->purpose }}
+                                        </p>
+                                        @if($g->feedback)
+                                            <div class="text-[10px] text-indigo-600 dark:text-indigo-400 italic line-clamp-1 mt-0.5" title="Kesan: {{ $g->feedback }}">
+                                                "{{ $g->feedback }}"
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-2.5 whitespace-nowrap">
+                                        <div class="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                                            <i data-lucide="user-check" class="w-3.5 h-3.5 text-slate-400"></i>
+                                            <span>{{ $g->host_recipient ?: '-' }}</span>
                                         </div>
-                                    @endif
-                                </td>
-
-                                <!-- Penerima Tamu -->
-                                <td class="px-4 py-2.5 whitespace-nowrap">
-                                    <div class="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
-                                        <i data-lucide="user-check" class="w-3.5 h-3.5 text-slate-400"></i>
-                                        <span>{{ $g->host_recipient ?: '-' }}</span>
-                                    </div>
-                                </td>
-
-                                <!-- Aksi -->
-                                <td class="px-4 py-2.5 text-center whitespace-nowrap">
-                                    <div class="flex items-center justify-center gap-1">
-                                        <!-- Detail Modal -->
-                                        <button type="button" @click="openViewModal({{ json_encode($g) }})" title="Lihat Detail Tamu"
-                                            class="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
-                                            <i data-lucide="eye" class="w-4 h-4"></i>
-                                        </button>
-
-                                        <!-- Edit Modal -->
-                                        <button type="button" @click="openEditModal({{ json_encode($g) }})" title="Edit Data Tamu"
-                                            class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
-                                            <i data-lucide="edit-3" class="w-4 h-4"></i>
-                                        </button>
-
-                                        <!-- Delete -->
-                                        <form method="POST" action="{{ route('guest-books.destroy', $g->id) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus catatan tamu ini?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" title="Hapus Catatan"
-                                                class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
-                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </td>
+                                    <td class="px-4 py-2.5 text-center whitespace-nowrap">
+                                        <div class="inline-flex items-center justify-center gap-1">
+                                            <button type="button" @click="openViewModal({{ json_encode($g) }})" title="Lihat Detail Tamu"
+                                                class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
+                                                <i data-lucide="eye" class="w-4 h-4"></i>
                                             </button>
-                                        </form>
-                                    </div>
-                                </td>
+                                            <button type="button" @click="openEditModal({{ json_encode($g) }})" title="Edit Data Tamu"
+                                                class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
+                                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                            </button>
+                                            <form method="POST" action="{{ route('guest-books.destroy', $g->id) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus catatan tamu ini?')" class="inline-flex items-center m-0 p-0">
+                                                @csrf
+                                                @method('DELETE')
+                                                <input type="hidden" name="current_category" value="{{ $selectedCategory }}">
+                                                <input type="hidden" name="per_page" value="{{ $perPage ?? 15 }}">
+                                                <button type="submit" title="Hapus Catatan"
+                                                    class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
+                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="9" class="py-12 text-center text-slate-400">
+                                        <div class="flex flex-col items-center justify-center gap-2">
+                                            <i data-lucide="building-2" class="w-8 h-8 text-indigo-300 dark:text-indigo-600"></i>
+                                            <p class="font-medium text-xs">Belum ada kunjungan tamu kedinasan pada filter ini.</p>
+                                            <button type="button" @click="openCreateModal()" class="mt-2 text-teal-600 dark:text-teal-400 text-xs font-semibold hover:underline">
+                                                + Catat Tamu Baru
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    @elseif(in_array($selectedCategory, ['Puskesmas/Dinkes', 'Puskesmas', 'Dinkes']))
+                        {{-- ========================================================================= --}}
+                        {{-- TABEL KHUSUS KATEGORI: PUSKESMAS / DINKES                                 --}}
+                        {{-- ========================================================================= --}}
+                        <thead class="sticky top-0 z-10 shadow-xs">
+                            <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
+                                <th class="px-3 py-2.5 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-10 whitespace-nowrap">No</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-28">Waktu & Tanggal</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[170px]">Petugas Kesehatan</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[180px]">Faskes / Puskesmas</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[150px]">Jabatan / Profesi</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[220px]">Pelayanan Kesehatan</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[130px]">Penerima Tamu</th>
+                                <th class="px-4 py-2.5 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-24">Aksi</th>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="9" class="py-12 text-center text-slate-400">
-                                    <div class="flex flex-col items-center justify-center gap-2">
-                                        <i data-lucide="inbox" class="w-8 h-8 text-slate-300 dark:text-slate-600"></i>
-                                        <p class="font-medium text-xs">Belum ada kunjungan tamu tercatat pada filter ini.</p>
-                                        <button type="button" @click="openCreateModal()" class="mt-2 text-teal-600 dark:text-teal-400 text-xs font-semibold hover:underline">
-                                            + Catat Tamu Baru
-                                        </button>
-                                    </div>
-                                </td>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-medium text-slate-700 dark:text-slate-300">
+                            @forelse($guests as $index => $g)
+                                <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                                    <td class="px-3 py-2.5 text-center text-slate-400 font-bold whitespace-nowrap">
+                                        {{ $guests->firstItem() ? ($guests->firstItem() + $index) : ($index + 1) }}
+                                    </td>
+                                    <td class="px-4 py-2.5 whitespace-nowrap">
+                                        <div class="font-bold text-slate-900 dark:text-slate-100">
+                                            {{ \Carbon\Carbon::parse($g->date)->format('d/m/Y') }}
+                                        </div>
+                                        <div class="text-[11px] text-teal-600 dark:text-teal-400 font-mono flex items-center gap-1 mt-0.5">
+                                            <i data-lucide="clock" class="w-3 h-3"></i>
+                                            <span>{{ $g->formatted_time }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-2.5">
+                                        <div class="flex items-start gap-2.5">
+                                            <div class="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold flex items-center justify-center text-xs shrink-0 mt-0.5">
+                                                {{ strtoupper(substr($g->name, 0, 1)) }}
+                                            </div>
+                                            <div class="space-y-0.5">
+                                                <div class="font-bold text-slate-900 dark:text-slate-100 text-xs">
+                                                    {{ $g->name }}
+                                                </div>
+                                                <div class="text-[11px] text-slate-500 font-mono">
+                                                    {{ $g->phone }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-2.5">
+                                        <div class="font-bold text-slate-800 dark:text-slate-200 text-xs">
+                                            {{ $g->institution ?: '-' }}
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-2.5">
+                                        <div class="font-semibold text-slate-800 dark:text-slate-200 text-xs">
+                                            {{ $g->position ?: '-' }}
+                                        </div>
+                                        @if($g->occupation && $g->occupation !== $g->position)
+                                            <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                                {{ $g->occupation }}
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-2.5">
+                                        <p class="text-xs text-slate-800 dark:text-slate-200 line-clamp-2 max-w-[240px]" title="{{ $g->purpose }}">
+                                            {{ $g->purpose }}
+                                        </p>
+                                        @if($g->feedback)
+                                            <div class="text-[10px] text-emerald-600 dark:text-emerald-400 italic line-clamp-1 mt-0.5" title="Kesan / Hasil: {{ $g->feedback }}">
+                                                "{{ $g->feedback }}"
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-2.5 whitespace-nowrap">
+                                        <div class="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                                            <i data-lucide="user-check" class="w-3.5 h-3.5 text-slate-400"></i>
+                                            <span>{{ $g->host_recipient ?: '-' }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-2.5 text-center whitespace-nowrap">
+                                        <div class="inline-flex items-center justify-center gap-1">
+                                            <button type="button" @click="openViewModal({{ json_encode($g) }})" title="Lihat Detail Tamu"
+                                                class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
+                                                <i data-lucide="eye" class="w-4 h-4"></i>
+                                            </button>
+                                            <button type="button" @click="openEditModal({{ json_encode($g) }})" title="Edit Data Tamu"
+                                                class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
+                                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                            </button>
+                                            <form method="POST" action="{{ route('guest-books.destroy', $g->id) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus catatan tamu ini?')" class="inline-flex items-center m-0 p-0">
+                                                @csrf
+                                                @method('DELETE')
+                                                <input type="hidden" name="current_category" value="{{ $selectedCategory }}">
+                                                <input type="hidden" name="per_page" value="{{ $perPage ?? 15 }}">
+                                                <button type="submit" title="Hapus Catatan"
+                                                    class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
+                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="8" class="py-12 text-center text-slate-400">
+                                        <div class="flex flex-col items-center justify-center gap-2">
+                                            <i data-lucide="stethoscope" class="w-8 h-8 text-emerald-300 dark:text-emerald-600"></i>
+                                            <p class="font-medium text-xs">Belum ada kunjungan petugas Puskesmas/Dinkes pada filter ini.</p>
+                                            <button type="button" @click="openCreateModal()" class="mt-2 text-teal-600 dark:text-teal-400 text-xs font-semibold hover:underline">
+                                                + Catat Tamu Baru
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    @elseif($selectedCategory === 'Umum')
+                        {{-- ========================================================================= --}}
+                        {{-- TABEL KHUSUS KATEGORI: UMUM                                               --}}
+                        {{-- ========================================================================= --}}
+                        <thead class="sticky top-0 z-10 shadow-xs">
+                            <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
+                                <th class="px-3 py-2.5 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-10 whitespace-nowrap">No</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-28">Waktu & Tanggal</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[170px]">Nama Tamu</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[180px]">Instansi / Lembaga</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[150px]">Jabatan / Pekerjaan</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[140px]">Kota / Alamat</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[200px]">Keperluan Kunjungan</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[130px]">Penerima Tamu</th>
+                                <th class="px-4 py-2.5 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-24">Aksi</th>
                             </tr>
-                        @endforelse
-                    </tbody>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-medium text-slate-700 dark:text-slate-300">
+                            @forelse($guests as $index => $g)
+                                <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                                    <td class="px-3 py-2.5 text-center text-slate-400 font-bold whitespace-nowrap">
+                                        {{ $guests->firstItem() ? ($guests->firstItem() + $index) : ($index + 1) }}
+                                    </td>
+                                    <td class="px-4 py-2.5 whitespace-nowrap">
+                                        <div class="font-bold text-slate-900 dark:text-slate-100">
+                                            {{ \Carbon\Carbon::parse($g->date)->format('d/m/Y') }}
+                                        </div>
+                                        <div class="text-[11px] text-teal-600 dark:text-teal-400 font-mono flex items-center gap-1 mt-0.5">
+                                            <i data-lucide="clock" class="w-3 h-3"></i>
+                                            <span>{{ $g->formatted_time }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-2.5">
+                                        <div class="flex items-start gap-2.5">
+                                            <div class="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold flex items-center justify-center text-xs shrink-0 mt-0.5">
+                                                {{ strtoupper(substr($g->name, 0, 1)) }}
+                                            </div>
+                                            <div class="space-y-0.5">
+                                                <div class="font-bold text-slate-900 dark:text-slate-100 text-xs">
+                                                    {{ $g->name }}
+                                                </div>
+                                                <div class="text-[11px] text-slate-500 font-mono">
+                                                    {{ $g->phone }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-2.5">
+                                        <div class="font-bold text-slate-800 dark:text-slate-200 text-xs">
+                                            {{ $g->institution ?: '-' }}
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-2.5">
+                                        <div class="font-semibold text-slate-800 dark:text-slate-200 text-xs">
+                                            {{ $g->position ?: ($g->occupation ?: 'Tamu') }}
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-2.5">
+                                        <div class="text-xs text-slate-800 dark:text-slate-200">
+                                            {{ $g->city ?: ($g->address ?: '-') }}
+                                        </div>
+                                        @if($g->province)
+                                            <div class="text-[11px] text-slate-400">
+                                                {{ $g->province }}
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-2.5">
+                                        <p class="text-xs text-slate-800 dark:text-slate-200 line-clamp-2 max-w-[220px]" title="{{ $g->purpose }}">
+                                            {{ $g->purpose }}
+                                        </p>
+                                        @if($g->feedback)
+                                            <div class="text-[10px] text-slate-500 italic line-clamp-1 mt-0.5" title="Kesan: {{ $g->feedback }}">
+                                                "{{ $g->feedback }}"
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-2.5 whitespace-nowrap">
+                                        <div class="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                                            <i data-lucide="user-check" class="w-3.5 h-3.5 text-slate-400"></i>
+                                            <span>{{ $g->host_recipient ?: '-' }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-2.5 text-center whitespace-nowrap">
+                                        <div class="inline-flex items-center justify-center gap-1">
+                                            <button type="button" @click="openViewModal({{ json_encode($g) }})" title="Lihat Detail Tamu"
+                                                class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
+                                                <i data-lucide="eye" class="w-4 h-4"></i>
+                                            </button>
+                                            <button type="button" @click="openEditModal({{ json_encode($g) }})" title="Edit Data Tamu"
+                                                class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
+                                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                            </button>
+                                            <form method="POST" action="{{ route('guest-books.destroy', $g->id) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus catatan tamu ini?')" class="inline-flex items-center m-0 p-0">
+                                                @csrf
+                                                @method('DELETE')
+                                                <input type="hidden" name="current_category" value="{{ $selectedCategory }}">
+                                                <input type="hidden" name="per_page" value="{{ $perPage ?? 15 }}">
+                                                <button type="submit" title="Hapus Catatan"
+                                                    class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
+                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="9" class="py-12 text-center text-slate-400">
+                                        <div class="flex flex-col items-center justify-center gap-2">
+                                            <i data-lucide="users" class="w-8 h-8 text-slate-300 dark:text-slate-600"></i>
+                                            <p class="font-medium text-xs">Belum ada kunjungan tamu umum pada filter ini.</p>
+                                            <button type="button" @click="openCreateModal()" class="mt-2 text-teal-600 dark:text-teal-400 text-xs font-semibold hover:underline">
+                                                + Catat Tamu Baru
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    @else
+                        {{-- ========================================================================= --}}
+                        {{-- TABEL UMUM / SEMUA KATEGORI (RINGKASAN INTEGRATIF)                         --}}
+                        {{-- ========================================================================= --}}
+                        <thead class="sticky top-0 z-10 shadow-xs">
+                            <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
+                                <th class="px-3 py-2.5 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-10 whitespace-nowrap">No</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-28">Waktu & Tanggal</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[170px]">Nama & Kontak</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-28">Kategori</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[180px]">Instansi / Calon Murid</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[150px]">Jabatan / Terapi</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[200px]">Keperluan</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[130px]">Penerima Tamu</th>
+                                <th class="px-4 py-2.5 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-24">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-medium text-slate-700 dark:text-slate-300">
+                            @forelse($guests as $index => $g)
+                                <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                                    <td class="px-3 py-2.5 text-center text-slate-400 font-bold whitespace-nowrap">
+                                        {{ $guests->firstItem() ? ($guests->firstItem() + $index) : ($index + 1) }}
+                                    </td>
+                                    <td class="px-4 py-2.5 whitespace-nowrap">
+                                        <div class="font-bold text-slate-900 dark:text-slate-100">
+                                            {{ \Carbon\Carbon::parse($g->date)->format('d/m/Y') }}
+                                        </div>
+                                        <div class="text-[11px] text-teal-600 dark:text-teal-400 font-mono flex items-center gap-1 mt-0.5">
+                                            <i data-lucide="clock" class="w-3 h-3"></i>
+                                            <span>{{ $g->formatted_time }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-2.5">
+                                        <div class="flex items-start gap-2.5">
+                                            <div class="w-7 h-7 rounded-full bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 font-bold flex items-center justify-center text-xs shrink-0 mt-0.5">
+                                                {{ strtoupper(substr($g->name, 0, 1)) }}
+                                            </div>
+                                            <div class="space-y-0.5">
+                                                <div class="font-bold text-slate-900 dark:text-slate-100 text-xs">
+                                                    {{ $g->name }}
+                                                    @if($g->category === 'SPMB')
+                                                        <span class="text-[10px] font-normal text-slate-400">(Ortu)</span>
+                                                    @endif
+                                                </div>
+                                                <div class="text-[11px] text-slate-500 font-mono">
+                                                    {{ $g->phone }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-2.5 whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border {{ $g->category_badge_class }}">
+                                            {{ $g->category }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-2.5">
+                                        @if($g->category === 'SPMB')
+                                            <div class="font-bold text-slate-900 dark:text-slate-100 text-xs flex items-center gap-1">
+                                                <i data-lucide="baby" class="w-3 h-3 text-amber-500 shrink-0"></i>
+                                                <span>{{ $g->student_name ?: '-' }}</span>
+                                            </div>
+                                            @if($g->student_birth_date)
+                                                <div class="text-[11px] text-slate-400">
+                                                    Lahir: {{ \Carbon\Carbon::parse($g->student_birth_date)->format('d/m/Y') }}
+                                                </div>
+                                            @endif
+                                        @else
+                                            <div class="font-semibold text-slate-800 dark:text-slate-200 text-xs">
+                                                {{ $g->institution ?: '-' }}
+                                            </div>
+                                            @if($g->city)
+                                                <div class="text-[11px] text-slate-400">
+                                                    {{ $g->city }}
+                                                </div>
+                                            @endif
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-2.5">
+                                        @if($g->category === 'SPMB')
+                                            <div class="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                                                Terapi: {{ $g->therapy_history ?: 'Tidak' }}
+                                            </div>
+                                            @if($g->therapy_diagnosis)
+                                                <div class="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[150px]" title="{{ $g->therapy_diagnosis }}">
+                                                    {{ $g->therapy_diagnosis }}
+                                                </div>
+                                            @endif
+                                        @else
+                                            <div class="font-semibold text-slate-800 dark:text-slate-200 text-xs">
+                                                {{ $g->position ?: ($g->occupation ?: 'Tamu') }}
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-2.5">
+                                        <p class="text-slate-700 dark:text-slate-300 line-clamp-2 max-w-[220px] text-xs" title="{{ $g->purpose }}">
+                                            {{ $g->purpose }}
+                                        </p>
+                                        @if($g->feedback)
+                                            <div class="text-[10px] text-teal-600 dark:text-teal-400 italic line-clamp-1 mt-0.5" title="Kesan: {{ $g->feedback }}">
+                                                "{{ $g->feedback }}"
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-2.5 whitespace-nowrap">
+                                        <div class="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 text-xs">
+                                            <i data-lucide="user-check" class="w-3.5 h-3.5 text-slate-400"></i>
+                                            <span>{{ $g->host_recipient ?: '-' }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-2.5 text-center whitespace-nowrap">
+                                        <div class="inline-flex items-center justify-center gap-1">
+                                            <button type="button" @click="openViewModal({{ json_encode($g) }})" title="Lihat Detail Tamu"
+                                                class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
+                                                <i data-lucide="eye" class="w-4 h-4"></i>
+                                            </button>
+                                            <button type="button" @click="openEditModal({{ json_encode($g) }})" title="Edit Data Tamu"
+                                                class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
+                                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                            </button>
+                                            <form method="POST" action="{{ route('guest-books.destroy', $g->id) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus catatan tamu ini?')" class="inline-flex items-center m-0 p-0">
+                                                @csrf
+                                                @method('DELETE')
+                                                <input type="hidden" name="current_category" value="{{ $selectedCategory }}">
+                                                <input type="hidden" name="per_page" value="{{ $perPage ?? 15 }}">
+                                                <button type="submit" title="Hapus Catatan"
+                                                    class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
+                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="9" class="py-12 text-center text-slate-400">
+                                        <div class="flex flex-col items-center justify-center gap-2">
+                                            <i data-lucide="inbox" class="w-8 h-8 text-slate-300 dark:text-slate-600"></i>
+                                            <p class="font-medium text-xs">Belum ada kunjungan tamu tercatat pada filter ini.</p>
+                                            <button type="button" @click="openCreateModal()" class="mt-2 text-teal-600 dark:text-teal-400 text-xs font-semibold hover:underline">
+                                                + Catat Tamu Baru
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    @endif
                 </table>
             </div>
 
@@ -419,6 +904,8 @@
                         <input type="hidden" name="_method" value="PUT">
                     </template>
                     <input type="hidden" name="id" :value="formData.id">
+                    <input type="hidden" name="current_category" value="{{ $selectedCategory }}">
+                    <input type="hidden" name="per_page" value="{{ $perPage ?? 15 }}">
 
                     <!-- Scrollable Form Body -->
                     <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
@@ -857,14 +1344,7 @@
                                 </tr>
                                 <tr>
                                     <td class="py-2.5 px-3.5 font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60 border-r border-slate-100 dark:border-slate-800">No Hp</td>
-                                    <td class="py-2.5 px-3.5 font-bold text-slate-900 dark:text-slate-100 font-mono">
-                                        <span x-text="viewData?.phone || '-'"></span>
-                                        <template x-if="viewData?.whatsapp_url">
-                                            <a :href="viewData?.whatsapp_url" target="_blank" class="ml-2 text-emerald-600 hover:underline text-[11px] font-semibold inline-flex items-center gap-1">
-                                                <i data-lucide="message-circle" class="w-3 h-3"></i> WA
-                                            </a>
-                                        </template>
-                                    </td>
+                                    <td class="py-2.5 px-3.5 font-bold text-slate-900 dark:text-slate-100 font-mono" x-text="viewData?.phone || '-'"></td>
                                 </tr>
                                 <tr>
                                     <td class="py-2.5 px-3.5 font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60 border-r border-slate-100 dark:border-slate-800">Waktu</td>
@@ -914,14 +1394,7 @@
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                                 <tr>
                                     <td class="py-2.5 px-3.5 font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60 w-36 sm:w-44 border-r border-slate-100 dark:border-slate-800">No Hp</td>
-                                    <td class="py-2.5 px-3.5 font-bold text-slate-900 dark:text-slate-100 font-mono">
-                                        <span x-text="viewData?.phone || '-'"></span>
-                                        <template x-if="viewData?.whatsapp_url">
-                                            <a :href="viewData?.whatsapp_url" target="_blank" class="ml-2 text-emerald-600 hover:underline text-[11px] font-semibold inline-flex items-center gap-1">
-                                                <i data-lucide="message-circle" class="w-3 h-3"></i> WA
-                                            </a>
-                                        </template>
-                                    </td>
+                                    <td class="py-2.5 px-3.5 font-bold text-slate-900 dark:text-slate-100 font-mono" x-text="viewData?.phone || '-'"></td>
                                 </tr>
                                 <tr>
                                     <td class="py-2.5 px-3.5 font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60 border-r border-slate-100 dark:border-slate-800">Jabatan</td>
@@ -967,14 +1440,7 @@
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                                 <tr>
                                     <td class="py-2.5 px-3.5 font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60 w-36 sm:w-44 border-r border-slate-100 dark:border-slate-800">No Hp</td>
-                                    <td class="py-2.5 px-3.5 font-bold text-slate-900 dark:text-slate-100 font-mono">
-                                        <span x-text="viewData?.phone || '-'"></span>
-                                        <template x-if="viewData?.whatsapp_url">
-                                            <a :href="viewData?.whatsapp_url" target="_blank" class="ml-2 text-emerald-600 hover:underline text-[11px] font-semibold inline-flex items-center gap-1">
-                                                <i data-lucide="message-circle" class="w-3 h-3"></i> WA
-                                            </a>
-                                        </template>
-                                    </td>
+                                    <td class="py-2.5 px-3.5 font-bold text-slate-900 dark:text-slate-100 font-mono" x-text="viewData?.phone || '-'"></td>
                                 </tr>
                                 <tr>
                                     <td class="py-2.5 px-3.5 font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60 border-r border-slate-100 dark:border-slate-800">Keperluan</td>
@@ -1032,14 +1498,7 @@
                                 </tr>
                                 <tr>
                                     <td class="py-2.5 px-3.5 font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60 border-r border-slate-100 dark:border-slate-800">No Hp</td>
-                                    <td class="py-2.5 px-3.5 font-bold text-slate-900 dark:text-slate-100 font-mono">
-                                        <span x-text="viewData?.phone || '-'"></span>
-                                        <template x-if="viewData?.whatsapp_url">
-                                            <a :href="viewData?.whatsapp_url" target="_blank" class="ml-2 text-emerald-600 hover:underline text-[11px] font-semibold inline-flex items-center gap-1">
-                                                <i data-lucide="message-circle" class="w-3 h-3"></i> WA
-                                            </a>
-                                        </template>
-                                    </td>
+                                    <td class="py-2.5 px-3.5 font-bold text-slate-900 dark:text-slate-100 font-mono" x-text="viewData?.phone || '-'"></td>
                                 </tr>
                                 <tr>
                                     <td class="py-2.5 px-3.5 font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60 border-r border-slate-100 dark:border-slate-800">Jabatan</td>

@@ -451,7 +451,7 @@
             </nav>
         </div>
 
-        @if(auth()->user()->hasRole('super_admin'))
+        @if(auth()->user()->hasAnyRole(['super_admin', 'admin_sd', 'admin_paud', 'admin_smp', 'kepala_sekolah', 'waka']))
         <!-- Group 4: Pusat Data & Pengaturan -->
         <div>
             <h3 class="school-info px-2 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
@@ -471,6 +471,7 @@
                     </span>
                 </a>
 
+                @if(auth()->user()->hasRole('super_admin'))
                 <!-- Dropdown: Pengaturan Sistem -->
                 <div x-data="{ openSystem: {{ Request::routeIs('users.*', 'system-logs.*', 'settings') ? 'true' : 'false' }} }">
                     <button @click="openSystem = !openSystem"
@@ -503,6 +504,7 @@
                         </a>
                     </div>
                 </div>
+                @endif
             </nav>
         </div>
         @endif

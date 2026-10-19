@@ -32,7 +32,11 @@ class GuestBookController extends Controller
             ->whereMonth('date', $selectedMonth);
 
         if ($selectedCategory && $selectedCategory !== 'all') {
-            $query->where('category', $selectedCategory);
+            if (in_array($selectedCategory, ['Puskesmas/Dinkes', 'Puskesmas', 'Dinkes'])) {
+                $query->whereIn('category', ['Puskesmas/Dinkes', 'Puskesmas', 'Dinkes']);
+            } else {
+                $query->where('category', $selectedCategory);
+            }
         }
 
         if ($search) {
@@ -104,10 +108,16 @@ class GuestBookController extends Controller
             $validated['recorded_by'] = auth()->id();
             GuestBook::create($validated);
 
+            $targetCategory = $request->get('current_category', $validated['category']);
+            if (empty($targetCategory)) {
+                $targetCategory = $validated['category'];
+            }
+
             return redirect()->route('guest-books.index', [
                 'month' => Carbon::parse($validated['date'])->month,
                 'year' => Carbon::parse($validated['date'])->year,
-                'category' => $validated['category'],
+                'category' => $targetCategory,
+                'per_page' => $request->get('per_page', 15),
             ])->with('success', "Buku tamu atas nama {$validated['name']} berhasil dicatat.");
         } catch (\Throwable $e) {
             report($e);
@@ -128,10 +138,16 @@ class GuestBookController extends Controller
         try {
             $guest->update($validated);
 
+            $targetCategory = $request->get('current_category', $validated['category']);
+            if (empty($targetCategory)) {
+                $targetCategory = $validated['category'];
+            }
+
             return redirect()->route('guest-books.index', [
                 'month' => Carbon::parse($validated['date'])->month,
                 'year' => Carbon::parse($validated['date'])->year,
-                'category' => $validated['category'],
+                'category' => $targetCategory,
+                'per_page' => $request->get('per_page', 15),
             ])->with('success', "Data buku tamu {$guest->name} berhasil diperbarui.");
         } catch (\Throwable $e) {
             report($e);
@@ -144,18 +160,21 @@ class GuestBookController extends Controller
     /**
      * Delete a Guest Book entry.
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         try {
             $guest = GuestBook::findOrFail($id);
             $month = Carbon::parse($guest->date)->month;
             $year = Carbon::parse($guest->date)->year;
+            $cat = $request->get('current_category', $request->get('category', $guest->category));
 
             $guest->delete();
 
             return redirect()->route('guest-books.index', [
                 'month' => $month,
                 'year' => $year,
+                'category' => $cat,
+                'per_page' => $request->get('per_page', 15),
             ])->with('success', 'Catatan buku tamu berhasil dihapus.');
         } catch (\Throwable $e) {
             report($e);
@@ -206,7 +225,11 @@ class GuestBookController extends Controller
 
         $query = GuestBook::whereYear('date', $selectedYear)->whereMonth('date', $selectedMonth);
         if ($selectedCategory && $selectedCategory !== 'all') {
-            $query->where('category', $selectedCategory);
+            if (in_array($selectedCategory, ['Puskesmas/Dinkes', 'Puskesmas', 'Dinkes'])) {
+                $query->whereIn('category', ['Puskesmas/Dinkes', 'Puskesmas', 'Dinkes']);
+            } else {
+                $query->where('category', $selectedCategory);
+            }
         }
         $guests = $query->orderBy('date', 'asc')->orderBy('time', 'asc')->get();
 
@@ -260,6 +283,14 @@ class GuestBookController extends Controller
         }
 
         $lastCol = Coordinate::stringFromColumnIndex(count($headers));
+
+        // Merge Title rows across table width to prevent bloating Column A
+        $sheet->mergeCells("A1:{$lastCol}1");
+        $sheet->mergeCells("A2:{$lastCol}2");
+        $sheet->mergeCells("A3:{$lastCol}3");
+        $sheet->mergeCells("A4:{$lastCol}4");
+        $sheet->getStyle("A1:A4")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+
         $headerRange = "A{$startRow}:{$lastCol}{$startRow}";
         $sheet->getStyle($headerRange)->getFont()->setBold(true)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFFFFFFF'));
         $sheet->getStyle($headerRange)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF0F766E'); // Teal 700
@@ -306,30 +337,44 @@ class GuestBookController extends Controller
             $sheet->getStyle("A{$startRow}:{$lastCol}" . ($currentRow - 1))->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFCBD5E1'));
         }
 
+        // AutoSize columns
         foreach (range(1, count($headers)) as $colIndex) {
             $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($colIndex))->setAutoSize(true);
         }
 
-        // Dynamic Signatures in Excel
+        // Fix column A ('No') to compact neat width
+        $sheet->getColumnDimension('A')->setAutoSize(false);
+        $sheet->getColumnDimension('A')->setWidth(6);
+
+        // Dynamic Signatures in Excel (merged across multiple columns to avoid column stretching)
         $signRow = $currentRow + 2;
-        $sheet->setCellValue("C{$signRow}", "Petugas Penerima Tamu / Piket,");
-        $sheet->setCellValue("P{$signRow}", "{$schoolCity}, " . Carbon::now()->translatedFormat('d F Y') . "\nMengetahui, Kepala Sekolah");
-        $sheet->getStyle("C{$signRow}")->getAlignment()->setWrapText(true)->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle("P{$signRow}")->getAlignment()->setWrapText(true)->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->mergeCells("B{$signRow}:E{$signRow}");
+        $sheet->setCellValue("B{$signRow}", "Petugas Penerima Tamu / Piket,");
+        $sheet->getStyle("B{$signRow}")->getAlignment()->setWrapText(true)->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        $sheet->setCellValue("C" . ($signRow + 4), "( ................................................ )");
-        $sheet->getStyle("C" . ($signRow + 4))->getFont()->setBold(true);
-        $sheet->getStyle("C" . ($signRow + 4))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->setCellValue("C" . ($signRow + 5), "NIP/NIY: ................................................");
-        $sheet->getStyle("C" . ($signRow + 5))->getFont()->setSize(9);
-        $sheet->getStyle("C" . ($signRow + 5))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->mergeCells("N{$signRow}:S{$signRow}");
+        $sheet->setCellValue("N{$signRow}", "{$schoolCity}, " . Carbon::now()->translatedFormat('d F Y') . "\nMengetahui, Kepala Sekolah");
+        $sheet->getStyle("N{$signRow}")->getAlignment()->setWrapText(true)->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        $sheet->setCellValue("P" . ($signRow + 4), $headmasterName);
-        $sheet->getStyle("P" . ($signRow + 4))->getFont()->setBold(true)->setUnderline(true);
-        $sheet->getStyle("P" . ($signRow + 4))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->setCellValue("P" . ($signRow + 5), "NIP: " . $headmasterNip);
-        $sheet->getStyle("P" . ($signRow + 5))->getFont()->setSize(9);
-        $sheet->getStyle("P" . ($signRow + 5))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->mergeCells("B" . ($signRow + 4) . ":E" . ($signRow + 4));
+        $sheet->setCellValue("B" . ($signRow + 4), "( ................................................ )");
+        $sheet->getStyle("B" . ($signRow + 4))->getFont()->setBold(true);
+        $sheet->getStyle("B" . ($signRow + 4))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        $sheet->mergeCells("B" . ($signRow + 5) . ":E" . ($signRow + 5));
+        $sheet->setCellValue("B" . ($signRow + 5), "NIP/NIY: ................................................");
+        $sheet->getStyle("B" . ($signRow + 5))->getFont()->setSize(9);
+        $sheet->getStyle("B" . ($signRow + 5))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        $sheet->mergeCells("N" . ($signRow + 4) . ":S" . ($signRow + 4));
+        $sheet->setCellValue("N" . ($signRow + 4), $headmasterName);
+        $sheet->getStyle("N" . ($signRow + 4))->getFont()->setBold(true)->setUnderline(true);
+        $sheet->getStyle("N" . ($signRow + 4))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        $sheet->mergeCells("N" . ($signRow + 5) . ":S" . ($signRow + 5));
+        $sheet->setCellValue("N" . ($signRow + 5), "NIP: " . $headmasterNip);
+        $sheet->getStyle("N" . ($signRow + 5))->getFont()->setSize(9);
+        $sheet->getStyle("N" . ($signRow + 5))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         if ($request->filled('download_token')) {
             if (!headers_sent()) {
@@ -369,7 +414,11 @@ class GuestBookController extends Controller
 
         $query = GuestBook::whereYear('date', $selectedYear)->whereMonth('date', $selectedMonth);
         if ($selectedCategory && $selectedCategory !== 'all') {
-            $query->where('category', $selectedCategory);
+            if (in_array($selectedCategory, ['Puskesmas/Dinkes', 'Puskesmas', 'Dinkes'])) {
+                $query->whereIn('category', ['Puskesmas/Dinkes', 'Puskesmas', 'Dinkes']);
+            } else {
+                $query->where('category', $selectedCategory);
+            }
         }
         $guests = $query->orderBy('date', 'asc')->orderBy('time', 'asc')->get();
 
@@ -428,7 +477,11 @@ class GuestBookController extends Controller
 
         $query = GuestBook::whereYear('date', $selectedYear)->whereMonth('date', $selectedMonth);
         if ($selectedCategory && $selectedCategory !== 'all') {
-            $query->where('category', $selectedCategory);
+            if (in_array($selectedCategory, ['Puskesmas/Dinkes', 'Puskesmas', 'Dinkes'])) {
+                $query->whereIn('category', ['Puskesmas/Dinkes', 'Puskesmas', 'Dinkes']);
+            } else {
+                $query->where('category', $selectedCategory);
+            }
         }
         $guests = $query->orderBy('date', 'asc')->orderBy('time', 'asc')->get();
 

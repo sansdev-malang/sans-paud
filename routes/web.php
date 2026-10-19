@@ -115,8 +115,10 @@ Route::middleware(['auth', 'verified', 'role:super_admin'])->group(function () {
     Route::get('classroom-journals/download-pdf', [\App\Http\Controllers\ClassroomJournalController::class, 'downloadPdf'])->name('classroom-journals.download.pdf');
     Route::get('classroom-journals/print', [\App\Http\Controllers\ClassroomJournalController::class, 'print'])->name('classroom-journals.print');
     Route::get('/jurnal-kelas', fn() => redirect()->route('classroom-journals.index'))->name('jurnal-kelas');
+});
 
-    // Buku Tamu (Admin Management)
+// Modul Buku Tamu (Admin PAUD, Kepala Sekolah, Waka, & Super Admin)
+Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,admin_smp,kepala_sekolah,waka'])->group(function () {
     Route::get('guest-books', [\App\Http\Controllers\GuestBookController::class, 'index'])->name('guest-books.index');
     Route::post('guest-books', [\App\Http\Controllers\GuestBookController::class, 'store'])->name('guest-books.store');
     Route::put('guest-books/{id}', [\App\Http\Controllers\GuestBookController::class, 'update'])->name('guest-books.update');
