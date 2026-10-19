@@ -60,66 +60,48 @@
         @endif
 
         <!-- ========================================================================= -->
-        <!-- ULTRA-COMPACT KPI STRIP                                                   -->
+        <!-- TAB SWITCHER & KPI STATUS: 1. ARSIP BERKAS  |  2. MATRIKS KELENGKAPAN     -->
         <!-- ========================================================================= -->
-        <section class="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full text-xs">
-            <!-- Total Berkas -->
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 shadow-2xs">
-                <i data-lucide="files" class="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0"></i>
-                <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Total Berkas:</span>
-                <span class="font-bold font-mono text-slate-900 dark:text-slate-50">{{ $stats['total'] }}</span>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 dark:border-slate-800 gap-2 sm:gap-4">
+            <div class="flex items-center space-x-1 sm:space-x-2 shrink-0">
+                <a href="{{ route('teacher-documents.index', array_merge(request()->query(), ['tab' => 'files'])) }}"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-colors {{ $activeTab === 'files' ? 'border-purple-600 text-purple-600 dark:text-purple-400 dark:border-purple-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:border-slate-300' }}">
+                    <i data-lucide="folder-open" class="w-4 h-4"></i>
+                    <span>Daftar Berkas</span>
+                    <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold">
+                        {{ $documents->total() }}
+                    </span>
+                </a>
+
+                <a href="{{ route('teacher-documents.index', array_merge(request()->query(), ['tab' => 'matrix'])) }}"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-colors {{ $activeTab === 'matrix' ? 'border-purple-600 text-purple-600 dark:text-purple-400 dark:border-purple-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:border-slate-300' }}">
+                    <i data-lucide="table-2" class="w-4 h-4"></i>
+                    <span>Matriks Kelengkapan Administrasi</span>
+                </a>
             </div>
 
-            <!-- Disetujui -->
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-900/40 rounded-lg text-emerald-800 dark:text-emerald-300 shadow-2xs">
-                <i data-lucide="check-check" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0"></i>
-                <span class="text-[11px] font-medium">Disetujui:</span>
-                <span class="font-bold font-mono">{{ $stats['approved'] }}</span>
-            </div>
-
-            <!-- Menunggu Review -->
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 rounded-lg text-amber-800 dark:text-amber-300 shadow-2xs">
-                <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0"></i>
-                <span class="text-[11px] font-medium">Menunggu:</span>
-                <span class="font-bold font-mono">{{ $stats['pending'] }}</span>
-            </div>
-
-            <!-- Perlu Revisi -->
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/60 dark:border-rose-900/40 rounded-lg text-rose-800 dark:text-rose-300 shadow-2xs">
-                <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0"></i>
-                <span class="text-[11px] font-medium">Perlu Revisi:</span>
-                <span class="font-bold font-mono">{{ $stats['needs_revision'] }}</span>
-            </div>
-
-            @if($isAdmin)
-            <!-- Guru Partisipan -->
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/60 dark:border-indigo-900/40 rounded-lg text-indigo-800 dark:text-indigo-300 shadow-2xs">
-                <i data-lucide="users" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0"></i>
-                <span class="text-[11px] font-medium">Partisipan Guru:</span>
-                <span class="font-bold font-mono">{{ $stats['teachers_count'] }}</span>
-                <span class="text-[10px] text-slate-400">/ {{ $teachers->count() }}</span>
-            </div>
-            @endif
-        </section>
-
-        <!-- ========================================================================= -->
-        <!-- TAB SWITCHER: 1. ARSIP BERKAS  |  2. MATRIKS KELENGKAPAN ADMINISTRASI    -->
-        <!-- ========================================================================= -->
-        <div class="flex items-center border-b border-slate-200 dark:border-slate-800 space-x-1 sm:space-x-2">
-            <a href="{{ route('teacher-documents.index', array_merge(request()->query(), ['tab' => 'files'])) }}"
-                class="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-colors {{ $activeTab === 'files' ? 'border-purple-600 text-purple-600 dark:text-purple-400 dark:border-purple-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:border-slate-300' }}">
-                <i data-lucide="folder-open" class="w-4 h-4"></i>
-                <span>Daftar Berkas</span>
-                <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold">
-                    {{ $documents->total() }}
+            <!-- Status KPI Dots (Pojok Kanan Sejajar dengan Tab) -->
+            <div class="flex items-center gap-2.5 shrink-0 sm:ml-auto pb-2 sm:pb-0">
+                <span class="inline-flex flex-wrap items-center gap-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                    <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+                        <span class="w-2 h-2 rounded-full bg-purple-500 inline-block"></span> Total: <strong class="text-slate-800 dark:text-slate-200 font-mono">{{ $stats['total'] }}</strong>
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span> Disetujui: <strong class="text-emerald-600 dark:text-emerald-400 font-mono">{{ $stats['approved'] }}</strong>
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+                        <span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span> Menunggu: <strong class="text-amber-600 dark:text-amber-400 font-mono">{{ $stats['pending'] }}</strong>
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+                        <span class="w-2 h-2 rounded-full bg-rose-500 inline-block"></span> Revisi: <strong class="text-rose-600 dark:text-rose-400 font-mono">{{ $stats['needs_revision'] }}</strong>
+                    </span>
+                    @if($isAdmin)
+                    <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+                        <span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span> Guru: <strong class="text-indigo-600 dark:text-indigo-400 font-mono">{{ $stats['teachers_count'] }}</strong><span class="text-[10px] text-slate-400">/{{ $teachers->count() }}</span>
+                    </span>
+                    @endif
                 </span>
-            </a>
-
-            <a href="{{ route('teacher-documents.index', array_merge(request()->query(), ['tab' => 'matrix'])) }}"
-                class="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-colors {{ $activeTab === 'matrix' ? 'border-purple-600 text-purple-600 dark:text-purple-400 dark:border-purple-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:border-slate-300' }}">
-                <i data-lucide="table-2" class="w-4 h-4"></i>
-                <span>Matriks Kelengkapan Administrasi</span>
-            </a>
+            </div>
         </div>
 
         @if($activeTab === 'files')
@@ -127,27 +109,44 @@
             <!-- TAB 1: ARSIP & DAFTAR BERKAS (FILTER + TABEL)                            -->
             <!-- ========================================================================= -->
 
-            <!-- FILTERS TOOLBAR (1 BARIS PENUH & RAPI: DROPDOWN DI KIRI, SEARCH DI KANAN) -->
-            <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 sm:p-3 shadow-xs overflow-x-auto">
-                <form method="GET" action="{{ route('teacher-documents.index') }}" id="docsFilterForm" class="flex items-center justify-between gap-2 flex-nowrap min-w-max">
-                    <input type="hidden" name="tab" value="files">
-                    
-                    <!-- Left: Dropdown Filters (Strictly 1 Baris) -->
-                    <div class="flex items-center gap-2 flex-nowrap shrink-0">
+            <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden transition-all w-full text-left">
+                <!-- Table Header Bar: Filters Toolbar -->
+                <div class="p-2 sm:px-3 sm:py-2.5 border-b border-slate-100 dark:border-slate-800 overflow-x-auto">
+                    <form method="GET" action="{{ route('teacher-documents.index') }}" id="docsFilterForm" class="flex items-center gap-1.5 flex-nowrap min-w-max">
+                        <input type="hidden" name="tab" value="files">
+
+                        <!-- Search Input -->
+                        <div x-data="{ searchVal: '{{ $search }}' }" class="flex items-center w-36 sm:w-44 search-container bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-lg overflow-hidden focus-within:ring-1 focus-within:ring-purple-500 focus-within:border-purple-500 shrink-0">
+                            <input type="text" name="search" x-model="searchVal" placeholder="Cari berkas..."
+                                style="border: none !important; outline: none !important; box-shadow: none !important;"
+                                class="w-full h-8 pl-2.5 pr-1 text-xs bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:ring-0">
+                            
+                            <button type="button" x-show="searchVal.trim() !== ''" @click="searchVal = ''; $el.closest('.search-container').querySelector('input').focus();" class="h-8 px-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer bg-transparent border-0 flex items-center justify-center" title="Bersihkan pencarian">
+                                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                            </button>
+
+                            <button type="submit" 
+                                :class="searchVal.trim() !== '' ? 'bg-purple-600 text-white dark:bg-purple-500 dark:text-white' : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300'"
+                                class="h-8 px-2 font-bold text-xs transition-all duration-150 cursor-pointer flex items-center justify-center border-l border-slate-200 dark:border-slate-700">
+                                <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+
                         <!-- 1. Tahun Ajaran -->
                         <select name="academic_year_id" onchange="this.form.submit()"
-                            class="h-9 pl-3 pr-7 text-xs font-semibold bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
+                            class="h-8 pl-2.5 pr-7 text-xs font-semibold bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer shrink-0">
+                            <option value="all" {{ (string)$selectedYearId === 'all' ? 'selected' : '' }}>Semua Tahun</option>
                             @foreach($academicYears as $ay)
-                                <option value="{{ $ay->id }}" {{ $selectedYearId == $ay->id ? 'selected' : '' }}>
-                                    {{ $ay->name }}
+                                <option value="{{ $ay->id }}" {{ (string)$selectedYearId === (string)$ay->id ? 'selected' : '' }}>
+                                    {{ $ay->name }}{{ $ay->is_active ? ' (Aktif)' : '' }}
                                 </option>
                             @endforeach
                         </select>
 
                         @if($isAdmin)
-                        <!-- 2. Guru / Pendidik (Ukuran Kompak) -->
+                        <!-- 2. Guru / Pendidik -->
                         <select name="teacher_id" onchange="this.form.submit()"
-                            class="h-9 w-36 sm:w-40 pl-2.5 pr-7 text-xs font-semibold bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer truncate">
+                            class="h-8 pl-2.5 pr-7 text-xs font-semibold bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer max-w-[150px] truncate shrink-0">
                             <option value="all">Semua Guru</option>
                             @foreach($teachers as $t)
                                 <option value="{{ $t->id }}" {{ $selectedTeacherId == $t->id ? 'selected' : '' }}>
@@ -159,7 +158,7 @@
 
                         <!-- 3. Kategori Berkas -->
                         <select name="category" onchange="this.form.submit()"
-                            class="h-9 pl-3 pr-7 text-xs font-semibold bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
+                            class="h-8 pl-2.5 pr-7 text-xs font-semibold bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer max-w-[145px] truncate shrink-0">
                             <option value="all">Semua Kategori</option>
                             @foreach($categories as $cat)
                                 <option value="{{ $cat }}" {{ $selectedCategory === $cat ? 'selected' : '' }}>
@@ -170,7 +169,7 @@
 
                         <!-- 4. Semester -->
                         <select name="semester" onchange="this.form.submit()"
-                            class="h-9 pl-3 pr-7 text-xs font-semibold bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
+                            class="h-8 pl-2.5 pr-7 text-xs font-semibold bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer shrink-0">
                             <option value="all">Semua Semester</option>
                             @foreach($semesters as $sem)
                                 <option value="{{ $sem }}" {{ $selectedSemester === $sem ? 'selected' : '' }}>
@@ -181,7 +180,7 @@
 
                         <!-- 5. Status Supervisi -->
                         <select name="status" onchange="this.form.submit()"
-                            class="h-9 pl-3 pr-7 text-xs font-semibold bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
+                            class="h-8 pl-2.5 pr-7 text-xs font-semibold bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer shrink-0">
                             <option value="all">Semua Status</option>
                             <option value="Menunggu Review" {{ $selectedStatus === 'Menunggu Review' ? 'selected' : '' }}>Menunggu Review</option>
                             <option value="Disetujui" {{ $selectedStatus === 'Disetujui' ? 'selected' : '' }}>Disetujui</option>
@@ -189,71 +188,49 @@
                         </select>
 
                         <!-- 6. Jumlah Baris -->
-                        <select name="per_page" onchange="this.form.submit()"
-                            class="h-9 pl-3 pr-7 text-xs font-semibold bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
-                            <option value="10" {{ ($perPage ?? 15) == 10 ? 'selected' : '' }}>10 Baris</option>
-                            <option value="15" {{ ($perPage ?? 15) == 15 ? 'selected' : '' }}>15 Baris</option>
-                            <option value="25" {{ ($perPage ?? 15) == 25 ? 'selected' : '' }}>25 Baris</option>
-                            <option value="50" {{ ($perPage ?? 15) == 50 ? 'selected' : '' }}>50 Baris</option>
-                            <option value="100" {{ ($perPage ?? 15) == 100 ? 'selected' : '' }}>100 Baris</option>
-                            <option value="all" {{ ($perPage ?? '') === 'all' || ($perPage ?? '') == 99999 ? 'selected' : '' }}>Semua</option>
+                        <select name="per_page" onchange="this.form.submit()" title="Jumlah data per halaman"
+                            class="h-8 pl-2 pr-6 text-xs font-semibold bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer shrink-0 w-[70px]">
+                            <option value="10" {{ ($perPage ?? 15) == 10 ? 'selected' : '' }}>10</option>
+                            <option value="15" {{ ($perPage ?? 15) == 15 ? 'selected' : '' }}>15</option>
+                            <option value="25" {{ ($perPage ?? 15) == 25 ? 'selected' : '' }}>25</option>
+                            <option value="50" {{ ($perPage ?? 15) == 50 ? 'selected' : '' }}>50</option>
+                            <option value="100" {{ ($perPage ?? 15) == 100 ? 'selected' : '' }}>100</option>
+                            <option value="99999" {{ ($perPage ?? 15) == 99999 || ($perPage ?? '') === 'all' ? 'selected' : '' }}>Semua</option>
                         </select>
 
-                        @if($search || $selectedCategory !== 'all' || $selectedTeacherId !== 'all' || $selectedStatus !== 'all' || $selectedSemester !== 'all' || (request()->filled('per_page') && request('per_page') != 15))
-                            <a href="{{ route('teacher-documents.index', ['academic_year_id' => $selectedYearId, 'tab' => 'files']) }}" class="h-9 w-9 flex items-center justify-center shrink-0 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 rounded-lg transition-colors" title="Reset Filter">
+                        @if($search || $selectedCategory !== 'all' || ($isAdmin && $selectedTeacherId !== 'all') || $selectedStatus !== 'all' || $selectedSemester !== 'all' || (string)$selectedYearId !== (string)($activeAcademicYear?->id ?? '') || (request()->filled('per_page') && request('per_page') != 15))
+                            <a href="{{ route('teacher-documents.index', ['tab' => 'files']) }}" class="h-8 w-8 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 rounded-lg transition-colors shrink-0" title="Reset Filter">
                                 <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
                             </a>
                         @endif
-                    </div>
+                    </form>
+                </div>
 
-                    <!-- Right: Search Bar Berdiri Sendiri Sesuai Menu Wali Kelas -->
-                    <div x-data="{ searchVal: '{{ $search }}' }" class="w-56 sm:w-64 md:w-72 flex items-center search-container bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-purple-500/20 focus-within:border-purple-500 shrink-0 ml-auto">
-                        <span class="pl-2.5 text-slate-400">
-                            <i data-lucide="search" class="w-3.5 h-3.5"></i>
-                        </span>
-                        <input type="text" name="search" x-model="searchVal" placeholder="Cari judul berkas..."
-                            style="border: none !important; outline: none !important; box-shadow: none !important;"
-                            class="w-full h-9 px-2 text-xs bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-0">
-                        
-                        <button type="button" x-show="searchVal.trim() !== ''" @click="searchVal = ''; $el.closest('.search-container').querySelector('input').focus();" class="h-9 px-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer bg-transparent border-0 flex items-center justify-center" title="Bersihkan pencarian">
-                            <i data-lucide="x" class="w-3.5 h-3.5"></i>
-                        </button>
-
-                        <button type="submit" 
-                            class="h-9 px-3.5 font-semibold text-xs bg-slate-100 dark:bg-slate-700/60 hover:bg-purple-600 hover:text-white dark:hover:bg-purple-600 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer whitespace-nowrap flex items-center justify-center border-l border-slate-200 dark:border-slate-700/80">
-                            Cari
-                        </button>
-                    </div>
-
-                </form>
-            </section>
-
-            <!-- Documents Table -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-xs">
-                        <thead>
-                            <tr class="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 uppercase tracking-wider font-bold text-[10px] whitespace-nowrap">
-                                <th class="py-3 px-3.5 text-center w-10">No</th>
-                                <th class="py-3 px-3.5 min-w-[180px]">Guru / Pendidik</th>
-                                <th class="py-3 px-3.5 w-24">Jenis</th>
-                                <th class="py-3 px-3.5 min-w-[200px]">Dokumen</th>
-                                <th class="py-3 px-3.5 w-24">Semester</th>
-                                <th class="py-3 px-3.5 min-w-[140px]">Keterangan</th>
-                                <th class="py-3 px-3.5 whitespace-nowrap">Status Supervisi</th>
-                                <th class="py-3 px-3.5 text-center w-32">Aksi</th>
+                <!-- Table Container with Vertical Scroll -->
+                <div class="overflow-x-auto overflow-y-auto" style="max-height: calc(100vh - 220px);">
+                    <table class="w-full text-xs border-collapse">
+                        <thead class="sticky top-0 z-10 shadow-sm">
+                            <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
+                                <th class="px-3 py-2.5 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-10 whitespace-nowrap">No</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[180px]">Guru / Pendidik</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-24">Jenis</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[200px]">Dokumen</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-24">Semester</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[140px]">Keterangan</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Status Supervisi</th>
+                                <th class="px-4 py-2.5 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-32">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-medium text-slate-700 dark:text-slate-300">
                             @forelse($documents as $idx => $doc)
                                 <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
                                     <!-- No -->
-                                    <td class="py-3 px-3.5 text-center text-slate-400 font-bold">
-                                        {{ $idx + 1 }}
+                                    <td class="px-3 py-2.5 text-center text-slate-400 font-bold whitespace-nowrap">
+                                        {{ $documents->firstItem() ? ($documents->firstItem() + $idx) : ($idx + 1) }}
                                     </td>
 
                                     <!-- Guru -->
-                                    <td class="py-3 px-3.5">
+                                    <td class="px-4 py-2.5">
                                         <div class="font-bold text-slate-900 dark:text-slate-100">
                                             {{ $doc->teacher ? $doc->teacher->name : 'Guru Dihapus' }}
                                         </div>
@@ -263,14 +240,14 @@
                                     </td>
 
                                     <!-- Kategori -->
-                                    <td class="py-3 px-3.5 whitespace-nowrap">
+                                    <td class="px-4 py-2.5 whitespace-nowrap">
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border {{ $doc->category_badge_class }}">
                                             {{ $doc->category }}
                                         </span>
                                     </td>
 
                                     <!-- Dokumen -->
-                                    <td class="py-3 px-3.5">
+                                    <td class="px-4 py-2.5">
                                         @php
                                             $files = $doc->files_list;
                                             $totalFiles = count($files);
@@ -322,7 +299,7 @@
                                     </td>
 
                                     <!-- Semester -->
-                                    <td class="py-3 px-3.5 whitespace-nowrap">
+                                    <td class="px-4 py-2.5 whitespace-nowrap">
                                         <span class="text-slate-700 dark:text-slate-300 font-semibold">
                                             {{ $doc->semester }}
                                         </span>
@@ -332,14 +309,14 @@
                                     </td>
 
                                     <!-- Keterangan Tambahan -->
-                                    <td class="py-3 px-3.5">
+                                    <td class="px-4 py-2.5">
                                         <p class="text-slate-600 dark:text-slate-400 line-clamp-2 text-[11px]" title="{{ $doc->notes }}">
                                             {{ $doc->notes ?: '-' }}
                                         </p>
                                     </td>
 
                                     <!-- Status Supervisi -->
-                                    <td class="py-3 px-3.5 whitespace-nowrap">
+                                    <td class="px-4 py-2.5 whitespace-nowrap">
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border {{ $doc->status_badge_class }}">
                                             {{ $doc->status }}
                                         </span>
@@ -351,18 +328,18 @@
                                     </td>
 
                                     <!-- Aksi -->
-                                    <td class="py-3 px-3.5 text-center whitespace-nowrap">
-                                        <div class="flex items-center justify-center gap-1">
+                                    <td class="px-4 py-2.5 text-center whitespace-nowrap">
+                                        <div class="flex items-center justify-center gap-1.5">
                                             <!-- Detail Modal -->
                                             <button type="button" @click="openViewModal({{ json_encode($doc) }})" title="Lihat Detail Berkas"
-                                                class="w-7 h-7 inline-flex items-center justify-center text-slate-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
+                                                class="w-8 h-8 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer">
                                                 <i data-lucide="eye" class="w-4 h-4"></i>
                                             </button>
 
                                             <!-- Review / Status Modal (Admin / Kepala Sekolah) -->
                                             @if($isAdmin)
                                                 <button type="button" @click="openReviewModal({{ json_encode($doc) }})" title="Supervisi / Verifikasi Berkas"
-                                                    class="w-7 h-7 inline-flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
+                                                    class="w-8 h-8 flex items-center justify-center hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 transition-colors cursor-pointer">
                                                     <i data-lucide="check-square" class="w-4 h-4"></i>
                                                 </button>
                                             @endif
@@ -370,7 +347,7 @@
                                             <!-- Edit Modal -->
                                             @if($isAdmin || $doc->uploaded_by == auth()->id())
                                                 <button type="button" @click="openEditModal({{ json_encode($doc) }})" title="Edit Berkas"
-                                                    class="w-7 h-7 inline-flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
+                                                    class="w-8 h-8 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">
                                                     <i data-lucide="edit-3" class="w-4 h-4"></i>
                                                 </button>
 
@@ -379,7 +356,7 @@
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" title="Hapus Berkas"
-                                                        class="w-7 h-7 inline-flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
+                                                        class="w-8 h-8 flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-red-600 dark:text-red-400 hover:text-red-700 transition-colors cursor-pointer">
                                                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                                                     </button>
                                                 </form>
@@ -389,7 +366,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="py-12 text-center text-slate-400">
+                                    <td colspan="8" class="px-6 py-12 text-center text-slate-400">
                                         <div class="flex flex-col items-center justify-center gap-2">
                                             <i data-lucide="folder-x" class="w-8 h-8 text-slate-300 dark:text-slate-600"></i>
                                             <p class="font-medium text-xs">Belum ada berkas guru yang ditemukan sesuai filter.</p>
@@ -404,23 +381,38 @@
                     </table>
                 </div>
 
-                @if($documents->hasPages())
-                    <div class="p-3.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-                        {{ $documents->links() }}
+                <!-- PAGINATION (SAME STYLE AS GURU & PEGAWAI) -->
+                @if($documents->total() > 0)
+                    <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-800/80 bg-slate-50/20 dark:bg-slate-900/10 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
+                        <div>
+                            Menampilkan
+                            <span class="font-bold text-slate-700 dark:text-slate-300">{{ $documents->firstItem() }}</span>
+                            sampai
+                            <span class="font-bold text-slate-700 dark:text-slate-300">{{ $documents->lastItem() }}</span>
+                            dari
+                            <span class="font-bold text-slate-700 dark:text-slate-300">{{ $documents->total() }}</span>
+                            berkas
+                        </div>
+                        <div class="flex items-center gap-1.5 font-semibold">
+                            @if ($documents->onFirstPage())
+                                <span class="h-8 px-3 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-600 flex items-center justify-center cursor-not-allowed select-none bg-slate-50 dark:bg-slate-900/20">Sebelumnya</span>
+                            @else
+                                <a href="{{ $documents->appends(request()->query())->previousPageUrl() }}" class="h-8 px-3 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-700 dark:text-slate-300 flex items-center justify-center transition-all bg-white dark:bg-slate-900">Sebelumnya</a>
+                            @endif
+
+                            <span class="px-3 py-1 font-medium text-slate-700 dark:text-slate-300">
+                                Halaman {{ $documents->currentPage() }} dari {{ $documents->lastPage() }}
+                            </span>
+
+                            @if ($documents->hasMorePages())
+                                <a href="{{ $documents->appends(request()->query())->nextPageUrl() }}" class="h-8 px-3 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-700 dark:text-slate-300 flex items-center justify-center transition-all bg-white dark:bg-slate-900">Berikutnya</a>
+                            @else
+                                <span class="h-8 px-3 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-600 flex items-center justify-center cursor-not-allowed select-none bg-slate-50 dark:bg-slate-900/20">Berikutnya</span>
+                            @endif
+                        </div>
                     </div>
                 @endif
-
-                <div class="p-3 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400">
-                    <span>
-                        @if($documents->total() > 0)
-                            Menampilkan <strong>{{ $documents->firstItem() }}</strong> - <strong>{{ $documents->lastItem() }}</strong> dari <strong>{{ $documents->total() }}</strong> berkas
-                        @else
-                            Menampilkan <strong>0</strong> berkas
-                        @endif
-                    </span>
-                    <span>Tahun Ajaran: <strong>{{ $academicYears->firstWhere('id', $selectedYearId)?->name ?? 'Semua' }}</strong></span>
-                </div>
-            </div>
+            </section>
 
         @else
             <!-- ========================================================================= -->
@@ -441,10 +433,11 @@
                             <input type="hidden" name="tab" value="matrix">
                             <select name="academic_year_id" onchange="this.form.submit()"
                                 title="Pilih Tahun Ajaran"
-                                class="h-8 pl-2.5 pr-7 text-xs font-semibold bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
+                                class="h-8 pl-3 pr-8 text-xs font-semibold bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer min-w-[130px]">
+                                <option value="all" {{ (string)$selectedYearId === 'all' ? 'selected' : '' }}>Semua Tahun</option>
                                 @foreach($academicYears as $ay)
-                                    <option value="{{ $ay->id }}" {{ $selectedYearId == $ay->id ? 'selected' : '' }}>
-                                        {{ $ay->name }}
+                                    <option value="{{ $ay->id }}" {{ (string)$selectedYearId === (string)$ay->id ? 'selected' : '' }}>
+                                        {{ $ay->name }}{{ $ay->is_active ? ' (Aktif)' : '' }}
                                     </option>
                                 @endforeach
                             </select>

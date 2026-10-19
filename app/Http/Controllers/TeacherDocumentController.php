@@ -75,7 +75,7 @@ class TeacherDocumentController extends Controller
         $academicYears = AcademicYear::orderBy('name', 'desc')->get();
         $activeAcademicYear = $academicYears->firstWhere('is_active', true) ?? $academicYears->first();
         $selectedYearId = $request->get('academic_year_id', $activeAcademicYear?->id);
-        if (!$selectedYearId || $selectedYearId === 'all') {
+        if (!$selectedYearId) {
             $selectedYearId = $activeAcademicYear?->id;
         }
 
