@@ -16,6 +16,10 @@ class GuestBook extends Model
         'name',
         'phone',
         'category',
+        'student_name',
+        'student_birth_date',
+        'therapy_history',
+        'therapy_diagnosis',
         'institution',
         'position',
         'occupation',
@@ -32,6 +36,7 @@ class GuestBook extends Model
 
     protected $casts = [
         'date' => 'date',
+        'student_birth_date' => 'date',
     ];
 
     public function recordedBy(): BelongsTo

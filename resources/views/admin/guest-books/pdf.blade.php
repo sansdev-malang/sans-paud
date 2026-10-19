@@ -217,6 +217,17 @@
                         <strong style="color: #0f172a;">{{ $g->name }}</strong><br>
                         <span style="color: #047857; font-family: monospace; font-size: 7pt;">{{ $g->phone ?: '-' }}</span><br>
                         <span class="badge {{ $badgeClass }}">{{ $g->category }}</span>
+                        @if($g->category === 'SPMB' && $g->student_name)
+                            <div style="margin-top: 3px; font-size: 6.8pt; color: #0f766e; background: #f0fdfa; padding: 2px 4px; border-radius: 2px; border: 1px solid #ccfbf1;">
+                                <strong>Calon Murid:</strong> {{ $g->student_name }}
+                                @if($g->student_birth_date)
+                                    <br><span style="color: #475569;">Tgl Lahir: {{ \Carbon\Carbon::parse($g->student_birth_date)->format('d/m/Y') }}</span>
+                                @endif
+                                @if($g->therapy_history)
+                                    <br><span style="color: #475569;">Terapi: {{ $g->therapy_history }} {{ $g->therapy_diagnosis ? '(' . $g->therapy_diagnosis . ')' : '' }}</span>
+                                @endif
+                            </div>
+                        @endif
                     </td>
                     <td>
                         <strong>{{ $g->institution ?: '-' }}</strong><br>

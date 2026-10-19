@@ -200,7 +200,20 @@
                     <td class="center">{{ $idx + 1 }}</td>
                     <td class="center">{{ \Carbon\Carbon::parse($g->date)->format('d/m/Y') }}</td>
                     <td class="center">{{ $g->formatted_time }}</td>
-                    <td><strong>{{ $g->name }}</strong></td>
+                    <td>
+                        <strong>{{ $g->name }}</strong>
+                        @if($g->category === 'SPMB' && $g->student_name)
+                            <div style="margin-top: 2px; font-size: 7.5pt; color: #0f766e;">
+                                <strong>Calon Murid:</strong> {{ $g->student_name }}
+                                @if($g->student_birth_date)
+                                    <br><span style="color: #64748b;">Tgl Lahir: {{ \Carbon\Carbon::parse($g->student_birth_date)->format('d/m/Y') }}</span>
+                                @endif
+                                @if($g->therapy_history)
+                                    <br><span style="color: #64748b;">Terapi: {{ $g->therapy_history }} {{ $g->therapy_diagnosis ? '(' . $g->therapy_diagnosis . ')' : '' }}</span>
+                                @endif
+                            </div>
+                        @endif
+                    </td>
                     <td class="center">{{ $g->phone }}</td>
                     <td class="center">
                         <span class="badge">{{ $g->category }}</span>

@@ -38,6 +38,7 @@ class GuestBookController extends Controller
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('student_name', 'like', "%{$search}%")
                   ->orWhere('phone', 'like', "%{$search}%")
                   ->orWhere('institution', 'like', "%{$search}%")
                   ->orWhere('purpose', 'like', "%{$search}%")
@@ -46,7 +47,13 @@ class GuestBookController extends Controller
             });
         }
 
-        $guests = $query->orderBy('date', 'desc')->orderBy('time', 'desc')->get();
+        $perPage = $request->get('per_page', 15);
+        $perPageCount = ($perPage === 'all' || $perPage == 99999 || $perPage === '99999') ? 99999 : (int) $perPage;
+        if ($perPageCount <= 0) {
+            $perPageCount = 15;
+        }
+
+        $guests = $query->orderBy('date', 'desc')->orderBy('time', 'desc')->paginate($perPageCount)->withQueryString();
 
         // Monthly Stats (all categories in selected month/year)
         $monthQuery = GuestBook::whereYear('date', $selectedYear)->whereMonth('date', $selectedMonth);
@@ -81,7 +88,8 @@ class GuestBookController extends Controller
             'stats',
             'monthNames',
             'yearsList',
-            'categories'
+            'categories',
+            'perPage'
         ));
     }
 
@@ -92,14 +100,21 @@ class GuestBookController extends Controller
     {
         $validated = $this->validateGuestBook($request);
 
-        $validated['recorded_by'] = auth()->id();
-        GuestBook::create($validated);
+        try {
+            $validated['recorded_by'] = auth()->id();
+            GuestBook::create($validated);
 
-        return redirect()->route('guest-books.index', [
-            'month' => Carbon::parse($validated['date'])->month,
-            'year' => Carbon::parse($validated['date'])->year,
-            'category' => $validated['category'],
-        ])->with('success', "Buku tamu atas nama {$validated['name']} berhasil dicatat.");
+            return redirect()->route('guest-books.index', [
+                'month' => Carbon::parse($validated['date'])->month,
+                'year' => Carbon::parse($validated['date'])->year,
+                'category' => $validated['category'],
+            ])->with('success', "Buku tamu atas nama {$validated['name']} berhasil dicatat.");
+        } catch (\Throwable $e) {
+            report($e);
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['general' => 'Terjadi kesalahan sistem saat menyimpan data buku tamu: ' . $e->getMessage()]);
+        }
     }
 
     /**
@@ -110,12 +125,20 @@ class GuestBookController extends Controller
         $guest = GuestBook::findOrFail($id);
         $validated = $this->validateGuestBook($request);
 
-        $guest->update($validated);
+        try {
+            $guest->update($validated);
 
-        return redirect()->route('guest-books.index', [
-            'month' => Carbon::parse($validated['date'])->month,
-            'year' => Carbon::parse($validated['date'])->year,
-        ])->with('success', "Data buku tamu {$guest->name} berhasil diperbarui.");
+            return redirect()->route('guest-books.index', [
+                'month' => Carbon::parse($validated['date'])->month,
+                'year' => Carbon::parse($validated['date'])->year,
+                'category' => $validated['category'],
+            ])->with('success', "Data buku tamu {$guest->name} berhasil diperbarui.");
+        } catch (\Throwable $e) {
+            report($e);
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['general' => 'Terjadi kesalahan sistem saat memperbarui data buku tamu: ' . $e->getMessage()]);
+        }
     }
 
     /**
@@ -123,16 +146,21 @@ class GuestBookController extends Controller
      */
     public function destroy($id)
     {
-        $guest = GuestBook::findOrFail($id);
-        $month = Carbon::parse($guest->date)->month;
-        $year = Carbon::parse($guest->date)->year;
+        try {
+            $guest = GuestBook::findOrFail($id);
+            $month = Carbon::parse($guest->date)->month;
+            $year = Carbon::parse($guest->date)->year;
 
-        $guest->delete();
+            $guest->delete();
 
-        return redirect()->route('guest-books.index', [
-            'month' => $month,
-            'year' => $year,
-        ])->with('success', 'Catatan buku tamu berhasil dihapus.');
+            return redirect()->route('guest-books.index', [
+                'month' => $month,
+                'year' => $year,
+            ])->with('success', 'Catatan buku tamu berhasil dihapus.');
+        } catch (\Throwable $e) {
+            report($e);
+            return redirect()->back()->with('error', 'Gagal menghapus data buku tamu: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -150,10 +178,18 @@ class GuestBookController extends Controller
     public function publicSubmit(Request $request)
     {
         $validated = $this->validateGuestBook($request);
-        GuestBook::create($validated);
 
-        return redirect()->route('buku-tamu.public')
-            ->with('success_public', "Terima kasih Bapak/Ibu {$validated['name']}! Kunjungan Anda telah berhasil dicatat di buku tamu kami.");
+        try {
+            GuestBook::create($validated);
+
+            return redirect()->route('buku-tamu.public')
+                ->with('success_public', "Terima kasih Bapak/Ibu {$validated['name']}! Kunjungan Anda telah berhasil dicatat di buku tamu kami.");
+        } catch (\Throwable $e) {
+            report($e);
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['general' => 'Terjadi kendala saat mencatat kunjungan Anda. Silakan periksa kembali dan kirim ulang.']);
+        }
     }
 
     /**
@@ -210,9 +246,11 @@ class GuestBookController extends Controller
 
         // Table Headers
         $headers = [
-            'No', 'Tanggal', 'Waktu', 'Nama Tamu', 'No. HP', 'Kategori',
+            'No', 'Tanggal', 'Waktu', 'Nama Tamu / Ortu', 'No. HP', 'Kategori',
             'Institusi / Lembaga', 'Jabatan', 'Pekerjaan', 'Kota / Kab',
-            'Provinsi', 'Alamat Lengkap', 'Keperluan / Tujuan', 'Penerima Tamu', 'Kesan & Pesan'
+            'Provinsi', 'Alamat Lengkap', 'Keperluan / Kegiatan',
+            'Nama Calon Murid (SPMB)', 'Tgl Lahir Murid', 'Riwayat Terapi', 'Diagnosa Terapi',
+            'Penerima Tamu', 'Kesan & Pesan'
         ];
         $startRow = 6;
 
@@ -245,11 +283,16 @@ class GuestBookController extends Controller
             $sheet->setCellValue("K{$currentRow}", $g->province ?: '-');
             $sheet->setCellValue("L{$currentRow}", $g->address ?: '-');
             $sheet->setCellValue("M{$currentRow}", $g->purpose);
-            $sheet->setCellValue("N{$currentRow}", $g->host_recipient ?: '-');
-            $sheet->setCellValue("O{$currentRow}", $g->feedback ?: '-');
+            $sheet->setCellValue("N{$currentRow}", $g->student_name ?: '-');
+            $sheet->setCellValue("O{$currentRow}", $g->student_birth_date ? Carbon::parse($g->student_birth_date)->format('d/m/Y') : '-');
+            $sheet->setCellValue("P{$currentRow}", $g->therapy_history ?: '-');
+            $sheet->setCellValue("Q{$currentRow}", $g->therapy_diagnosis ?: '-');
+            $sheet->setCellValue("R{$currentRow}", $g->host_recipient ?: '-');
+            $sheet->setCellValue("S{$currentRow}", $g->feedback ?: '-');
 
             $sheet->getStyle("A{$currentRow}:C{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("E{$currentRow}:F{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("O{$currentRow}:P{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
             if ($no % 2 === 0) {
                 $sheet->getStyle("A{$currentRow}:{$lastCol}{$currentRow}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF8FAFC');
@@ -270,9 +313,9 @@ class GuestBookController extends Controller
         // Dynamic Signatures in Excel
         $signRow = $currentRow + 2;
         $sheet->setCellValue("C{$signRow}", "Petugas Penerima Tamu / Piket,");
-        $sheet->setCellValue("L{$signRow}", "{$schoolCity}, " . Carbon::now()->translatedFormat('d F Y') . "\nMengetahui, Kepala Sekolah");
+        $sheet->setCellValue("P{$signRow}", "{$schoolCity}, " . Carbon::now()->translatedFormat('d F Y') . "\nMengetahui, Kepala Sekolah");
         $sheet->getStyle("C{$signRow}")->getAlignment()->setWrapText(true)->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle("L{$signRow}")->getAlignment()->setWrapText(true)->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("P{$signRow}")->getAlignment()->setWrapText(true)->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         $sheet->setCellValue("C" . ($signRow + 4), "( ................................................ )");
         $sheet->getStyle("C" . ($signRow + 4))->getFont()->setBold(true);
@@ -281,12 +324,12 @@ class GuestBookController extends Controller
         $sheet->getStyle("C" . ($signRow + 5))->getFont()->setSize(9);
         $sheet->getStyle("C" . ($signRow + 5))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        $sheet->setCellValue("L" . ($signRow + 4), $headmasterName);
-        $sheet->getStyle("L" . ($signRow + 4))->getFont()->setBold(true)->setUnderline(true);
-        $sheet->getStyle("L" . ($signRow + 4))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->setCellValue("L" . ($signRow + 5), "NIP: " . $headmasterNip);
-        $sheet->getStyle("L" . ($signRow + 5))->getFont()->setSize(9);
-        $sheet->getStyle("L" . ($signRow + 5))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->setCellValue("P" . ($signRow + 4), $headmasterName);
+        $sheet->getStyle("P" . ($signRow + 4))->getFont()->setBold(true)->setUnderline(true);
+        $sheet->getStyle("P" . ($signRow + 4))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->setCellValue("P" . ($signRow + 5), "NIP: " . $headmasterNip);
+        $sheet->getStyle("P" . ($signRow + 5))->getFont()->setSize(9);
+        $sheet->getStyle("P" . ($signRow + 5))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         if ($request->filled('download_token')) {
             if (!headers_sent()) {
@@ -427,7 +470,9 @@ class GuestBookController extends Controller
      */
     private function validateGuestBook(Request $request): array
     {
-        return $request->validate([
+        $category = $request->input('category', 'Umum');
+
+        $rules = [
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:30',
             'category' => 'required|in:Umum,Dinas,Puskesmas/Dinkes,SPMB',
@@ -437,11 +482,69 @@ class GuestBookController extends Controller
             'address' => 'nullable|string',
             'city' => 'nullable|string|max:100',
             'province' => 'nullable|string|max:100',
-            'purpose' => 'required|string',
+            'purpose' => $category === 'SPMB' ? 'nullable|string' : 'required|string',
             'host_recipient' => 'nullable|string|max:255',
             'feedback' => 'nullable|string',
             'date' => 'required|date',
-            'time' => 'nullable',
-        ]);
+            'time' => 'nullable|string|max:10',
+
+            // Fields khusus SPMB
+            'student_name' => $category === 'SPMB' ? 'required|string|max:255' : 'nullable|string|max:255',
+            'student_birth_date' => 'nullable|date',
+            'therapy_history' => 'nullable|string|in:Ya,Tidak',
+            'therapy_diagnosis' => ($category === 'SPMB' && $request->input('therapy_history') === 'Ya') ? 'required|string|max:255' : 'nullable|string|max:255',
+        ];
+
+        $messages = [
+            'name.required' => match($category) {
+                'SPMB' => 'Nama Orang Tua / Wali wajib diisi.',
+                'Dinas' => 'Nama Pejabat / Tamu wajib diisi.',
+                'Puskesmas/Dinkes' => 'Nama Petugas Kesehatan wajib diisi.',
+                default => 'Nama lengkap tamu wajib diisi.',
+            },
+            'phone.required' => 'Nomor Handphone / WhatsApp wajib diisi.',
+            'category.required' => 'Kategori kunjungan wajib dipilih.',
+            'category.in' => 'Kategori kunjungan yang dipilih tidak valid.',
+            'date.required' => 'Tanggal kunjungan wajib diisi.',
+            'date.date' => 'Format tanggal kunjungan tidak valid.',
+            'student_name.required' => 'Nama calon murid wajib diisi untuk kategori SPMB.',
+            'student_birth_date.date' => 'Format tanggal lahir calon murid tidak valid.',
+            'therapy_diagnosis.required' => 'Diagnosa terapi wajib diisi jika anak pernah menjalani terapi.',
+            'purpose.required' => match($category) {
+                'Puskesmas/Dinkes' => 'Kegiatan pelayanan kesehatan wajib diisi.',
+                'Dinas' => 'Keperluan / agenda kedinasan wajib diisi.',
+                default => 'Keperluan kunjungan wajib diisi.',
+            },
+        ];
+
+        $validated = $request->validate($rules, $messages);
+
+        // Fallback waktu jika dikosongkan
+        if (empty($validated['time'])) {
+            $validated['time'] = Carbon::now()->format('H:i');
+        }
+
+        // Jika SPMB dan purpose kosong, isi otomatis agar konsisten
+        if ($category === 'SPMB' && empty($validated['purpose'])) {
+            $childInfo = !empty($validated['student_name']) ? " (Anak: {$validated['student_name']})" : "";
+            $validated['purpose'] = "Konsultasi SPMB / Calon Murid{$childInfo}";
+        }
+
+        // Data hygiene berdasarkan kategori yang dipilih
+        if ($category !== 'SPMB') {
+            $validated['student_name'] = null;
+            $validated['student_birth_date'] = null;
+            $validated['therapy_history'] = null;
+            $validated['therapy_diagnosis'] = null;
+        } else {
+            if (empty($validated['therapy_history'])) {
+                $validated['therapy_history'] = 'Tidak';
+            }
+            if ($validated['therapy_history'] !== 'Ya') {
+                $validated['therapy_diagnosis'] = null;
+            }
+        }
+
+        return $validated;
     }
 }
