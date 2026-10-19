@@ -18,6 +18,7 @@ class TeacherDocument extends Model
         'semester',
         'category',
         'title',
+        'files',
         'file_path',
         'file_name',
         'file_size',
@@ -31,8 +32,19 @@ class TeacherDocument extends Model
     ];
 
     protected $casts = [
+        'files' => 'array',
         'reviewed_at' => 'datetime',
         'file_size' => 'integer',
+    ];
+
+    protected $appends = [
+        'formatted_file_size',
+        'file_url',
+        'file_icon',
+        'category_badge_class',
+        'status_badge_class',
+        'files_list',
+        'total_files_count',
     ];
 
     /**
@@ -128,5 +140,70 @@ class TeacherDocument extends Model
             'jpg', 'jpeg', 'png', 'webp' => 'image',
             default => 'file',
         };
+    }
+
+    /**
+     * Get array of all attached files with formatted metadata.
+     */
+    public function getFilesListAttribute(): array
+    {
+        if (!empty($this->files) && is_array($this->files)) {
+            return array_values(array_map(function ($f) {
+                $filePath = $f['file_path'] ?? '';
+                $fileName = $f['file_name'] ?? basename($filePath);
+                $ext = strtolower($f['file_extension'] ?? pathinfo($fileName, PATHINFO_EXTENSION));
+                $size = (int) ($f['file_size'] ?? 0);
+
+                $formattedSize = '-';
+                if ($size >= 1048576) {
+                    $formattedSize = number_format($size / 1048576, 1) . ' MB';
+                } elseif ($size > 0) {
+                    $formattedSize = number_format($size / 1024, 0) . ' KB';
+                }
+
+                $icon = match ($ext) {
+                    'pdf' => 'file-text',
+                    'doc', 'docx' => 'file-text',
+                    'xls', 'xlsx', 'csv' => 'file-spreadsheet',
+                    'zip', 'rar', '7z' => 'archive',
+                    'jpg', 'jpeg', 'png', 'webp' => 'image',
+                    default => 'file',
+                };
+
+                return [
+                    'title' => $f['title'] ?? $fileName,
+                    'file_name' => $fileName,
+                    'file_path' => $filePath,
+                    'file_size' => $size,
+                    'file_extension' => $ext,
+                    'formatted_size' => $formattedSize,
+                    'icon' => $icon,
+                    'url' => !empty($filePath) ? asset('storage/' . $filePath) : '#',
+                ];
+            }, $this->files));
+        }
+
+        if (!empty($this->file_path)) {
+            return [[
+                'title' => $this->title,
+                'file_name' => $this->file_name ?? basename($this->file_path),
+                'file_path' => $this->file_path,
+                'file_size' => (int) $this->file_size,
+                'file_extension' => strtolower($this->file_extension ?: pathinfo($this->file_path, PATHINFO_EXTENSION)),
+                'formatted_size' => $this->formatted_file_size,
+                'icon' => $this->file_icon,
+                'url' => $this->file_url,
+            ]];
+        }
+
+        return [];
+    }
+
+    /**
+     * Total count of attached files.
+     */
+    public function getTotalFilesCountAttribute(): int
+    {
+        return count($this->files_list);
     }
 }

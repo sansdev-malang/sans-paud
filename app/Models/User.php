@@ -81,6 +81,41 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if the user is a teacher / tenaga pendidik.
+     */
+    public function isTeacher(): bool
+    {
+        if (in_array($this->role, ['guru', 'wali_kelas'])) {
+            return true;
+        }
+
+        if ($this->isActiveHomeroomTeacher()) {
+            return true;
+        }
+
+        if (!$this->employee_id) {
+            return false;
+        }
+
+        $emp = $this->employee;
+        if (!$emp) {
+            return false;
+        }
+
+        $empType = $emp->employeeType;
+        if ($empType && $empType->code === 'teacher') {
+            return true;
+        }
+
+        $pos = strtolower($emp->position ?? '');
+        if (str_contains($pos, 'guru') || str_contains($pos, 'pendidik') || str_contains($pos, 'wali')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Get the employee profile associated with the user.
      */
     public function employee()

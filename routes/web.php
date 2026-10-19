@@ -124,20 +124,9 @@ Route::middleware(['auth', 'verified', 'role:super_admin'])->group(function () {
     Route::get('guest-books/export/excel', [\App\Http\Controllers\GuestBookController::class, 'exportExcel'])->name('guest-books.export.excel');
     Route::get('guest-books/download-pdf', [\App\Http\Controllers\GuestBookController::class, 'downloadPdf'])->name('guest-books.download.pdf');
     Route::get('guest-books/print', [\App\Http\Controllers\GuestBookController::class, 'print'])->name('guest-books.print');
-
-    // Berkas Guru (Arsip & Administrasi Perangkat Pembelajaran Guru)
-    Route::get('teacher-documents', [\App\Http\Controllers\TeacherDocumentController::class, 'index'])->name('teacher-documents.index');
-    Route::post('teacher-documents', [\App\Http\Controllers\TeacherDocumentController::class, 'store'])->name('teacher-documents.store');
-    Route::put('teacher-documents/{id}', [\App\Http\Controllers\TeacherDocumentController::class, 'update'])->name('teacher-documents.update');
-    Route::patch('teacher-documents/{id}/status', [\App\Http\Controllers\TeacherDocumentController::class, 'updateStatus'])->name('teacher-documents.update-status');
-    Route::delete('teacher-documents/{id}', [\App\Http\Controllers\TeacherDocumentController::class, 'destroy'])->name('teacher-documents.destroy');
-    Route::get('teacher-documents/{id}/download', [\App\Http\Controllers\TeacherDocumentController::class, 'download'])->name('teacher-documents.download');
-    Route::get('teacher-documents/export/excel', [\App\Http\Controllers\TeacherDocumentController::class, 'exportMatrixExcel'])->name('teacher-documents.export.excel');
-    Route::get('teacher-documents/print', [\App\Http\Controllers\TeacherDocumentController::class, 'printMatrix'])->name('teacher-documents.print');
-    Route::get('/berkas-guru', fn() => redirect()->route('teacher-documents.index'))->name('berkas-guru');
 });
 
-// Modul Murid: Absensi & Arsip Murid (Skema A: Admin & Guru/Wali Kelas)
+// Modul Murid & Guru: Absensi, Arsip Murid, Berkas Guru (Admin & Guru/Wali Kelas)
 Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,admin_smp,kepala_sekolah,waka,employee'])->group(function () {
     // Absensi Murid (Harian & Bulanan)
     Route::get('student-attendances', [\App\Http\Controllers\StudentAttendanceController::class, 'index'])->name('student-attendances.index');
@@ -154,6 +143,17 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,adm
     Route::get('student-archives/export/excel', [\App\Http\Controllers\StudentArchiveController::class, 'exportExcel'])->name('student-archives.export.excel');
     Route::get('student-archives/print', [\App\Http\Controllers\StudentArchiveController::class, 'print'])->name('student-archives.print');
     Route::get('/arsip-murid', fn() => redirect()->route('student-archives.index'))->name('arsip-murid');
+
+    // Berkas Guru (Arsip & Administrasi Perangkat Pembelajaran Guru)
+    Route::get('teacher-documents', [\App\Http\Controllers\TeacherDocumentController::class, 'index'])->name('teacher-documents.index');
+    Route::post('teacher-documents', [\App\Http\Controllers\TeacherDocumentController::class, 'store'])->name('teacher-documents.store');
+    Route::put('teacher-documents/{id}', [\App\Http\Controllers\TeacherDocumentController::class, 'update'])->name('teacher-documents.update');
+    Route::patch('teacher-documents/{id}/status', [\App\Http\Controllers\TeacherDocumentController::class, 'updateStatus'])->name('teacher-documents.update-status');
+    Route::delete('teacher-documents/{id}', [\App\Http\Controllers\TeacherDocumentController::class, 'destroy'])->name('teacher-documents.destroy');
+    Route::get('teacher-documents/{id}/download', [\App\Http\Controllers\TeacherDocumentController::class, 'download'])->name('teacher-documents.download');
+    Route::get('teacher-documents/export/excel', [\App\Http\Controllers\TeacherDocumentController::class, 'exportMatrixExcel'])->name('teacher-documents.export.excel');
+    Route::get('teacher-documents/print', [\App\Http\Controllers\TeacherDocumentController::class, 'printMatrix'])->name('teacher-documents.print');
+    Route::get('/berkas-guru', fn() => redirect()->route('teacher-documents.index'))->name('berkas-guru');
 });
 
 // Rekap & Hasil Rapor (Read-Only from SAANS Rapor)

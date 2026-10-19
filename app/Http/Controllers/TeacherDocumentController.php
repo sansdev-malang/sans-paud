@@ -24,11 +24,52 @@ class TeacherDocumentController extends Controller
     private array $categories = ['PROTA', 'PROSEM', 'RPP', 'RKAS', 'LPJ', 'Lainnya'];
 
     /**
+     * Check if authenticated user has admin-level access (Super Admin, Admin PAUD, Kepala Sekolah, Waka).
+     */
+    private function isUserAdmin(): bool
+    {
+        return auth()->user() && (
+            auth()->user()->isAdmin() || 
+            auth()->user()->hasAnyRole(['super_admin', 'admin_sd', 'admin_paud', 'admin_smp', 'kepala_sekolah', 'waka'])
+        );
+    }
+
+    /**
+     * Check if authenticated user is a teacher / tenaga pendidik.
+     */
+    private function isTeacher(): bool
+    {
+        return auth()->user()?->isTeacher() ?? false;
+    }
+
+    /**
+     * Get the authenticated user's associated Employee ID if any.
+     */
+    private function getMyEmployeeId(): ?int
+    {
+        return auth()->user()?->employee_id 
+            ?? auth()->user()?->employee?->id 
+            ?? Employee::where('email', auth()->user()?->email)->value('id');
+    }
+
+    /**
      * Display a listing of Teacher Documents (Tab 1) or Completeness Matrix (Tab 2).
      */
     public function index(Request $request)
     {
         $activeTab = $request->get('tab', 'files'); // 'files' or 'matrix'
+
+        // Check if user is Admin, Principal, or Teacher
+        $isAdmin = $this->isUserAdmin();
+        $isTeacher = $this->isTeacher();
+
+        // Hanya Administrator / Kepala Sekolah atau Guru yang berhak mengakses menu ini
+        if (!$isAdmin && !$isTeacher) {
+            abort(403, 'Akses ditolak: Menu Berkas Guru hanya dapat diakses oleh Guru / Tenaga Pendidik dan Administrator.');
+        }
+
+        $myEmployeeId = $this->getMyEmployeeId();
+        $userId = auth()->id();
 
         // Academic Years
         $academicYears = AcademicYear::orderBy('name', 'desc')->get();
@@ -55,15 +96,8 @@ class TeacherDocumentController extends Controller
             $teachers = Employee::where('status', 'Active')->orderBy('name', 'asc')->get();
         }
 
-        // Check if user is Admin or Principal
-        $isAdmin = auth()->user() && auth()->user()->hasAnyRole([
-            'super_admin', 'admin_sd', 'admin_paud', 'admin_smp', 'kepala_sekolah', 'waka'
-        ]);
-
-        $myEmployeeId = auth()->user()?->employee_id;
-
-        // Filter variables
-        $selectedTeacherId = $request->get('teacher_id', (!$isAdmin && $myEmployeeId) ? $myEmployeeId : 'all');
+        // Filter variables: Guru hanya bisa melihat berkas miliknya sendiri
+        $selectedTeacherId = $isAdmin ? $request->get('teacher_id', 'all') : ($myEmployeeId ?: -1);
         $selectedCategory = $request->get('category', 'all');
         $selectedSemester = $request->get('semester', 'all');
         $selectedStatus = $request->get('status', 'all');
@@ -72,12 +106,20 @@ class TeacherDocumentController extends Controller
         // Query Documents
         $query = TeacherDocument::with(['teacher', 'academicYear', 'uploadedBy', 'reviewedBy']);
 
-        if ($selectedYearId && $selectedYearId !== 'all') {
-            $query->where('academic_year_id', $selectedYearId);
+        if (!$isAdmin) {
+            // Guru HANYA bisa melihat berkas yang mereka buat sendiri
+            $query->where(function ($q) use ($userId, $myEmployeeId) {
+                $q->where('uploaded_by', $userId);
+                if ($myEmployeeId) {
+                    $q->orWhere('teacher_id', $myEmployeeId);
+                }
+            });
+        } elseif ($selectedTeacherId && $selectedTeacherId !== 'all') {
+            $query->where('teacher_id', $selectedTeacherId);
         }
 
-        if ($selectedTeacherId && $selectedTeacherId !== 'all') {
-            $query->where('teacher_id', $selectedTeacherId);
+        if ($selectedYearId && $selectedYearId !== 'all') {
+            $query->where('academic_year_id', $selectedYearId);
         }
 
         if ($selectedCategory && $selectedCategory !== 'all') {
@@ -100,12 +142,31 @@ class TeacherDocumentController extends Controller
             });
         }
 
-        $documents = $query->orderBy('created_at', 'desc')->get();
+        $perPage = $request->get('per_page', 15);
+        $perPageCount = ($perPage === 'all' || $perPage == 99999 || $perPage === '99999') ? 99999 : (int) $perPage;
+        if ($perPageCount <= 0) {
+            $perPageCount = 15;
+        }
+
+        $documents = $query->orderBy('created_at', 'desc')
+            ->paginate($perPageCount)
+            ->withQueryString();
 
         // Overall Stats for selected academic year
-        $allYearDocs = TeacherDocument::when($selectedYearId && $selectedYearId !== 'all', function ($q) use ($selectedYearId) {
+        $allYearQuery = TeacherDocument::when($selectedYearId && $selectedYearId !== 'all', function ($q) use ($selectedYearId) {
             $q->where('academic_year_id', $selectedYearId);
-        })->get();
+        });
+
+        if (!$isAdmin) {
+            $allYearQuery->where(function ($q) use ($userId, $myEmployeeId) {
+                $q->where('uploaded_by', $userId);
+                if ($myEmployeeId) {
+                    $q->orWhere('teacher_id', $myEmployeeId);
+                }
+            });
+        }
+
+        $allYearDocs = $allYearQuery->get();
 
         $stats = [
             'total' => $allYearDocs->count(),
@@ -114,6 +175,11 @@ class TeacherDocumentController extends Controller
             'needs_revision' => $allYearDocs->where('status', 'Perlu Revisi')->count(),
             'teachers_count' => $allYearDocs->pluck('teacher_id')->unique()->count(),
         ];
+
+        // Jika Guru (bukan admin), hanya tampilkan dirinya sendiri pada opsi guru / matriks
+        if (!$isAdmin) {
+            $teachers = $teachers->where('id', $myEmployeeId);
+        }
 
         // Completeness Matrix Data for Tab 2
         $matrixData = [];
@@ -159,98 +225,294 @@ class TeacherDocumentController extends Controller
             'categories',
             'semesters',
             'isAdmin',
-            'myEmployeeId'
+            'myEmployeeId',
+            'perPage'
         ));
     }
 
     /**
-     * Store a newly uploaded Teacher Document.
+     * Store newly uploaded Teacher Document (1 berkas record can contain multiple attached documents).
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'teacher_id' => 'required|exists:employees,id',
+        $isAdmin = $this->isUserAdmin();
+        $isTeacher = $this->isTeacher();
+
+        if (!$isAdmin && !$isTeacher) {
+            abort(403, 'Akses ditolak: Hanya Guru atau Administrator yang dapat mengunggah berkas.');
+        }
+
+        $myEmployeeId = $this->getMyEmployeeId();
+
+        $hasMultiDocs = $request->has('documents') && is_array($request->input('documents'));
+
+        $rules = [
+            'teacher_id' => $isAdmin ? 'required|exists:employees,id' : 'nullable|exists:employees,id',
             'academic_year_id' => 'nullable|exists:academic_years,id',
             'semester' => 'required|in:Tahunan,Ganjil,Genap',
             'category' => 'required|in:RKAS,LPJ,PROTA,PROSEM,RPP,Lainnya',
-            'title' => 'required|string|max:255',
-            'file' => 'required|file|max:25600|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,zip,rar,jpg,jpeg,png',
+            'title' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
-        ]);
+        ];
 
-        $file = $request->file('file');
-        $originalName = $file->getClientOriginalName();
-        $ext = strtolower($file->getClientOriginalExtension());
-        $size = $file->getSize();
-        $path = $file->store('teacher-documents', 'public');
+        if ($hasMultiDocs) {
+            $rules['documents'] = 'required|array|min:1';
+            $rules['documents.*.title'] = 'nullable|string|max:255';
+            $rules['documents.*.file'] = 'nullable|file|max:25600|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,zip,rar,jpg,jpeg,png';
+        } else {
+            $rules['file'] = 'nullable|file|max:25600|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,zip,rar,jpg,jpeg,png';
+        }
 
+        $validated = $request->validate($rules);
+
+        $teacherId = $isAdmin ? $validated['teacher_id'] : $myEmployeeId;
+        if (!$teacherId) {
+            return redirect()->back()->with('error', 'Akun Anda belum terhubung dengan data pegawai/guru.');
+        }
+
+        $storedFiles = [];
+        $firstTitle = '';
+
+        if ($hasMultiDocs) {
+            foreach ($request->input('documents', []) as $index => $docData) {
+                $file = $request->file("documents.{$index}.file");
+                if (!$file) {
+                    continue;
+                }
+
+                $originalName = $file->getClientOriginalName();
+                $ext = strtolower($file->getClientOriginalExtension());
+                $size = $file->getSize();
+                $path = $file->store('teacher-documents', 'public');
+
+                $rawTitle = $docData['title'] ?? null;
+                $itemTitle = !empty(trim($rawTitle ?? '')) 
+                    ? trim($rawTitle) 
+                    : pathinfo($originalName, PATHINFO_FILENAME);
+
+                if (empty($firstTitle)) {
+                    $firstTitle = $itemTitle;
+                }
+
+                $storedFiles[] = [
+                    'title' => $itemTitle,
+                    'file_path' => $path,
+                    'file_name' => $originalName,
+                    'file_size' => $size,
+                    'file_extension' => $ext,
+                ];
+            }
+        } elseif ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $originalName = $file->getClientOriginalName();
+            $ext = strtolower($file->getClientOriginalExtension());
+            $size = $file->getSize();
+            $path = $file->store('teacher-documents', 'public');
+            $itemTitle = !empty(trim($validated['title'] ?? '')) 
+                ? trim($validated['title']) 
+                : pathinfo($originalName, PATHINFO_FILENAME);
+            $firstTitle = $itemTitle;
+
+            $storedFiles[] = [
+                'title' => $itemTitle,
+                'file_path' => $path,
+                'file_name' => $originalName,
+                'file_size' => $size,
+                'file_extension' => $ext,
+            ];
+        }
+
+        if (empty($storedFiles)) {
+            return redirect()->back()->with('error', 'Harap lampirkan minimal 1 file dokumen yang valid.');
+        }
+
+        // Main Berkas title
+        $mainTitle = !empty(trim($request->input('title', ''))) 
+            ? trim($request->input('title')) 
+            : $firstTitle;
+
+        $firstFile = $storedFiles[0];
+
+        // SIMPAN HANYA 1 DATA BERKAS (bukan buat baris baru untuk setiap dokumen)
         TeacherDocument::create([
-            'teacher_id' => $validated['teacher_id'],
+            'teacher_id' => $teacherId,
             'academic_year_id' => $validated['academic_year_id'] ?? null,
             'semester' => $validated['semester'],
             'category' => $validated['category'],
-            'title' => $validated['title'],
-            'file_path' => $path,
-            'file_name' => $originalName,
-            'file_size' => $size,
-            'file_extension' => $ext,
+            'title' => $mainTitle,
+            'files' => $storedFiles,
+            'file_path' => $firstFile['file_path'],
+            'file_name' => $firstFile['file_name'],
+            'file_size' => $firstFile['file_size'],
+            'file_extension' => $firstFile['file_extension'],
             'notes' => $validated['notes'] ?? null,
             'status' => 'Menunggu Review',
             'uploaded_by' => auth()->id(),
         ]);
 
+        $fileCount = count($storedFiles);
+        $msg = $fileCount > 1 
+            ? "1 berkas \"{$mainTitle}\" dengan {$fileCount} dokumen berhasil diunggah."
+            : "Berkas \"{$mainTitle}\" berhasil diunggah.";
+
         return redirect()->route('teacher-documents.index', [
             'academic_year_id' => $validated['academic_year_id'] ?? null,
             'category' => $validated['category'],
-        ])->with('success', "Berkas \"{$validated['title']}\" berhasil diunggah.");
+        ])->with('success', $msg);
     }
 
     /**
-     * Update existing document metadata or replace file.
+     * Update existing document metadata, manage documents (add, edit title/file, remove).
      */
     public function update(Request $request, $id)
     {
         $doc = TeacherDocument::findOrFail($id);
+        $isAdmin = $this->isUserAdmin();
+        $myEmployeeId = $this->getMyEmployeeId();
 
-        $validated = $request->validate([
-            'teacher_id' => 'required|exists:employees,id',
+        // Guru hanya boleh mengedit berkas miliknya sendiri
+        if (!$isAdmin && $doc->uploaded_by != auth()->id() && $doc->teacher_id != $myEmployeeId) {
+            abort(403, 'Akses ditolak: Anda hanya dapat mengubah berkas yang Anda buat sendiri.');
+        }
+
+        $rules = [
+            'teacher_id' => $isAdmin ? 'required|exists:employees,id' : 'nullable|exists:employees,id',
             'academic_year_id' => 'nullable|exists:academic_years,id',
             'semester' => 'required|in:Tahunan,Ganjil,Genap',
             'category' => 'required|in:RKAS,LPJ,PROTA,PROSEM,RPP,Lainnya',
             'title' => 'required|string|max:255',
-            'file' => 'nullable|file|max:25600|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,zip,rar,jpg,jpeg,png',
             'notes' => 'nullable|string',
-        ]);
+        ];
+
+        $hasMultiDocs = $request->has('documents') && is_array($request->input('documents'));
+        if ($hasMultiDocs) {
+            $rules['documents'] = 'required|array|min:1';
+            $rules['documents.*.title'] = 'nullable|string|max:255';
+            $rules['documents.*.file'] = 'nullable|file|max:25600|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,zip,rar,jpg,jpeg,png';
+            $rules['documents.*.existing_path'] = 'nullable|string';
+        } else {
+            $rules['file'] = 'nullable|file|max:25600|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,zip,rar,jpg,jpeg,png';
+        }
+
+        $validated = $request->validate($rules);
+
+        // Previous stored paths in this document
+        $oldPaths = array_filter(array_column($doc->files_list, 'file_path'));
+
+        $newStoredFiles = [];
+        $keptPaths = [];
+        $hasNewUpload = false;
+
+        if ($hasMultiDocs) {
+            foreach ($request->input('documents', []) as $index => $docData) {
+                $hasFile = $request->hasFile("documents.{$index}.file");
+                $existingPath = $docData['existing_path'] ?? null;
+                $rawTitle = $docData['title'] ?? null;
+
+                if ($hasFile) {
+                    // New or replaced file uploaded
+                    $file = $request->file("documents.{$index}.file");
+                    $originalName = $file->getClientOriginalName();
+                    $ext = strtolower($file->getClientOriginalExtension());
+                    $size = $file->getSize();
+                    $path = $file->store('teacher-documents', 'public');
+                    $hasNewUpload = true;
+
+                    $itemTitle = !empty(trim($rawTitle ?? '')) 
+                        ? trim($rawTitle) 
+                        : pathinfo($originalName, PATHINFO_FILENAME);
+
+                    $newStoredFiles[] = [
+                        'title' => $itemTitle,
+                        'file_path' => $path,
+                        'file_name' => $originalName,
+                        'file_size' => $size,
+                        'file_extension' => $ext,
+                    ];
+                } elseif (!empty($existingPath)) {
+                    // Retain existing file, possibly with updated title
+                    $itemTitle = !empty(trim($rawTitle ?? '')) 
+                        ? trim($rawTitle) 
+                        : ($docData['existing_name'] ?? basename($existingPath));
+
+                    $newStoredFiles[] = [
+                        'title' => $itemTitle,
+                        'file_path' => $existingPath,
+                        'file_name' => $docData['existing_name'] ?? basename($existingPath),
+                        'file_size' => (int) ($docData['existing_size'] ?? 0),
+                        'file_extension' => $docData['existing_ext'] ?? pathinfo($existingPath, PATHINFO_EXTENSION),
+                    ];
+
+                    $keptPaths[] = $existingPath;
+                }
+            }
+        } elseif ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $newPath = $file->store('teacher-documents', 'public');
+            $originalName = $file->getClientOriginalName();
+            $size = $file->getSize();
+            $ext = strtolower($file->getClientOriginalExtension());
+            $hasNewUpload = true;
+
+            $newStoredFiles[] = [
+                'title' => $validated['title'],
+                'file_path' => $newPath,
+                'file_name' => $originalName,
+                'file_size' => $size,
+                'file_extension' => $ext,
+            ];
+        } else {
+            $newStoredFiles = $doc->files_list;
+            $keptPaths = $oldPaths;
+        }
+
+        if (empty($newStoredFiles)) {
+            return redirect()->back()->with('error', 'Berkas harus memiliki minimal 1 file dokumen.');
+        }
+
+        // Delete removed old files from disk
+        foreach ($oldPaths as $oldPath) {
+            if (!in_array($oldPath, $keptPaths)) {
+                if (Storage::disk('public')->exists($oldPath)) {
+                    Storage::disk('public')->delete($oldPath);
+                }
+            }
+        }
+
+        $teacherId = $isAdmin ? $validated['teacher_id'] : $doc->teacher_id;
+        $firstFile = $newStoredFiles[0];
 
         $updateData = [
-            'teacher_id' => $validated['teacher_id'],
+            'teacher_id' => $teacherId,
             'academic_year_id' => $validated['academic_year_id'] ?? null,
             'semester' => $validated['semester'],
             'category' => $validated['category'],
             'title' => $validated['title'],
             'notes' => $validated['notes'] ?? null,
+            'files' => $newStoredFiles,
+            'file_path' => $firstFile['file_path'],
+            'file_name' => $firstFile['file_name'],
+            'file_size' => $firstFile['file_size'],
+            'file_extension' => $firstFile['file_extension'],
         ];
 
-        if ($request->hasFile('file')) {
-            // Delete old file
-            if ($doc->file_path && Storage::disk('public')->exists($doc->file_path)) {
-                Storage::disk('public')->delete($doc->file_path);
-            }
-
-            $file = $request->file('file');
-            $updateData['file_path'] = $file->store('teacher-documents', 'public');
-            $updateData['file_name'] = $file->getClientOriginalName();
-            $updateData['file_size'] = $file->getSize();
-            $updateData['file_extension'] = strtolower($file->getClientOriginalExtension());
-            $updateData['status'] = 'Menunggu Review'; // Reset to review if re-uploaded
+        // Reset review status ke 'Menunggu Review' jika berkas sebelumnya berstatus 'Perlu Revisi'
+        // atau jika terdapat unggahan / perubahan file dokumen baru.
+        $wasNeedsRevision = ($doc->status === 'Perlu Revisi');
+        if ($wasNeedsRevision || $hasNewUpload) {
+            $updateData['status'] = 'Menunggu Review';
         }
 
         $doc->update($updateData);
 
+        $msg = $wasNeedsRevision
+            ? "Revisi berkas \"{$doc->title}\" berhasil disimpan dan status dikembalikan ke Menunggu Review."
+            : "Data berkas \"{$doc->title}\" berhasil diperbarui.";
+
         return redirect()->route('teacher-documents.index', [
             'academic_year_id' => $doc->academic_year_id,
             'category' => $doc->category,
-        ])->with('success', "Data berkas \"{$doc->title}\" berhasil diperbarui.");
+        ])->with('success', $msg);
     }
 
     /**
@@ -258,6 +520,11 @@ class TeacherDocumentController extends Controller
      */
     public function updateStatus(Request $request, $id)
     {
+        $isAdmin = $this->isUserAdmin();
+        if (!$isAdmin) {
+            abort(403, 'Akses ditolak: Hanya Administrator atau Kepala Sekolah yang dapat melakukan supervisi berkas.');
+        }
+
         $doc = TeacherDocument::findOrFail($id);
 
         $validated = $request->validate([
@@ -276,25 +543,71 @@ class TeacherDocumentController extends Controller
     }
 
     /**
-     * Download the document file.
+     * Download the document file (or a specific file by index).
      */
-    public function download($id)
+    public function download(Request $request, $id)
     {
         $doc = TeacherDocument::findOrFail($id);
+        $isAdmin = $this->isUserAdmin();
+        $myEmployeeId = $this->getMyEmployeeId();
 
-        if (!$doc->file_path || !Storage::disk('public')->exists($doc->file_path)) {
+        // Guru hanya boleh mengunduh berkas miliknya sendiri
+        if (!$isAdmin && $doc->uploaded_by != auth()->id() && $doc->teacher_id != $myEmployeeId) {
+            abort(403, 'Akses ditolak: Anda hanya dapat mengunduh berkas yang Anda buat sendiri.');
+        }
+
+        $fileIndex = $request->query('file');
+        $filesList = $doc->files_list;
+
+        if ($fileIndex !== null && is_numeric($fileIndex) && isset($filesList[(int)$fileIndex])) {
+            $target = $filesList[(int)$fileIndex];
+            $path = $target['file_path'] ?? '';
+            $name = $target['file_name'] ?? basename($path);
+        } else {
+            $target = $filesList[0] ?? null;
+            $path = $target ? ($target['file_path'] ?? '') : $doc->file_path;
+            $name = $target ? ($target['file_name'] ?? basename($path)) : ($doc->file_name ?? basename($path));
+        }
+
+        if (!$path || !Storage::disk('public')->exists($path)) {
             abort(404, 'File berkas tidak ditemukan di server penyimpanan.');
         }
 
-        return Storage::disk('public')->download($doc->file_path, $doc->file_name ?? basename($doc->file_path));
+        if ($request->filled('download_token')) {
+            if (!headers_sent()) {
+                @setcookie('download_token', $request->query('download_token'), time() + 60, '/', '', false, false);
+            }
+        }
+
+        $response = Storage::disk('public')->download($path, $name);
+
+        if ($request->filled('download_token')) {
+            $response->headers->setCookie(cookie('download_token', $request->query('download_token'), 1, '/', null, false, false));
+        }
+
+        return $response;
     }
 
     /**
-     * Delete document and its physical file.
+     * Delete document and all its attached physical files.
      */
     public function destroy($id)
     {
         $doc = TeacherDocument::findOrFail($id);
+        $isAdmin = $this->isUserAdmin();
+        $myEmployeeId = $this->getMyEmployeeId();
+
+        // Guru hanya boleh menghapus berkas miliknya sendiri
+        if (!$isAdmin && $doc->uploaded_by != auth()->id() && $doc->teacher_id != $myEmployeeId) {
+            abort(403, 'Akses ditolak: Anda hanya dapat menghapus berkas yang Anda buat sendiri.');
+        }
+
+        // Delete all attached files in storage
+        foreach ($doc->files_list as $f) {
+            if (!empty($f['file_path']) && Storage::disk('public')->exists($f['file_path'])) {
+                Storage::disk('public')->delete($f['file_path']);
+            }
+        }
 
         if ($doc->file_path && Storage::disk('public')->exists($doc->file_path)) {
             Storage::disk('public')->delete($doc->file_path);
@@ -310,6 +623,10 @@ class TeacherDocumentController extends Controller
      */
     public function exportMatrixExcel(Request $request)
     {
+        if (!$this->isUserAdmin()) {
+            abort(403, 'Akses ditolak: Hanya Administrator atau Kepala Sekolah yang dapat mengekspor matriks.');
+        }
+
         $academicYears = AcademicYear::orderBy('name', 'desc')->get();
         $activeAcademicYear = $academicYears->firstWhere('is_active', true) ?? $academicYears->first();
         $selectedYearId = $request->get('academic_year_id', $activeAcademicYear?->id);
@@ -411,12 +728,24 @@ class TeacherDocumentController extends Controller
         $cleanYear = str_replace(['/', '\\'], '-', $yearName);
         $filename = "Matriks_Berkas_Guru_{$cleanYear}.xlsx";
 
-        return response()->streamDownload(function () use ($writer) {
+        if ($request->filled('download_token')) {
+            if (!headers_sent()) {
+                @setcookie('download_token', $request->query('download_token'), time() + 60, '/', '', false, false);
+            }
+        }
+
+        $response = response()->streamDownload(function () use ($writer) {
             $writer->save('php://output');
         }, $filename, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Cache-Control' => 'max-age=0',
         ]);
+
+        if ($request->filled('download_token')) {
+            $response->headers->setCookie(cookie('download_token', $request->query('download_token'), 1, '/', null, false, false));
+        }
+
+        return $response;
     }
 
     /**
@@ -424,6 +753,10 @@ class TeacherDocumentController extends Controller
      */
     public function printMatrix(Request $request)
     {
+        if (!$this->isUserAdmin()) {
+            abort(403, 'Akses ditolak: Hanya Administrator atau Kepala Sekolah yang dapat mencetak matriks.');
+        }
+
         $academicYears = AcademicYear::orderBy('name', 'desc')->get();
         $activeAcademicYear = $academicYears->firstWhere('is_active', true) ?? $academicYears->first();
         $selectedYearId = $request->get('academic_year_id', $activeAcademicYear?->id);
