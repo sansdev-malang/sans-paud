@@ -607,7 +607,7 @@ class SpmbCandidate extends Model
         $cleanPhone = $this->getCleanPhone();
         if (!$cleanPhone) return null;
 
-        $msg = urlencode("Assalamu'alaikum Wr. Wb. Bapak/Ibu wali dari ananda *{$this->full_name}* (No. Registrasi: {$this->registration_number}). Terima kasih atas pendaftarannya di SANS PAUD Malang.");
+        $msg = urlencode("Assalamu'alaikum Wr. Wb. Bapak/Ibu wali dari ananda *{$this->full_name}* (No. Registrasi: {$this->registration_number}). Terima kasih atas pendaftarannya di SAANS PAUD Malang.");
         return "https://wa.me/{$cleanPhone}?text={$msg}";
     }
 }

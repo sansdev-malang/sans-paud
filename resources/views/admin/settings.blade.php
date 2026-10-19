@@ -60,14 +60,14 @@
                                 <!-- App Name -->
                                 <div>
                                     <label for="app_name" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Nama Aplikasi <span class="text-red-500">*</span></label>
-                                    <input type="text" name="app_name" id="app_name" value="{{ old('app_name', setting('app_name', 'SANS Malang')) }}" required
+                                    <input type="text" name="app_name" id="app_name" value="{{ old('app_name', setting('app_name', 'SAANS PAUD')) }}" required
                                         class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-50 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 transition-colors">
                                 </div>
 
                                 <!-- Unit Name -->
                                 <div>
                                     <label for="unit_name" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Nama Unit / Sekolah <span class="text-red-500">*</span></label>
-                                    <input type="text" name="unit_name" id="unit_name" value="{{ old('unit_name', setting('unit_name', 'SANS Malang')) }}" required
+                                    <input type="text" name="unit_name" id="unit_name" value="{{ old('unit_name', setting('unit_name', 'SAANS PAUD Malang')) }}" required
                                         class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-50 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 transition-colors">
                                 </div>
                             </div>
@@ -98,7 +98,7 @@
                             <!-- Copyright Text -->
                             <div>
                                 <label for="app_copyright" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Teks Copyright / Hak Cipta</label>
-                                <input type="text" name="app_copyright" id="app_copyright" value="{{ old('app_copyright', setting('app_copyright', '© ' . date('Y') . ' SANS Malang. All rights reserved.')) }}"
+                                <input type="text" name="app_copyright" id="app_copyright" value="{{ old('app_copyright', setting('app_copyright', '© ' . date('Y') . ' SAANS PAUD School Information System. All rights reserved.')) }}"
                                     class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-50 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 transition-colors">
                             </div>
                         </div>
@@ -124,7 +124,7 @@
                                             <img id="logo-preview" src="{{ asset('storage/' . setting('app_logo')) }}" alt="Logo Preview" class="w-full h-full object-cover">
                                         @else
                                             <div id="logo-placeholder" class="w-10 h-10 rounded-lg logo-gradient-bg flex items-center justify-center">
-                                                <span class="text-white text-base font-bold" style="font-family: 'Nasalization Rg', sans-serif; font-weight: 400;">{{ substr(setting('app_name', 'SANS'), 0, 1) }}</span>
+                                                <span class="text-white text-base font-bold" style="font-family: 'Nasalization Rg', sans-serif; font-weight: 400;">{{ substr(setting('app_name', 'SAANS PAUD'), 0, 1) }}</span>
                                             </div>
                                             <img id="logo-preview" src="" alt="Logo Preview" class="w-full h-full object-cover hidden">
                                         @endif
@@ -150,7 +150,7 @@
                                             <img id="favicon-preview" src="{{ asset('storage/' . setting('app_favicon')) }}" alt="Favicon Preview" class="w-6 h-6 object-contain">
                                         @else
                                             <div id="favicon-placeholder" class="w-8 h-8 rounded bg-slate-100 dark:bg-slate-800 logo-gradient-bg flex items-center justify-center shrink-0 shadow-sm">
-                                                <span class="text-white text-xs font-bold" style="font-family: 'Nasalization Rg', sans-serif; font-weight: 400;">{{ substr(setting('app_name', 'SANS'), 0, 1) }}</span>
+                                                <span class="text-white text-xs font-bold" style="font-family: 'Nasalization Rg', sans-serif; font-weight: 400;">{{ substr(setting('app_name', 'SAANS PAUD'), 0, 1) }}</span>
                                             </div>
                                             <img id="favicon-preview" src="" alt="Favicon Preview" class="w-6 h-6 object-contain hidden">
                                         @endif
@@ -175,7 +175,7 @@
             <!-- TAB 2: INTEGRASI API (HRD, SPMB & E-RAPOR) -->
             <div x-show="activeTab === 'integrations'" x-cloak class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                <!-- Card 1: Integrasi E-Rapor Terpusat (SANS Rapor) -->
+                <!-- Card 1: Integrasi E-Rapor Terpusat (SAANS Rapor) -->
                 <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden flex flex-col justify-between">
                     <div>
                         <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
@@ -184,7 +184,7 @@
                                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                                     Integrasi E-Rapor Terpusat
                                 </h3>
-                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Koneksi modul rapor terpusat, autentikasi 1-Click SSO, dan database SANS Rapor.</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Koneksi modul rapor terpusat, autentikasi 1-Click SSO, dan database SAANS Rapor.</p>
                             </div>
                             <span class="px-2 py-0.5 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-md border border-emerald-200 dark:border-emerald-800">
                                 E-Rapor
@@ -207,7 +207,7 @@
 
                             <!-- Database Name -->
                             <div>
-                                <label for="rapor_db_name" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Nama Database SANS Rapor (MySQL)</label>
+                                <label for="rapor_db_name" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Nama Database SAANS Rapor (MySQL)</label>
                                 <input type="text" name="rapor_db_name" id="rapor_db_name" value="{{ old('rapor_db_name', setting('rapor_db_name', env('DB_RAPOR_DATABASE', 'sans-rapor'))) }}" placeholder="sans-rapor"
                                     class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-50 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 transition-colors font-mono">
                             </div>
@@ -216,7 +216,7 @@
                             <div class="pt-2 flex items-center justify-between">
                                 <button type="button" id="btn-test-rapor" onclick="testRaporConnection()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-2 cursor-pointer shadow-xs">
                                     <i data-lucide="activity" class="w-3.5 h-3.5"></i>
-                                    <span>Tes Koneksi SANS Rapor</span>
+                                    <span>Tes Koneksi SAANS Rapor</span>
                                 </button>
                                 <div id="rapor-test-result" class="text-xs font-semibold"></div>
                             </div>
@@ -408,7 +408,7 @@
 
             btn.disabled = true;
             btn.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-3.5 w-3.5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memeriksa...`;
-            resultBox.innerHTML = `<span class="text-slate-400 font-normal">Menghubungi database SANS Rapor...</span>`;
+            resultBox.innerHTML = `<span class="text-slate-400 font-normal">Menghubungi database SAANS Rapor...</span>`;
 
             fetch("{{ route('settings.test-rapor') }}", {
                 method: "POST",
@@ -432,7 +432,7 @@
                 if (res.ok && res.data.success) {
                     resultBox.innerHTML = `<span class="text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-semibold">✓ ${res.data.message}</span>`;
                 } else {
-                    resultBox.innerHTML = `<span class="text-red-500 dark:text-red-400 flex items-center gap-1 font-semibold">✕ ${res.data.message || 'Gagal terhubung ke Database SANS Rapor'}</span>`;
+                    resultBox.innerHTML = `<span class="text-red-500 dark:text-red-400 flex items-center gap-1 font-semibold">✕ ${res.data.message || 'Gagal terhubung ke Database SAANS Rapor'}</span>`;
                 }
             })
             .catch(err => {

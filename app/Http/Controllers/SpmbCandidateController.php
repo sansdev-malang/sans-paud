@@ -497,7 +497,7 @@ class SpmbCandidateController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Ananda {$candidate->full_name} berhasil resmi terdaftar sebagai Murid Aktif SANS PAUD (NIS: {$student->nis}).",
+            'message' => "Ananda {$candidate->full_name} berhasil resmi terdaftar sebagai Murid Aktif SAANS PAUD (NIS: {$student->nis}).",
             'student' => $student,
         ]);
     }

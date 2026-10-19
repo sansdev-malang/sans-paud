@@ -161,7 +161,7 @@
             <img src="{{ $logoPath }}" alt="Logo" class="header-logo">
         @endif
         <div style="{{ $logoPath ? 'padding: 0 55px;' : '' }}">
-            <h1 style="font-size: 12pt; font-weight: bold; color: #0f172a; margin: 0;">{{ strtoupper($appName ?? setting('unit_name', setting('app_name', 'SANS PAUD MALANG'))) }}</h1>
+            <h1 style="font-size: 12pt; font-weight: bold; color: #0f172a; margin: 0;">{{ strtoupper($appName ?? setting('unit_name', setting('app_name', 'SAANS PAUD MALANG'))) }}</h1>
             <h2 style="font-size: 9.5pt; color: #0f766e; margin: 2px 0 0 0;">BUKU REGISTER KUNJUNGAN TAMU & KEDINASAN</h2>
             <p style="font-size: 7.5pt; color: #475569; margin: 2px 0 0 0;">{{ $appAddress ?? setting('app_address') }} | Telp/WA: {{ $appPhone ?? setting('app_phone') }}</p>
         </div>
@@ -270,7 +270,7 @@
 
     <!-- FOOTER NOTE -->
     <div class="footer-note">
-        Dokumen resmi Buku Tamu diterbitkan melalui Sistem Informasi & Manajemen Terpadu {{ $appName ?? setting('unit_name', setting('app_name', 'SANS PAUD')) }}.
+        Dokumen resmi Buku Tamu diterbitkan melalui Sistem Informasi & Manajemen Terpadu {{ $appName ?? setting('unit_name', setting('app_name', 'SAANS PAUD')) }}.
     </div>
 
 </body>

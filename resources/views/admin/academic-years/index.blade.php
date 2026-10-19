@@ -5,7 +5,7 @@
         <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3 w-full text-left">
             <div class="flex flex-col gap-0.5">
                 <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Tahun Ajaran & Semester</h2>
-                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Kelola master periode tahun ajaran (TA) dan semester evaluasi rapor di SANS PAUD.</p>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Kelola master periode tahun ajaran (TA) dan semester evaluasi rapor di SAANS PAUD.</p>
             </div>
             <div class="flex flex-wrap items-center gap-3 shrink-0">
                 <!-- Info Badge Periode Berjalan -->

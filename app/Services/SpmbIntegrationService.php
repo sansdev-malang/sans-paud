@@ -260,7 +260,7 @@ class SpmbIntegrationService
         if ($event === 'ping') {
             return [
                 'status' => 'pong',
-                'message' => 'Webhook ping received successfully by SANS PAUD.',
+                'message' => 'Webhook ping received successfully by SAANS PAUD.',
                 'timestamp' => now()->toIso8601String(),
             ];
         }

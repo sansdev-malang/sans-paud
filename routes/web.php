@@ -156,7 +156,7 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,adm
     Route::get('/arsip-murid', fn() => redirect()->route('student-archives.index'))->name('arsip-murid');
 });
 
-// Rekap & Hasil Rapor (Read-Only from SANS Rapor)
+// Rekap & Hasil Rapor (Read-Only from SAANS Rapor)
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/rekap-rapor', [\App\Http\Controllers\RaporSummaryController::class, 'index'])->name('rekap-rapor.index');
 
@@ -246,6 +246,7 @@ Route::middleware(['auth', 'verified', 'role:employee,admin_sd,admin_paud,admin_
     Route::get('attendances/export', [\App\Http\Controllers\AttendanceController::class, 'export'])->name('attendances.export');
     Route::get('bonus-reports', [\App\Http\Controllers\BonusReportController::class, 'index'])->name('bonus-reports.index');
     Route::get('bonus-reports/export', [\App\Http\Controllers\BonusReportController::class, 'export'])->name('bonus-reports.export');
+    Route::get('attendance-percentage-reports', [\App\Http\Controllers\AttendancePercentageReportController::class, 'index'])->name('attendance-percentage-reports.index');
     Route::get('my-attendance', [\App\Http\Controllers\MyAttendanceController::class, 'index'])->name('my-attendance');
     Route::resource('my-leaves', \App\Http\Controllers\MyLeaveRequestController::class);
     Route::get('announcements/{announcement}/download', [\App\Http\Controllers\AnnouncementController::class, 'download'])->name('announcements.download');

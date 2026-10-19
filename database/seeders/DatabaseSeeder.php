@@ -52,9 +52,9 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-                \App\Models\Setting::set('app_name', 'SANS PAUD');
-        \App\Models\Setting::set('unit_name', 'SANS PAUD Malang');
-        \App\Models\Setting::set('app_copyright', '© 2026 SANS.dev PAUD School Information System. All rights reserved.');
+        \App\Models\Setting::set('app_name', 'SAANS PAUD');
+        \App\Models\Setting::set('unit_name', 'SAANS PAUD Malang');
+        \App\Models\Setting::set('app_copyright', '© 2026 SAANS PAUD School Information System. All rights reserved.');
 
         $this->call([
             EmployeeSeeder::class,

@@ -304,7 +304,7 @@ class Student extends Model
     {
         $phone = $this->clean_parent_phone;
         if (!$phone || strlen($phone) < 8) return null;
-        $text = urlencode("Halo Ayah/Bunda {$this->full_name}, kami dari SANS PAUD Malang.");
+        $text = urlencode("Halo Ayah/Bunda {$this->full_name}, kami dari SAANS PAUD Malang.");
         return "https://wa.me/{$phone}?text={$text}";
     }
 }

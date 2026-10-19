@@ -376,7 +376,7 @@
                                             </div>
                                             <p class="font-bold text-slate-800 dark:text-slate-200 text-sm">Belum Ada Calon Murid Masuk di TA {{ $selectedYear }}</p>
                                             <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                                                Data calon murid baru akan otomatis masuk ke SANS PAUD saat pendaftar di SPMB telah mencapai <b>Tahap Administrasi / Daftar Ulang</b> (surat pernyataan disetujui / pembayaran daftar ulang).
+                                                Data calon murid baru akan otomatis masuk ke SAANS PAUD saat pendaftar di SPMB telah mencapai <b>Tahap Administrasi / Daftar Ulang</b> (surat pernyataan disetujui / pembayaran daftar ulang).
                                             </p>
                                             <button type="button" @click="syncData()" :disabled="syncing"
                                                 class="mt-1 inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer">

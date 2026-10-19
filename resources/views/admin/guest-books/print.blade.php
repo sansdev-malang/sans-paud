@@ -159,7 +159,7 @@
         @if($logoPath)
             <img src="{{ $logoPath }}" alt="Logo" class="header-logo" style="max-height: 50px; float: left; margin-right: 15px;">
         @endif
-        <h1>{{ strtoupper($appName ?? setting('unit_name', setting('app_name', 'SANS PAUD MALANG'))) }}</h1>
+        <h1>{{ strtoupper($appName ?? setting('unit_name', setting('app_name', 'SAANS PAUD MALANG'))) }}</h1>
         <h2>BUKU REGISTER KUNJUNGAN TAMU & KEDINASAN</h2>
         <p>{{ $appAddress ?? setting('app_address') }} | Telp/WA: {{ $appPhone ?? setting('app_phone') }}</p>
     </div>

@@ -283,7 +283,7 @@
 
     <!-- FOOTER NOTE -->
     <div class="footer-note">
-        Dokumen ini diterbitkan secara otomatis oleh Sistem Informasi & Manajemen Akademik SANS PAUD. Sah tanpa tanda tangan basah jika dilengkapi stempel digital resmi sekolah.
+        Dokumen ini diterbitkan secara otomatis oleh Sistem Informasi & Manajemen Akademik SAANS PAUD. Sah tanpa tanda tangan basah jika dilengkapi stempel digital resmi sekolah.
     </div>
 
 </body>

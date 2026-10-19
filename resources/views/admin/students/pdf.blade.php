@@ -409,7 +409,7 @@
         <table style="border: none; margin: 0; padding: 0;">
             <tr style="background: none;">
                 <td style="border: none; padding: 0; font-size: 6.5pt; color: #64748b;">
-                    Dicetak otomatis oleh Sistem Administrasi & Manajemen Akademik SANS PAUD Islam Anak Saleh Malang. Menampilkan seluruh data atribut komprehensif murid.
+                    Dicetak otomatis oleh Sistem Administrasi & Manajemen Akademik SAANS PAUD Islam Anak Saleh Malang. Menampilkan seluruh data atribut komprehensif murid.
                 </td>
                 <td style="border: none; padding: 0; text-align: right; font-size: 6.5pt; color: #64748b;">
                     Halaman Data Lengkap Murid (A4 Landscape)

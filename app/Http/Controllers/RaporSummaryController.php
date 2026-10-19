@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 class RaporSummaryController extends Controller
 {
     /**
-     * Display the Data Rapor PAUD (Interactive & Synced with SANS Rapor).
+     * Display the Data Rapor PAUD (Interactive & Synced with SAANS Rapor).
      */
     public function index(Request $request)
     {
@@ -102,7 +102,7 @@ class RaporSummaryController extends Controller
                 ->orderBy('full_name')
                 ->get();
 
-            // Fetch narratives and attendances from SANS Rapor database safely
+            // Fetch narratives and attendances from SAANS Rapor database safely
             try {
                 $baseConfig = config('database.connections.sans_rapor') ?: config('database.connections.mysql');
                 $baseConfig['database'] = $raporDb;
@@ -221,7 +221,7 @@ class RaporSummaryController extends Controller
             ];
         });
 
-        // SSO Link to Edit in SANS Rapor
+        // SSO Link to Edit in SAANS Rapor
         $curUser = auth()->user();
         $ssoRole = $curUser?->role;
         if ($curUser?->hasRole('super_admin')) {

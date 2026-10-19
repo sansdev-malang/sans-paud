@@ -188,7 +188,7 @@ class GuestBookController extends Controller
         $headmasterName = $principal?->name ?? setting('headmaster_name', setting('school_principal_name', 'Dra. Hj. Nurul Hidayati, M.Pd'));
         $headmasterNip = $principal?->nip ?? setting('headmaster_nip', setting('school_principal_nip', '19750815 200212 2 003'));
         $schoolCity = setting('school_city', 'Malang');
-        $appName = setting('unit_name', setting('app_name', 'SANS PAUD Malang'));
+        $appName = setting('unit_name', setting('app_name', 'SAANS PAUD Malang'));
         $appAddress = setting('app_address', 'Jl. Candi Panggung Indah No. 1-3, Mojolangu, Lowokwaru, Kota Malang, Jawa Timur');
         $appPhone = setting('app_phone', '+62 812-3456-7890');
 
@@ -344,7 +344,7 @@ class GuestBookController extends Controller
         $headmasterName = $principal?->name ?? setting('headmaster_name', setting('school_principal_name', 'Dra. Hj. Nurul Hidayati, M.Pd'));
         $headmasterNip = $principal?->nip ?? setting('headmaster_nip', setting('school_principal_nip', '19750815 200212 2 003'));
         $schoolCity = setting('school_city', 'Malang');
-        $appName = setting('unit_name', setting('app_name', 'SANS PAUD Malang'));
+        $appName = setting('unit_name', setting('app_name', 'SAANS PAUD Malang'));
         $appAddress = setting('app_address', 'Jl. Candi Panggung Indah No. 1-3, Mojolangu, Lowokwaru, Kota Malang, Jawa Timur');
         $appPhone = setting('app_phone', '+62 812-3456-7890');
 
@@ -403,7 +403,7 @@ class GuestBookController extends Controller
         $headmasterName = $principal?->name ?? setting('headmaster_name', setting('school_principal_name', 'Dra. Hj. Nurul Hidayati, M.Pd'));
         $headmasterNip = $principal?->nip ?? setting('headmaster_nip', setting('school_principal_nip', '19750815 200212 2 003'));
         $schoolCity = setting('school_city', 'Malang');
-        $appName = setting('unit_name', setting('app_name', 'SANS PAUD Malang'));
+        $appName = setting('unit_name', setting('app_name', 'SAANS PAUD Malang'));
         $appAddress = setting('app_address', 'Jl. Candi Panggung Indah No. 1-3, Mojolangu, Lowokwaru, Kota Malang, Jawa Timur');
         $appPhone = setting('app_phone', '+62 812-3456-7890');
 
