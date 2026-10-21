@@ -210,6 +210,7 @@ Route::middleware(['auth', 'verified', 'role:super_admin'])->group(function () {
     Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
     Route::post('/settings/test-rapor-connection', [SettingController::class, 'testRaporConnection'])->name('settings.test-rapor');
     Route::resource('users', \App\Http\Controllers\UserController::class);
+    Route::post('/impersonate/{id}', [\App\Http\Controllers\ImpersonateController::class, 'enter'])->whereNumber('id')->name('impersonate.start');
 });
 
 Route::middleware(['auth', 'verified', 'role:admin_sd,admin_paud,admin_smp,kepala_sekolah,waka'])->group(function () {
@@ -324,6 +325,7 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    Route::match(['get', 'post'], '/impersonate/leave', [\App\Http\Controllers\ImpersonateController::class, 'leave'])->name('impersonate.leave');
     Route::get('/coming-soon', function () { return view('admin.coming-soon'); })->name('coming-soon');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
