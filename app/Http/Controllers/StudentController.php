@@ -440,10 +440,14 @@ class StudentController extends Controller
             }
         ])->findOrFail($id);
 
-        $schoolName = setting('unit_name', setting('app_name', 'PAUD TERPADU ANAK SALEH'));
-        $schoolAddress = setting('app_address', 'Jl. Candi Panggung Indah No. 1-3, Mojolangu, Lowokwaru, Kota Malang');
-        $schoolPhone = setting('app_phone', setting('school_phone', '+62 812-3456-7890'));
-        $schoolEmail = setting('app_email', 'paud.anaksaleh@gmail.com');
+        $info = $this->getSchoolAndPrincipalInfo();
+        $schoolName = $info['schoolName'];
+        $schoolAddress = $info['schoolAddress'];
+        $schoolPhone = $info['schoolPhone'];
+        $schoolEmail = $info['schoolEmail'];
+        $principalName = $info['principalName'];
+        $principalNiy = $info['principalNiy'];
+        $logoSrc = $info['logoSrc'];
 
         $fileName = 'Dossier-Murid-' . \Illuminate\Support\Str::slug($student->full_name) . '-' . ($student->nis ?? $student->id) . '.pdf';
 
@@ -452,7 +456,10 @@ class StudentController extends Controller
             'schoolName',
             'schoolAddress',
             'schoolPhone',
-            'schoolEmail'
+            'schoolEmail',
+            'principalName',
+            'principalNiy',
+            'logoSrc'
         ))->setPaper('a4', 'portrait');
 
         $response = $pdf->download($fileName);
@@ -481,17 +488,24 @@ class StudentController extends Controller
             }
         ])->findOrFail($id);
 
-        $schoolName = setting('unit_name', setting('app_name', 'PAUD TERPADU ANAK SALEH'));
-        $schoolAddress = setting('app_address', 'Jl. Candi Panggung Indah No. 1-3, Mojolangu, Lowokwaru, Kota Malang');
-        $schoolPhone = setting('app_phone', setting('school_phone', '+62 812-3456-7890'));
-        $schoolEmail = setting('app_email', 'paud.anaksaleh@gmail.com');
+        $info = $this->getSchoolAndPrincipalInfo();
+        $schoolName = $info['schoolName'];
+        $schoolAddress = $info['schoolAddress'];
+        $schoolPhone = $info['schoolPhone'];
+        $schoolEmail = $info['schoolEmail'];
+        $principalName = $info['principalName'];
+        $principalNiy = $info['principalNiy'];
+        $logoSrc = $info['logoSrc'];
 
         return view('admin.students.print-dossier', compact(
             'student',
             'schoolName',
             'schoolAddress',
             'schoolPhone',
-            'schoolEmail'
+            'schoolEmail',
+            'principalName',
+            'principalNiy',
+            'logoSrc'
         ));
     }
 
@@ -516,6 +530,11 @@ class StudentController extends Controller
             }
         ])->findOrFail($id);
 
+        $info = $this->getSchoolAndPrincipalInfo();
+        $schoolName = $info['schoolName'];
+        $principalName = $info['principalName'];
+        $principalNiy = $info['principalNiy'];
+
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Dossier ' . mb_substr($student->nickname ?: $student->full_name, 0, 20));
@@ -525,7 +544,6 @@ class StudentController extends Controller
         $sheet->mergeCells('A2:D2');
         $sheet->mergeCells('A3:D3');
 
-        $schoolName = setting('unit_name', setting('app_name', 'PAUD TERPADU ANAK SALEH MALANG'));
         $sheet->setCellValue('A1', strtoupper($schoolName));
         $sheet->setCellValue('A2', 'LEMBAR DOSSIER & BUKU INDUK MURID: ' . strtoupper($student->full_name));
         $sheet->setCellValue('A3', 'Dicetak melalui SAANS PAUD pada ' . date('d F Y, H:i') . ' WIB');
@@ -632,6 +650,27 @@ class StudentController extends Controller
         $addSectionHeader('6. TUMBUH KEMBANG & HARAPAN PENDIDIKAN', 'FF7C3AED');
         $addDataRow('Hobi / Minat Murid', $student->student_hobby ?? '-', 'Cita-cita Murid', $student->student_aspiration ?? '-');
         $addDataRow('Harapan Orang Tua', $student->parent_aspiration ?? '-', 'Rencana Sekolah Lanjutan', $student->planned_school_after ?? '-');
+
+        // Endorsement / Signature Block
+        $signRow = $row + 2;
+        $sheet->mergeCells("A{$signRow}:B{$signRow}");
+        $sheet->setCellValue("A{$signRow}", "Mengetahui,");
+        $sheet->setCellValue("A" . ($signRow + 1), "Orang Tua / Wali Murid");
+        $sheet->setCellValue("A" . ($signRow + 4), "( " . ($student->father_name ?? ($student->mother_name ?? ($student->guardian_name ?? '..................................'))) . " )");
+        $sheet->setCellValue("A" . ($signRow + 5), "Orang Tua / Wali");
+
+        $sheet->mergeCells("C{$signRow}:D{$signRow}");
+        $sheet->setCellValue("C{$signRow}", "Malang, " . \Carbon\Carbon::now()->translatedFormat('d F Y'));
+        $sheet->setCellValue("C" . ($signRow + 1), "Kepala Sekolah " . $schoolName);
+        $sheet->setCellValue("C" . ($signRow + 4), "( " . ($principalName ?? 'Kepala Sekolah') . " )");
+        $sheet->setCellValue("C" . ($signRow + 5), "NIY: " . ($principalNiy ?? '-'));
+
+        $sheet->getStyle("A{$signRow}:D" . ($signRow + 5))->getFont()->setSize(9);
+        $sheet->getStyle("A" . ($signRow + 1))->getFont()->setBold(true);
+        $sheet->getStyle("A" . ($signRow + 4))->getFont()->setBold(true);
+        $sheet->getStyle("C" . ($signRow + 1))->getFont()->setBold(true);
+        $sheet->getStyle("C" . ($signRow + 4))->getFont()->setBold(true);
+        $sheet->getStyle("A{$signRow}:D" . ($signRow + 5))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         // Column Dimensions
         $sheet->getColumnDimension('A')->setWidth(26);
@@ -1379,6 +1418,58 @@ class StudentController extends Controller
     }
 
     /**
+     * Helper to retrieve school profile and leadership info dynamically from settings and database.
+     */
+    protected function getSchoolAndPrincipalInfo(): array
+    {
+        $schoolName = setting('unit_name', setting('app_name', 'PAUD Terpadu Anak Saleh'));
+        $schoolAddress = setting('app_address', 'Jl. Candi Panggung Indah No. 1-3, Mojolangu, Lowokwaru, Kota Malang, Jawa Timur');
+        $schoolPhone = setting('app_phone', setting('school_phone', '+62 812-3456-7890'));
+        $schoolEmail = setting('app_email', 'admin@sans.dev');
+
+        $principalUser = User::where('role', 'kepala_sekolah')->first();
+        $principalEmp = null;
+        if ($principalUser && $principalUser->employee_id) {
+            $principalEmp = Employee::find($principalUser->employee_id);
+        }
+        if (!$principalEmp) {
+            $principalEmp = Employee::where(function ($q) {
+                $q->where('position', 'like', '%Kepala Sekolah%')
+                  ->orWhere('position', 'like', '%Kepsek%');
+            })->first();
+        }
+        $principalName = $principalEmp?->name ?? $principalUser?->name ?? setting('school_principal_name', 'Dra. Hj. Mike Supraptiwi, S.Psi, M.Pd.');
+        $principalNiy = $principalEmp?->niy ?? $principalEmp?->nip ?? setting('school_principal_niy', '-');
+
+        // Logo image as base64 for DomPDF embed
+        $logoPath = setting('app_logo');
+        $logoSrc = null;
+        if ($logoPath) {
+            $fullLogoPath = public_path('storage/' . $logoPath);
+            if (!file_exists($fullLogoPath)) {
+                $fullLogoPath = storage_path('app/public/' . $logoPath);
+            }
+            if (file_exists($fullLogoPath)) {
+                $type = pathinfo($fullLogoPath, PATHINFO_EXTENSION);
+                $data = @file_get_contents($fullLogoPath);
+                if ($data) {
+                    $logoSrc = 'data:image/' . $type . ';base64,' . base64_encode($data);
+                }
+            }
+        }
+
+        return [
+            'schoolName' => $schoolName,
+            'schoolAddress' => $schoolAddress,
+            'schoolPhone' => $schoolPhone,
+            'schoolEmail' => $schoolEmail,
+            'principalName' => $principalName,
+            'principalNiy' => $principalNiy,
+            'logoSrc' => $logoSrc,
+        ];
+    }
+
+    /**
      * Resolve document export metadata, dynamic titles, and filenames based on active filters.
      */
     protected function resolveExportMeta(Request $request, $students)
@@ -1472,41 +1563,14 @@ class StudentController extends Controller
         $excelSubtitle = implode(' | ', $excelSubtitleParts);
 
         // School & Leadership Info from Settings & Employees
-        $schoolName = setting('unit_name', setting('app_name', 'PAUD Terpadu Anak Saleh'));
-        $schoolAddress = setting('app_address', 'Jl. Candi Panggung Indah No. 1-3, Mojolangu, Lowokwaru, Kota Malang, Jawa Timur');
-        $schoolPhone = setting('app_phone', '+62 812-3456-7890');
-        $schoolEmail = setting('app_email', 'admin@sans.dev');
-
-        $principalUser = User::where('role', 'kepala_sekolah')->first();
-        $principalEmp = null;
-        if ($principalUser && $principalUser->employee_id) {
-            $principalEmp = Employee::find($principalUser->employee_id);
-        }
-        if (!$principalEmp) {
-            $principalEmp = Employee::where(function ($q) {
-                $q->where('position', 'like', '%Kepala Sekolah%')
-                  ->orWhere('position', 'like', '%Kepsek%');
-            })->first();
-        }
-        $principalName = $principalEmp?->name ?? $principalUser?->name ?? setting('school_principal_name', 'Dra. Hj. Mike Supraptiwi, S.Psi, M.Pd.');
-        $principalNiy = $principalEmp?->niy ?? $principalEmp?->nip ?? setting('school_principal_niy', '-');
-
-        // Logo image as base64 for DomPDF embed
-        $logoPath = setting('app_logo');
-        $logoSrc = null;
-        if ($logoPath) {
-            $fullLogoPath = public_path('storage/' . $logoPath);
-            if (!file_exists($fullLogoPath)) {
-                $fullLogoPath = storage_path('app/public/' . $logoPath);
-            }
-            if (file_exists($fullLogoPath)) {
-                $type = pathinfo($fullLogoPath, PATHINFO_EXTENSION);
-                $data = @file_get_contents($fullLogoPath);
-                if ($data) {
-                    $logoSrc = 'data:image/' . $type . ';base64,' . base64_encode($data);
-                }
-            }
-        }
+        $schoolInfo = $this->getSchoolAndPrincipalInfo();
+        $schoolName = $schoolInfo['schoolName'];
+        $schoolAddress = $schoolInfo['schoolAddress'];
+        $schoolPhone = $schoolInfo['schoolPhone'];
+        $schoolEmail = $schoolInfo['schoolEmail'];
+        $principalName = $schoolInfo['principalName'];
+        $principalNiy = $schoolInfo['principalNiy'];
+        $logoSrc = $schoolInfo['logoSrc'];
 
         $filePrefix = implode('_', $fileContextParts) . '_' . date('Ymd_His');
 

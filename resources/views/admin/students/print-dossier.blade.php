@@ -329,11 +329,19 @@
         <!-- KOP RESMI LEMBAGA -->
         <table class="kop-table">
             <tr>
-                <td>
+                @if(!empty($logoSrc))
+                    <td style="width: 55px; vertical-align: middle; text-align: left;">
+                        <img src="{{ $logoSrc }}" style="height: 46px; width: auto; max-width: 55px;" alt="Logo">
+                    </td>
+                @endif
+                <td style="vertical-align: middle; text-align: center;">
                     <div class="school-name">{{ strtoupper($schoolName) }}</div>
                     <div class="school-subtitle">PENDIDIKAN ANAK USIA DINI: KB &bull; TK &bull; DAYCARE &bull; TPQ</div>
                     <div class="school-address">{{ $schoolAddress }} &bull; Telp/WA: {{ $schoolPhone }} &bull; Email: {{ $schoolEmail }}</div>
                 </td>
+                @if(!empty($logoSrc))
+                    <td style="width: 55px;"></td>
+                @endif
             </tr>
         </table>
         <div class="kop-line"></div>
@@ -612,16 +620,16 @@
                 </td>
                 <td style="width: 33%;">
                     Malang, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}<br>
-                    Kepala PAUD Anak Saleh
+                    Kepala Sekolah {{ $schoolName }}
                     <div class="sig-space"></div>
-                    <div class="sig-name">( {{ setting('principal_name', 'Kepala Sekolah') }} )</div>
-                    <div class="sig-title">NIP/NIY: {{ setting('principal_nip', '-') }}</div>
+                    <div class="sig-name">( {{ $principalName ?? 'Kepala Sekolah' }} )</div>
+                    <div class="sig-title">NIY: {{ $principalNiy ?? '-' }}</div>
                 </td>
             </tr>
         </table>
 
         <div class="footer-note">
-            Dokumen ini diterbitkan resmi melalui Sistem Akademik &amp; Administrasi Digital PAUD Anak Saleh (SAANS PAUD) pada {{ date('d/m/Y H:i') }} WIB.
+            Dokumen ini diterbitkan resmi melalui Sistem Akademik &amp; Administrasi Digital {{ $schoolName }} (SAANS PAUD) pada {{ date('d/m/Y H:i') }} WIB.
         </div>
     </div>
 
