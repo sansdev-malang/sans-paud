@@ -1277,10 +1277,8 @@
                     const url = new URL('/teacher-documents/' + docId + '/download?file=' + fIdx, window.location.origin);
                     url.searchParams.set('download_token', token);
 
-                    const iframe = document.createElement('iframe');
-                    iframe.style.display = 'none';
-                    iframe.src = url.toString();
-                    document.body.appendChild(iframe);
+                    // Top-level navigation: Content-Disposition attachment ensures file extension is preserved in Chrome
+                    window.location.href = url.toString();
 
                     let finished = false;
                     const finish = (isSuccess = true) => {
@@ -1295,11 +1293,6 @@
                             }, 2500);
                         }
                         document.cookie = 'download_token=; Max-Age=-99999999; path=/;';
-                        setTimeout(() => {
-                            if (iframe && iframe.parentNode) {
-                                iframe.remove();
-                            }
-                        }, 2000);
                     };
 
                     const checkTimer = setInterval(() => {

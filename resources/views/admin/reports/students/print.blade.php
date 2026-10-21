@@ -116,7 +116,7 @@
     <!-- META INFO -->
     <div class="meta-info">
         <div>
-            Tahun Ajaran: <span>{{ $selectedYear ? $selectedYear->name : '-' }} ({{ $selectedYear->semester ?? 'Ganjil' }})</span>
+            Tahun Ajaran: <span>{{ $selectedYear ? $selectedYear->name : '-' }}</span>
         </div>
         <div>
             Tanggal Cetak: <span>{{ date('d F Y') }}</span>

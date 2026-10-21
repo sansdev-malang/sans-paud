@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sans-paud-v1.0.0';
+const CACHE_NAME = 'sans-paud-v1.0.1';
 const OFFLINE_URL = '/offline';
 
 const PRECACHE_ASSETS = [
@@ -47,8 +47,24 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Skip API, Livewire, biometric poll, telescope
-    if (url.pathname.startsWith('/api') || url.pathname.startsWith('/livewire')) {
+    // Skip API, Livewire, biometric poll, telescope, and ALL admin/student/export/download routes
+    if (
+        url.pathname.startsWith('/api') || 
+        url.pathname.startsWith('/livewire') ||
+        url.pathname.includes('/students') ||
+        url.pathname.includes('/teachers') ||
+        url.pathname.includes('/employees') ||
+        url.pathname.includes('/guest-books') ||
+        url.pathname.includes('/reports') ||
+        url.pathname.includes('export') ||
+        url.pathname.includes('download') ||
+        url.pathname.includes('dossier') ||
+        url.pathname.includes('print') ||
+        url.searchParams.has('download_token') ||
+        url.pathname.endsWith('.pdf') ||
+        url.pathname.endsWith('.xlsx') ||
+        url.pathname.endsWith('.csv')
+    ) {
         return;
     }
 

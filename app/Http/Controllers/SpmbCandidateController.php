@@ -422,10 +422,24 @@ class SpmbCandidateController extends Controller
         $classLevelId = $validated['class_level_id'] ?: $classroom->class_level_id;
         $subUnit = $classroom->sub_unit ?: ($classroom->jenjang?->code ?? 'TK');
 
+        $raw = is_array($candidate->raw_payload) ? $candidate->raw_payload : [];
+        $bio = $raw['student_bio'] ?? [];
+        $addr = $bio['address'] ?? [];
+        $parents = $raw['parent_info'] ?? [];
+        $father = $parents['father'] ?? [];
+        $mother = $parents['mother'] ?? [];
+        $guardian = $parents['guardian'] ?? [];
+        $emergency = $parents['emergency_contact'] ?? ($raw['emergency_contact'] ?? []);
+        $dev = $raw['development_psychology'] ?? ($raw['development'] ?? []);
+        $health = $raw['health_habits'] ?? ($raw['health'] ?? []);
+        $family = $raw['family_data'] ?? ($raw['family'] ?? []);
+
         $studentData = [
             'nis' => !empty($validated['nis']) ? trim($validated['nis']) : null,
-            'nisn' => $candidate->nisn,
-            'nik' => $candidate->nik,
+            'nisn' => $candidate->nisn ?? ($bio['nisn'] ?? null),
+            'nik' => $candidate->nik ?? ($bio['nik'] ?? null),
+            'no_kk' => $bio['no_kk'] ?? null,
+            'no_akta' => $bio['no_akta'] ?? null,
             'spmb_candidate_id' => $candidate->id,
             'jenjang_id' => $jenjangId,
             'class_level_id' => $classLevelId,
@@ -436,27 +450,96 @@ class SpmbCandidateController extends Controller
             'sub_unit' => $subUnit,
             'academic_year_id' => $validated['academic_year_id'],
             'full_name' => $candidate->full_name,
-            'nickname' => $candidate->nickname,
+            'nickname' => $candidate->nickname ?? ($bio['nickname'] ?? null),
             'gender' => $candidate->gender,
             'birth_place' => $candidate->birth_place,
             'birth_date' => $candidate->birth_date,
-            'religion' => $candidate->religion ?: 'Islam',
-            'address' => $candidate->address,
-            'city' => $candidate->city,
-            'province' => $candidate->province,
-            'previous_school' => $candidate->previous_school,
+            'religion' => $candidate->religion ?: ($bio['religion'] ?? 'Islam'),
+            'citizenship' => $bio['citizenship'] ?? 'Indonesia (WNI)',
+            'address' => $addr['street'] ?? ($candidate->address ?? null),
+            'dusun' => $addr['dusun'] ?? ($addr['neighborhood'] ?? null),
+            'rt' => $addr['rt'] ?? null,
+            'rw' => $addr['rw'] ?? null,
+            'kelurahan' => $addr['village'] ?? ($addr['kelurahan'] ?? null),
+            'kecamatan' => $addr['district'] ?? ($addr['kecamatan'] ?? null),
+            'city' => $addr['city'] ?? ($candidate->city ?? 'Kota Malang'),
+            'province' => $addr['province'] ?? ($candidate->province ?? 'Jawa Timur'),
+            'postal_code' => $addr['postal_code'] ?? null,
+            'living_with' => $bio['living_with'] ?? 'Bersama Orang Tua',
+            'transportation' => $bio['transportation'] ?? null,
+            'child_order' => $bio['child_order'] ?? null,
+            'siblings_count' => $bio['siblings_count'] ?? null,
+            'blood_type' => $bio['blood_type'] ?? null,
+            'special_needs' => $bio['special_needs'] ?? null,
+            'height' => $bio['height'] ?? null,
+            'weight' => $bio['weight'] ?? null,
+            'head_circumference' => $bio['head_circumference'] ?? null,
+            'arm_circumference' => $bio['arm_circumference'] ?? null,
+            'distance_to_school' => $bio['distance_to_school'] ?? null,
+            'travel_time_minutes' => $bio['travel_time_minutes'] ?? null,
+            'previous_school' => $candidate->previous_school ?? ($raw['school_origin']['name'] ?? null),
             'student_photo_url' => $candidate->student_photo_url,
+
+            // Father
             'father_name' => $candidate->father_name,
             'father_phone' => $candidate->father_phone,
             'father_job' => $candidate->father_job,
+            'father_nik' => $father['nik'] ?? null,
+            'father_birth_place' => $father['birth_place'] ?? null,
+            'father_birth_date' => $father['birth_date'] ?? null,
+            'father_education' => $father['education'] ?? null,
+            'father_company' => $father['company'] ?? ($father['workplace'] ?? null),
+            'father_income' => $father['income'] ?? null,
+            'father_title_prefix' => $father['title_prefix'] ?? null,
+            'father_title_suffix' => $father['title_suffix'] ?? ($father['title'] ?? null),
+
+            // Mother
             'mother_name' => $candidate->mother_name,
             'mother_phone' => $candidate->mother_phone,
             'mother_job' => $candidate->mother_job,
-            'guardian_name' => $candidate->guardian_name,
-            'guardian_phone' => $candidate->guardian_phone,
+            'mother_nik' => $mother['nik'] ?? null,
+            'mother_birth_place' => $mother['birth_place'] ?? null,
+            'mother_birth_date' => $mother['birth_date'] ?? null,
+            'mother_education' => $mother['education'] ?? null,
+            'mother_company' => $mother['company'] ?? ($mother['workplace'] ?? null),
+            'mother_income' => $mother['income'] ?? null,
+            'mother_title_prefix' => $mother['title_prefix'] ?? null,
+            'mother_title_suffix' => $mother['title_suffix'] ?? ($mother['title'] ?? null),
+
+            // Guardian
+            'guardian_name' => $candidate->guardian_name ?? ($guardian['name'] ?? null),
+            'guardian_phone' => $candidate->guardian_phone ?? ($guardian['phone'] ?? null),
+            'guardian_job' => $guardian['job'] ?? null,
+            'guardian_nik' => $guardian['nik'] ?? null,
+            'guardian_birth_place' => $guardian['birth_place'] ?? null,
+            'guardian_birth_date' => $guardian['birth_date'] ?? null,
+            'guardian_education' => $guardian['education'] ?? null,
+            'guardian_company' => $guardian['company'] ?? ($guardian['workplace'] ?? null),
+            'guardian_income' => $guardian['income'] ?? null,
+            'guardian_title_prefix' => $guardian['title_prefix'] ?? null,
+            'guardian_title_suffix' => $guardian['title_suffix'] ?? ($guardian['title'] ?? null),
+            'guardian_relation' => $guardian['relation'] ?? null,
+            'is_accompanied_by_guardian' => !empty($guardian['is_accompanied']) || !empty($candidate->guardian_name),
+
+            // Emergency
+            'emergency_contact_name' => $emergency['name'] ?? null,
+            'emergency_contact_phone' => $emergency['phone'] ?? null,
+            'emergency_contact_relation' => $emergency['relation'] ?? null,
+
+            // Aspirations
+            'student_aspiration' => $raw['student_aspiration'] ?? ($bio['aspiration'] ?? null),
+            'student_hobby' => $raw['student_hobby'] ?? ($bio['hobby'] ?? null),
+            'parent_aspiration' => $raw['parent_aspiration'] ?? null,
+            'planned_school_after' => $raw['planned_school_after'] ?? null,
+            'is_paud_formal_before' => !empty($raw['is_paud_formal_before']),
+
+            // JSON data
+            'family_data' => !empty($family) ? $family : null,
+            'health_habits' => !empty($health) ? $health : null,
+            'development_psychology' => !empty($dev) ? $dev : null,
+            'documents' => $candidate->documents,
             'parent_phone' => $candidate->parent_phone,
             'parent_email' => $candidate->parent_email,
-            'documents' => $candidate->documents,
             'status' => 'aktif',
             'enrolled_date' => $validated['enrolled_date'] ?? now()->toDateString(),
             'notes' => $validated['notes'] ?? "Terdaftar via integrasi SPMB ({$candidate->registration_number})",

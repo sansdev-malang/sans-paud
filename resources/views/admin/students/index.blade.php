@@ -10,18 +10,6 @@
 
             <!-- ACTION CONTROLS -->
             <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 shrink-0">
-                <!-- Info Badge Tahun Ajaran Aktif -->
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/60 rounded-xl text-[11px] sm:text-xs shadow-xs">
-                    <span class="flex h-2 w-2 relative">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                    </span>
-                    <span class="text-slate-500 dark:text-slate-400 font-medium">T.A. Aktif:</span>
-                    <span class="font-bold text-indigo-700 dark:text-indigo-300">
-                        {{ $activeAcademicYear ? $activeAcademicYear->name : '2026/2027' }} ({{ $activeAcademicYear->semester ?? 'Ganjil' }})
-                    </span>
-                </div>
-
                 <!-- Impor Excel Button -->
                 <button type="button" @click="importModalOpen = true"
                     class="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] sm:text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-colors cursor-pointer">
@@ -93,11 +81,11 @@
                 </div>
 
                 <!-- Tambah Murid Button -->
-                <button type="button" @click="openCreateModal()"
-                    class="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] sm:text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer">
+                <a href="{{ route('students.create') }}"
+                    class="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] sm:text-xs font-semibold rounded-lg shadow-sm transition-colors">
                     <i data-lucide="plus" class="w-3.5 h-3.5"></i>
                     Tambah Murid
-                </button>
+                </a>
             </div>
         </section>
 
@@ -296,10 +284,10 @@
 
         <!-- TABLE LIST MURID -->
         <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden w-full">
-            <div class="overflow-x-auto">
-                <table class="w-full text-xs border-collapse">
-                    <thead>
-                        <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-900/50">
+            <div class="overflow-x-auto overflow-y-auto" style="max-height: calc(100vh - 240px);">
+                <table class="w-full min-w-[900px] text-xs border-collapse">
+                    <thead class="sticky top-0 z-10 shadow-xs">
+                        <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
                             <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-36 whitespace-nowrap">Tahun Ajaran</th>
                             <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-40 whitespace-nowrap">Jenjang</th>
                             <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-32 whitespace-nowrap">Kelas</th>
@@ -325,24 +313,34 @@
                                     @php
                                         $jenjangObj = $s->jenjang ?? $s->classroom?->jenjang ?? $s->classLevel?->jenjang;
                                         $jCode = $jenjangObj?->code ?? $s->sub_unit;
-                                        $jName = $jenjangObj?->name ?? ($jCode ? strtoupper($jCode) : '-');
+                                        $jName = $jenjangObj?->name ?? ($jCode ? ($jenjangs->firstWhere('code', $jCode)?->name ?? strtoupper($jCode)) : '-');
+
+                                        $allJenjang = [];
+                                        if ($jName && $jName !== '-') {
+                                            $allJenjang[] = $jName;
+                                        }
+
+                                        // Dynamic Daycare Jenjang from Master
+                                        if ($s->daycare_classroom_id && $jCode !== 'DAYCARE' && $jCode !== 'TPA') {
+                                            $dcJenjang = $s->daycareClassroom?->jenjang ?? $jenjangs->first(fn($j) => in_array($j->code, ['DAYCARE', 'TPA']) || str_contains(strtoupper($j->name), 'DAYCARE') || str_contains(strtoupper($j->name), 'TPA'));
+                                            $dcName = $dcJenjang?->name ?? 'Daycare (TPA)';
+                                            if (!in_array($dcName, $allJenjang)) {
+                                                $allJenjang[] = $dcName;
+                                            }
+                                        }
+
+                                        // Dynamic TPQ Jenjang from Master
+                                        if ($s->is_tpq && $jCode !== 'TPQ') {
+                                            $tpqJenjang = $s->tpqClassroom?->jenjang ?? $jenjangs->first(fn($j) => $j->code === 'TPQ' || str_contains(strtoupper($j->name), 'TPQ'));
+                                            $tpqName = $tpqJenjang?->name ?? 'TPQ';
+                                            if (!in_array($tpqName, $allJenjang)) {
+                                                $allJenjang[] = $tpqName;
+                                            }
+                                        }
                                     @endphp
-                                    @if($jName && $jName !== '-')
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 shadow-2xs">
-                                            @if($jCode === 'KB' || $jCode === 'PG')
-                                                <span>🧸</span>
-                                            @elseif($jCode === 'TK')
-                                                <span>🎒</span>
-                                            @elseif($jCode === 'DAYCARE' || $jCode === 'TPA')
-                                                <span>👶</span>
-                                            @elseif($jCode === 'TPQ')
-                                                <span>📖</span>
-                                            @endif
-                                            <span>{{ $jName }}</span>
-                                        </span>
-                                    @else
-                                        <span class="text-slate-400 italic text-[11px]">-</span>
-                                    @endif
+                                    <span class="font-bold text-slate-800 dark:text-slate-200">
+                                        {{ count($allJenjang) > 0 ? implode(', ', $allJenjang) : '-' }}
+                                    </span>
                                 </td>
 
                                 <!-- 3. Kelas -->
@@ -352,8 +350,28 @@
 
                                 <!-- 4. Kelompok -->
                                 <td class="px-5 py-3.5 whitespace-nowrap">
+                                    @php
+                                        $primaryGroup = $s->classroom?->name;
+                                        if (!$primaryGroup && $s->daycareClassroom) {
+                                            $primaryGroup = $s->daycareClassroom->name;
+                                        }
+
+                                        $allGroups = [];
+                                        if ($primaryGroup) {
+                                            $allGroups[] = $primaryGroup;
+                                        }
+                                        if ($s->daycareClassroom && !in_array($s->daycareClassroom->name, $allGroups)) {
+                                            $allGroups[] = $s->daycareClassroom->name;
+                                        }
+                                        if ($s->is_tpq || $s->tpq_classroom_id) {
+                                            $tpqName = $s->tpqClassroom?->name ?? 'TPQ';
+                                            if (!in_array($tpqName, $allGroups)) {
+                                                $allGroups[] = $tpqName;
+                                            }
+                                        }
+                                    @endphp
                                     <span class="font-bold text-slate-900 dark:text-slate-100">
-                                        {{ $s->classroom?->name ?? '-' }}
+                                        {{ count($allGroups) > 0 ? implode(', ', $allGroups) : '-' }}
                                     </span>
                                 </td>
 
@@ -364,7 +382,7 @@
                                             {{ $s->avatar_initials }}
                                         </div>
                                         <div class="flex flex-col min-w-0">
-                                            <span class="font-bold text-slate-900 dark:text-slate-100 text-xs tracking-tight hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer transition-colors" @click="openDetailModal({{ $s->id }})">
+                                            <span class="font-bold text-slate-900 dark:text-slate-100 text-xs tracking-tight">
                                                 {{ $s->full_name }}
                                             </span>
                                             <div class="flex flex-wrap items-center gap-1.5 mt-0.5 text-[10.5px] text-slate-400">
@@ -407,16 +425,16 @@
                                 <!-- 7. Aksi -->
                                 <td class="px-5 py-3.5 text-right whitespace-nowrap">
                                     <div class="flex items-center justify-end gap-1">
-                                        <button type="button" @click="openDetailModal({{ $s->id }})"
-                                            class="p-1.5 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg transition-colors cursor-pointer"
-                                            title="Lihat Detail Murid">
+                                        <a href="{{ route('students.show', $s->id) }}"
+                                            class="p-1.5 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg transition-colors inline-flex items-center justify-center"
+                                            title="Lihat Detail Murid (Dossier)">
                                             <i data-lucide="eye" class="w-4 h-4"></i>
-                                        </button>
-                                        <button type="button" @click="openEditModal({{ $s->id }})"
-                                            class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 rounded-lg transition-colors cursor-pointer"
+                                        </a>
+                                        <a href="{{ route('students.edit', $s->id) }}"
+                                            class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 rounded-lg transition-colors inline-flex items-center justify-center"
                                             title="Edit Data Murid">
                                             <i data-lucide="edit-2" class="w-4 h-4"></i>
-                                        </button>
+                                        </a>
                                         <button type="button" @click="deleteStudent({{ $s->id }}, '{{ addslashes($s->full_name) }}')"
                                             class="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg transition-colors cursor-pointer"
                                             title="Hapus Murid">
@@ -456,429 +474,6 @@
                 </div>
             @endif
         </section>
-
-        <!-- MODAL DETAIL MURID (ENHANCED TABBED LAYOUT) -->
-        <template x-teleport="body">
-            <div x-show="detailModalOpen" x-cloak class="fixed inset-0 z-[99999] flex items-center justify-center p-2.5 sm:p-4" style="top: 0px !important; left: 0px !important; right: 0px !important; bottom: 0px !important; margin: 0px !important; z-index: 99999 !important; background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);">
-                <div @click.outside="detailModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col text-left my-auto" style="height: 570px; max-height: min(570px, calc(100vh - 32px));">
-                
-                <!-- Modal Header -->
-                <div class="p-3.5 sm:p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-900/80 shrink-0">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 font-bold text-base sm:text-lg flex items-center justify-center shrink-0 shadow-xs" x-text="selectedStudent?.avatar_initials || 'A'">
-                        </div>
-                        <div class="min-w-0">
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-50 truncate" x-text="selectedStudent?.full_name"></h3>
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase shrink-0"
-                                    :class="{
-                                        'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800': selectedStudent?.status === 'aktif',
-                                        'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400 border border-blue-200 dark:border-blue-800': selectedStudent?.status === 'lulus',
-                                        'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-200 dark:border-amber-800': selectedStudent?.status === 'mutasi',
-                                        'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700': !['aktif','lulus','mutasi'].includes(selectedStudent?.status)
-                                    }"
-                                    x-text="selectedStudent?.status ? selectedStudent.status.toUpperCase() : 'AKTIF'">
-                                </span>
-                            </div>
-                            <div class="flex flex-wrap items-center gap-2 text-[11px] sm:text-xs text-slate-400 mt-0.5">
-                                <span>NIS: <strong class="font-mono text-indigo-600 dark:text-indigo-400" x-text="selectedStudent?.nis || '-'"></strong></span>
-                                <span>&bull;</span>
-                                <span>PIN Wali: <strong class="font-mono text-slate-700 dark:text-slate-300" x-text="selectedStudent?.pin_access || '-'"></strong></span>
-                                <template x-if="selectedStudent?.classroom?.name">
-                                    <span class="inline-flex items-center gap-1 font-semibold text-slate-600 dark:text-slate-400">
-                                        <span>&bull;</span>
-                                        <i data-lucide="shapes" class="w-3 h-3 text-indigo-500"></i>
-                                        <span x-text="selectedStudent.classroom.name"></span>
-                                    </span>
-                                </template>
-                            </div>
-                        </div>
-                    </div>
-                    <button type="button" @click="detailModalOpen = false" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer">
-                        <i data-lucide="x" class="w-4 h-4 sm:w-5 sm:h-5"></i>
-                    </button>
-                </div>
-
-                <!-- Modal Sub-Tabs -->
-                <div class="flex items-center gap-1.5 px-3.5 sm:px-5 py-2 sm:py-2.5 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs overflow-x-auto no-scrollbar shrink-0">
-                    <button type="button" @click="detailTab = 'program'"
-                        :class="detailTab === 'program' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'"
-                        class="px-2.5 sm:px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0 text-[11px] sm:text-xs">
-                        <i data-lucide="shapes" class="w-3.5 h-3.5"></i>
-                        <span>Program & Akademik</span>
-                    </button>
-                    <button type="button" @click="detailTab = 'biodata'"
-                        :class="detailTab === 'biodata' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'"
-                        class="px-2.5 sm:px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0 text-[11px] sm:text-xs">
-                        <i data-lucide="user" class="w-3.5 h-3.5"></i>
-                        <span>Identitas & Domisili</span>
-                    </button>
-                    <button type="button" @click="detailTab = 'ortu'"
-                        :class="detailTab === 'ortu' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'"
-                        class="px-2.5 sm:px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0 text-[11px] sm:text-xs">
-                        <i data-lucide="users-2" class="w-3.5 h-3.5"></i>
-                        <span>Keluarga & Kontak</span>
-                    </button>
-                    <button type="button" @click="detailTab = 'fisik'"
-                        :class="detailTab === 'fisik' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'"
-                        class="px-2.5 sm:px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0 text-[11px] sm:text-xs">
-                        <i data-lucide="heart-pulse" class="w-3.5 h-3.5"></i>
-                        <span>Fisik & PAUD</span>
-                    </button>
-                    <button type="button" @click="detailTab = 'history'"
-                        :class="detailTab === 'history' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'"
-                        class="px-2.5 sm:px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0 text-[11px] sm:text-xs">
-                        <i data-lucide="milestone" class="w-3.5 h-3.5"></i>
-                        <span>Riwayat Belajar</span>
-                    </button>
-                </div>
-
-                <!-- Modal Body -->
-                <div class="p-4 sm:p-5 space-y-4 text-xs overflow-y-auto flex-1 min-h-0 overscroll-contain" style="flex: 1 1 0%; min-height: 0;" x-show="selectedStudent">
-                    
-                    <!-- TAB 1: Program & Penempatan Akademik -->
-                    <div x-show="detailTab === 'program'" class="space-y-4">
-                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 space-y-3">
-                            <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
-                                <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i>
-                                Penempatan Akademik & Program
-                            </h4>
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Jenjang Pendidikan</span>
-                                    <span class="font-bold text-indigo-600 dark:text-indigo-400 text-xs sm:text-sm mt-0.5 block" x-text="selectedStudent?.jenjang?.name || selectedStudent?.classroom?.jenjang?.name || selectedStudent?.class_level?.jenjang?.name || selectedStudent?.sub_unit || '-'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Tingkat Kelas</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs sm:text-sm mt-0.5 block" x-text="selectedStudent?.class_level?.name || selectedStudent?.classroom?.class_level?.name || '-'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Kelompok Belajar</span>
-                                    <span class="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm mt-0.5 block" x-text="selectedStudent?.classroom?.name || '-'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Wali Kelas / Guru</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs sm:text-sm mt-0.5 block" x-text="selectedStudent?.classroom?.homeroom_teacher?.name || '-'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Tahun Ajaran</span>
-                                    <span class="font-bold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.academic_year?.name ? 'T.A. ' + selectedStudent.academic_year.name : '-'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Status Terdaftar</span>
-                                    <span class="font-bold uppercase text-xs mt-0.5 block" :class="selectedStudent?.status === 'aktif' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400'" x-text="selectedStudent?.status || 'Aktif'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Kelompok Daycare</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.daycare_classroom?.name || '-'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Program TPQ</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="(selectedStudent?.is_tpq || selectedStudent?.tpq_classroom_id) ? ('Ikut TPQ ' + (selectedStudent?.tpq_classroom?.name ? ' (' + selectedStudent.tpq_classroom.name + ')' : '')) : 'Tidak Ikut TPQ'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">PIN Akses Ortu</span>
-                                    <span class="font-mono font-bold text-indigo-600 dark:text-indigo-400 text-xs mt-0.5 block" x-text="selectedStudent?.pin_access || '1234'"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- TAB 2: Identitas Pribadi & Domisili -->
-                    <div x-show="detailTab === 'biodata'" class="space-y-4">
-                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 space-y-3">
-                            <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
-                                <i data-lucide="user" class="w-3.5 h-3.5"></i>
-                                Identitas Resmi & Dokumen Kependudukan
-                            </h4>
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
-                                <div class="sm:col-span-2">
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Nama Lengkap Ananda</span>
-                                    <span class="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm mt-0.5 block" x-text="selectedStudent?.full_name || '-'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Nama Panggilan</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.nickname || '-'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Jenis Kelamin</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.formatted_gender || '-'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Tempat, Tgl Lahir</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="(selectedStudent?.birth_place ? selectedStudent.birth_place + ', ' : '') + (selectedStudent?.birth_date ? selectedStudent.birth_date.substring(0, 10) : '-')"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Usia Saat Ini</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.age || '-'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Agama / Kewarganegaraan</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="(selectedStudent?.religion || 'Islam') + ' / ' + (selectedStudent?.citizenship || 'WNI')"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">NIS / NISN</span>
-                                    <span class="font-mono font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="(selectedStudent?.nis || '-') + ' / ' + (selectedStudent?.nisn || '-')"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">NIK Ananda</span>
-                                    <span class="font-mono font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.nik || '-'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">No. Kartu Keluarga (KK)</span>
-                                    <span class="font-mono font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.no_kk || '-'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">No. Registrasi Akta Lahir</span>
-                                    <span class="font-mono font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.no_akta || '-'"></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Domisili Details -->
-                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 space-y-3">
-                            <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-teal-600 dark:text-teal-400">
-                                <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
-                                Domisili & Moda Transportasi
-                            </h4>
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
-                                <div class="col-span-2 sm:col-span-3">
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Alamat Jalan Lengkap</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.address || '-'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">RT / RW</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="(selectedStudent?.rt ? 'RT ' + selectedStudent.rt : '-') + ' / ' + (selectedStudent?.rw ? 'RW ' + selectedStudent.rw : '-')"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Kelurahan & Kecamatan</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="(selectedStudent?.kelurahan || '-') + ', ' + (selectedStudent?.kecamatan || '-')"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Kota / Kode Pos</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="(selectedStudent?.city || 'Malang') + (selectedStudent?.postal_code ? ' (' + selectedStudent.postal_code + ')' : '')"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Tempat Tinggal</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.living_with || 'Bersama orang tua'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Moda Transportasi</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.transportation || '-'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Jarak & Waktu Tempuh</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="(selectedStudent?.distance_to_school || '-') + (selectedStudent?.travel_time_minutes ? ' (' + selectedStudent.travel_time_minutes + ' menit)' : '')"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- TAB 3: Data Orang Tua & Kontak -->
-                    <div x-show="detailTab === 'ortu'" class="space-y-4">
-                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 space-y-3">
-                            <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-                                <i data-lucide="users-2" class="w-3.5 h-3.5"></i>
-                                Profil Lengkap Orang Tua & Kontak
-                            </h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                                <!-- Card Ayah -->
-                                <div class="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg space-y-2">
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Ayah Kandung</span>
-                                    <p class="font-bold text-slate-900 dark:text-slate-100 text-xs" x-text="selectedStudent?.father_name || '-'"></p>
-                                    <div class="text-[11px] space-y-0.5 text-slate-600 dark:text-slate-400">
-                                        <p>NIK: <span class="font-mono text-slate-800 dark:text-slate-200" x-text="selectedStudent?.family_data?.father?.nik || '-'"></span></p>
-                                        <p>Pendidikan: <span class="font-medium text-slate-800 dark:text-slate-200" x-text="selectedStudent?.family_data?.father?.education || '-'"></span></p>
-                                        <p>Pekerjaan: <span class="font-medium text-slate-800 dark:text-slate-200" x-text="selectedStudent?.father_job || selectedStudent?.family_data?.father?.job || '-'"></span></p>
-                                        <p class="font-mono text-indigo-600 dark:text-indigo-400" x-text="selectedStudent?.father_phone ? '📞 ' + selectedStudent.father_phone : '-'"></p>
-                                    </div>
-                                </div>
-                                <!-- Card Ibu -->
-                                <div class="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg space-y-2">
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Ibu Kandung</span>
-                                    <p class="font-bold text-slate-900 dark:text-slate-100 text-xs" x-text="selectedStudent?.mother_name || '-'"></p>
-                                    <div class="text-[11px] space-y-0.5 text-slate-600 dark:text-slate-400">
-                                        <p>NIK: <span class="font-mono text-slate-800 dark:text-slate-200" x-text="selectedStudent?.family_data?.mother?.nik || '-'"></span></p>
-                                        <p>Pendidikan: <span class="font-medium text-slate-800 dark:text-slate-200" x-text="selectedStudent?.family_data?.mother?.education || '-'"></span></p>
-                                        <p>Pekerjaan: <span class="font-medium text-slate-800 dark:text-slate-200" x-text="selectedStudent?.mother_job || selectedStudent?.family_data?.mother?.job || '-'"></span></p>
-                                        <p class="font-mono text-indigo-600 dark:text-indigo-400" x-text="selectedStudent?.mother_phone ? '📞 ' + selectedStudent.mother_phone : '-'"></p>
-                                    </div>
-                                </div>
-                                <!-- Card Wali (Jika ada) -->
-                                <template x-if="selectedStudent?.guardian_name || selectedStudent?.family_data?.guardian?.name">
-                                    <div class="col-span-1 sm:col-span-2 p-3 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-lg space-y-1">
-                                        <span class="text-amber-700 dark:text-amber-400 block text-[10.5px] uppercase font-bold tracking-wider">Wali Murid</span>
-                                        <p class="font-bold text-slate-900 dark:text-slate-100 text-xs" x-text="(selectedStudent?.guardian_name || selectedStudent?.family_data?.guardian?.name) + (selectedStudent?.family_data?.guardian?.relation ? ' (' + selectedStudent.family_data.guardian.relation + ')' : '')"></p>
-                                        <p class="text-[11px] text-slate-600 dark:text-slate-400 font-mono" x-text="selectedStudent?.guardian_phone ? '📞 ' + selectedStudent.guardian_phone : '-'"></p>
-                                    </div>
-                                </template>
-                                <!-- WhatsApp Utama Banner -->
-                                <div class="col-span-1 sm:col-span-2 p-3 bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
-                                    <div>
-                                        <span class="text-[10.5px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider block">No. WhatsApp Utama Kontak</span>
-                                        <p class="font-mono font-bold text-slate-900 dark:text-slate-100 text-sm mt-0.5" x-text="selectedStudent?.parent_phone || selectedStudent?.father_phone || selectedStudent?.mother_phone || '-'"></p>
-                                    </div>
-                                    <template x-if="selectedStudent?.whatsapp_url">
-                                        <a :href="selectedStudent.whatsapp_url" target="_blank"
-                                            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-colors shadow-xs shrink-0 cursor-pointer">
-                                            <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
-                                            <span>Chat WhatsApp</span>
-                                        </a>
-                                    </template>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- TAB 4: Fisik & Kebiasaan PAUD -->
-                    <div x-show="detailTab === 'fisik'" class="space-y-4">
-                        <!-- Antropometri & Fisik -->
-                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 space-y-3">
-                            <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
-                                <i data-lucide="ruler" class="w-3.5 h-3.5"></i>
-                                Antropometri & Kondisi Fisik Ananda
-                            </h4>
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-                                <div class="p-2.5 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-                                    <span class="text-slate-400 block text-[10px] uppercase font-semibold">Tinggi Badan</span>
-                                    <span class="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm mt-0.5 block" x-text="selectedStudent?.height ? selectedStudent.height + ' cm' : '-'"></span>
-                                </div>
-                                <div class="p-2.5 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-                                    <span class="text-slate-400 block text-[10px] uppercase font-semibold">Berat Badan</span>
-                                    <span class="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm mt-0.5 block" x-text="selectedStudent?.weight ? selectedStudent.weight + ' kg' : '-'"></span>
-                                </div>
-                                <div class="p-2.5 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-                                    <span class="text-slate-400 block text-[10px] uppercase font-semibold">Lingkar Kepala</span>
-                                    <span class="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm mt-0.5 block" x-text="selectedStudent?.head_circumference ? selectedStudent.head_circumference + ' cm' : '-'"></span>
-                                </div>
-                                <div class="p-2.5 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-                                    <span class="text-slate-400 block text-[10px] uppercase font-semibold">Lingkar Lengan (LiLa)</span>
-                                    <span class="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm mt-0.5 block" x-text="selectedStudent?.arm_circumference ? selectedStudent.arm_circumference + ' cm' : '-'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Golongan Darah</span>
-                                    <span class="font-bold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.blood_type || '-'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Kebutuhan Khusus</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.special_needs || 'Tidak ada'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Urutan Anak</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="'Anak ke-' + (selectedStudent?.child_order || '1') + ' dari ' + ((selectedStudent?.siblings_count || 0) + 1) + ' bersaudara'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Riwayat Alergi</span>
-                                    <span class="font-semibold text-rose-600 dark:text-rose-400 text-xs mt-0.5 block" x-text="selectedStudent?.health_habits?.allergy?.has_allergies ? selectedStudent.health_habits.allergy.types : 'Tidak ada alergi'"></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Kebiasaan & Perkembangan PAUD -->
-                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 space-y-3">
-                            <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-purple-600 dark:text-purple-400">
-                                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-                                Kebiasaan Makan, Tidur & Tumbuh Kembang
-                            </h4>
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Pola/Selera Makan</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.health_habits?.diet?.eating_morning ? ('Pagi: ' + selectedStudent.health_habits.diet.eating_morning + ', Siang: ' + selectedStudent.health_habits.diet.eating_afternoon) : '-'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Toilet Training</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.health_habits?.habits?.toilet_training || '-'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Screen Time</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.development_psychology?.habits?.screen_time_hours ? (selectedStudent.development_psychology.habits.screen_time_hours + ' jam/hari') : '-'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Pola Tidur</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.development_psychology?.habits?.sleep_time ? (selectedStudent.development_psychology.habits.sleep_time + ' - ' + selectedStudent.development_psychology.habits.wake_time) : '-'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Milestone Jalan / Bicara</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.development_psychology?.milestones?.walking_age_months ? ('Jalan: ' + selectedStudent.development_psychology.milestones.walking_age_months + ' bln, Bicara: ' + selectedStudent.development_psychology.milestones.speaking_age_months + ' bln') : '-'"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block text-[10.5px] uppercase font-semibold tracking-wider">Penjemput Resmi</span>
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs mt-0.5 block" x-text="selectedStudent?.development_psychology?.security?.authorized_pickups || 'Orang tua kandung'"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- TAB 5: Riwayat Perjalanan Belajar (Timeline) -->
-                    <div x-show="detailTab === 'history'" class="space-y-4">
-                        <div class="relative pl-6 space-y-3.5 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
-                            <template x-if="studentHistories.length === 0">
-                                <div class="p-5 rounded-xl bg-slate-50 dark:bg-slate-800/40 text-slate-500 text-center text-xs border border-slate-200/80 dark:border-slate-800">
-                                    <i data-lucide="milestone" class="w-6 h-6 mx-auto text-slate-400 mb-1.5"></i>
-                                    <p class="font-semibold">Belum ada catatan riwayat kelompok sebelumnya.</p>
-                                    <p class="text-[11px] text-slate-400 mt-0.5">Riwayat kelompok akan terakumulasi otomatis saat murid naik kelompok atau ganti tahun ajaran.</p>
-                                </div>
-                            </template>
-
-                            <template x-for="h in studentHistories" :key="h.id">
-                                <div class="relative group">
-                                    <div class="absolute -left-6 top-1 w-5 h-5 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center shadow-xs text-white"
-                                        :class="h.status === 'lulus' ? 'bg-amber-500' : (h.status === 'aktif' ? 'bg-emerald-500' : 'bg-indigo-500')">
-                                        <i data-lucide="check" class="w-2.5 h-2.5" x-show="h.status === 'lulus'"></i>
-                                    </div>
-
-                                    <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs space-y-2">
-                                        <div class="flex flex-wrap items-center justify-between gap-1.5">
-                                            <div class="flex items-center gap-2">
-                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800"
-                                                    x-text="h.sub_unit || 'TK'">
-                                                </span>
-                                                <h5 class="text-xs font-bold text-slate-900 dark:text-slate-100" x-text="h.classroom_name || 'Kelompok Belajar'"></h5>
-                                                <span class="text-[11px] text-slate-400 font-semibold" x-text="h.grade_level ? '(' + h.grade_level + ')' : ''"></span>
-                                            </div>
-
-                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
-                                                :class="{
-                                                    'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800': h.status === 'lulus',
-                                                    'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800': h.status === 'aktif',
-                                                    'bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950/40 dark:text-purple-400 dark:border-purple-800': h.status === 'mutasi'
-                                                }"
-                                                x-text="h.status ? h.status.toUpperCase() : 'AKTIF'">
-                                            </span>
-                                        </div>
-
-                                        <div class="flex flex-wrap items-center justify-between text-[11px] pt-1.5 border-t border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-400">
-                                            <div class="flex items-center gap-1.5">
-                                                <i data-lucide="user-check" class="w-3.5 h-3.5 text-indigo-500"></i>
-                                                <span>Wali Kelas: <strong class="text-slate-800 dark:text-slate-200" x-text="h.homeroom_teacher_name || '-'"></strong></span>
-                                            </div>
-                                            <span class="font-mono font-bold text-slate-700 dark:text-slate-300" x-text="h.academic_year?.name ? 'T.A. ' + h.academic_year.name : ''"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Modal Footer -->
-                <div class="p-3 sm:p-3.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70 flex flex-wrap justify-between items-center gap-2 shrink-0">
-                    <button type="button" @click="copyStudentSummary()" class="px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs">
-                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-                        Salin Info Ananda
-                    </button>
-                    <div class="flex items-center gap-2">
-                        <button type="button" @click="detailModalOpen = false" class="px-3.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold transition-colors cursor-pointer">
-                            Tutup
-                        </button>
-                        <button type="button" @click="openEditModal(selectedStudent.id)" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer">
-                            <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
-                            Edit Data Murid
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </template>
 
         <!-- MODAL TAMBAH / EDIT MURID (5-STEP WIZARD FORM) -->
         <template x-teleport="body">
@@ -1895,15 +1490,12 @@
             const allClasses = Object.freeze(@json($allClassrooms));
 
             return {
-                detailModalOpen: false,
                 formModalOpen: false,
                 importModalOpen: false,
                 isEdit: false,
                 saving: false,
-                detailTab: 'program',
                 formTab: 'tab1_identitas',
                 selectedStudent: null,
-                studentHistories: [],
                 formErrors: {},
                 availableClassLevels: Object.freeze(allLevels),
                 availableClassrooms: Object.freeze(allClasses),
@@ -2208,41 +1800,6 @@
                     }
                 },
 
-                copyStudentSummary() {
-                    if (!this.selectedStudent) return;
-                    const s = this.selectedStudent;
-                    const jName = s.jenjang?.name || s.classroom?.jenjang?.name || s.sub_unit || '-';
-                    const cName = s.classroom?.name || '-';
-                    const summary = `*DATA MURID PAUD ANAK SALEH*\nNama: ${s.full_name} (${s.nickname || '-'})\nNIS: ${s.nis || '-'}\nPIN Wali: ${s.pin_access || '-'}\nJenjang/Kelompok: ${jName} - ${cName}\nOrtu: ${s.father_name || s.mother_name || '-'} (WA: ${s.parent_phone || '-'})`;
-                    this.copyText(summary);
-                },
-
-                openDetailModal(id) {
-                    this.detailTab = 'program';
-                    fetch(`/students/${id}`, {
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        }
-                    })
-                    .then(res => res.json())
-                    .then(res => {
-                        if (res.success) {
-                            this.selectedStudent = Object.freeze(res.student);
-                            this.studentHistories = Object.freeze(res.histories || []);
-                            this.detailModalOpen = true;
-                            this.$nextTick(() => {
-                                if (window.lucide) lucide.createIcons();
-                            });
-                        }
-                    })
-                    .catch(err => {
-                        if (typeof window.showToast === 'function') {
-                            window.showToast('Perhatian!', "Gagal memuat detail murid: " + err.message, 'error');
-                        }
-                    });
-                },
-
                 openCreateModal() {
                     this.isEdit = false;
                     this.formTab = 'tab1_identitas';
@@ -2414,29 +1971,29 @@
                                 // Tab 3: Keluarga & Kontak
                                 parent_phone: s.parent_phone || '',
                                 father_name: s.father_name || fd.father?.name || '',
-                                father_title: fd.father?.title || '',
-                                father_nik: fd.father?.nik || '',
-                                father_birth: fd.father?.birth || '',
-                                father_education: fd.father?.education || '',
+                                father_title: s.father_title_suffix || fd.father?.title || '',
+                                father_nik: s.father_nik || fd.father?.nik || '',
+                                father_birth: (s.father_birth_date ? s.father_birth_date.substring(0, 10) : '') || fd.father?.birth || '',
+                                father_education: s.father_education || fd.father?.education || '',
                                 father_job: s.father_job || fd.father?.job || '',
-                                father_workplace: fd.father?.workplace || '',
+                                father_workplace: s.father_company || fd.father?.workplace || '',
                                 father_phone: s.father_phone || fd.father?.phone || '',
                                 
                                 mother_name: s.mother_name || fd.mother?.name || '',
-                                mother_title: fd.mother?.title || '',
-                                mother_nik: fd.mother?.nik || '',
-                                mother_birth: fd.mother?.birth || '',
-                                mother_education: fd.mother?.education || '',
+                                mother_title: s.mother_title_suffix || fd.mother?.title || '',
+                                mother_nik: s.mother_nik || fd.mother?.nik || '',
+                                mother_birth: (s.mother_birth_date ? s.mother_birth_date.substring(0, 10) : '') || fd.mother?.birth || '',
+                                mother_education: s.mother_education || fd.mother?.education || '',
                                 mother_job: s.mother_job || fd.mother?.job || '',
-                                mother_workplace: fd.mother?.workplace || '',
+                                mother_workplace: s.mother_company || fd.mother?.workplace || '',
                                 mother_phone: s.mother_phone || fd.mother?.phone || '',
                                 
                                 has_guardian: !!(s.guardian_name || fd.guardian?.name),
                                 guardian_name: s.guardian_name || fd.guardian?.name || '',
-                                guardian_relation: fd.guardian?.relation || '',
-                                guardian_nik: fd.guardian?.nik || '',
-                                guardian_education: fd.guardian?.education || '',
-                                guardian_job: fd.guardian?.job || '',
+                                guardian_relation: s.guardian_relation || fd.guardian?.relation || '',
+                                guardian_nik: s.guardian_nik || fd.guardian?.nik || '',
+                                guardian_education: s.guardian_education || fd.guardian?.education || '',
+                                guardian_job: s.guardian_job || fd.guardian?.job || '',
                                 guardian_phone: s.guardian_phone || fd.guardian?.phone || '',
                                 
                                 // Tab 4: Fisik & Kebiasaan PAUD
@@ -2479,7 +2036,6 @@
                                 notes: s.notes || '',
                             };
                             this.updateAvailableOptions();
-                            this.detailModalOpen = false;
                             this.formModalOpen = true;
                             this.$nextTick(() => {
                                 if (window.lucide) lucide.createIcons();

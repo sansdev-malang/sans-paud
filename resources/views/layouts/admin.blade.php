@@ -271,6 +271,37 @@
                 background-color: rgba(148, 163, 184, 0.35) !important;
             }
 
+            /* Ultra-subtle, auto-hiding horizontal scrollbar (minimalist & clean, hover-only like sidebar) */
+            .custom-horizontal-scroll {
+                overflow-x: auto;
+                scrollbar-width: thin;
+                scrollbar-color: transparent transparent;
+                overscroll-behavior-x: contain;
+                transition: scrollbar-color 0.2s ease;
+            }
+            .custom-horizontal-scroll::-webkit-scrollbar {
+                height: 4px;
+            }
+            .custom-horizontal-scroll::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            .custom-horizontal-scroll::-webkit-scrollbar-thumb {
+                background-color: transparent;
+                border-radius: 9999px;
+                transition: background-color 0.2s ease;
+            }
+            .tab-scroll-container:hover .custom-horizontal-scroll,
+            .custom-horizontal-scroll:hover {
+                scrollbar-color: rgba(148, 163, 184, 0.28) transparent;
+            }
+            .tab-scroll-container:hover .custom-horizontal-scroll::-webkit-scrollbar-thumb,
+            .custom-horizontal-scroll:hover::-webkit-scrollbar-thumb {
+                background-color: rgba(148, 163, 184, 0.28);
+            }
+            .custom-horizontal-scroll::-webkit-scrollbar-thumb:hover {
+                background-color: rgba(99, 102, 241, 0.5) !important;
+            }
+
             /* Smooth Desktop Sidebar Transitions (Mini-Sidebar / Collapsed view) */
             @media (min-width: 768px) {
                 #sidebar {
@@ -832,7 +863,7 @@
                             parentBtn.classList.add('pointer-events-none', 'opacity-60', 'cursor-not-allowed');
                         }
 
-                        window.showToastNotification('Menyiapkan berkas unduhan... File akan segera diunduh.', 'info', token);
+                        // Start top progress bar synchronously
                         if (typeof NProgress !== 'undefined') {
                             NProgress.start();
                         }
@@ -842,11 +873,9 @@
                         
                         e.preventDefault();
 
-                        // Hidden iframe to trigger file download without stopping page runtime
-                        const downloadFrame = document.createElement('iframe');
-                        downloadFrame.style.display = 'none';
-                        downloadFrame.src = url.toString();
-                        document.body.appendChild(downloadFrame);
+                        // Top-level navigation: with Content-Disposition: attachment,
+                        // the browser never unloads the page and Chrome correctly preserves the filename and extension.
+                        window.location.href = url.toString();
 
                         let finished = false;
                         const finishDownload = function (isSuccess = true) {
@@ -857,19 +886,13 @@
                             if (parentBtn) {
                                 parentBtn.classList.remove('pointer-events-none', 'opacity-60', 'cursor-not-allowed');
                             }
-                            window.dispatchEvent(new CustomEvent('toast-dismiss-dispatch', { detail: { token } }));
                             if (typeof NProgress !== 'undefined') {
                                 NProgress.done();
                             }
                             deleteCookie('download_token');
-                            if (isSuccess) {
-                                window.showToastNotification('Berkas berhasil diunduh.', 'success');
+                            if (isSuccess && typeof window.showToast === 'function') {
+                                window.showToast('Sukses!', 'Berkas berhasil diunduh.', 'success');
                             }
-                            setTimeout(function () {
-                                if (downloadFrame && downloadFrame.parentNode) {
-                                    downloadFrame.remove();
-                                }
-                            }, 2000);
                         };
                         
                         const intervalId = setInterval(function () {
@@ -881,7 +904,7 @@
                         
                         setTimeout(function () {
                             finishDownload(false);
-                        }, 10000);
+                        }, 15000);
                         
                         return;
                     }
@@ -910,69 +933,22 @@
                 });
 
                 window.showToastNotification = function (message, type = 'info', token = null) {
-                    window.dispatchEvent(new CustomEvent('toast-dispatch', { detail: { message, type, token } }));
+                    const defaultTitle = type === 'success' ? 'Sukses!' : (type === 'error' ? 'Perhatian!' : 'Mengunduh...');
+                    if (typeof window.showToast === 'function') {
+                        window.showToast(defaultTitle, message, type);
+                    }
                 };
             })();
         </script>
-
-        <!-- GLOBAL TOAST NOTIFICATION CONTAINER -->
-        <div x-data="{ 
-                toasts: [],
-                add(message, type = 'info', token = null) {
-                    const id = Date.now();
-                    this.toasts.push({ id, message, type, token });
-                    setTimeout(() => {
-                        this.remove(id);
-                    }, type === 'success' ? 4000 : 25000);
-                },
-                remove(id) {
-                    this.toasts = this.toasts.filter(t => t.id !== id);
-                },
-                removeByToken(token) {
-                    this.toasts = this.toasts.filter(t => t.token !== token);
-                }
-            }"
-            @toast-dispatch.window="add($event.detail.message, $event.detail.type, $event.detail.token)"
-            @toast-dismiss-dispatch.window="removeByToken($event.detail.token)"
-            class="fixed bottom-4 right-4 z-[9999] flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4">
-            
-            <template x-for="t in toasts" :key="t.id">
-                <div x-transition:enter="transition ease-out duration-300 transform translate-y-2 opacity-0"
-                     x-transition:enter-start="translate-y-2 opacity-0"
-                     x-transition:enter-end="translate-y-0 opacity-100"
-                     x-transition:leave="transition ease-in duration-200 opacity-0"
-                     class="pointer-events-auto flex items-center gap-3 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl w-full">
-                     
-                     <template x-if="t.type === 'info'">
-                          <svg class="animate-spin h-4 w-4 text-indigo-600 dark:text-indigo-400 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                     </template>
-
-                     <template x-if="t.type === 'success'">
-                          <div class="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center shrink-0">
-                              <svg class="h-3 w-3 text-emerald-600 dark:text-emerald-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                              </svg>
-                          </div>
-                     </template>
-                     
-                     <span class="text-xs font-semibold text-slate-700 dark:text-slate-300" x-text="t.message"></span>
-                </div>
-            </template>
-        </div>
-        <!-- PWA Service Worker Registration -->
+        <!-- Ensure Service Worker is completely disabled and unregistered in Admin Panel -->
         <script>
             if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('/sw.js')
-                        .then(reg => {
-                            console.log('[PWA] ServiceWorker registered with scope:', reg.scope);
-                        })
-                        .catch(err => {
-                            console.warn('[PWA] ServiceWorker registration failed:', err);
+                navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                    for (var r of registrations) {
+                        r.unregister().then(function () {
+                            console.log('[PWA] ServiceWorker unregistered for admin panel to prevent download interception.');
                         });
+                    }
                 });
             }
         </script>

@@ -60,6 +60,9 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,adm
     Route::post('students/import', [StudentController::class, 'import'])->name('students.import');
     Route::get('students/export/excel', [StudentController::class, 'exportExcel'])->name('students.export.excel');
     Route::get('students/export/pdf', [StudentController::class, 'exportPdf'])->name('students.export.pdf');
+    Route::get('students/{id}/export-dossier-pdf', [StudentController::class, 'dossierPdf'])->name('students.dossier.pdf');
+    Route::get('students/{id}/export-dossier-excel', [StudentController::class, 'dossierExcel'])->name('students.dossier.excel');
+    Route::get('students/{id}/print-dossier', [StudentController::class, 'dossierPrint'])->name('students.dossier.print');
     Route::resource('students', StudentController::class);
     Route::get('/siswa', fn() => redirect()->route('students.index'))->name('siswa');
 
