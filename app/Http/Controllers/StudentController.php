@@ -251,7 +251,17 @@ class StudentController extends Controller
             ->orderBy('name')
             ->get();
 
-        $students = $query->orderBy('status', 'asc')->orderBy('full_name', 'asc')->paginate(20)->withQueryString();
+        // Pagination with custom per-page selector
+        $perPageInput = $request->get('per_page', 20);
+        $perPage = ($perPageInput === 'all' || $perPageInput === 'semua' || (int)$perPageInput >= 9999) ? 99999 : (int)$perPageInput;
+        if (!in_array($perPage, [10, 20, 25, 50, 100, 99999])) {
+            $perPage = 20;
+        }
+
+        $students = $query->orderBy('status', 'asc')
+            ->orderBy('full_name', 'asc')
+            ->paginate($perPage)
+            ->withQueryString();
 
         return view('admin.students.index', compact(
             'students',
@@ -271,7 +281,8 @@ class StudentController extends Controller
             'selectedClassLevelId',
             'selectedClassroomId',
             'selectedStatus',
-            'selectedGender'
+            'selectedGender',
+            'perPage'
         ));
     }
 

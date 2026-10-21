@@ -270,7 +270,20 @@
                         <option value="P" {{ $selectedGender === 'P' ? 'selected' : '' }} class="bg-white dark:bg-slate-900">Putri (P)</option>
                     </select>
 
-                    @if(request()->hasAny(['search', 'academic_year_id', 'class_level_id', 'classroom_id', 'status', 'gender']))
+                    <!-- Filter 6: Pilihan Jumlah Baris / Tampilkan -->
+                    <div class="inline-flex items-center bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg h-8 px-2.5 gap-1 shadow-xs" title="Pilih jumlah baris data per halaman">
+                        <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider shrink-0">Baris:</span>
+                        <select name="per_page" onchange="this.form.submit()"
+                            class="h-full py-0 pl-1 pr-6 text-[11px] font-bold bg-transparent text-slate-900 dark:text-slate-100 focus:outline-none cursor-pointer border-0">
+                            <option value="10" {{ ($perPage ?? 20) == 10 ? 'selected' : '' }} class="bg-white dark:bg-slate-900">10</option>
+                            <option value="20" {{ ($perPage ?? 20) == 20 ? 'selected' : '' }} class="bg-white dark:bg-slate-900">20</option>
+                            <option value="50" {{ ($perPage ?? 20) == 50 ? 'selected' : '' }} class="bg-white dark:bg-slate-900">50</option>
+                            <option value="100" {{ ($perPage ?? 20) == 100 ? 'selected' : '' }} class="bg-white dark:bg-slate-900">100</option>
+                            <option value="all" {{ ($perPage ?? 20) >= 9999 ? 'selected' : '' }} class="bg-white dark:bg-slate-900">Semua</option>
+                        </select>
+                    </div>
+
+                    @if(request()->hasAny(['search', 'academic_year_id', 'class_level_id', 'classroom_id', 'status', 'gender']) || (request()->filled('per_page') && request('per_page') != 20))
                         <a href="{{ route('students.index', ['jenjang_id' => $selectedJenjangId]) }}" 
                             class="h-8 px-2.5 inline-flex items-center justify-center gap-1 text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 shadow-xs transition-colors cursor-pointer"
                             title="Reset Filter">
@@ -463,16 +476,27 @@
             </div>
 
             <!-- PAGINATION -->
-            @if($students->hasPages())
-                <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <span class="text-xs text-slate-500 dark:text-slate-400">
-                        Menampilkan <span class="font-semibold text-slate-700 dark:text-slate-300">{{ $students->firstItem() }}-{{ $students->lastItem() }}</span> dari <span class="font-semibold text-slate-700 dark:text-slate-300">{{ $students->total() }}</span> murid
-                    </span>
+            <div class="px-5 sm:px-6 py-3.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
+                <div class="flex items-center gap-2">
+                    @if($students->total() > 0)
+                        <span>Menampilkan <span class="font-bold text-slate-800 dark:text-slate-200">{{ $students->firstItem() ?? 1 }}</span> s/d <span class="font-bold text-slate-800 dark:text-slate-200">{{ $students->lastItem() ?? $students->total() }}</span> dari total <span class="font-bold text-slate-900 dark:text-slate-100">{{ $students->total() }}</span> murid</span>
+                    @else
+                        <span>Tidak ada data murid yang ditampilkan</span>
+                    @endif
+
+                    @if(($perPage ?? 20) >= 9999)
+                        <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                            Mode Semua Baris
+                        </span>
+                    @endif
+                </div>
+
+                @if($students->hasPages())
                     <div>
                         {{ $students->links() }}
                     </div>
-                </div>
-            @endif
+                @endif
+            </div>
         </section>
 
         <!-- MODAL TAMBAH / EDIT MURID (5-STEP WIZARD FORM) -->
