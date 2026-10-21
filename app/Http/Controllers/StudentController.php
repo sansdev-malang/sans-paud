@@ -537,7 +537,16 @@ class StudentController extends Controller
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Dossier ' . mb_substr($student->nickname ?: $student->full_name, 0, 20));
+
+        // Sanitize worksheet title (Excel forbids: \ / ? * : [ ] and max 31 characters)
+        $rawSheetName = 'Dossier ' . ($student->nickname ?: $student->full_name);
+        $cleanSheetName = trim(str_replace(['\\', '/', '?', '*', ':', '[', ']'], ' ', $rawSheetName));
+        $cleanSheetName = preg_replace('/\s+/', ' ', $cleanSheetName);
+        $cleanSheetName = mb_substr($cleanSheetName, 0, 31);
+        if (empty($cleanSheetName)) {
+            $cleanSheetName = 'Dossier Murid';
+        }
+        $sheet->setTitle($cleanSheetName);
 
         // Document Banner
         $sheet->mergeCells('A1:D1');
