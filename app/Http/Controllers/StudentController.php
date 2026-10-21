@@ -1545,26 +1545,26 @@ class StudentController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Data Murid');
 
-        // CATEGORY HEADER (ROW 4) - 11 Comprehensive Categories across 193 Columns
+        // CATEGORY HEADER (ROW 4) - 11 Comprehensive Categories across 199 Columns
         $categories = [
             ['range' => 'A4:S4', 'title' => '1. BIODATA & IDENTITAS UTAMA', 'color' => 'FF0284C7'], // Sky 600 (19 cols)
             ['range' => 'T4:AE4', 'title' => '2. AKADEMIK & PENEMPATAN KELAS', 'color' => 'FF4F46E5'], // Indigo 600 (12 cols)
             ['range' => 'AF4:AR4', 'title' => '3. DOMISILI & TRANSPORTASI', 'color' => 'FF0D9488'], // Teal 600 (13 cols)
             ['range' => 'AS4:CH4', 'title' => '4. DATA ORANG TUA & WALI', 'color' => 'FF059669'], // Emerald 600 (42 cols)
-            ['range' => 'CI4:DA4', 'title' => '5. LINGKUNGAN KELUARGA & SOSIAL', 'color' => 'FF8B5CF6'], // Violet 600 (19 cols)
-            ['range' => 'DB4:DX4', 'title' => '6. ANTROPOMETRI, KESEHATAN & LAHIR', 'color' => 'FFEA580C'], // Orange 600 (23 cols)
-            ['range' => 'DY4:EX4', 'title' => '7. POLA MAKAN, TOILET & MEDIS', 'color' => 'FFD97706'], // Amber 600 (26 cols)
-            ['range' => 'EY4:FG4', 'title' => '8. POLA TIDUR & KEBIASAAN', 'color' => 'FF0284C7'], // Sky 600 (9 cols)
-            ['range' => 'FH4:FP4', 'title' => '9. PSIKOLOGI, SIFAT & POLA MAIN', 'color' => 'FFEC4899'], // Pink 600 (9 cols)
-            ['range' => 'FQ4:FY4', 'title' => '10. SCREEN TIME, GADGET & TV', 'color' => 'FF6366F1'], // Indigo 500 (9 cols)
-            ['range' => 'FZ4:GK4', 'title' => '11. KOMITMEN, DOKUMEN & AKUN', 'color' => 'FF475569'], // Slate 600 (12 cols)
+            ['range' => 'CI4:DB4', 'title' => '5. LINGKUNGAN KELUARGA & SOSIAL', 'color' => 'FF8B5CF6'], // Violet 600 (20 cols)
+            ['range' => 'DC4:DX4', 'title' => '6. ANTROPOMETRI, LAHIR & TUMBUH KEMBANG', 'color' => 'FFEA580C'], // Orange 600 (22 cols)
+            ['range' => 'DY4:EY4', 'title' => '7. POLA MAKAN, TOILET & KESEHATAN MEDIS', 'color' => 'FFD97706'], // Amber 600 (27 cols)
+            ['range' => 'EZ4:FH4', 'title' => '8. POLA TIDUR & KEBIASAAN', 'color' => 'FF0284C7'], // Sky 600 (9 cols)
+            ['range' => 'FI4:FQ4', 'title' => '9. PSIKOLOGI, SIFAT & POLA MAIN', 'color' => 'FFEC4899'], // Pink 600 (9 cols)
+            ['range' => 'FR4:FZ4', 'title' => '10. SCREEN TIME, GADGET & TELEVISI', 'color' => 'FF6366F1'], // Indigo 500 (9 cols)
+            ['range' => 'GA4:GQ4', 'title' => '11. KOMITMEN, HARAPAN & AKUN', 'color' => 'FF475569'], // Slate 600 (17 cols)
         ];
 
-        // Document Title Banner - Merged across full category width (A1:GK1, A2:GK2, A3:GK3)
+        // Document Title Banner - Merged across full category width (A1:GQ1, A2:GQ2, A3:GQ3)
         // Merging prevents truncation at the freeze pane boundary (Column C) while keeping clean layout
         $lastCategory = end($categories);
         $lastCol = explode(':', $lastCategory['range'])[1];
-        $lastCol = preg_replace('/[0-9]/', '', $lastCol) ?: 'GK';
+        $lastCol = preg_replace('/[0-9]/', '', $lastCol) ?: 'GQ';
 
         $sheet->mergeCells("A1:{$lastCol}1");
         $sheet->mergeCells("A2:{$lastCol}2");
@@ -1593,9 +1593,9 @@ class StudentController extends Controller
         }
         $sheet->getRowDimension(4)->setRowHeight(22);
 
-        // Table Headers (Comprehensive - 193 Columns) covering all questionnaires & profile fields
+        // Table Headers (Comprehensive - 199 Columns) covering all questionnaires & profile fields
         $headers = [
-            // 1-19: Biodata & Identitas Utama
+            // 1. BIODATA & IDENTITAS UTAMA (1-19)
             'No',
             'Nama Lengkap',
             'Nama Panggilan',
@@ -1616,7 +1616,7 @@ class StudentController extends Controller
             'Cita-cita Siswa',
             'Hobi Siswa',
 
-            // 20-31: Akademik & Penempatan Kelas
+            // 2. AKADEMIK & PENEMPATAN KELAS (20-31)
             'Status Murid',
             'Tahun Ajaran',
             'Sub Unit',
@@ -1630,7 +1630,7 @@ class StudentController extends Controller
             'Tanggal Masuk / Diterima',
             'No. SPMB',
 
-            // 32-44: Domisili & Transportasi
+            // 3. DOMISILI & TRANSPORTASI (32-44)
             'Alamat Jalan',
             'Dusun',
             'RT',
@@ -1642,10 +1642,10 @@ class StudentController extends Controller
             'Kode Pos',
             'Tempat Tinggal',
             'Moda Transportasi',
-            'Jarak Sekolah',
+            'Jarak Sekolah (km)',
             'Waktu Tempuh (menit)',
 
-            // 45-86: Data Orang Tua & Wali
+            // 4. DATA ORANG TUA & WALI (45-86)
             'Gelar Depan Ayah',
             'Nama Ayah',
             'Gelar Belakang Ayah',
@@ -1682,130 +1682,136 @@ class StudentController extends Controller
             'Instansi Wali',
             'Penghasilan Wali',
             'No. HP Wali',
-            'Tinggal Bersama Wali',
+            'Didampingi Wali',
             'Nama Kontak Darurat',
             'No. HP Kontak Darurat',
             'Hubungan Kontak Darurat',
             'No. WhatsApp Kontak Utama',
             'Email Orang Tua',
 
-            // 87-105: Lingkungan Keluarga & Sosial
-            'Status Pernikahan Orang Tua',
-            'Hak Asuh Anak',
-            'Harapan Orang Tua terhadap Sekolah',
-            'Bahasa Ibu / Sehari-hari',
-            'Bahasa Kedua',
-            'Pengasuh Utama Sehari-hari',
-            'Anggota Keluarga di Rumah',
-            'Jumlah Orang Dewasa di Rumah',
-            'Jumlah Anak-anak di Rumah',
-            'Tinggal dengan Kakek/Nenek',
-            'Ada ART / Pengasuh',
-            'Hubungan Antar Saudara',
-            'Interaksi Sosial dengan Teman Sebaya',
-            'Respon terhadap Orang Baru',
-            'Reaksi Perpisahan dengan Ortu',
-            'Cara Menenangkan Diri',
-            'Pola Disiplin di Rumah',
-            'Yang Memberi Hukuman/Konsekuensi',
-            'Bentuk Hadiah/Pujian di Rumah',
+            // 5. LINGKUNGAN KELUARGA & SOSIAL (87-106)
+            'Status Rumah Tinggal',
+            'Lingkungan Tempat Tinggal',
+            'Halaman Bermain di Luar',
+            'Keadaan Halaman Luar Rumah',
+            'Jumlah Penghuni Dewasa',
+            'Jumlah Penghuni Anak-Anak',
+            'Hubungan Sehari-hari Paling Erat',
+            'Dipercaya Mengantar-Jemput',
+            'Hubungan dengan Ayah',
+            'Hubungan dengan Bunda',
+            'Hubungan dengan Saudara',
+            'Hubungan dengan Kakek & Nenek',
+            'Hubungan dengan Teman Sebaya',
+            'Kesempatan Bergaul Teman Sebaya',
+            'Intensitas Komunikasi Ayah',
+            'Intensitas Komunikasi Bunda',
+            'Iklim Keagamaan Keluarga',
+            'Peran Beribadah Bersama Keluarga',
+            'Masjid di Sekitar Rumah',
+            'TPQ dalam Radius 300m',
 
-            // 106-128: Antropometri, Kesehatan & Lahir
+            // 6. ANTROPOMETRI, LAHIR & TUMBUH KEMBANG (107-128)
             'Anak Ke-',
             'Jumlah Saudara Kandung',
-            'Jumlah Saudara Tiri/Angkat',
             'Gol. Darah',
-            'Berat Lahir (kg/gram)',
-            'Panjang Lahir (cm)',
-            'Usia Gestasi / Kelahiran',
-            'Riwayat Proses Persalinan',
-            'Komplikasi Kehamilan/Persalinan',
-            'Usia Mulai Berjalan',
-            'Usia Mulai Bicara Jelas',
-            'Riwayat Imunisasi Lengkap',
-            'Rincian Imunisasi yang Diterima',
-            'Kebutuhan Khusus / ABK',
+            'Berkebutuhan Khusus',
             'Rincian Kebutuhan Khusus',
-            'Riwayat Alergi Makanan',
-            'Riwayat Alergi Obat',
-            'Riwayat Alergi Lingkungan/Udara',
-            'Riwayat Penyakit Berat / Rawat Inap',
             'Tinggi Badan Saat Ini (cm)',
             'Berat Badan Saat Ini (kg)',
             'Lingkar Kepala (cm)',
-            'Lingkar Lengan Atas (LiLa cm)',
+            'Lingkar Lengan / LiLa (cm)',
+            'Berat & Panjang Lahir (kg/cm)',
+            'Usia Kandungan Saat Lahir',
+            'Kondisi Dalam Kandungan',
+            'Cara Persalinan Saat Lahir',
+            'Alasan Tindakan Persalinan',
+            'Disusui Oleh',
+            'Durasi Mendapatkan ASI (bulan)',
+            'Usia Mulai Susu Formula (bulan)',
+            'Usia Mulai MPASI / Tambahan',
+            'Mulai Tumbuh Gigi Usia',
+            'Mulai Dapat Berjalan Usia',
+            'Mulai Dapat Berbicara Usia',
+            'Gangguan Tumbuh Kembang',
 
-            // 129-154: Pola Makan, Toilet & Medis
-            'Nafsu Makan Umum',
-            'Menu Favorit Anak',
-            'Makanan yang Tidak Disukai',
-            'Kemampuan Makan Sendiri',
-            'Cara Minum',
-            'Jadwal Sarapan Pagi',
-            'Jadwal Makan Siang',
-            'Jadwal Makan Malam',
+            // 7. POLA MAKAN, TOILET & KESEHATAN MEDIS (129-155)
+            'Selera Makan Pagi',
+            'Selera Makan Siang',
+            'Selera Makan Malam',
             'Kebiasaan Camilan / Snack',
-            'Status Toilet Training',
-            'Usia Memulai Toilet Training',
-            'Kemampuan BAK Mandiri',
-            'Kemampuan BAB Mandiri',
-            'Kesiapan Toilet Jongkok/Duduk',
-            'Masih Menggunakan Popok / Diapers',
-            'Frekuensi Pakai Popok',
-            'Tanda/Kode Ingin Buang Air',
-            'Riwayat Kejang / Step Demam',
-            'Riwayat Asma / Sesak Napas',
-            'Obat Rutin yang Sedang Dikonsumsi',
-            'Dokter / Klinik Langganan',
-            'No. Telp Dokter / RS Rujukan',
-            'Kepemilikan Asuransi / BPJS',
-            'Nomor BPJS Kesehatan Anak',
-            'Fasilitas Kesehatan Tingkat 1 (Faskes 1)',
-            'Tindakan Darurat yang Diizinkan',
+            'Waktu Makan Sambil',
+            'Berdoa Sebelum & Sesudah Makan',
+            'Makanan yang Disukai',
+            'Makanan yang Tidak Disukai',
+            'Minuman yang Disukai',
+            'Minuman yang Tidak Disukai',
+            'Masih Memakai Diapers / Popok',
+            'Kebiasaan Buang Air',
+            'Kencing / Ngompol Saat Tidur',
+            'Kebiasaan Gosok Gigi',
+            'Frekuensi Gosok Gigi Sehari',
+            'Gosok Gigi Dibantu / Mandiri',
+            'Riwayat Imunisasi',
+            'Penyakit Berat yang Pernah Diderita',
+            'Penyakit yang Sering Diderita',
+            'Alergi Terhadap Makanan',
+            'Reaksi Terhadap Alergi',
+            'Penyembuhan Alergi Makanan',
+            'Alergi Terhadap Minuman',
+            'Alternatif Penyembuhan Alergi',
+            'Tempat Periksa Saat Sakit',
+            'Alternatif Pengobatan Sakit',
+            'Pesan Kesehatan dari Ortu',
 
-            // 155-163: Pola Tidur & Kebiasaan
-            'Jam Tidur Malam',
-            'Jam Bangun Pagi',
-            'Kebiasaan Tidur Siang',
-            'Jam & Durasi Tidur Siang',
-            'Ritual Sebelum Tidur',
-            'Benda Kenyamanan / Boneka / Guling',
-            'Sering Terbangun / Mimpi Buruk',
-            'Posisi Tidur Favorit',
-            'Tempat Tidur',
+            // 8. POLA TIDUR & KEBIASAAN (156-164)
+            'Kebiasaan Tidur Malam Pukul',
+            'Kebiasaan Bangun Pagi Pukul',
+            'Kebiasaan Tidur Siang Pukul',
+            'Bangun Tidur Siang Pukul',
+            'Bagaimana Ananda Tidur',
+            'Memiliki Kamar Tidur Sendiri',
+            'Sebelum/Sesudah Tidur Diajari Doa',
+            'Mengigau dalam Tidur',
+            'Catatan Khusus Saat Tidur',
 
-            // 164-172: Psikologi, Sifat & Pola Main
-            'Karakter / Sifat Utama Anak',
-            'Hal yang Paling Disukai',
-            'Hal yang Ditakuti / Fobia',
-            'Pemicu Marah / Tantrum',
-            'Cara Menghadapi Kemarahan Anak',
-            'Permainan / Aktivitas Favorit',
-            'Ketahanan Konsentrasi / Durasi Fokus',
-            'Kecenderungan Bermain',
-            'Minat Khusus Siswa',
+            // 9. PSIKOLOGI, SIFAT & POLA MAIN (165-173)
+            'Karakter atau Sifat Ananda',
+            'Kepatuhan Ananda di Rumah',
+            'Catatan Perilaku di Rumah',
+            'Kebiasaan Bermain',
+            'Tempat Bermain Ananda',
+            'Bermain Bersama Siapa',
+            'Mainan yang Disenangi',
+            'Mainan yang Tidak Disenangi',
+            'Mainan Berbahaya yang Dihindari',
 
-            // 173-181: Screen Time, Gadget & TV
-            'Diberi Akses Gadget / HP',
-            'Durasi Screen Time per Hari',
-            'Konten / Video Favorit',
-            'Akses Menonton TV',
-            'Durasi Menonton TV per Hari',
-            'Pendampingan Saat Menggunakan Gadget',
-            'Reaksi Saat Gadget / TV Dimatikan',
-            'Waktu Khusus Screen Time',
-            'Kesepakatan / Aturan Gadget di Rumah',
+            // 10. SCREEN TIME, GADGET & TELEVISI (174-182)
+            'Fasilitas Game & Sejenisnya',
+            'Fasilitas Menonton/Buka YouTube',
+            'Reaksi Setelah Membuka YouTube',
+            'Frekuensi Menonton Televisi',
+            'Acara TV yang Disukai',
+            'Acara TV yang Tidak Disukai',
+            'Pendamping Saat Menonton TV',
+            'Didampingi Ketika Melihat TV',
+            'Konsentrasi Ketika Melihat TV',
 
-            // 182-193: Komitmen, Dokumen & Akun
-            'Ketersediaan Mendampingi Kegiatan Sekolah',
-            'Komitmen Mengikuti Parenting / POMG',
-            'Izin Publikasi Dokumentasi / Medsos',
+            // 11. KOMITMEN, HARAPAN & AKUN (183-199)
+            'Harapan Orang Tua terhadap Siswa',
+            'Kesediaan Menindaklanjuti Asesmen',
+            'Bentuk Tindak Lanjut yang Disetujui',
+            'Saran-saran Orang Tua ke Sekolah',
+            'Upload Scan NISN',
+            'Upload Scan Ket. Sekolah Lama',
+            'Upload Scan KIA',
+            'Upload Scan Rapot Terakhir',
+            'Upload Scan Asesmen Tumbuh Kembang',
+            'Upload Scan Buku KMS',
             'Berkas Akta Kelahiran',
             'Berkas Kartu Keluarga',
             'Berkas KTP Orang Tua',
-            'Berkas Buku KIA / Imunisasi',
             'Pas Foto Murid',
-            'Status Kelengkapan Berkas Fisik',
             'PIN Akses Ortu',
             'Tanggal Terdaftar di Sistem',
             'Catatan Khusus dari Sekolah'
@@ -1828,7 +1834,7 @@ class StudentController extends Controller
             ->setVertical(Alignment::VERTICAL_CENTER);
         $sheet->getRowDimension($startRow)->setRowHeight(26);
 
-        // Populate Data Rows across 193 columns
+        // Populate Data Rows across 199 columns
         $currentRow = $startRow + 1;
         foreach ($students as $index => $s) {
             $genderLabel = in_array(strtoupper((string)$s->gender), ['L', 'LAKI-LAKI', 'MALE']) ? 'L' : 'P';
@@ -1897,10 +1903,109 @@ class StudentController extends Controller
             $emergencyRelation = $s->emergency_contact_relation ?? '-';
             $mainParentPhone = $s->clean_parent_phone ?? $s->parent_phone ?? ($fatherPhone ?: $motherPhone ?: '');
             $parentEmail = $s->parent_email ?? ($fd['parent_email'] ?? '-');
-            $parentAspiration = $s->parent_aspiration ?? ($fd['parent_expectation'] ?? '-');
+
+            // Milestones & Measurements
+            $birthWeightLength = $hh['birth_history']['birth_weight_length'] ?? '-';
+            $gestationalAge = $hh['birth_history']['gestational_age'] ?? '-';
+            $prenatalCondition = $hh['birth_history']['prenatal_condition'] ?? '-';
+            $deliveryMethod = $hh['birth_history']['delivery_method'] ?? '-';
+            $deliveryReason = $hh['birth_history']['delivery_reason'] ?? '-';
+
+            $breastfedBy = $hh['milestones']['breastfed_by'] ?? '-';
+            $breastfedDuration = $hh['milestones']['breastfed_duration'] ?? '-';
+            $formulaStart = $hh['milestones']['formula_start'] ?? '-';
+            $mpasiStart = $hh['milestones']['mpasi_start'] ?? '-';
+            $teethAge = $hh['milestones']['teeth_age'] ?? '-';
+            $walkingAge = $hh['milestones']['walking_age'] ?? '-';
+            $talkingAge = $hh['milestones']['talking_age'] ?? '-';
+            $developmentalIssues = $hh['milestones']['developmental_issues'] ?? '-';
+
+            // Meals
+            $breakfastAppetite = $hh['meals']['breakfast'] ?? '-';
+            $lunchAppetite = $hh['meals']['lunch'] ?? '-';
+            $dinnerAppetite = $hh['meals']['dinner'] ?? '-';
+            $snackHabit = $hh['meals']['snack_habit'] ?? '-';
+            $eatingManner = $hh['meals']['eating_manner'] ?? '-';
+            $praysBeforeAfter = $hh['meals']['prays_before_after'] ?? '-';
+            $favFood = $hh['meals']['favorite'] ?? '-';
+            $dislikedFood = $hh['meals']['avoided'] ?? '-';
+            $favDrink = $hh['meals']['favorite_drink'] ?? '-';
+            $dislikedDrink = $hh['meals']['avoided_drink'] ?? '-';
+
+            // Toilet
+            $usesDiapers = $hh['toilet_training']['uses_diapers'] ?? '-';
+            $toiletHabit = $hh['toilet_training']['toilet_habit'] ?? '-';
+            $bedwetting = $hh['toilet_training']['bedwetting'] ?? '-';
+            $toothbrushHabit = $hh['toilet_training']['toothbrush_habit'] ?? '-';
+            $toothbrushFrequency = $hh['toilet_training']['toothbrush_frequency'] ?? '-';
+            $toothbrushAssisted = $hh['toilet_training']['toothbrush_assisted'] ?? '-';
+
+            // Medical
+            $immunizations = $hh['medical_history']['immunizations'] ?? '-';
+            $severeDiseases = $hh['medical_history']['severe_diseases'] ?? '-';
+            $frequentDiseases = $hh['medical_history']['frequent_diseases'] ?? '-';
+            $foodAllergy = $hh['medical_history']['food_allergy'] ?? '-';
+            $allergyReaction = $hh['medical_history']['allergy_reaction'] ?? '-';
+            $allergyTreatment = $hh['medical_history']['allergy_treatment'] ?? '-';
+            $drinkAllergy = $hh['medical_history']['drink_allergy'] ?? '-';
+            $treatmentAlternativeAllergy = $hh['medical_history']['treatment_alternative'] ?? '-';
+            $preferredDoctor = $hh['medical_history']['preferred_doctor'] ?? '-';
+            $treatmentAlternative = $hh['medical_history']['treatment_alternative'] ?? '-';
+            $schoolHealthNotes = $hh['medical_history']['school_health_notes'] ?? '-';
+
+            // Sleeping
+            $bedtime = $hh['sleeping']['bedtime'] ?? '-';
+            $wakeMorningTime = $hh['sleeping']['wake_morning_time'] ?? '-';
+            $napTime = $hh['sleeping']['nap_time'] ?? '-';
+            $wakeNapTime = $hh['sleeping']['wake_nap_time'] ?? '-';
+            $sleepingWith = $hh['sleeping']['sleeping_with'] ?? '-';
+            $hasOwnBedroom = $hh['sleeping']['has_own_bedroom'] ?? '-';
+            $sleepPrayers = $hh['sleeping']['sleep_prayers'] ?? '-';
+            $sleepTalking = $hh['sleeping']['sleep_talking'] ?? '-';
+            $sleepNotes = $hh['sleeping']['sleep_notes'] ?? '-';
+
+            // Traits & Play
+            $characterTraits = $dp['traits']['character_traits'] ?? '-';
+            $obedience = $dp['traits']['obedience'] ?? '-';
+            $behaviorNotes = $dp['traits']['behavior_notes'] ?? '-';
+
+            $playHabits = $dp['play']['play_habits'] ?? '-';
+            $playLocation = $dp['play']['play_location'] ?? '-';
+            $playmates = $dp['play']['playmates'] ?? '-';
+            $favoriteToys = $dp['play']['favorite_toys'] ?? '-';
+            $dislikedToys = $dp['play']['disliked_toys'] ?? '-';
+            $dangerousToys = $dp['play']['dangerous_toys'] ?? '-';
+
+            // Screen Time
+            $gameFacility = $dp['screen_time']['game_facility'] ?? '-';
+            $youtubeAccess = $dp['screen_time']['youtube_access'] ?? '-';
+            $youtubeReaction = $dp['screen_time']['youtube_reaction'] ?? '-';
+            $tvFrequency = $dp['screen_time']['tv_frequency'] ?? '-';
+            $favoriteTv = $dp['screen_time']['favorite_tv'] ?? '-';
+            $dislikedTv = $dp['screen_time']['disliked_tv'] ?? '-';
+            $tvCompanion = $dp['screen_time']['tv_companion'] ?? '-';
+            $tvAccompanied = $dp['screen_time']['tv_accompanied'] ?? '-';
+            $tvConcentration = $dp['screen_time']['tv_concentration'] ?? '-';
+
+            // Commitments & Docs
+            $parentAspiration = $s->parent_aspiration ?? ($dp['commitments']['paud_outcome_expectation'] ?? '-');
+            $assessmentAgreement = $dp['commitments']['assessment_agreement'] ?? '-';
+            $agreedFollowupTypes = $dp['commitments']['agreed_followup_types'] ?? '-';
+            $parentSuggestions = $dp['commitments']['parent_suggestions'] ?? '-';
+
+            $docNisn = !empty($docs['nisn']) ? 'Tersedia' : 'Belum';
+            $docPrevSchool = !empty($docs['previous_school']) ? 'Tersedia' : 'Belum';
+            $docKia = !empty($docs['kia']) ? 'Tersedia' : 'Belum';
+            $docReport = !empty($docs['report']) ? 'Tersedia' : 'Belum';
+            $docAssessment = !empty($docs['assessment']) ? 'Tersedia' : 'Belum';
+            $docKms = !empty($docs['kms']) ? 'Tersedia' : 'Belum';
+            $docBirthCert = !empty($docs['birth_certificate']) || !empty($s->no_akta) ? 'Tersedia' : 'Belum';
+            $docFamilyCard = !empty($docs['family_card']) || !empty($s->no_kk) ? 'Tersedia' : 'Belum';
+            $docParentId = !empty($docs['parent_id_card']) || !empty($s->father_nik) || !empty($s->mother_nik) ? 'Tersedia' : 'Belum';
+            $studentPhoto = !empty($docs['student_photo']) || !empty($s->student_photo_url) ? 'Tersedia' : 'Belum';
 
             $row = [
-                // 1-19: Biodata & Identitas Utama
+                // 1. BIODATA & IDENTITAS UTAMA (19 cols)
                 $index + 1,
                 $s->full_name,
                 $s->nickname ?? '-',
@@ -1921,9 +2026,9 @@ class StudentController extends Controller
                 $s->student_aspiration ?? '-',
                 $s->student_hobby ?? '-',
 
-                // 20-31: Akademik & Penempatan Kelas
+                // 2. AKADEMIK & PENEMPATAN KELAS (12 cols)
                 ucfirst($s->status ?? 'aktif'),
-                $s->academicYear?->name ?? ($selectedYear?->name ?? '-'),
+                $s->academicYear?->name ?? '-',
                 $s->sub_unit ?? 'TK',
                 $jenjangName,
                 $classLevelName,
@@ -1935,7 +2040,7 @@ class StudentController extends Controller
                 $enrolledDateFormatted,
                 (string)$spmbNumber,
 
-                // 32-44: Domisili & Transportasi
+                // 3. DOMISILI & TRANSPORTASI (13 cols)
                 $s->address ?? '-',
                 $s->dusun ?? '-',
                 $s->rt ?? '-',
@@ -1945,12 +2050,12 @@ class StudentController extends Controller
                 $s->city ?? 'Malang',
                 $s->province ?? 'Jawa Timur',
                 $s->postal_code ?? '-',
-                $s->living_with ?? 'Bersama orang tua',
+                $s->living_with ?? 'Bersama Orang Tua',
                 $s->transportation ?? '-',
                 $s->distance_to_school ?? '-',
                 $s->travel_time_minutes ?? '-',
 
-                // 45-86: Data Orang Tua & Wali
+                // 4. DATA ORANG TUA & WALI (42 cols)
                 $fatherTitlePrefix,
                 $fatherName,
                 $fatherTitleSuffix,
@@ -1994,124 +2099,129 @@ class StudentController extends Controller
                 (string)$mainParentPhone,
                 $parentEmail,
 
-                // 87-105: Lingkungan Keluarga & Sosial
-                $fd['environment']['house_ownership'] ?? ($fd['marital_status'] ?? '-'),
-                $fd['environment']['housing_environment'] ?? ($fd['custody'] ?? '-'),
+                // 5. LINGKUNGAN KELUARGA & SOSIAL (20 cols)
+                $fd['environment']['house_ownership'] ?? '-',
+                $fd['environment']['housing_environment'] ?? '-',
+                $fd['environment']['has_playyard'] ?? '-',
+                $fd['environment']['playyard_state'] ?? '-',
+                $fd['environment']['adult_residents'] ?? '-',
+                $fd['environment']['child_residents'] ?? '-',
+                $fd['relationships']['closest_bond'] ?? '-',
+                $fd['relationships']['trusted_pickup'] ?? '-',
+                $fd['relationships']['rel_father'] ?? '-',
+                $fd['relationships']['rel_mother'] ?? '-',
+                $fd['relationships']['rel_siblings'] ?? '-',
+                $fd['relationships']['rel_grandparents'] ?? '-',
+                $fd['relationships']['rel_peers'] ?? '-',
+                $fd['relationships']['peer_opportunity'] ?? '-',
+                $fd['relationships']['comm_father'] ?? '-',
+                $fd['relationships']['comm_mother'] ?? '-',
+                $fd['religious_climate']['climate'] ?? '-',
+                $fd['religious_climate']['family_worship'] ?? '-',
+                $fd['religious_climate']['nearby_mosque'] ?? '-',
+                $fd['religious_climate']['nearby_tpq'] ?? '-',
+
+                // 6. ANTROPOMETRI, LAHIR & TUMBUH KEMBANG (22 cols)
+                $s->child_order ?? '-',
+                $s->siblings_count ?? '-',
+                $s->blood_type ?? '-',
+                $s->special_needs ?? 'Tidak',
+                $s->special_needs_detail ?? '-',
+                $s->height ?? '-',
+                $s->weight ?? '-',
+                $s->head_circumference ?? '-',
+                $s->arm_circumference ?? '-',
+                $birthWeightLength,
+                $gestationalAge,
+                $prenatalCondition,
+                $deliveryMethod,
+                $deliveryReason,
+                $breastfedBy,
+                $breastfedDuration,
+                $formulaStart,
+                $mpasiStart,
+                $teethAge,
+                $walkingAge,
+                $talkingAge,
+                $developmentalIssues,
+
+                // 7. POLA MAKAN, TOILET & KESEHATAN MEDIS (27 cols)
+                $breakfastAppetite,
+                $lunchAppetite,
+                $dinnerAppetite,
+                $snackHabit,
+                $eatingManner,
+                $praysBeforeAfter,
+                $favFood,
+                $dislikedFood,
+                $favDrink,
+                $dislikedDrink,
+                $usesDiapers,
+                $toiletHabit,
+                $bedwetting,
+                $toothbrushHabit,
+                $toothbrushFrequency,
+                $toothbrushAssisted,
+                $immunizations,
+                $severeDiseases,
+                $frequentDiseases,
+                $foodAllergy,
+                $allergyReaction,
+                $allergyTreatment,
+                $drinkAllergy,
+                $treatmentAlternativeAllergy,
+                $preferredDoctor,
+                $treatmentAlternative,
+                $schoolHealthNotes,
+
+                // 8. POLA TIDUR & KEBIASAAN (9 cols)
+                $bedtime,
+                $wakeMorningTime,
+                $napTime,
+                $wakeNapTime,
+                $sleepingWith,
+                $hasOwnBedroom,
+                $sleepPrayers,
+                $sleepTalking,
+                $sleepNotes,
+
+                // 9. PSIKOLOGI, SIFAT & POLA MAIN (9 cols)
+                $characterTraits,
+                $obedience,
+                $behaviorNotes,
+                $playHabits,
+                $playLocation,
+                $playmates,
+                $favoriteToys,
+                $dislikedToys,
+                $dangerousToys,
+
+                // 10. SCREEN TIME, GADGET & TELEVISI (9 cols)
+                $gameFacility,
+                $youtubeAccess,
+                $youtubeReaction,
+                $tvFrequency,
+                $favoriteTv,
+                $dislikedTv,
+                $tvCompanion,
+                $tvAccompanied,
+                $tvConcentration,
+
+                // 11. KOMITMEN, HARAPAN & AKUN (17 cols)
                 $parentAspiration,
-                $fd['relationships']['closest_bond'] ?? ($fd['mother_tongue'] ?? '-'),
-                $fd['relationships']['trusted_pickup'] ?? ($fd['second_language'] ?? '-'),
-                $fd['relationships']['rel_father'] ?? ($fd['primary_caregiver'] ?? 'Orang Tua'),
-                $fd['relationships']['rel_mother'] ?? ($fd['family_members_at_home'] ?? '-'),
-                $fd['environment']['adult_residents'] ?? ($fd['adults_at_home'] ?? '-'),
-                $fd['environment']['child_residents'] ?? ($fd['children_at_home'] ?? '-'),
-                $fd['relationships']['rel_grandparents'] ?? (isset($fd['lives_with_grandparents']) ? ($fd['lives_with_grandparents'] ? 'Ya' : 'Tidak') : '-'),
-                $fd['environment']['has_playyard'] ?? (isset($fd['has_nanny_or_maid']) ? ($fd['has_nanny_or_maid'] ? 'Ya' : 'Tidak') : '-'),
-                $fd['environment']['playyard_state'] ?? ($dp['social']['sibling_relationship'] ?? '-'),
-                $fd['relationships']['rel_siblings'] ?? ($dp['social']['peer_interaction'] ?? '-'),
-                $fd['relationships']['rel_peers'] ?? ($dp['social']['response_to_strangers'] ?? '-'),
-                $fd['relationships']['peer_opportunity'] ?? ($dp['social']['separation_reaction'] ?? '-'),
-                $fd['relationships']['comm_father'] ?? ($dp['emotional']['self_soothing_method'] ?? '-'),
-                $fd['relationships']['comm_mother'] ?? ($dp['discipline']['method'] ?? '-'),
-                $fd['religious_climate']['climate'] ?? ($dp['discipline']['enforcer'] ?? '-'),
-                $fd['religious_climate']['family_worship'] ?? ($dp['discipline']['reward_system'] ?? '-'),
-
-                // 106-128: Antropometri, Kesehatan & Lahir
-                $s->child_order ?? ($fd['child_order'] ?? '-'),
-                $s->siblings_count ?? ($fd['siblings_count'] ?? '-'),
-                $fd['religious_climate']['nearby_mosque'] ?? ($fd['step_siblings_count'] ?? '-'),
-                $s->blood_type ?? ($hh['blood_type'] ?? '-'),
-                $hh['birth_history']['birth_weight_length'] ?? ($hh['birth']['birth_weight'] ?? '-'),
-                $hh['birth_history']['gestational_age'] ?? ($hh['birth']['birth_length'] ?? '-'),
-                $hh['birth_history']['prenatal_condition'] ?? ($hh['birth']['gestational_age'] ?? '-'),
-                $hh['birth_history']['delivery_method'] ?? ($hh['birth']['delivery_method'] ?? '-'),
-                $hh['birth_history']['delivery_reason'] ?? ($hh['birth']['delivery_complications'] ?? '-'),
-                $hh['milestones']['walking_age'] ?? ($dp['milestones']['walking_age'] ?? '-'),
-                $hh['milestones']['talking_age'] ?? ($dp['milestones']['talking_age'] ?? '-'),
-                $hh['milestones']['teeth_age'] ?? ($hh['immunization']['is_complete'] ?? '-'),
-                $hh['milestones']['mpasi_start'] ?? '-',
-                $hh['milestones']['breastfed_by'] ?? '-',
-                $hh['milestones']['breastfed_duration'] ?? '-',
-                $hh['milestones']['formula_start'] ?? '-',
-                $hh['milestones']['developmental_issues'] ?? '-',
-                $hh['medical_history']['immunizations'] ?? '-',
-                $hh['medical_history']['food_allergy'] ?? '-',
-                $hh['medical_history']['drink_allergy'] ?? '-',
-                $s->height ?? ($hh['physical']['height'] ?? '-'),
-                $s->weight ?? ($hh['physical']['weight'] ?? '-'),
-                $s->head_circumference ?? ($hh['physical']['head_circumference'] ?? '-'),
-                $s->arm_circumference ?? ($hh['physical']['arm_circumference'] ?? '-'),
-
-                // 129-154: Pola Makan, Toilet & Medis
-                $hh['meals']['breakfast'] ?? ($hh['diet']['appetite'] ?? '-'),
-                $hh['meals']['favorite'] ?? ($hh['diet']['favorite_food'] ?? '-'),
-                $hh['meals']['avoided'] ?? ($hh['diet']['disliked_food'] ?? '-'),
-                $hh['meals']['eating_manner'] ?? ($hh['diet']['self_feeding'] ?? '-'),
-                $hh['meals']['favorite_drink'] ?? ($hh['diet']['drinking_method'] ?? '-'),
-                $hh['meals']['avoided_drink'] ?? '-',
-                $hh['meals']['lunch'] ?? ($hh['diet']['lunch_time'] ?? '-'),
-                $hh['meals']['dinner'] ?? ($hh['diet']['dinner_time'] ?? '-'),
-                $hh['meals']['snack_habit'] ?? ($hh['diet']['snack_habit'] ?? '-'),
-                $hh['toilet_training']['toilet_habit'] ?? ($hh['toilet']['status'] ?? '-'),
-                $hh['toilet_training']['uses_diapers'] ?? ($hh['toilet']['starting_age'] ?? '-'),
-                $hh['toilet_training']['bedwetting'] ?? ($hh['toilet']['urination_independent'] ?? '-'),
-                $hh['toilet_training']['toothbrush_habit'] ?? '-',
-                $hh['toilet_training']['toothbrush_assisted'] ?? '-',
-                $hh['toilet_training']['toothbrush_frequency'] ?? '-',
-                $hh['meals']['prays_before_after'] ?? '-',
-                $hh['toilet']['cue_signal'] ?? '-',
-                $hh['medical_history']['severe_diseases'] ?? ($hh['medical']['seizure_history'] ?? '-'),
-                $hh['medical_history']['frequent_diseases'] ?? ($hh['medical']['asthma_history'] ?? '-'),
-                $hh['medical_history']['allergy_reaction'] ?? ($hh['medical']['routine_medication'] ?? '-'),
-                $hh['medical_history']['preferred_doctor'] ?? ($hh['medical']['family_doctor'] ?? '-'),
-                $hh['medical_history']['allergy_treatment'] ?? ($hh['medical']['doctor_phone'] ?? '-'),
-                $hh['medical_history']['treatment_alternative'] ?? ($hh['medical']['has_insurance'] ?? '-'),
-                (string)($hh['medical']['insurance_number'] ?? ($hh['bpjs_number'] ?? '')),
-                $hh['medical']['faskes_1'] ?? ($hh['bpjs_faskes'] ?? '-'),
-                $hh['medical_history']['school_health_notes'] ?? ($hh['medical']['emergency_consent'] ?? '-'),
-
-                // 155-163: Pola Tidur & Kebiasaan
-                $hh['sleeping']['bedtime'] ?? ($hh['sleep']['bedtime'] ?? '-'),
-                $hh['sleeping']['wake_morning_time'] ?? ($hh['sleep']['wake_time'] ?? '-'),
-                $hh['sleeping']['nap_time'] ?? ($hh['sleep']['takes_nap'] ?? '-'),
-                $hh['sleeping']['wake_nap_time'] ?? ($hh['sleep']['nap_schedule'] ?? '-'),
-                $hh['sleeping']['sleep_prayers'] ?? ($hh['sleep']['bedtime_routine'] ?? '-'),
-                $hh['sleeping']['sleep_notes'] ?? ($hh['sleep']['comfort_object'] ?? '-'),
-                $hh['sleeping']['sleep_talking'] ?? ($hh['sleep']['night_waking'] ?? '-'),
-                $hh['sleeping']['has_own_bedroom'] ?? ($hh['sleep']['preferred_position'] ?? '-'),
-                $hh['sleeping']['sleeping_with'] ?? ($hh['sleep']['sleeping_arrangement'] ?? '-'),
-
-                // 164-172: Psikologi, Sifat & Pola Main
-                $dp['traits']['character_traits'] ?? ($dp['character']['main_traits'] ?? '-'),
-                $dp['traits']['behavior_notes'] ?? ($dp['interests']['favorite_things'] ?? '-'),
-                $dp['traits']['obedience'] ?? ($dp['fears']['fear_objects'] ?? '-'),
-                $dp['play']['play_location'] ?? ($dp['emotional']['tantrum_triggers'] ?? '-'),
-                $dp['play']['playmates'] ?? ($dp['emotional']['handling_tantrums'] ?? '-'),
-                $dp['play']['favorite_toys'] ?? ($dp['play']['favorite_activities'] ?? '-'),
-                $dp['play']['disliked_toys'] ?? ($dp['cognitive']['attention_span'] ?? '-'),
-                $dp['play']['play_habits'] ?? ($dp['play']['play_style'] ?? '-'),
-                $dp['play']['dangerous_toys'] ?? ($dp['interests']['special_talents'] ?? '-'),
-
-                // 173-181: Screen Time, Gadget & TV
-                $dp['screen_time']['game_facility'] ?? ($dp['screen_time']['has_access'] ?? '-'),
-                $dp['screen_time']['tv_frequency'] ?? ($dp['screen_time']['duration_per_day'] ?? '-'),
-                $dp['screen_time']['favorite_tv'] ?? ($dp['screen_time']['favorite_content'] ?? '-'),
-                $dp['screen_time']['disliked_tv'] ?? ($dp['screen_time']['watches_tv'] ?? '-'),
-                $dp['screen_time']['tv_companion'] ?? ($dp['screen_time']['tv_duration'] ?? '-'),
-                $dp['screen_time']['tv_accompanied'] ?? ($dp['screen_time']['is_supervised'] ?? '-'),
-                $dp['screen_time']['tv_concentration'] ?? ($dp['screen_time']['reaction_when_stopped'] ?? '-'),
-                $dp['screen_time']['youtube_access'] ?? ($dp['screen_time']['schedule_rule'] ?? '-'),
-                $dp['screen_time']['youtube_reaction'] ?? ($dp['screen_time']['family_rules'] ?? '-'),
-
-                // 182-193: Komitmen, Dokumen & Akun
-                $dp['commitments']['parent_suggestions'] ?? ($fd['parent_involvement'] ?? '-'),
-                $dp['commitments']['assessment_agreement'] ?? ($fd['parenting_session_commitment'] ?? '-'),
-                $dp['commitments']['agreed_followup_types'] ?? ($docs['media_release_consent'] ?? '-'),
-                $dp['commitments']['paud_outcome_expectation'] ?? (!empty($docs['birth_certificate']) || !empty($s->no_akta) ? 'Tersedia' : 'Belum'),
-                !empty($docs['family_card']) || !empty($s->no_kk) ? 'Tersedia' : 'Belum',
-                !empty($docs['parent_id_card']) || !empty($s->father_nik) || !empty($s->mother_nik) ? 'Tersedia' : 'Belum',
-                !empty($docs['immunization_book']) ? 'Tersedia' : 'Belum',
-                !empty($docs['student_photo']) || !empty($s->student_photo_url) ? 'Tersedia' : 'Belum',
-                $docs['physical_verification_status'] ?? ($docs['status'] ?? 'Belum Lengkap'),
+                $assessmentAgreement,
+                $agreedFollowupTypes,
+                $parentSuggestions,
+                $docNisn,
+                $docPrevSchool,
+                $docKia,
+                $docReport,
+                $docAssessment,
+                $docKms,
+                $docBirthCert,
+                $docFamilyCard,
+                $docParentId,
+                $studentPhoto,
                 (string)($s->pin_access ?? ''),
                 $s->created_at ? date('Y-m-d H:i', strtotime($s->created_at)) : '-',
                 $s->notes ?? '-'
@@ -2131,12 +2241,12 @@ class StudentController extends Controller
                 return (string)$v;
             };
 
-            // Populate all 193 columns
+            // Populate all 199 columns
             foreach ($row as $colIdx => $val) {
                 $colLetter = Coordinate::stringFromColumnIndex($colIdx + 1);
                 $stringVal = $toStr($val, '-');
                 // Explicit string for numeric identifiers to avoid scientific notation and loss of leading zeroes:
-                if (in_array($colIdx + 1, [5, 6, 7, 8, 9, 31, 48, 55, 60, 67, 72, 80, 83, 85, 152, 191])) {
+                if (in_array($colIdx + 1, [5, 6, 7, 8, 9, 31, 48, 55, 60, 67, 72, 80, 83, 85, 197])) {
                     $sheet->setCellValueExplicit($colLetter . $currentRow, $stringVal === '-' ? '' : $stringVal, DataType::TYPE_STRING);
                 } else {
                     $sheet->setCellValue($colLetter . $currentRow, $stringVal);
@@ -2148,34 +2258,27 @@ class StudentController extends Controller
             $sheet->getStyle("D{$currentRow}:I{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("K{$currentRow}:N{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("P{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("T{$currentRow}:X{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("AB{$currentRow}:AE{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("T{$currentRow}:AB{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("AD{$currentRow}:AE{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("AH{$currentRow}:AI{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("AN{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("AQ{$currentRow}:AR{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("AV{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("AX{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("BC{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("BG{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("BI{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("BN{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("BR{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("BU{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("BZ{$currentRow}:CA{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("CC{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("BH{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("BJ{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("BO{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("BT{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("BW{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("CB{$currentRow}:CC{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("CE{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("CH{$currentRow}:CJ{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("CU{$currentRow}:CY{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("EH{$currentRow}:EK{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("EN{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("EQ{$currentRow}:ER{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("EW{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("EY{$currentRow}:FA{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("FE{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("FQ{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("FS{$currentRow}:FT{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("FZ{$currentRow}:GE{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("GG{$currentRow}:GH{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("CG{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("DC{$currentRow}:DF{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("DH{$currentRow}:DL{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("EM{$currentRow}:EN{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("EZ{$currentRow}:FC{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("GE{$currentRow}:GP{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
             // Zebra striping
             if ($index % 2 === 1) {
@@ -2210,7 +2313,7 @@ class StudentController extends Controller
         $sheet->getColumnDimension('A')->setAutoSize(false);
         $sheet->getColumnDimension('A')->setWidth(7);
 
-        // Columns B through CT: Auto-fit column widths
+        // Columns B through GQ: Auto-fit column widths
         foreach (range(2, count($headers)) as $colIndex) {
             $colLetter = Coordinate::stringFromColumnIndex($colIndex);
             $sheet->getColumnDimension($colLetter)->setAutoSize(true);
