@@ -2874,19 +2874,71 @@ class StudentController extends Controller
                 }
             }
 
-            // Resolve Classroom dynamically
-            $classroomId = $defaultClassroomId;
-            $classLevelId = null;
-            $jenjangId = null;
-            $subUnit = in_array($subUnitRaw, ['PG', 'TK', 'DAYCARE', 'TPQ']) ? $subUnitRaw : 'TK';
+            // Resolve Classroom, Jenjang, Level & Sub-Unit dynamically
+            $rawClassString = trim((string)$kelompokRaw);
+            $parts = array_map('trim', explode(',', $rawClassString));
 
-            if (!empty($kelompokRaw)) {
-                $matchedClassroom = Classroom::with(['jenjang', 'classLevel.jenjang'])->where('name', 'like', "%{$kelompokRaw}%")->first();
-                if ($matchedClassroom) {
-                    $classroomId = $matchedClassroom->id;
-                    $classLevelId = $matchedClassroom->class_level_id;
-                    $jenjangId = $matchedClassroom->jenjang_id ?? $matchedClassroom->classLevel?->jenjang_id;
-                    $subUnit = $matchedClassroom->jenjang?->code ?? $matchedClassroom->sub_unit ?? $subUnit;
+            $matchedClassroom = null;
+            $daycareClassroomId = null;
+            $isTpq = in_array(strtolower($tpqRaw ?? ''), ['ya', 'true', '1', 'tpq', 'ikut']);
+            $tpqClassroomId = null;
+
+            foreach ($parts as $part) {
+                $p = trim($part);
+                if ($p === '') continue;
+
+                if (stripos($p, 'TPQ') !== false) {
+                    $isTpq = true;
+                    $tpqCls = Classroom::whereHas('jenjang', function($jq) {
+                        $jq->where('code', 'TPQ')->orWhere('name', 'like', '%TPQ%');
+                    })->where('name', 'like', "%{$p}%")->first() ?? Classroom::where('code', 'TPQ')->first();
+                    $tpqClassroomId = $tpqCls?->id;
+                } elseif (stripos($p, 'TPA') !== false || stripos($p, 'DAYCARE') !== false) {
+                    $dc = Classroom::whereHas('jenjang', function($jq) {
+                        $jq->whereIn('code', ['DAYCARE', 'TPA'])->orWhere('name', 'like', '%Daycare%')->orWhere('name', 'like', '%TPA%');
+                    })->where('name', 'like', "%{$p}%")->first() ?? Classroom::where('name', 'like', "%{$p}%")->first();
+                    if ($dc) {
+                        $daycareClassroomId = $dc->id;
+                    }
+                } else {
+                    $cls = Classroom::with(['jenjang', 'classLevel.jenjang'])->where('name', 'like', "%{$p}%")->first();
+                    if ($cls) {
+                        $matchedClassroom = $cls;
+                    }
+                }
+            }
+
+            if (!$matchedClassroom && $daycareClassroomId) {
+                $matchedClassroom = Classroom::with(['jenjang', 'classLevel.jenjang'])->find($daycareClassroomId);
+            }
+
+            if (!$matchedClassroom && !empty($parts[0])) {
+                $matchedClassroom = Classroom::with(['jenjang', 'classLevel.jenjang'])->where('name', 'like', "%{$parts[0]}%")->first();
+            }
+
+            $classroomId = $matchedClassroom?->id ?? $defaultClassroomId;
+            $classLevelId = $matchedClassroom?->class_level_id;
+            $jenjangId = $matchedClassroom?->jenjang_id ?? $matchedClassroom?->classLevel?->jenjang_id;
+            $subUnit = $matchedClassroom?->jenjang?->code ?? $matchedClassroom?->sub_unit ?? 'TK';
+
+            if ($matchedClassroom) {
+                $cName = strtoupper($matchedClassroom->name);
+                if (str_starts_with($cName, 'KB') || str_contains($cName, 'PLAYGROUP')) {
+                    $subUnit = 'PG';
+                    $j = Jenjang::where('code', 'KB')->first();
+                    if ($j) $jenjangId = $j->id;
+                } elseif (str_starts_with($cName, 'TK')) {
+                    $subUnit = 'TK';
+                    $j = Jenjang::where('code', 'TK')->first();
+                    if ($j) $jenjangId = $j->id;
+                } elseif (str_starts_with($cName, 'TPA') || str_contains($cName, 'DAYCARE')) {
+                    $subUnit = 'DAYCARE';
+                    $j = Jenjang::whereIn('code', ['DAYCARE', 'TPA'])->first();
+                    if ($j) $jenjangId = $j->id;
+                } elseif (str_contains($cName, 'TPQ')) {
+                    $subUnit = 'TPQ';
+                    $j = Jenjang::where('code', 'TPQ')->first();
+                    if ($j) $jenjangId = $j->id;
                 }
             }
 
@@ -2907,19 +2959,14 @@ class StudentController extends Controller
                 }
             }
 
-            // Resolve Daycare
-            $daycareClassroomId = null;
-            if (!empty($daycareRaw)) {
+            if (!$daycareClassroomId && !empty($daycareRaw)) {
                 $dc = Classroom::whereHas('jenjang', function($jq) {
                     $jq->whereIn('code', ['DAYCARE', 'TPA'])->orWhere('name', 'like', '%Daycare%')->orWhere('name', 'like', '%TPA%');
                 })->where('name', 'like', "%{$daycareRaw}%")->first() ?? Classroom::where('name', 'like', "%{$daycareRaw}%")->first();
                 $daycareClassroomId = $dc?->id;
             }
 
-            // Resolve TPQ
-            $isTpq = in_array(strtolower($tpqRaw ?? ''), ['ya', 'true', '1', 'tpq', 'ikut']);
-            $tpqClassroomId = null;
-            if (!empty($tpqKelompokRaw)) {
+            if (!$tpqClassroomId && !empty($tpqKelompokRaw)) {
                 $tpqCls = Classroom::whereHas('jenjang', function($jq) {
                     $jq->where('code', 'TPQ')->orWhere('name', 'like', '%TPQ%');
                 })->where('name', 'like', "%{$tpqKelompokRaw}%")->first() ?? Classroom::where('name', 'like', "%{$tpqKelompokRaw}%")->first();

@@ -275,6 +275,101 @@ class ImportStudentsDatabase extends Command
             }
         };
 
+        $jenjangs = Jenjang::all()->keyBy('code');
+
+        $parseClassAssignment = function ($rawClassroomInput, $rawJenjangInput = null) use ($classroomMap, $levels, $academicYear, $jenjangs) {
+            $rawClassString = trim((string)$rawClassroomInput);
+            $rawJenjang = trim((string)$rawJenjangInput);
+
+            // Separate by comma for compound assignments like "KB A1, TPA 2" or "TK B1, TPA 3, TPQ"
+            $parts = array_map('trim', explode(',', $rawClassString));
+
+            $primaryClassroom = null;
+            $daycareClassroomId = null;
+            $isTpq = false;
+            $tpqClassroomId = null;
+
+            foreach ($parts as $part) {
+                $p = strtoupper(trim($part));
+                if ($p === '') continue;
+
+                if (str_contains($p, 'TPQ')) {
+                    $isTpq = true;
+                    $tpqCls = $classroomMap['TPQ'] ?? Classroom::where('code', 'TPQ')->where('academic_year_id', $academicYear->id)->first();
+                    $tpqClassroomId = $tpqCls?->id;
+                } elseif (str_contains($p, 'TPA') || str_contains($p, 'DAYCARE')) {
+                    $dc = $classroomMap[$p]
+                        ?? ($classroomMap[str_replace(' ', '', $p)]
+                        ?? ($classroomMap[str_replace('-', ' ', $p)]
+                        ?? Classroom::where('name', 'like', "%{$p}%")->where('academic_year_id', $academicYear->id)->first()));
+                    if ($dc) {
+                        $daycareClassroomId = $dc->id;
+                    }
+                } else {
+                    $cls = $classroomMap[$p]
+                        ?? ($classroomMap[str_replace(' ', '', $p)]
+                        ?? ($classroomMap[str_replace('-', ' ', $p)]
+                        ?? Classroom::where('name', 'like', "%{$p}%")->where('academic_year_id', $academicYear->id)->first()));
+                    if ($cls) {
+                        $primaryClassroom = $cls;
+                    }
+                }
+            }
+
+            // If only Daycare (e.g. "TPA 1")
+            if (!$primaryClassroom && $daycareClassroomId) {
+                $primaryClassroom = Classroom::find($daycareClassroomId);
+            }
+
+            // Fallback to first part
+            if (!$primaryClassroom && !empty($parts[0])) {
+                $firstPart = strtoupper(trim($parts[0]));
+                $primaryClassroom = $classroomMap[$firstPart]
+                    ?? ($classroomMap[str_replace(' ', '', $firstPart)]
+                    ?? Classroom::where('name', 'like', "%{$firstPart}%")->where('academic_year_id', $academicYear->id)->first());
+            }
+
+            // Fallback from rawJenjang
+            if (!$primaryClassroom && !empty($rawJenjang)) {
+                $cleanJ = strtoupper(str_replace(' ', '-', $rawJenjang));
+                $lvl = $levels[$cleanJ] ?? ($levels[$rawJenjang] ?? null);
+                if ($lvl) {
+                    $primaryClassroom = Classroom::where('class_level_id', $lvl->id)->where('academic_year_id', $academicYear->id)->first();
+                }
+            }
+
+            $classLevel = $primaryClassroom?->classLevel;
+            $jenjangId = $primaryClassroom?->jenjang_id ?? $classLevel?->jenjang_id;
+            $subUnit = $primaryClassroom?->sub_unit ?? $classLevel?->sub_unit ?? 'TK';
+
+            if ($primaryClassroom) {
+                $cName = strtoupper($primaryClassroom->name);
+                if (str_starts_with($cName, 'KB') || str_contains($cName, 'PLAYGROUP')) {
+                    $subUnit = 'PG';
+                    $jenjangId = $jenjangs['KB']?->id ?? 1;
+                } elseif (str_starts_with($cName, 'TK')) {
+                    $subUnit = 'TK';
+                    $jenjangId = $jenjangs['TK']?->id ?? 2;
+                } elseif (str_starts_with($cName, 'TPA') || str_contains($cName, 'DAYCARE')) {
+                    $subUnit = 'DAYCARE';
+                    $jenjangId = $jenjangs['DAYCARE']?->id ?? 3;
+                } elseif (str_contains($cName, 'TPQ')) {
+                    $subUnit = 'TPQ';
+                    $jenjangId = $jenjangs['TPQ']?->id ?? 4;
+                }
+            }
+
+            return [
+                'classroom' => $primaryClassroom,
+                'class_level' => $classLevel,
+                'jenjang_id' => $jenjangId,
+                'sub_unit' => $subUnit,
+                'daycare_classroom_id' => $daycareClassroomId,
+                'is_tpq' => $isTpq,
+                'tpq_classroom_id' => $tpqClassroomId,
+            ];
+        };
+
         // 6. Tentukan Sheet & Deteksi Mode (Komprehensif 175 Kolom vs Legacy 14 Kolom)
         $sheet = $spreadsheet->getSheetByName('DB_Murid') ?? $spreadsheet->getActiveSheet();
         $rawRows = $sheet->toArray(null, true, false, false);
@@ -599,35 +694,16 @@ class ImportStudentsDatabase extends Command
                     $parentAspiration = $parentAspiration ? ($parentAspiration . ' | Harapan selesai PAUD: ' . $parentAspirationPaud) : $parentAspirationPaud;
                 }
 
-                // Sub Unit & Kelompok Resolving
-                $rawJenjang = strtoupper($getVal('jenjang') ?? 'TK-A');
-                $rawKelompok = strtoupper($getVal('classroom') ?? 'TK A1');
+                // Sub Unit, Jenjang, Kelas & Kelompok Resolving
+                $assigned = $parseClassAssignment($getVal('classroom'), $getVal('jenjang'));
 
-                $subUnit = 'TK';
-                if (str_contains($rawJenjang, 'KB') || str_contains($rawJenjang, 'PG')) {
-                    $subUnit = 'PG';
-                } elseif (str_contains($rawJenjang, 'TK') || str_contains($rawJenjang, 'RA') || str_contains($rawJenjang, 'BA')) {
-                    $subUnit = 'TK';
-                } elseif (str_contains($rawJenjang, 'TPA') || str_contains($rawJenjang, 'DAYCARE')) {
-                    $subUnit = 'DAYCARE';
-                } elseif (str_contains($rawJenjang, 'TPQ')) {
-                    $subUnit = 'TPQ';
-                }
-
-                $cleanLevelKey = str_replace(' ', '-', $rawJenjang);
-                $classLevel = $levels[$cleanLevelKey]
-                    ?? ($levels[$rawJenjang]
-                    ?? ($levels['TK-A'] ?? ClassLevel::first()));
-
-                $cleanKelompokKey = str_replace('-', ' ', $rawKelompok);
-                $classroom = $classroomMap[$rawKelompok]
-                    ?? ($classroomMap[$cleanKelompokKey]
-                    ?? ($classroomMap[str_replace(' ', '', $rawKelompok)]
-                    ?? Classroom::where('class_level_id', $classLevel?->id)->where('academic_year_id', $academicYear->id)->first()));
-
-                $daycareClassroomId = ($subUnit === 'DAYCARE') ? $classroom?->id : null;
-                $isTpq = ($subUnit === 'TPQ');
-                $tpqClassroomId = $isTpq ? $classroom?->id : null;
+                $classroom = $assigned['classroom'];
+                $classLevel = $assigned['class_level'];
+                $jenjangId = $assigned['jenjang_id'];
+                $subUnit = $assigned['sub_unit'];
+                $daycareClassroomId = $assigned['daycare_classroom_id'];
+                $isTpq = $assigned['is_tpq'];
+                $tpqClassroomId = $assigned['tpq_classroom_id'];
 
                 // Father fields
                 $fatherName = $formatTitleCase($getVal('father_name'));
@@ -891,6 +967,7 @@ class ImportStudentsDatabase extends Command
 
                     'academic_year_id' => $academicYear->id,
                     'sub_unit' => $subUnit,
+                    'jenjang_id' => $jenjangId,
                     'class_level_id' => $classLevel?->id,
                     'classroom_id' => $classroom?->id,
                     'daycare_classroom_id' => $daycareClassroomId,
@@ -1010,40 +1087,20 @@ class ImportStudentsDatabase extends Command
                 $rawNis = $cleanStr($row[0] ?? null);
                 $nis = !empty($rawNis) ? (string)$rawNis : 'PAUD.' . str_pad($rIdx + 1, 4, '0', STR_PAD_LEFT);
 
-                $rawJenjang = strtoupper($cleanStr($row[4] ?? null) ?? 'TK-A');
-                $rawKelompok = strtoupper($cleanStr($row[5] ?? null) ?? 'TK A1');
-
-                $subUnit = 'TK';
-                if (str_contains($rawJenjang, 'KB') || str_contains($rawJenjang, 'PG')) {
-                    $subUnit = 'PG';
-                } elseif (str_contains($rawJenjang, 'TK') || str_contains($rawJenjang, 'RA') || str_contains($rawJenjang, 'BA')) {
-                    $subUnit = 'TK';
-                } elseif (str_contains($rawJenjang, 'TPA') || str_contains($rawJenjang, 'DAYCARE')) {
-                    $subUnit = 'DAYCARE';
-                } elseif (str_contains($rawJenjang, 'TPQ')) {
-                    $subUnit = 'TPQ';
-                }
-
-                $cleanLevelKey = str_replace(' ', '-', $rawJenjang);
-                $classLevel = $levels[$cleanLevelKey]
-                    ?? ($levels[$rawJenjang]
-                    ?? ($levels['TK-A'] ?? ClassLevel::first()));
-
-                $cleanKelompokKey = str_replace('-', ' ', $rawKelompok);
-                $classroom = $classroomMap[$rawKelompok]
-                    ?? ($classroomMap[$cleanKelompokKey]
-                    ?? ($classroomMap[str_replace(' ', '', $rawKelompok)]
-                    ?? Classroom::where('class_level_id', $classLevel?->id)->where('academic_year_id', $academicYear->id)->first()));
+                $assigned = $parseClassAssignment($cleanStr($row[5] ?? null), $cleanStr($row[4] ?? null));
+                $classroom = $assigned['classroom'];
+                $classLevel = $assigned['class_level'];
+                $jenjangId = $assigned['jenjang_id'];
+                $subUnit = $assigned['sub_unit'];
+                $daycareClassroomId = $assigned['daycare_classroom_id'];
+                $isTpq = $assigned['is_tpq'];
+                $tpqClassroomId = $assigned['tpq_classroom_id'];
 
                 $genderRaw = strtoupper($cleanStr($row[3] ?? null) ?? '');
                 $gender = (str_contains($genderRaw, 'PEREMPUAN') || $genderRaw === 'P' || $genderRaw === 'FEMALE') ? 'P' : 'L';
 
                 $pinAccess = $cleanStr($row[13] ?? null) ?? $nis;
                 $parentPhone = $cleanPhone($row[10] ?? null);
-
-                $daycareClassroomId = ($subUnit === 'DAYCARE') ? $classroom?->id : null;
-                $isTpq = ($subUnit === 'TPQ');
-                $tpqClassroomId = $isTpq ? $classroom?->id : null;
 
                 $studentData = [
                     'nis' => $nis,
@@ -1056,6 +1113,7 @@ class ImportStudentsDatabase extends Command
 
                     'academic_year_id' => $academicYear->id,
                     'sub_unit' => $subUnit,
+                    'jenjang_id' => $jenjangId,
                     'class_level_id' => $classLevel?->id,
                     'classroom_id' => $classroom?->id,
                     'daycare_classroom_id' => $daycareClassroomId,
