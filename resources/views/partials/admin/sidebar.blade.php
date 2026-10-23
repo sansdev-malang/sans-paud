@@ -13,6 +13,7 @@
     }));
     $canAccessRapor = auth()->user()?->canAccessRapor();
     $isTeacher = auth()->user()?->isTeacher() ?? false;
+    $isHomeroom = auth()->user()?->isActiveHomeroomTeacher() ?? false;
     $raporLink = '#';
     if ($canAccessRapor) {
         $ssoSecret = \App\Models\Setting::get('rapor_sso_secret', env('SSO_SECRET_KEY', 'sans_rapor_secret_sso_key_2026'));
@@ -174,7 +175,7 @@
         </div>
 
         <!-- Group 2: Kesiswaan & Akademik -->
-        @if($isAdmin || $canAccessRapor)
+        @if($isAdmin || $canAccessRapor || $isTeacher || $isHomeroom)
         <div>
             <h3 class="school-info px-2 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
                 Kesiswaan & Akademik
@@ -193,7 +194,9 @@
                         SPMB
                     </span>
                 </a>
+                @endif
 
+                @if($isAdmin || $isTeacher || $isHomeroom)
                 <!-- Data Murid -->
                 <a href="{{ route('students.index') }}" class="menu-item flex items-center justify-between gap-3 px-3 py-2 rounded-lg
                     {{ Request::routeIs('students.*') ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-50 font-medium' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/50' }}
@@ -226,7 +229,7 @@
                     <!-- Dropdown content with line connector -->
                     <div x-show="openClassroom" x-collapse
                         class="sidebar-dropdown-content mt-1 ml-5 pl-4 border-l border-slate-200 dark:border-slate-800 space-y-1">
-                        @if($isAdmin || $canAccessRapor)
+                        @if($isAdmin || $canAccessRapor || $isTeacher || $isHomeroom)
                         <!-- Absensi Murid -->
                         <a href="{{ route('student-attendances.index') }}"
                             class="flex items-center justify-between gap-2 py-1 text-xs font-medium {{ Request::routeIs('student-attendances.*') ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100' }} transition-colors">
@@ -234,7 +237,7 @@
                         </a>
                         @endif
 
-                        @if(auth()->user()->hasRole('super_admin'))
+                        @if($isAdmin || $isTeacher || $isHomeroom)
                         <!-- Jurnal Kelas -->
                         <a href="{{ route('classroom-journals.index') }}"
                             class="flex items-center justify-between gap-2 py-1 text-xs font-medium {{ Request::routeIs('classroom-journals.*') ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100' }} transition-colors">

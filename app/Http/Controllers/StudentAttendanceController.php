@@ -25,18 +25,38 @@ class StudentAttendanceController extends Controller
     {
         $activeYear = AcademicYear::where('is_active', true)->first();
 
+        $user = auth()->user();
+        $isAdminUser = $user && (
+            $user->hasRole('super_admin') || 
+            $user->hasRole('admin_sd') || 
+            $user->hasRole('admin_paud') || 
+            $user->hasRole('admin_smp') || 
+            $user->hasRole('kepala_sekolah') || 
+            $user->hasRole('waka')
+        );
+
+        $assignedClassroomIds = [];
+        if (!$isAdminUser && $user && $user->employee_id) {
+            $fromAssignment = \App\Models\HomeroomAssignment::where('employee_id', $user->employee_id)
+                ->where('is_active', true)
+                ->pluck('classroom_id')
+                ->toArray();
+            $fromClassroom = Classroom::where('homeroom_teacher_id', $user->employee_id)->pluck('id')->toArray();
+            $assignedClassroomIds = array_values(array_unique(array_filter(array_merge($fromAssignment, $fromClassroom))));
+        }
+
         $classrooms = Classroom::with(['homeroomTeacher', 'classLevel'])
             ->where('is_active', true)
             ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+            ->when(!$isAdminUser, fn($q) => $q->whereIn('id', !empty($assignedClassroomIds) ? $assignedClassroomIds : [-1]))
             ->orderBy('sub_unit', 'asc')
             ->orderBy('name', 'asc')
             ->get();
 
         // Determine default classroom
-        $user = auth()->user();
         $defaultClassroomId = null;
-        if ($user && $user->employee_id) {
-            $assignedClass = $classrooms->firstWhere('homeroom_teacher_id', $user->employee_id);
+        if ($user && $user->employee_id && !empty($assignedClassroomIds)) {
+            $assignedClass = $classrooms->firstWhere('id', $assignedClassroomIds[0]);
             if ($assignedClass) {
                 $defaultClassroomId = $assignedClass->id;
             }
@@ -46,6 +66,9 @@ class StudentAttendanceController extends Controller
         }
 
         $selectedClassroomId = $request->get('classroom_id', $defaultClassroomId);
+        if (!$isAdminUser && !empty($assignedClassroomIds) && !in_array($selectedClassroomId, $assignedClassroomIds)) {
+            $selectedClassroomId = $defaultClassroomId;
+        }
         $selectedClassroom = $classrooms->firstWhere('id', $selectedClassroomId);
 
         // Date selection

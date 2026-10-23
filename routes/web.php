@@ -54,8 +54,10 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,adm
     Route::get('/classrooms/{id}/students', [ClassroomController::class, 'students'])->name('classrooms.students');
     Route::resource('classrooms', ClassroomController::class);
     Route::get('/rombel', fn() => redirect()->route('classrooms.index'))->name('rombel');
+});
 
-    // Students (Data Murid)
+// Students (Data Murid: Admin & Wali Kelas/Guru)
+Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,admin_smp,kepala_sekolah,waka,employee,guru,wali_kelas'])->group(function () {
     Route::get('students/download-template', [StudentController::class, 'downloadTemplate'])->name('students.download-template');
     Route::post('students/import', [StudentController::class, 'import'])->name('students.import');
     Route::get('students/export/excel', [StudentController::class, 'exportExcel'])->name('students.export.excel');
@@ -65,6 +67,9 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,adm
     Route::get('students/{id}/print-dossier', [StudentController::class, 'dossierPrint'])->name('students.dossier.print');
     Route::resource('students', StudentController::class);
     Route::get('/siswa', fn() => redirect()->route('students.index'))->name('siswa');
+});
+
+Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,admin_smp,kepala_sekolah,waka'])->group(function () {
 
     // Wali Kelas (Penugasan Wali Kelas)
     Route::post('homeroom-assignments/{id}/toggle-status', [\App\Http\Controllers\HomeroomAssignmentController::class, 'toggleStatus'])->name('homeroom-assignments.toggle-status');
@@ -98,8 +103,8 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,adm
 
 });
 
-// Modul Khusus: DDTK & SDIDTK, Jurnal Kelas, Buku Tamu, Berkas Guru (Super Admin Only)
-Route::middleware(['auth', 'verified', 'role:super_admin'])->group(function () {
+// Modul Khusus: DDTK & SDIDTK, Jurnal Kelas, Buku Tamu, Berkas Guru
+Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,admin_smp,kepala_sekolah,waka,employee,guru,wali_kelas'])->group(function () {
     // DDTK & SDIDTK (Deteksi Dini Tumbuh Kembang & Skrining Kesehatan)
     Route::get('student-ddtk', [\App\Http\Controllers\StudentDdtkController::class, 'index'])->name('student-ddtk.index');
     Route::post('student-ddtk/store-ddtk', [\App\Http\Controllers\StudentDdtkController::class, 'storeDdtk'])->name('student-ddtk.store-ddtk');
@@ -132,7 +137,7 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,adm
 });
 
 // Modul Murid & Guru: Absensi, Arsip Murid, Berkas Guru (Admin & Guru/Wali Kelas)
-Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,admin_smp,kepala_sekolah,waka,employee'])->group(function () {
+Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,admin_smp,kepala_sekolah,waka,employee,guru,wali_kelas'])->group(function () {
     // Absensi Murid (Harian & Bulanan)
     Route::get('student-attendances', [\App\Http\Controllers\StudentAttendanceController::class, 'index'])->name('student-attendances.index');
     Route::post('student-attendances', [\App\Http\Controllers\StudentAttendanceController::class, 'store'])->name('student-attendances.store');

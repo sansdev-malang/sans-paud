@@ -41,11 +41,48 @@ class StudentController extends Controller
         $selectedYear = $academicYears->firstWhere('id', $selectedYearId) ?? $activeAcademicYear;
         $selectedYearId = $selectedYear?->id;
 
+        $user = auth()->user();
+        $isAdminUser = $user && (
+            $user->hasRole('super_admin') || 
+            $user->hasRole('admin_sd') || 
+            $user->hasRole('admin_paud') || 
+            $user->hasRole('admin_smp') || 
+            $user->hasRole('kepala_sekolah') || 
+            $user->hasRole('waka')
+        );
+
+        $myClassrooms = collect();
+        $myClassroomIds = [];
+        $myJenjangIds = [];
+        $myClassLevelIds = [];
+        if (!$isAdminUser && $user && $user->employee_id) {
+            $fromAssignment = \App\Models\HomeroomAssignment::where('employee_id', $user->employee_id)
+                ->where('is_active', true)
+                ->pluck('classroom_id')
+                ->toArray();
+            $fromClassroom = Classroom::where('homeroom_teacher_id', $user->employee_id)->pluck('id')->toArray();
+            $myClassroomIds = array_values(array_unique(array_filter(array_merge($fromAssignment, $fromClassroom))));
+            $myClassrooms = !empty($myClassroomIds) ? Classroom::whereIn('id', $myClassroomIds)->get() : collect();
+            $myJenjangIds = $myClassrooms->pluck('jenjang_id')->filter()->unique()->values()->toArray();
+            $myClassLevelIds = $myClassrooms->pluck('class_level_id')->filter()->unique()->values()->toArray();
+        }
+
         // Master lists for filter dropdowns & modal selects
-        $jenjangs = Jenjang::where('is_active', true)->orderBy('order')->get();
+        $jenjangsQuery = Jenjang::where('is_active', true)->orderBy('order');
+        if (!$isAdminUser) {
+            $jenjangsQuery->whereIn('id', !empty($myJenjangIds) ? $myJenjangIds : [-1]);
+        }
+        $jenjangs = $jenjangsQuery->get();
+
         $selectedJenjangId = $request->get('jenjang_id');
-        if (!$selectedJenjangId && $jenjangs->isNotEmpty()) {
-            $selectedJenjangId = $jenjangs->first()->id;
+        if (!$isAdminUser) {
+            if (!$selectedJenjangId || !in_array($selectedJenjangId, $myJenjangIds)) {
+                $selectedJenjangId = !empty($myJenjangIds) ? $myJenjangIds[0] : null;
+            }
+        } else {
+            if (!$selectedJenjangId && $jenjangs->isNotEmpty()) {
+                $selectedJenjangId = $jenjangs->first()->id;
+            }
         }
 
         // Helper closure to match students belonging to a Jenjang (supports multi-jenjang: primary, daycare, tpq)
@@ -76,6 +113,13 @@ class StudentController extends Controller
             if ($selectedYearId && $selectedYearId !== 'all') {
                 $countQuery->where('academic_year_id', $selectedYearId);
             }
+            if (!$isAdminUser) {
+                $countQuery->where(function ($q) use ($myClassroomIds) {
+                    $q->whereIn('classroom_id', $myClassroomIds)
+                      ->orWhereIn('daycare_classroom_id', $myClassroomIds)
+                      ->orWhereIn('tpq_classroom_id', $myClassroomIds);
+                });
+            }
             $j->students_count = $countQuery->count();
         }
 
@@ -89,6 +133,14 @@ class StudentController extends Controller
             'academicYear',
             'spmbCandidate'
         ]);
+
+        if (!$isAdminUser) {
+            $query->where(function ($q) use ($myClassroomIds) {
+                $q->whereIn('classroom_id', $myClassroomIds)
+                  ->orWhereIn('daycare_classroom_id', $myClassroomIds)
+                  ->orWhereIn('tpq_classroom_id', $myClassroomIds);
+            });
+        }
 
         // Jenjang Filter (Active Tab)
         if ($selectedJenjangId && $selectedJenjangId !== 'all') {
@@ -154,19 +206,38 @@ class StudentController extends Controller
 
         // Fast Single Aggregation Query for all Student Stats in the active Jenjang
         $statsAgg = Student::query();
-        if ($selectedJenjangId && $selectedJenjangId !== 'all') {
-            $statsAgg->where(function ($q) use ($selectedJenjangId) {
-                $q->where('jenjang_id', $selectedJenjangId)
-                  ->orWhereHas('classroom', function ($sq) use ($selectedJenjangId) {
-                      $sq->where('jenjang_id', $selectedJenjangId);
-                  })
-                  ->orWhereHas('classLevel', function ($sq) use ($selectedJenjangId) {
-                      $sq->where('jenjang_id', $selectedJenjangId);
-                  });
+        if (!$isAdminUser) {
+            $statsAgg->where(function ($q) use ($myClassroomIds) {
+                $q->whereIn('classroom_id', !empty($myClassroomIds) ? $myClassroomIds : [-1])
+                  ->orWhereIn('daycare_classroom_id', !empty($myClassroomIds) ? $myClassroomIds : [-1])
+                  ->orWhereIn('tpq_classroom_id', !empty($myClassroomIds) ? $myClassroomIds : [-1]);
             });
+        }
+        if ($selectedJenjangId && $selectedJenjangId !== 'all') {
+            $currentJenjangObj = $jenjangs->firstWhere('id', $selectedJenjangId);
+            if ($currentJenjangObj) {
+                $applyJenjangCondition($statsAgg, $currentJenjangObj);
+            } else {
+                $statsAgg->where('jenjang_id', $selectedJenjangId);
+            }
         }
         if ($selectedYearId && $selectedYearId !== 'all') {
             $statsAgg->where('academic_year_id', $selectedYearId);
+        }
+        if ($selectedClassLevelId && $selectedClassLevelId !== 'all') {
+            $statsAgg->where(function ($q) use ($selectedClassLevelId) {
+                $q->where('class_level_id', $selectedClassLevelId)
+                  ->orWhereHas('classroom', function ($sq) use ($selectedClassLevelId) {
+                      $sq->where('class_level_id', $selectedClassLevelId);
+                  });
+            });
+        }
+        if ($selectedClassroomId && $selectedClassroomId !== 'all') {
+            $statsAgg->where(function ($q) use ($selectedClassroomId) {
+                $q->where('classroom_id', $selectedClassroomId)
+                  ->orWhere('daycare_classroom_id', $selectedClassroomId)
+                  ->orWhere('tpq_classroom_id', $selectedClassroomId);
+            });
         }
         $aggregated = $statsAgg->selectRaw("
             COUNT(*) as total_all,
@@ -176,6 +247,9 @@ class StudentController extends Controller
         ")->first();
 
         $rombelQuery = Classroom::where('is_active', true);
+        if (!$isAdminUser) {
+            $rombelQuery->whereIn('id', !empty($myClassroomIds) ? $myClassroomIds : [-1]);
+        }
         if ($selectedJenjangId && $selectedJenjangId !== 'all') {
             $rombelQuery->where('jenjang_id', $selectedJenjangId);
         }
@@ -197,6 +271,7 @@ class StudentController extends Controller
 
         // Filter dropdowns: ClassLevels and Classrooms filtered by the active Jenjang tab & selected Academic Year
         $classLevels = ClassLevel::whereNotNull('jenjang_id')->where('is_active', true)
+            ->when(!$isAdminUser, fn($q) => $q->whereIn('id', !empty($myClassLevelIds) ? $myClassLevelIds : [-1]))
             ->when($selectedJenjangId && $selectedJenjangId !== 'all', fn($q) => $q->where('jenjang_id', $selectedJenjangId))
             ->when($selectedYearId && $selectedYearId !== 'all', function ($q) use ($selectedYearId) {
                 $q->where(function ($sub) use ($selectedYearId) {
@@ -209,6 +284,7 @@ class StudentController extends Controller
 
         $classrooms = Classroom::with(['classLevel', 'academicYear', 'homeroomTeacher'])
             ->where('is_active', true)
+            ->when(!$isAdminUser, fn($q) => $q->whereIn('id', !empty($myClassroomIds) ? $myClassroomIds : [-1]))
             ->when($selectedJenjangId && $selectedJenjangId !== 'all', fn($q) => $q->where('jenjang_id', $selectedJenjangId))
             ->when($selectedYearId && $selectedYearId !== 'all', fn($q) => $q->where('academic_year_id', $selectedYearId))
             ->when($selectedClassLevelId && $selectedClassLevelId !== 'all', fn($q) => $q->where('class_level_id', $selectedClassLevelId))

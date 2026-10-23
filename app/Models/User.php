@@ -51,11 +51,19 @@ class User extends Authenticatable
      */
     public function isActiveHomeroomTeacher(): bool
     {
+        if ($this->role === 'wali_kelas') {
+            return true;
+        }
+
         if (!$this->employee_id) {
             return false;
         }
 
         return \Illuminate\Support\Facades\Cache::remember('user_is_active_homeroom_' . $this->employee_id, 60, function () {
+            if (\App\Models\Classroom::where('homeroom_teacher_id', $this->employee_id)->exists()) {
+                return true;
+            }
+
             $activeAy = \App\Models\AcademicYear::where('is_active', true)->first();
             if (!$activeAy) {
                 return false;
