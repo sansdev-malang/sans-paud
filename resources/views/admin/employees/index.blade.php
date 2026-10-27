@@ -101,6 +101,15 @@
                         @endforeach
                     </select>
 
+                    <!-- Filter Jabatan -->
+                    <select name="position" onchange="this.form.submit()"
+                        class="h-8 px-2.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer">
+                        <option value="">Semua Jabatan</option>
+                        @foreach($positions ?? [] as $pos)
+                            <option value="{{ $pos }}" {{ request('position') == $pos ? 'selected' : '' }}>{{ $pos }}</option>
+                        @endforeach
+                    </select>
+
                     <!-- Filter Unit -->
                     @if(!config('app.school_unit'))
                     <select name="unit" onchange="this.form.submit()"
@@ -131,7 +140,7 @@
                         <option value="99999" {{ request('per_page') == 99999 ? 'selected' : '' }}>Semua</option>
                     </select>
 
-                    @if(request()->anyFilled(['search', 'type', 'unit', 'status']))
+                    @if(request()->anyFilled(['search', 'type', 'position', 'unit', 'status']) || (request('per_page') && request('per_page') != 10))
                         <a href="{{ route('employees.index') }}" class="h-8 px-2.5 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 rounded-lg transition-colors" title="Reset Filter">
                             <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
                         </a>
