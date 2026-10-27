@@ -173,7 +173,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/rapor', function () {
         $curUser = auth()->user();
         if (!$curUser || !$curUser->canAccessRapor()) {
-            abort(403, 'Akses E-Rapor hanya untuk Administrator dan Guru yang sedang ditugaskan sebagai Wali Kelas aktif.');
+            abort(403, 'Akses E-Rapor hanya untuk Administrator, Wali Kelas aktif, atau Koordinator Ekstrakurikuler.');
         }
 
         $ssoSecret = \App\Models\Setting::get('rapor_sso_secret', env('SSO_SECRET_KEY', 'sans_rapor_secret_sso_key_2026'));
@@ -185,6 +185,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             $ssoRole = 'kepala_sekolah';
         } elseif ($curUser->isActiveHomeroomTeacher()) {
             $ssoRole = 'wali_kelas';
+        } elseif ($curUser->isExtraCoordinator()) {
+            $ssoRole = 'koordinator_ekstra';
         }
         $ssoPayload = base64_encode(json_encode([
             'id' => $curUser->id,

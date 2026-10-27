@@ -19,7 +19,7 @@ class RaporSummaryController extends Controller
     {
         $currentUser = auth()->user();
         if (!$currentUser?->canAccessRapor()) {
-            abort(403, 'Akses menu Data Rapor hanya untuk Administrator dan Guru yang sedang ditugaskan sebagai Wali Kelas aktif.');
+            abort(403, 'Akses menu Data Rapor hanya untuk Administrator, Wali Kelas aktif, atau Koordinator Ekstrakurikuler.');
         }
 
         $academicYears = AcademicYear::orderBy('name', 'desc')->get();

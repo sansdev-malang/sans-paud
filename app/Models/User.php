@@ -77,15 +77,62 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if the user can access E-Rapor (Super Admin, Kepala Sekolah, Admin, or Active Homeroom Teachers).
+     * Check if the user is an extracurricular coordinator in E-Rapor.
      */
-    public function canAccessRapor(): bool
+    public function isExtraCoordinator(): bool
     {
-        if (in_array($this->role, ['super_admin', 'kepala_sekolah', 'admin_paud', 'admin_sd', 'admin_smp', 'waka', 'wali_kelas'])) {
+        if (in_array($this->role, ['koordinator_ekstra', 'koordinator'])) {
             return true;
         }
 
-        return $this->isActiveHomeroomTeacher();
+        $userId = $this->id;
+        return \Illuminate\Support\Facades\Cache::remember('user_is_extra_coord_' . $userId, 120, function () {
+            $cleanName = trim(explode(',', $this->name)[0]);
+            if (strlen($cleanName) < 3) {
+                return false;
+            }
+
+            try {
+                $raporDb = \App\Models\Setting::get('rapor_db_name', env('DB_RAPOR_DATABASE', 'sans-rapor'));
+                $baseConfig = config('database.connections.sans_rapor') ?: config('database.connections.mysql');
+                $baseConfig['database'] = $raporDb;
+                config(['database.connections.sans_rapor' => $baseConfig]);
+
+                return \Illuminate\Support\Facades\DB::connection('sans_rapor')
+                    ->table('paud_extracurricular_activities')
+                    ->where('is_active', true)
+                    ->where('unit', 'paud')
+                    ->where(function ($q) use ($cleanName) {
+                        $q->where('coordinator_name', 'like', "%{$cleanName}%")
+                          ->orWhere('level_coordinators', 'like', "%{$cleanName}%");
+
+                        $emp = $this->employee;
+                        if ($emp && !empty($emp->niy) && $emp->niy !== '-') {
+                            $q->orWhere('coordinator_niy', $emp->niy)
+                              ->orWhere('level_coordinators', 'like', "%{$emp->niy}%");
+                        }
+                    })
+                    ->exists();
+            } catch (\Throwable $e) {
+                return false;
+            }
+        });
+    }
+
+    /**
+     * Check if the user can access E-Rapor (Super Admin, Kepala Sekolah, Admin, Active Homeroom Teachers, or Extracurricular Coordinators).
+     */
+    public function canAccessRapor(): bool
+    {
+        if (in_array($this->role, ['super_admin', 'kepala_sekolah', 'admin_paud', 'admin_sd', 'admin_smp', 'waka', 'wali_kelas', 'koordinator_ekstra'])) {
+            return true;
+        }
+
+        if ($this->isActiveHomeroomTeacher()) {
+            return true;
+        }
+
+        return $this->isExtraCoordinator();
     }
 
     /**

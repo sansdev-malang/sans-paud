@@ -26,6 +26,8 @@
             $ssoRole = 'kepala_sekolah';
         } elseif ($curUser?->isActiveHomeroomTeacher()) {
             $ssoRole = 'wali_kelas';
+        } elseif ($curUser?->isExtraCoordinator()) {
+            $ssoRole = 'koordinator_ekstra';
         }
         $ssoPayload = base64_encode(json_encode([
             'id' => $curUser?->id,
@@ -211,6 +213,7 @@
                 </a>
                 @endif
 
+                @if($isAdmin || $isHomeroom)
                 <!-- Dropdown: Pembelajaran & Kelas -->
                 <div x-data="{ openClassroom: {{ Request::routeIs('student-attendances.*', 'classroom-journals.*', 'student-ddtk.*', 'rekap-rapor.*') ? 'true' : 'false' }} }">
                     <button @click="openClassroom = !openClassroom"
@@ -229,15 +232,12 @@
                     <!-- Dropdown content with line connector -->
                     <div x-show="openClassroom" x-collapse
                         class="sidebar-dropdown-content mt-1 ml-5 pl-4 border-l border-slate-200 dark:border-slate-800 space-y-1">
-                        @if($isAdmin || $canAccessRapor || $isTeacher || $isHomeroom)
                         <!-- Absensi Murid -->
                         <a href="{{ route('student-attendances.index') }}"
                             class="flex items-center justify-between gap-2 py-1 text-xs font-medium {{ Request::routeIs('student-attendances.*') ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100' }} transition-colors">
                             <span>Absensi Murid</span>
                         </a>
-                        @endif
 
-                        @if($isAdmin || $isTeacher || $isHomeroom)
                         <!-- Jurnal Kelas -->
                         <a href="{{ route('classroom-journals.index') }}"
                             class="flex items-center justify-between gap-2 py-1 text-xs font-medium {{ Request::routeIs('classroom-journals.*') ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100' }} transition-colors">
@@ -249,15 +249,14 @@
                             class="flex items-center justify-between gap-2 py-1 text-xs font-medium {{ Request::routeIs('student-ddtk.*') ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100' }} transition-colors">
                             <span>DDTK & SDIDTK</span>
                         </a>
-                        @endif
 
-                        @if($canAccessRapor)
                         <!-- Data Rapor -->
                         <a href="{{ route('rekap-rapor.index') }}"
                             class="flex items-center justify-between gap-2 py-1 text-xs font-medium {{ Request::routeIs('rekap-rapor.*') ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100' }} transition-colors">
                             <span>Data Rapor</span>
                         </a>
 
+                        @if($canAccessRapor)
                         <!-- Aplikasi E-Rapor -->
                         <a href="{{ $raporLink }}" target="_blank"
                             class="flex items-center justify-between gap-2 py-1 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors group/link">
@@ -270,6 +269,23 @@
                         @endif
                     </div>
                 </div>
+                @elseif($canAccessRapor)
+                <!-- Aplikasi E-Rapor (Khusus Koordinator Ekstra yang bukan Wali Kelas) -->
+                <a href="{{ $raporLink }}" target="_blank"
+                    class="menu-item flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/50 text-xs font-medium relative group">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="book-open" class="menu-icon w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0"></i>
+                        <span class="menu-text">Aplikasi E-Rapor</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <i data-lucide="external-link" class="w-3 h-3 text-slate-400 opacity-60 group-hover:opacity-100 transition-opacity"></i>
+                        <span class="text-[9px] uppercase tracking-wider font-semibold px-1 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 leading-none">SSO</span>
+                    </div>
+                    <span class="sidebar-tooltip absolute left-full ml-3 px-2 py-1 bg-slate-900 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-50 dark:text-slate-100 text-xs font-semibold rounded-md shadow-md opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all origin-left duration-100 pointer-events-none whitespace-nowrap z-50">
+                        Aplikasi E-Rapor (SSO)
+                    </span>
+                </a>
+                @endif
 
                 @if($isAdmin)
                 <!-- Dropdown: Siklus & Alumni -->
