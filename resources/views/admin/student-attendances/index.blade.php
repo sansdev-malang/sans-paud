@@ -175,54 +175,43 @@
                 </form>
             </div>
 
-            <!-- ULTRA-COMPACT DAILY STATUS SUMMARY STRIP -->
-            <section class="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full text-xs">
+            <!-- COMPACT DAILY STATUS SUMMARY STRIP (Single Line, Minimalist) -->
+            <div class="flex items-center justify-between sm:justify-start gap-2 sm:gap-3.5 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs shadow-2xs overflow-x-auto no-scrollbar">
                 <!-- Total Murid -->
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 shadow-2xs">
-                    <i data-lucide="users" class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0"></i>
-                    <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Total Murid:</span>
-                    <span class="font-bold font-mono text-slate-900 dark:text-slate-50" x-text="stats.total">{{ $dailyStats['total'] }}</span>
+                <div class="flex items-center gap-1.5 shrink-0 text-slate-600 dark:text-slate-400">
+                    <i data-lucide="users" class="w-3.5 h-3.5 text-slate-400"></i>
+                    <span>Total: <strong class="text-slate-900 dark:text-slate-100 font-mono" x-text="stats.total">{{ $dailyStats['total'] }}</strong></span>
                 </div>
-
+                <span class="text-slate-200 dark:text-slate-700 shrink-0">|</span>
                 <!-- Hadir (H) -->
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-900/40 rounded-lg text-emerald-800 dark:text-emerald-300 shadow-2xs">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-                    <span class="text-[11px] font-medium">Hadir:</span>
-                    <span class="font-bold font-mono" x-text="stats.h">{{ $dailyStats['h'] }}</span>
-                    <span class="text-[10px] font-semibold text-emerald-600/80 dark:text-emerald-400/80" x-text="'(' + calcPct(stats.h) + '%)'">({{ $dailyStats['total'] > 0 ? round(($dailyStats['h'] / $dailyStats['total']) * 100) : 0 }}%)</span>
+                <div class="flex items-center gap-1 shrink-0 font-medium text-emerald-700 dark:text-emerald-400">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                    <span>H: <strong class="font-mono font-bold" x-text="stats.h">{{ $dailyStats['h'] }}</strong></span>
                 </div>
-
+                <span class="text-slate-200 dark:text-slate-700 shrink-0">|</span>
                 <!-- Sakit (S) -->
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 rounded-lg text-amber-800 dark:text-amber-300 shadow-2xs">
-                    <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
-                    <span class="text-[11px] font-medium">Sakit:</span>
-                    <span class="font-bold font-mono" x-text="stats.s">{{ $dailyStats['s'] }}</span>
-                    <span class="text-[10px] font-semibold text-amber-600/80 dark:text-amber-400/80" x-text="'(' + calcPct(stats.s) + '%)'">({{ $dailyStats['total'] > 0 ? round(($dailyStats['s'] / $dailyStats['total']) * 100) : 0 }}%)</span>
+                <div class="flex items-center gap-1 shrink-0 font-medium text-amber-700 dark:text-amber-400">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                    <span>S: <strong class="font-mono font-bold" x-text="stats.s">{{ $dailyStats['s'] }}</strong></span>
                 </div>
-
+                <span class="text-slate-200 dark:text-slate-700 shrink-0">|</span>
                 <!-- Izin (I) -->
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-sky-50/70 dark:bg-sky-950/30 border border-sky-200/60 dark:border-sky-900/40 rounded-lg text-sky-800 dark:text-sky-300 shadow-2xs">
-                    <span class="w-2 h-2 rounded-full bg-sky-500 shrink-0"></span>
-                    <span class="text-[11px] font-medium">Izin:</span>
-                    <span class="font-bold font-mono" x-text="stats.i">{{ $dailyStats['i'] }}</span>
-                    <span class="text-[10px] font-semibold text-sky-600/80 dark:text-sky-400/80" x-text="'(' + calcPct(stats.i) + '%)'">({{ $dailyStats['total'] > 0 ? round(($dailyStats['i'] / $dailyStats['total']) * 100) : 0 }}%)</span>
+                <div class="flex items-center gap-1 shrink-0 font-medium text-sky-700 dark:text-sky-400">
+                    <span class="w-1.5 h-1.5 rounded-full bg-sky-500 shrink-0"></span>
+                    <span>I: <strong class="font-mono font-bold" x-text="stats.i">{{ $dailyStats['i'] }}</strong></span>
                 </div>
-
+                <span class="text-slate-200 dark:text-slate-700 shrink-0">|</span>
                 <!-- Alpa (A) -->
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/60 dark:border-rose-900/40 rounded-lg text-rose-800 dark:text-rose-300 shadow-2xs">
-                    <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
-                    <span class="text-[11px] font-medium">Alpa:</span>
-                    <span class="font-bold font-mono" x-text="stats.a">{{ $dailyStats['a'] }}</span>
-                    <span class="text-[10px] font-semibold text-rose-600/80 dark:text-rose-400/80" x-text="'(' + calcPct(stats.a) + '%)'">({{ $dailyStats['total'] > 0 ? round(($dailyStats['a'] / $dailyStats['total']) * 100) : 0 }}%)</span>
+                <div class="flex items-center gap-1 shrink-0 font-medium text-rose-700 dark:text-rose-400">
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
+                    <span>A: <strong class="font-mono font-bold" x-text="stats.a">{{ $dailyStats['a'] }}</strong></span>
                 </div>
-
+                <span class="text-slate-200 dark:text-slate-700 shrink-0">|</span>
                 <!-- Belum Diisi -->
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-300 shadow-2xs">
-                    <span class="w-2 h-2 rounded-full bg-slate-400 shrink-0"></span>
-                    <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Belum Diisi:</span>
-                    <span class="font-bold font-mono text-slate-800 dark:text-slate-200" x-text="stats.unrecorded">{{ $dailyStats['unrecorded'] }}</span>
+                <div class="flex items-center gap-1 shrink-0 text-slate-500 dark:text-slate-400">
+                    <span>Belum: <strong class="font-mono font-bold text-slate-700 dark:text-slate-300" x-text="stats.unrecorded">{{ $dailyStats['unrecorded'] }}</strong></span>
                 </div>
-            </section>
+            </div>
 
             <!-- INLINE FORM & TABLE SECTION -->
             @if($students->isEmpty())
@@ -241,30 +230,31 @@
                     <input type="hidden" name="classroom_id" value="{{ $selectedClassroomId }}">
                     <input type="hidden" name="date" value="{{ $selectedDate }}">
 
-                    <!-- FORM ACTION TOOLBAR -->
-                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-xs flex flex-wrap items-center justify-between gap-2.5 mb-3">
-                        <div class="flex flex-wrap items-center gap-2">
-                            <!-- Quick Action: Tandai Semua Hadir -->
+                    <!-- FORM ACTION TOOLBAR (Desktop: Kiri berdampingan, Kanan Simpan | Mobile: 1 Baris Sejajar) -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-2 sm:p-2.5 shadow-xs flex items-center justify-between gap-2 mb-3">
+                        <!-- Group Kiri: Semua Hadir & Kosongkan berdampingan -->
+                        <div class="flex items-center gap-1.5 sm:gap-2 flex-1 sm:flex-none">
+                            <!-- Quick Action: Semua Hadir -->
                             <button type="button" @click="markAllAs('H')"
-                                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-lg text-xs font-semibold transition-colors cursor-pointer shadow-2xs">
-                                <i data-lucide="check-check" class="w-3.5 h-3.5 text-emerald-600"></i>
-                                <span>Tandai Semua Hadir (H)</span>
+                                class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-lg text-xs font-semibold transition-colors cursor-pointer shadow-2xs whitespace-nowrap">
+                                <i data-lucide="check-check" class="w-3.5 h-3.5 text-emerald-600 shrink-0"></i>
+                                <span>Semua Hadir</span>
                             </button>
 
-                            <!-- Quick Action: Reset Pilihan -->
+                            <!-- Quick Action: Kosongkan -->
                             <button type="button" @click="resetAll()"
-                                class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium transition-colors cursor-pointer">
-                                <i data-lucide="rotate-ccw" class="w-3 h-3"></i>
-                                <span>Kosongkan Pilihan</span>
+                                class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium transition-colors cursor-pointer whitespace-nowrap">
+                                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 shrink-0"></i>
+                                <span>Kosongkan</span>
                             </button>
                         </div>
 
-                        <!-- Top Simpan Button -->
-                        <div class="flex items-center gap-2">
+                        <!-- Group Kanan (Pojok Kanan): Simpan -->
+                        <div class="flex items-center shrink-0">
                             <button type="submit"
-                                class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm hover:shadow transition-all cursor-pointer">
-                                <i data-lucide="save" class="w-4 h-4"></i>
-                                <span>Simpan Absensi</span>
+                                class="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm hover:shadow transition-all cursor-pointer whitespace-nowrap">
+                                <i data-lucide="save" class="w-3.5 h-3.5 shrink-0"></i>
+                                <span>Simpan</span>
                             </button>
                         </div>
                     </div>
@@ -335,40 +325,16 @@
 
                                             <!-- NAMA MURID -->
                                             <td class="py-3 px-4 border-r border-slate-100 dark:border-slate-800">
-                                                <div class="flex items-center gap-3">
-                                                    <!-- Avatar -->
-                                                    @if($st->student_photo_url)
-                                                        <img src="{{ asset('storage/' . $st->student_photo_url) }}" alt="{{ $st->full_name }}"
-                                                            class="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700">
-                                                    @else
-                                                        <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-[11px] flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
-                                                            {{ $st->avatar_initials }}
-                                                        </div>
-                                                    @endif
-
-                                                    <div class="min-w-0">
-                                                        <div class="flex items-center gap-1.5">
-                                                            <span class="font-bold text-slate-900 dark:text-slate-100 truncate">
-                                                                {{ $st->full_name }}
-                                                            </span>
-                                                            <!-- Gender Badge -->
-                                                            @if($st->gender === 'L' || $st->gender === 'Laki-laki')
-                                                                <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
-                                                                    L
-                                                                </span>
-                                                            @else
-                                                                <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-pink-50 text-pink-700 dark:bg-pink-950/50 dark:text-pink-300">
-                                                                    P
-                                                                </span>
-                                                            @endif
-                                                        </div>
-                                                        <div class="flex items-center gap-2 text-[10.5px] text-slate-400 dark:text-slate-500 font-mono mt-0.5">
-                                                            <span>NIS: {{ $st->nis ?: '-' }}</span>
-                                                            @if($st->nickname)
-                                                                <span>&bull;</span>
-                                                                <span class="font-sans italic">"{{ $st->nickname }}"</span>
-                                                            @endif
-                                                        </div>
+                                                <div class="min-w-0">
+                                                    <span class="font-bold text-slate-900 dark:text-slate-100 truncate block">
+                                                        {{ $st->full_name }}
+                                                    </span>
+                                                    <div class="flex items-center gap-2 text-[10.5px] text-slate-400 dark:text-slate-500 font-mono mt-0.5">
+                                                        <span>NIS: {{ $st->nis ?: '-' }}</span>
+                                                        @if($st->nickname)
+                                                            <span>&bull;</span>
+                                                            <span class="font-sans italic">"{{ $st->nickname }}"</span>
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </td>
@@ -489,29 +455,14 @@
                                 
                                 <!-- Student Header -->
                                 <div class="flex items-center justify-between gap-2.5">
-                                    <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="flex items-center gap-2 min-w-0">
                                         <span class="w-6 h-6 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-mono text-[11px] font-bold flex items-center justify-center shrink-0">
                                             {{ $loop->iteration }}
                                         </span>
-                                        @if($st->student_photo_url)
-                                            <img src="{{ asset('storage/' . $st->student_photo_url) }}" alt="{{ $st->full_name }}"
-                                                class="w-9 h-9 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700">
-                                        @else
-                                            <div class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
-                                                {{ $st->avatar_initials }}
-                                            </div>
-                                        @endif
                                         <div class="min-w-0">
-                                            <div class="flex items-center gap-1.5">
-                                                <h4 class="font-bold text-xs text-slate-900 dark:text-slate-100 truncate">
-                                                    {{ $st->full_name }}
-                                                </h4>
-                                                @if($st->gender === 'L' || $st->gender === 'Laki-laki')
-                                                    <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 shrink-0">L</span>
-                                                @else
-                                                    <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-pink-50 text-pink-700 dark:bg-pink-950/50 dark:text-pink-300 shrink-0">P</span>
-                                                @endif
-                                            </div>
+                                            <h4 class="font-bold text-xs text-slate-900 dark:text-slate-100 truncate">
+                                                {{ $st->full_name }}
+                                            </h4>
                                             <div class="flex items-center gap-1.5 text-[10.5px] text-slate-400 dark:text-slate-500 font-mono">
                                                 <span>NIS: {{ $st->nis ?: '-' }}</span>
                                                 @if($st->nickname)
