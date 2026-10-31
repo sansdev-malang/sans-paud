@@ -397,7 +397,7 @@
             @include('partials.admin.sidebar')
 
             <!-- MAIN LAYOUT -->
-            <main class="flex-1 flex flex-col overflow-y-auto">
+            <main class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden min-w-0">
                 @if(session()->has('impersonator_id'))
                     <div class="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 text-slate-950 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs font-semibold shadow-md z-40 sticky top-0 shrink-0 border-b border-amber-600/30">
                         <div class="flex items-center gap-2.5">

@@ -280,8 +280,8 @@
                         </div>
                     </div>
 
-                    <!-- INLINE ATTENDANCE TABLE -->
-                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs">
+                    <!-- 1. DESKTOP ATTENDANCE TABLE (Visible on md and up) -->
+                    <div class="hidden md:block bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs">
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse">
                                 <thead>
@@ -331,11 +331,6 @@
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
                                     @foreach($students as $st)
-                                        @php
-                                            $att = $existingDailyAttendances[$st->id] ?? null;
-                                            $curStatus = $att ? $att->status : '';
-                                            $curNotes = $att ? $att->notes : '';
-                                        @endphp
                                         <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
                                             :class="{
                                                 'bg-emerald-50/20 dark:bg-emerald-950/10': statuses[{{ $st->id }}] === 'H',
@@ -391,7 +386,7 @@
 
                                             <!-- STATUS: HADIR (H) -->
                                             <td class="py-2.5 px-2 text-center border-r border-slate-100 dark:border-slate-800 bg-emerald-50/10 dark:bg-emerald-950/5">
-                                                <label class="inline-flex items-center justify-center cursor-pointer p-1 rounded-lg group">
+                                                <label class="relative inline-flex items-center justify-center cursor-pointer p-1 rounded-lg group">
                                                     <input type="radio" 
                                                         name="attendances[{{ $st->id }}][status]" 
                                                         value="H" 
@@ -409,7 +404,7 @@
 
                                             <!-- STATUS: SAKIT (S) -->
                                             <td class="py-2.5 px-2 text-center border-r border-slate-100 dark:border-slate-800 bg-amber-50/10 dark:bg-amber-950/5">
-                                                <label class="inline-flex items-center justify-center cursor-pointer p-1 rounded-lg group">
+                                                <label class="relative inline-flex items-center justify-center cursor-pointer p-1 rounded-lg group">
                                                     <input type="radio" 
                                                         name="attendances[{{ $st->id }}][status]" 
                                                         value="S" 
@@ -427,7 +422,7 @@
 
                                             <!-- STATUS: IZIN (I) -->
                                             <td class="py-2.5 px-2 text-center border-r border-slate-100 dark:border-slate-800 bg-sky-50/10 dark:bg-sky-950/5">
-                                                <label class="inline-flex items-center justify-center cursor-pointer p-1 rounded-lg group">
+                                                <label class="relative inline-flex items-center justify-center cursor-pointer p-1 rounded-lg group">
                                                     <input type="radio" 
                                                         name="attendances[{{ $st->id }}][status]" 
                                                         value="I" 
@@ -445,7 +440,7 @@
 
                                             <!-- STATUS: ALPA (A) -->
                                             <td class="py-2.5 px-2 text-center border-r border-slate-100 dark:border-slate-800 bg-rose-50/10 dark:bg-rose-950/5">
-                                                <label class="inline-flex items-center justify-center cursor-pointer p-1 rounded-lg group">
+                                                <label class="relative inline-flex items-center justify-center cursor-pointer p-1 rounded-lg group">
                                                     <input type="radio" 
                                                         name="attendances[{{ $st->id }}][status]" 
                                                         value="A" 
@@ -489,6 +484,144 @@
                         <div class="p-3 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
                             <span>Total Murid: <strong>{{ $students->count() }}</strong> anak</span>
                             <span>Rombel: <strong>{{ $selectedClassroom ? $selectedClassroom->name : 'Semua Rombel' }}</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- 2. MOBILE RESPONSIVE ATTENDANCE CARDS (Visible on mobile/tablet below md) -->
+                    <div class="block md:hidden space-y-3">
+                        @foreach($students as $st)
+                            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 shadow-xs space-y-3 transition-colors"
+                                :class="{
+                                    'border-emerald-400 dark:border-emerald-600 bg-emerald-50/15 dark:bg-emerald-950/20': statuses[{{ $st->id }}] === 'H',
+                                    'border-amber-400 dark:border-amber-600 bg-amber-50/15 dark:bg-amber-950/20': statuses[{{ $st->id }}] === 'S',
+                                    'border-sky-400 dark:border-sky-600 bg-sky-50/15 dark:bg-sky-950/20': statuses[{{ $st->id }}] === 'I',
+                                    'border-rose-400 dark:border-rose-600 bg-rose-50/15 dark:bg-rose-950/20': statuses[{{ $st->id }}] === 'A',
+                                }">
+                                
+                                <!-- Student Header -->
+                                <div class="flex items-center justify-between gap-2.5">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <span class="w-6 h-6 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-mono text-[11px] font-bold flex items-center justify-center shrink-0">
+                                            {{ $loop->iteration }}
+                                        </span>
+                                        @if($st->student_photo_url)
+                                            <img src="{{ asset('storage/' . $st->student_photo_url) }}" alt="{{ $st->full_name }}"
+                                                class="w-9 h-9 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700">
+                                        @else
+                                            <div class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
+                                                {{ $st->avatar_initials }}
+                                            </div>
+                                        @endif
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-1.5">
+                                                <h4 class="font-bold text-xs text-slate-900 dark:text-slate-100 truncate">
+                                                    {{ $st->full_name }}
+                                                </h4>
+                                                @if($st->gender === 'L' || $st->gender === 'Laki-laki')
+                                                    <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 shrink-0">L</span>
+                                                @else
+                                                    <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-pink-50 text-pink-700 dark:bg-pink-950/50 dark:text-pink-300 shrink-0">P</span>
+                                                @endif
+                                            </div>
+                                            <div class="flex items-center gap-1.5 text-[10.5px] text-slate-400 dark:text-slate-500 font-mono">
+                                                <span>NIS: {{ $st->nis ?: '-' }}</span>
+                                                @if($st->nickname)
+                                                    <span>&bull;</span>
+                                                    <span class="font-sans italic">"{{ $st->nickname }}"</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Clear button for this student -->
+                                    <button type="button" @click="clearStudent({{ $st->id }})" title="Kosongkan status"
+                                        x-show="hasValue({{ $st->id }})" x-cloak
+                                        class="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+                                        <i data-lucide="x-circle" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Attendance Options (4 Big Touch-Friendly Buttons) -->
+                                <div class="grid grid-cols-4 gap-2">
+                                    <!-- Hadir (H) -->
+                                    <label class="relative flex flex-col items-center justify-center py-2 px-1 rounded-xl border cursor-pointer transition-all select-none text-center"
+                                        :class="statuses[{{ $st->id }}] === 'H'
+                                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                                            : 'bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 active:scale-95'">
+                                        <input type="radio" 
+                                            name="attendances[{{ $st->id }}][status]" 
+                                            value="H" 
+                                            x-model="statuses[{{ $st->id }}]"
+                                            @change="updateCounters()"
+                                            class="sr-only">
+                                        <span class="text-xs font-bold leading-none">H</span>
+                                        <span class="text-[9px] mt-1 opacity-80 leading-none">Hadir</span>
+                                    </label>
+
+                                    <!-- Sakit (S) -->
+                                    <label class="relative flex flex-col items-center justify-center py-2 px-1 rounded-xl border cursor-pointer transition-all select-none text-center"
+                                        :class="statuses[{{ $st->id }}] === 'S'
+                                            ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
+                                            : 'bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 active:scale-95'">
+                                        <input type="radio" 
+                                            name="attendances[{{ $st->id }}][status]" 
+                                            value="S" 
+                                            x-model="statuses[{{ $st->id }}]"
+                                            @change="updateCounters()"
+                                            class="sr-only">
+                                        <span class="text-xs font-bold leading-none">S</span>
+                                        <span class="text-[9px] mt-1 opacity-80 leading-none">Sakit</span>
+                                    </label>
+
+                                    <!-- Izin (I) -->
+                                    <label class="relative flex flex-col items-center justify-center py-2 px-1 rounded-xl border cursor-pointer transition-all select-none text-center"
+                                        :class="statuses[{{ $st->id }}] === 'I'
+                                            ? 'bg-sky-500 text-white border-sky-500 shadow-sm'
+                                            : 'bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 active:scale-95'">
+                                        <input type="radio" 
+                                            name="attendances[{{ $st->id }}][status]" 
+                                            value="I" 
+                                            x-model="statuses[{{ $st->id }}]"
+                                            @change="updateCounters()"
+                                            class="sr-only">
+                                        <span class="text-xs font-bold leading-none">I</span>
+                                        <span class="text-[9px] mt-1 opacity-80 leading-none">Izin</span>
+                                    </label>
+
+                                    <!-- Alpa (A) -->
+                                    <label class="relative flex flex-col items-center justify-center py-2 px-1 rounded-xl border cursor-pointer transition-all select-none text-center"
+                                        :class="statuses[{{ $st->id }}] === 'A'
+                                            ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
+                                            : 'bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 active:scale-95'">
+                                        <input type="radio" 
+                                            name="attendances[{{ $st->id }}][status]" 
+                                            value="A" 
+                                            x-model="statuses[{{ $st->id }}]"
+                                            @change="updateCounters()"
+                                            class="sr-only">
+                                        <span class="text-xs font-bold leading-none">A</span>
+                                        <span class="text-[9px] mt-1 opacity-80 leading-none">Alpa</span>
+                                    </label>
+                                </div>
+
+                                <!-- Notes input -->
+                                <div>
+                                    <input type="text" 
+                                        name="attendances[{{ $st->id }}][notes]" 
+                                        x-model="notes[{{ $st->id }}]"
+                                        placeholder="Keterangan sakit, izin, atau alasan..." 
+                                        class="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-800 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500">
+                                </div>
+                            </div>
+                        @endforeach
+
+                        <!-- Bottom Submit Button for Mobile -->
+                        <div class="pt-2 pb-6">
+                            <button type="submit"
+                                class="w-full flex items-center justify-center gap-2 py-3 px-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer">
+                                <i data-lucide="save" class="w-4 h-4"></i>
+                                <span>Simpan Absensi ({{ $students->count() }} Murid)</span>
+                            </button>
                         </div>
                     </div>
                 </form>
