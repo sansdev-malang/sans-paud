@@ -39,18 +39,7 @@
             </div>
         </section>
 
-        <!-- FLASH NOTIFICATION -->
-        @if(session('success'))
-            <div class="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 p-3 sm:p-3.5 rounded-xl flex items-center justify-between gap-3 text-xs shadow-xs transition-all">
-                <div class="flex items-center gap-2.5">
-                    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0"></i>
-                    <span class="font-semibold">{{ session('success') }}</span>
-                </div>
-                <button type="button" @click="$el.parentElement.remove()" class="text-emerald-600 hover:text-emerald-800 dark:hover:text-emerald-200">
-                    <i data-lucide="x" class="w-4 h-4"></i>
-                </button>
-            </div>
-        @endif
+        <!-- ERROR NOTIFICATION (JIKA ADA ERROR VALIDASI) -->
 
         @if(isset($errors) && $errors->any())
             <div class="bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 p-3 sm:p-3.5 rounded-xl flex items-start gap-2.5 text-xs shadow-xs">
