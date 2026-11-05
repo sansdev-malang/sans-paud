@@ -26,8 +26,15 @@
                 </p>
             </div>
 
-            <!-- T.A. & Badge Info -->
+            <!-- T.A. & Action Buttons -->
             <div class="flex flex-wrap items-center gap-2 shrink-0">
+                <!-- Import Excel -->
+                <button type="button" @click="openImportModal('ddtk')"
+                    class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-white dark:bg-slate-900 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 hover:text-sky-700 dark:hover:text-sky-400 text-[11px] sm:text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-colors cursor-pointer">
+                    <i data-lucide="file-up" class="w-3.5 h-3.5 text-sky-600 dark:text-sky-400"></i>
+                    <span>Import Excel</span>
+                </button>
+
                 <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/60 rounded-xl text-[11px] sm:text-xs shadow-xs">
                     <span class="flex h-2 w-2 relative">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -243,6 +250,13 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
+                            <!-- Tombol Import DDTK -->
+                            <button type="button" @click="openImportModal('ddtk')"
+                                class="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-900 hover:bg-sky-50 dark:hover:bg-sky-950/50 text-slate-700 dark:text-slate-300 hover:text-sky-700 dark:hover:text-sky-400 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-all cursor-pointer">
+                                <i data-lucide="file-up" class="w-3.5 h-3.5 text-sky-600 dark:text-sky-400"></i>
+                                <span>Import Excel DDTK</span>
+                            </button>
+
                             <!-- Tombol Simpan -->
                             <button type="submit"
                                 class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-sky-600 hover:bg-sky-700 active:scale-95 text-white text-xs font-bold rounded-lg shadow-xs hover:shadow transition-all cursor-pointer">
@@ -511,6 +525,13 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
+                            <!-- Tombol Import SDIDTK -->
+                            <button type="button" @click="openImportModal('sdidtk')"
+                                class="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-900 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 text-slate-700 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-all cursor-pointer">
+                                <i data-lucide="file-up" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400"></i>
+                                <span>Import Excel SDIDTK</span>
+                            </button>
+
                             <!-- Tombol Simpan -->
                             <button type="submit"
                                 class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold rounded-lg shadow-xs hover:shadow transition-all cursor-pointer">
@@ -1109,6 +1130,145 @@
 
         </div>
 
+        <!-- ========================================================================= -->
+        <!-- MODAL IMPORT EXCEL DDTK & SDIDTK                                          -->
+        <!-- ========================================================================= -->
+        <div x-show="isImportModalOpen" x-cloak
+            class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-xs"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0">
+
+            <div class="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden text-left"
+                @click.outside="isImportModalOpen = false"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 scale-95"
+                x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 scale-100"
+                x-transition:leave-end="opacity-0 scale-95">
+
+                <!-- Header -->
+                <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-800/40">
+                    <div class="flex items-center gap-2.5">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 border border-sky-200/80 dark:border-sky-800/60">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                        </span>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100">Import Data DDTK / SDIDTK</h3>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400">Unggah berkas Excel antropometri atau skrining tumbuh kembang</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="isImportModalOpen = false"
+                        class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <!-- Form -->
+                <form action="{{ route('student-ddtk.import') }}" method="POST" enctype="multipart/form-data" class="p-5 space-y-4">
+                    @csrf
+                    <input type="hidden" name="target_tab" :value="targetTab">
+                    <input type="hidden" name="period" :value="importPeriod">
+                    <input type="hidden" name="classroom_id" :value="importClassroomId">
+
+                    <!-- Step 1: Pilihan Format & Unduh Template -->
+                    <div class="p-4 bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 rounded-xl space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200">1. Format & Unduh Template Excel</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 font-semibold">Otomatis Pre-fill</span>
+                        </div>
+
+                        <!-- Type Selector Pills -->
+                        <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-200/60 dark:bg-slate-800 rounded-xl">
+                            <button type="button" @click="importType = 'ddtk'; targetTab = 'inputDDTK'"
+                                class="py-1.5 text-center text-xs font-bold rounded-lg transition-all cursor-pointer"
+                                :class="importType === 'ddtk' ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'">
+                                DDTK Fisik
+                            </button>
+                            <button type="button" @click="importType = 'sdidtk'; targetTab = 'inputSDIDTK'"
+                                class="py-1.5 text-center text-xs font-bold rounded-lg transition-all cursor-pointer"
+                                :class="importType === 'sdidtk' ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-300 shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'">
+                                SDIDTK Skrining
+                            </button>
+                            <button type="button" @click="importType = 'all'; targetTab = 'inputDDTK'"
+                                class="py-1.5 text-center text-xs font-bold rounded-lg transition-all cursor-pointer"
+                                :class="importType === 'all' ? 'bg-white dark:bg-slate-900 text-indigo-700 dark:text-indigo-300 shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'">
+                                Lengkap (Semua)
+                            </button>
+                        </div>
+
+                        <!-- Filter Rombel & Periode for Template -->
+                        <div class="grid grid-cols-2 gap-2 text-left">
+                            <div>
+                                <label class="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Rombel Siswa:</label>
+                                <select x-model="importClassroomId" class="w-full text-xs py-1.5 px-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg">
+                                    <option value="">Semua Rombel</option>
+                                    @foreach($classrooms as $cls)
+                                        <option value="{{ $cls->id }}">{{ $cls->name }} ({{ $cls->sub_unit }})</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Periode Bulan:</label>
+                                <select x-model="importPeriod" class="w-full text-xs py-1.5 px-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg">
+                                    @foreach($availablePeriods as $val => $lbl)
+                                        <option value="{{ $val }}">{{ $lbl }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Download Button -->
+                        <a :href="getTemplateUrl()" download data-no-progress="true"
+                            class="inline-flex items-center justify-center gap-2 w-full px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer">
+                            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                            <span>Unduh Template Excel (<span x-text="importType === 'all' ? 'Lengkap' : importType.toUpperCase()"></span>)</span>
+                        </a>
+                    </div>
+
+                    <!-- Step 2: Upload File -->
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                            2. Pilih Berkas Excel Terisi (.xlsx, .xls, .csv)
+                        </label>
+                        <input type="file" name="file" required accept=".xlsx,.xls,.csv"
+                            class="block w-full text-xs text-slate-700 dark:text-slate-300 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-50 file:text-sky-700 dark:file:bg-sky-950/60 dark:file:text-sky-300 hover:file:bg-sky-100 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer bg-slate-50/50 dark:bg-slate-800/30">
+                        <p class="text-[10px] text-slate-500 dark:text-slate-400">Ukuran berkas maks. 10 MB. Sistem akan mengenali siswa berdasarkan NIS atau Nama Murid.</p>
+                    </div>
+
+                    <!-- Petunjuk Singkat -->
+                    <div class="p-3 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 rounded-xl text-[11px] text-amber-800 dark:text-amber-300 space-y-1">
+                        <div class="font-bold flex items-center gap-1.5">
+                            <i data-lucide="info" class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0"></i>
+                            <span>Catatan Import:</span>
+                        </div>
+                        <ul class="list-disc list-inside space-y-0.5 text-[10px] text-amber-700 dark:text-amber-400">
+                            <li>Data fisik DDTK (TB, BB, LK, LiLA) yang diimpor akan otomatis memperbarui profil pengukuran terakhir murid.</li>
+                            <li>Jika baris data untuk murid dan periode tersebut sudah ada sebelumnya, data akan otomatis diperbarui (update).</li>
+                            <li>Gunakan titik (.) untuk angka desimal, contoh: <span class="font-mono font-semibold">102.5</span> atau <span class="font-mono font-semibold">16.3</span>.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Footer Action Buttons -->
+                    <div class="pt-2 flex items-center justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
+                        <button type="button" @click="isImportModalOpen = false"
+                            class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+                            Batal
+                        </button>
+                        <button type="submit"
+                            class="inline-flex items-center gap-1.5 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-bold shadow-xs hover:shadow transition-all cursor-pointer">
+                            <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                            <span>Mulai Import Data</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
     </div>
 
     <!-- Chart.js CDN for Interactive Growth Graph -->
@@ -1125,6 +1285,30 @@
                 chartHistory: config.chartHistory || [],
                 selectedMetric: 'tb_bb',
                 chartInstance: null,
+                isImportModalOpen: false,
+                importType: 'ddtk',
+                importClassroomId: config.classroomId || '',
+                importPeriod: config.selectedPeriod,
+                targetTab: config.initialTab || 'inputDDTK',
+
+                openImportModal(type = 'ddtk') {
+                    this.importType = type;
+                    this.targetTab = (type === 'sdidtk') ? 'inputSDIDTK' : 'inputDDTK';
+                    this.isImportModalOpen = true;
+                    this.$nextTick(() => {
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    });
+                },
+
+                getTemplateUrl() {
+                    let base = "{{ route('student-ddtk.template') }}";
+                    let params = new URLSearchParams();
+                    params.set('type', this.importType);
+                    if (this.importClassroomId) params.set('classroom_id', this.importClassroomId);
+                    if (this.importPeriod) params.set('period', this.importPeriod);
+                    params.set('date', this.selectedDate);
+                    return `${base}?${params.toString()}`;
+                },
 
                 init() {
                     this.$watch('activeTab', (val) => {

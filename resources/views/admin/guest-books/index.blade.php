@@ -60,6 +60,13 @@
                     <span>Cetak</span>
                 </a>
 
+                <!-- Import Excel -->
+                <button type="button" @click="openImportModal()"
+                    class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-white dark:bg-slate-900 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 text-[11px] sm:text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-colors cursor-pointer">
+                    <i data-lucide="file-up" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400"></i>
+                    <span>Import Excel</span>
+                </button>
+
                 <!-- Tambah Tamu -->
                 <button type="button" @click="openCreateModal()"
                     class="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 bg-teal-600 hover:bg-teal-700 text-white text-[11px] sm:text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer">
@@ -1564,6 +1571,104 @@
             </div>
         </div>
 
+        <!-- ========================================================================= -->
+        <!-- MODAL IMPORT EXCEL BUKU TAMU                                              -->
+        <!-- ========================================================================= -->
+        <div x-show="isImportModalOpen" x-cloak
+            class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-xs"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0">
+
+            <div class="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden text-left"
+                @click.outside="isImportModalOpen = false"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 scale-95"
+                x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 scale-100"
+                x-transition:leave-end="opacity-0 scale-95">
+
+                <!-- Header -->
+                <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-800/40">
+                    <div class="flex items-center gap-2.5">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/60">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                        </span>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100">Import Data Buku Tamu</h3>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400">Unggah berkas Excel berisi daftar tamu PAUD</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="isImportModalOpen = false"
+                        class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <!-- Body & Form -->
+                <form action="{{ route('guest-books.import') }}" method="POST" enctype="multipart/form-data" class="p-5 space-y-4">
+                    @csrf
+
+                    <!-- Step 1: Download Template -->
+                    <div class="p-3.5 bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 rounded-xl space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200">1. Unduh Template Excel</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-semibold">Rekomendasi</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                            Gunakan format template resmi agar data tamu, no. telepon, kategori, dan detail kunjungan dapat terbaca otomatis dengan tepat.
+                        </p>
+                        <a href="{{ route('guest-books.template') }}" download data-no-progress="true"
+                            class="inline-flex items-center justify-center gap-2 w-full px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer">
+                            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                            <span>Unduh Format Template Buku Tamu (.xlsx)</span>
+                        </a>
+                    </div>
+
+                    <!-- Step 2: Upload File -->
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                            2. Pilih Berkas Excel (.xlsx, .xls, .csv)
+                        </label>
+                        <input type="file" name="file" required accept=".xlsx,.xls,.csv"
+                            class="block w-full text-xs text-slate-700 dark:text-slate-300 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 dark:file:bg-teal-950/60 dark:file:text-teal-300 hover:file:bg-teal-100 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer bg-slate-50/50 dark:bg-slate-800/30">
+                        <p class="text-[10px] text-slate-500 dark:text-slate-400">Maksimum ukuran file: 10 MB. Mendukung file .xlsx dan .xls.</p>
+                    </div>
+
+                    <!-- Petunjuk Ringkas -->
+                    <div class="p-3 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 rounded-xl text-[11px] text-amber-800 dark:text-amber-300 space-y-1">
+                        <div class="font-bold flex items-center gap-1.5">
+                            <i data-lucide="info" class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0"></i>
+                            <span>Petunjuk Pengisian:</span>
+                        </div>
+                        <ul class="list-disc list-inside space-y-0.5 text-[10px] text-amber-700 dark:text-amber-400">
+                            <li>Format tanggal: <strong class="font-mono">YYYY-MM-DD</strong> (contoh: 2026-11-05).</li>
+                            <li>Format jam: <strong class="font-mono">HH:MM</strong> (contoh: 08:30).</li>
+                            <li>Kategori yang didukung: <span class="font-semibold">Umum</span>, <span class="font-semibold">Dinas</span>, <span class="font-semibold">Puskesmas/Dinkes</span>, dan <span class="font-semibold">SPMB</span>.</li>
+                            <li>Khusus kategori SPMB, pastikan mengisi kolom nama calon murid.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Footer Action Buttons -->
+                    <div class="pt-2 flex items-center justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
+                        <button type="button" @click="isImportModalOpen = false"
+                            class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+                            Batal
+                        </button>
+                        <button type="submit"
+                            class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-xs hover:shadow transition-all cursor-pointer">
+                            <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                            <span>Mulai Import Data</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
     </div>
 
     <!-- ALPINE.JS SCRIPT -->
@@ -1576,6 +1681,7 @@
             return {
                 modalOpen: hasErrors,
                 viewModalOpen: false,
+                isImportModalOpen: false,
                 isEdit: isEditFromOld,
                 formAction: (isEditFromOld && oldId) ? ("/guest-books/" + oldId) : "{{ route('guest-books.store') }}",
                 viewData: null,
@@ -1664,6 +1770,13 @@
                 openViewModal(guest) {
                     this.viewData = guest;
                     this.viewModalOpen = true;
+                    this.$nextTick(() => {
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    });
+                },
+
+                openImportModal() {
+                    this.isImportModalOpen = true;
                     this.$nextTick(() => {
                         if (typeof lucide !== 'undefined') lucide.createIcons();
                     });

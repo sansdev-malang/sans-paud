@@ -591,4 +591,461 @@ class StudentDdtkController extends Controller
             'records'
         ));
     }
+
+    /**
+     * Download Excel Template for DDTK / SDIDTK import.
+     */
+    public function downloadTemplate(Request $request)
+    {
+        $classroomId = $request->get('classroom_id');
+        $period = $request->get('period', Carbon::now()->format('Y-m'));
+        $type = $request->get('type', 'ddtk'); // 'ddtk', 'sdidtk', 'all'
+        $date = $request->get('date', Carbon::today()->format('Y-m-d'));
+
+        $classroom = null;
+        $students = collect();
+
+        if ($classroomId) {
+            $classroom = Classroom::find($classroomId);
+            if ($classroom) {
+                $studentsQuery = Student::where('status', 'aktif');
+                if ($classroom->sub_unit === 'DAYCARE') {
+                    $studentsQuery->where(function ($q) use ($classroom) {
+                        $q->where('classroom_id', $classroom->id)
+                          ->orWhere('daycare_classroom_id', $classroom->id);
+                    });
+                } elseif ($classroom->sub_unit === 'TPQ') {
+                    $studentsQuery->where(function ($q) use ($classroom) {
+                        $q->where('classroom_id', $classroom->id)
+                          ->orWhere('tpq_classroom_id', $classroom->id);
+                    });
+                } else {
+                    $studentsQuery->where('classroom_id', $classroom->id);
+                }
+                $students = $studentsQuery->orderBy('full_name', 'asc')->get();
+            }
+        }
+
+        $periodLabel = Carbon::hasFormat($period, 'Y-m') ? Carbon::createFromFormat('Y-m', $period)->translatedFormat('F Y') : $period;
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        if ($type === 'sdidtk') {
+            $sheet->setTitle('Template SDIDTK');
+            $sheet->setCellValue('A1', 'TEMPLATE IMPORT SKRINING SDIDTK');
+            $sheet->setCellValue('A2', strtoupper(setting('unit_name', setting('app_name', 'PAUD ANAK SALEH'))));
+            $sheet->setCellValue('A3', "Periode: {$periodLabel} ({$period}) | Rombel: " . ($classroom ? "{$classroom->name} ({$classroom->sub_unit})" : 'Semua Rombel'));
+            $sheet->setCellValue('A4', 'Petunjuk: Isi hasil skrining sesuai opsi. Visus: Normal/6/6. KPSP: Sesuai/Meragukan/Penyimpangan. Gigi: Bersih/Karies/Berlubang. Kusta/Frambusia: Ya/Tidak.');
+
+            $headers = [
+                'No', 'NIS', 'Nama Murid', 'Rombel', 'Tanggal Periksa (YYYY-MM-DD)',
+                'Mata Kanan', 'Mata Kiri', 'KPSP', 'Kesehatan Gigi', 'Gula Darah / Hb',
+                'Kusta (Ya/Tidak)', 'Frambusia (Ya/Tidak)', 'Catatan / Keterangan'
+            ];
+            $themeColor = '059669'; // Emerald
+        } elseif ($type === 'all') {
+            $sheet->setTitle('Template DDTK & SDIDTK');
+            $sheet->setCellValue('A1', 'TEMPLATE IMPORT DDTK & SDIDTK (LENGKAP)');
+            $sheet->setCellValue('A2', strtoupper(setting('unit_name', setting('app_name', 'PAUD ANAK SALEH'))));
+            $sheet->setCellValue('A3', "Periode: {$periodLabel} ({$period}) | Rombel: " . ($classroom ? "{$classroom->name} ({$classroom->sub_unit})" : 'Semua Rombel'));
+            $sheet->setCellValue('A4', 'Petunjuk: Isi data antropometri fisik (DDTK) dan skrining tumbuh kembang (SDIDTK). Kosongkan kolom yang tidak diuji.');
+
+            $headers = [
+                'No', 'NIS', 'Nama Murid', 'Rombel', 'Tanggal Periksa (YYYY-MM-DD)',
+                'Tinggi Badan (cm)', 'Berat Badan (kg)', 'Lingkar Kepala (cm)', 'Lingkar Lengan (cm)',
+                'Mata Kanan', 'Mata Kiri', 'KPSP', 'Kesehatan Gigi', 'Gula Darah / Hb',
+                'Kusta (Ya/Tidak)', 'Frambusia (Ya/Tidak)', 'Catatan / Keterangan'
+            ];
+            $themeColor = '4F46E5'; // Indigo
+        } else {
+            // Default DDTK
+            $sheet->setTitle('Template DDTK');
+            $sheet->setCellValue('A1', 'TEMPLATE IMPORT ANTROPOMETRI DDTK');
+            $sheet->setCellValue('A2', strtoupper(setting('unit_name', setting('app_name', 'PAUD ANAK SALEH'))));
+            $sheet->setCellValue('A3', "Periode: {$periodLabel} ({$period}) | Rombel: " . ($classroom ? "{$classroom->name} ({$classroom->sub_unit})" : 'Semua Rombel'));
+            $sheet->setCellValue('A4', 'Petunjuk: Isi pengukuran angka dalam satuan centimeter (cm) dan kilogram (kg). Gunakan titik (.) untuk desimal, contoh: 102.5 atau 16.3.');
+
+            $headers = [
+                'No', 'NIS', 'Nama Murid', 'Rombel', 'Tanggal Ukur (YYYY-MM-DD)',
+                'Tinggi Badan (cm)', 'Berat Badan (kg)', 'Lingkar Kepala (cm)', 'Lingkar Lengan (cm)'
+            ];
+            $themeColor = '0284C7'; // Sky-600
+        }
+
+        $sheet->getStyle('A1:A2')->getFont()->setBold(true)->setSize(12);
+        $sheet->getStyle('A3')->getFont()->setBold(true)->setSize(10)->getColor()->setARGB('FF1E293B');
+        $sheet->getStyle('A4')->getFont()->setItalic(true)->setSize(9)->getColor()->setARGB('FF475569');
+
+        $headerRow = 6;
+        $totalCols = count($headers);
+        $lastColLetter = Coordinate::stringFromColumnIndex($totalCols);
+
+        foreach ($headers as $colIdx => $h) {
+            $colLetter = Coordinate::stringFromColumnIndex($colIdx + 1);
+            $sheet->setCellValue("{$colLetter}{$headerRow}", $h);
+        }
+
+        $sheet->getStyle("A{$headerRow}:{$lastColLetter}{$headerRow}")->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 10],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $themeColor]],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'CBD5E1']]],
+        ]);
+        $sheet->getRowDimension($headerRow)->setRowHeight(26);
+
+        $currentRow = $headerRow + 1;
+        if ($students->isNotEmpty()) {
+            foreach ($students as $idx => $st) {
+                $sheet->setCellValue("A{$currentRow}", $idx + 1);
+                $sheet->setCellValueExplicit("B{$currentRow}", $st->nis ?: '', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+                $sheet->setCellValue("C{$currentRow}", $st->full_name);
+                $sheet->setCellValue("D{$currentRow}", $classroom ? $classroom->name : '');
+                $sheet->setCellValueExplicit("E{$currentRow}", $date, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+
+                if ($type === 'ddtk') {
+                    $sheet->setCellValue("F{$currentRow}", $st->height ?: '');
+                    $sheet->setCellValue("G{$currentRow}", $st->weight ?: '');
+                    $sheet->setCellValue("H{$currentRow}", $st->head_circumference ?: '');
+                    $sheet->setCellValue("I{$currentRow}", $st->arm_circumference ?: '');
+                } elseif ($type === 'sdidtk') {
+                    $sheet->setCellValue("F{$currentRow}", 'Normal');
+                    $sheet->setCellValue("G{$currentRow}", 'Normal');
+                    $sheet->setCellValue("H{$currentRow}", 'Sesuai');
+                    $sheet->setCellValue("I{$currentRow}", 'Bersih');
+                    $sheet->setCellValue("J{$currentRow}", '');
+                    $sheet->setCellValue("K{$currentRow}", 'Tidak');
+                    $sheet->setCellValue("L{$currentRow}", 'Tidak');
+                    $sheet->setCellValue("M{$currentRow}", '');
+                } elseif ($type === 'all') {
+                    $sheet->setCellValue("F{$currentRow}", $st->height ?: '');
+                    $sheet->setCellValue("G{$currentRow}", $st->weight ?: '');
+                    $sheet->setCellValue("H{$currentRow}", $st->head_circumference ?: '');
+                    $sheet->setCellValue("I{$currentRow}", $st->arm_circumference ?: '');
+                    $sheet->setCellValue("J{$currentRow}", 'Normal');
+                    $sheet->setCellValue("K{$currentRow}", 'Normal');
+                    $sheet->setCellValue("L{$currentRow}", 'Sesuai');
+                    $sheet->setCellValue("M{$currentRow}", 'Bersih');
+                    $sheet->setCellValue("N{$currentRow}", '');
+                    $sheet->setCellValue("O{$currentRow}", 'Tidak');
+                    $sheet->setCellValue("P{$currentRow}", 'Tidak');
+                    $sheet->setCellValue("Q{$currentRow}", '');
+                }
+
+                $currentRow++;
+            }
+        } else {
+            // 2 Sample rows
+            $sampleNames = ['Ahmad Fulan', 'Fatimah Zahra'];
+            foreach ($sampleNames as $idx => $sName) {
+                $sheet->setCellValue("A{$currentRow}", $idx + 1);
+                $sheet->setCellValueExplicit("B{$currentRow}", (string)(12345 + $idx), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+                $sheet->setCellValue("C{$currentRow}", $sName);
+                $sheet->setCellValue("D{$currentRow}", 'Kelompok A1');
+                $sheet->setCellValueExplicit("E{$currentRow}", $date, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+                if ($type === 'ddtk') {
+                    $sheet->setCellValue("F{$currentRow}", 102.5);
+                    $sheet->setCellValue("G{$currentRow}", 16.3);
+                    $sheet->setCellValue("H{$currentRow}", 49.0);
+                    $sheet->setCellValue("I{$currentRow}", 15.5);
+                } elseif ($type === 'sdidtk') {
+                    $sheet->setCellValue("F{$currentRow}", 'Normal');
+                    $sheet->setCellValue("G{$currentRow}", 'Normal');
+                    $sheet->setCellValue("H{$currentRow}", 'Sesuai');
+                    $sheet->setCellValue("I{$currentRow}", 'Bersih');
+                    $sheet->setCellValue("J{$currentRow}", '');
+                    $sheet->setCellValue("K{$currentRow}", 'Tidak');
+                    $sheet->setCellValue("L{$currentRow}", 'Tidak');
+                    $sheet->setCellValue("M{$currentRow}", '');
+                } else {
+                    $sheet->setCellValue("F{$currentRow}", 102.5);
+                    $sheet->setCellValue("G{$currentRow}", 16.3);
+                    $sheet->setCellValue("H{$currentRow}", 49.0);
+                    $sheet->setCellValue("I{$currentRow}", 15.5);
+                    $sheet->setCellValue("J{$currentRow}", 'Normal');
+                    $sheet->setCellValue("K{$currentRow}", 'Normal');
+                    $sheet->setCellValue("L{$currentRow}", 'Sesuai');
+                    $sheet->setCellValue("M{$currentRow}", 'Bersih');
+                    $sheet->setCellValue("N{$currentRow}", '');
+                    $sheet->setCellValue("O{$currentRow}", 'Tidak');
+                    $sheet->setCellValue("P{$currentRow}", 'Tidak');
+                    $sheet->setCellValue("Q{$currentRow}", '');
+                }
+                $currentRow++;
+            }
+        }
+
+        $lastRow = max($headerRow + 1, $currentRow - 1);
+        $sheet->getStyle("A{$headerRow}:{$lastColLetter}{$lastRow}")->applyFromArray([
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'CBD5E1']]],
+            'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
+        ]);
+        $sheet->getStyle("A7:B{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("E7:E{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        foreach (range(1, $totalCols) as $cIdx) {
+            $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($cIdx))->setAutoSize(true);
+        }
+
+        $filename = 'Template_' . strtoupper($type) . '_' . ($classroom ? str_replace(' ', '_', $classroom->name) . '_' : '') . "{$period}.xlsx";
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'max-age=0',
+        ]);
+    }
+
+    /**
+     * Import DDTK / SDIDTK records from Excel file.
+     */
+    public function importExcel(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:5120',
+            'classroom_id' => 'nullable|exists:classrooms,id',
+            'period' => 'nullable|string|max:20',
+            'date' => 'nullable|date',
+        ]);
+
+        $file = $request->file('file');
+        $defaultClassroomId = $request->input('classroom_id');
+        $defaultPeriod = $request->input('period', Carbon::now()->format('Y-m'));
+        $defaultDate = $request->input('date', Carbon::today()->format('Y-m-d'));
+
+        try {
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file->getRealPath());
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = $sheet->toArray(null, true, true, true);
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal membaca file Excel: ' . $e->getMessage());
+        }
+
+        if (empty($rows)) {
+            return back()->with('error', 'File Excel kosong atau tidak terbaca.');
+        }
+
+        // Active Academic Year
+        $activeYear = AcademicYear::where('is_active', true)->first();
+        $academicYearId = $activeYear?->id;
+        $userId = auth()->id();
+
+        // Preload active students and classrooms
+        $allStudents = Student::where('status', 'aktif')->get();
+        $studentsByNis = $allStudents->whereNotNull('nis')->keyBy(fn($s) => trim((string)$s->nis));
+        $studentsByName = $allStudents->keyBy(fn($s) => strtolower(trim((string)$s->full_name)));
+        $allClassrooms = Classroom::where('is_active', true)->get();
+        $classroomsByName = $allClassrooms->keyBy(fn($c) => strtolower(trim((string)$c->name)));
+
+        // Detect period from metadata rows 1..5 if available
+        $metaText = '';
+        for ($r = 1; $r <= 5; $r++) {
+            if (isset($rows[$r])) {
+                $metaText .= ' ' . implode(' ', array_filter($rows[$r]));
+            }
+        }
+        $detectedPeriod = $defaultPeriod;
+        if (preg_match('/\b(20\d{2}-\d{2})\b/', $metaText, $pm)) {
+            $detectedPeriod = $pm[1];
+        }
+
+        // Find Header Row (rows 1..10)
+        $headerRowIndex = null;
+        $colMap = [];
+        foreach ($rows as $rowIndex => $row) {
+            if ($rowIndex > 10) break;
+            $rowVals = array_map(fn($v) => strtolower(trim((string)$v)), $row);
+
+            $hasStudent = false;
+            $hasMetrics = false;
+
+            foreach ($rowVals as $colKey => $val) {
+                if (str_contains($val, 'nis')) { $colMap['nis'] = $colKey; $hasStudent = true; }
+                elseif (str_contains($val, 'nama')) { $colMap['name'] = $colKey; $hasStudent = true; }
+                elseif (str_contains($val, 'rombel') || str_contains($val, 'kelas')) { $colMap['classroom'] = $colKey; }
+                elseif (str_contains($val, 'tanggal') || str_contains($val, 'tgl') || str_contains($val, 'date')) { $colMap['date'] = $colKey; }
+                elseif (str_contains($val, 'tinggi') || str_contains($val, 'tb') || str_contains($val, 'height')) { $colMap['height'] = $colKey; $hasMetrics = true; }
+                elseif (str_contains($val, 'berat') || str_contains($val, 'bb') || str_contains($val, 'weight')) { $colMap['weight'] = $colKey; $hasMetrics = true; }
+                elseif (str_contains($val, 'kepala') || str_contains($val, 'lk') || str_contains($val, 'head')) { $colMap['head_circumference'] = $colKey; $hasMetrics = true; }
+                elseif (str_contains($val, 'lengan') || str_contains($val, 'lila') || str_contains($val, 'arm')) { $colMap['arm_circumference'] = $colKey; $hasMetrics = true; }
+                elseif (str_contains($val, 'mata kanan') || str_contains($val, 'visus kanan') || str_contains($val, 'visus r')) { $colMap['visus_right'] = $colKey; $hasMetrics = true; }
+                elseif (str_contains($val, 'mata kiri') || str_contains($val, 'visus kiri') || str_contains($val, 'visus l')) { $colMap['visus_left'] = $colKey; $hasMetrics = true; }
+                elseif (str_contains($val, 'kpsp')) { $colMap['kpsp_result'] = $colKey; $hasMetrics = true; }
+                elseif (str_contains($val, 'gigi') || str_contains($val, 'dental')) { $colMap['dental_health'] = $colKey; $hasMetrics = true; }
+                elseif (str_contains($val, 'gula') || str_contains($val, 'blood_sugar') || str_contains($val, 'hb') || str_contains($val, 'gda')) { $colMap['blood_sugar'] = $colKey; $hasMetrics = true; }
+                elseif (str_contains($val, 'kusta') || str_contains($val, 'leprosy')) { $colMap['has_leprosy'] = $colKey; $hasMetrics = true; }
+                elseif (str_contains($val, 'frambusia') || str_contains($val, 'frambesia')) { $colMap['has_frambesia'] = $colKey; $hasMetrics = true; }
+                elseif (str_contains($val, 'catatan') || str_contains($val, 'keterangan') || str_contains($val, 'notes')) { $colMap['notes'] = $colKey; }
+            }
+
+            if ($hasStudent && $hasMetrics) {
+                $headerRowIndex = $rowIndex;
+                break;
+            }
+        }
+
+        if (!$headerRowIndex) {
+            $headerRowIndex = 6;
+        }
+
+        $successCount = 0;
+        $skippedCount = 0;
+        $errors = [];
+
+        DB::beginTransaction();
+        try {
+            foreach ($rows as $rowIndex => $row) {
+                if ($rowIndex <= $headerRowIndex) continue;
+
+                $rawNis = isset($colMap['nis']) ? trim((string)($row[$colMap['nis']] ?? '')) : (isset($row['B']) ? trim((string)$row['B']) : '');
+                $rawName = isset($colMap['name']) ? trim((string)($row[$colMap['name']] ?? '')) : (isset($row['C']) ? trim((string)$row['C']) : '');
+                $rawClass = isset($colMap['classroom']) ? trim((string)($row[$colMap['classroom']] ?? '')) : (isset($row['D']) ? trim((string)$row['D']) : '');
+                $rawDate = isset($colMap['date']) ? trim((string)($row[$colMap['date']] ?? '')) : '';
+
+                if (empty($rawNis) && empty($rawName)) continue;
+
+                // Match student
+                $student = null;
+                if (!empty($rawNis) && isset($studentsByNis[$rawNis])) {
+                    $student = $studentsByNis[$rawNis];
+                } elseif (!empty($rawName)) {
+                    $lowerName = strtolower(trim($rawName));
+                    if (isset($studentsByName[$lowerName])) {
+                        $student = $studentsByName[$lowerName];
+                    } else {
+                        $student = $allStudents->first(fn($s) => str_contains(strtolower($s->full_name), $lowerName) || str_contains($lowerName, strtolower($s->full_name)));
+                    }
+                }
+
+                if (!$student) {
+                    $skippedCount++;
+                    $errors[] = "Baris {$rowIndex}: Murid '{$rawName}' (NIS: {$rawNis}) tidak ditemukan.";
+                    continue;
+                }
+
+                // Resolve classroom
+                $classroomId = $defaultClassroomId;
+                if (!empty($rawClass) && isset($classroomsByName[strtolower(trim($rawClass))])) {
+                    $classroomId = $classroomsByName[strtolower(trim($rawClass))]->id;
+                } elseif ($student->classroom_id) {
+                    $classroomId = $student->classroom_id;
+                } elseif ($student->daycare_classroom_id) {
+                    $classroomId = $student->daycare_classroom_id;
+                } elseif ($student->tpq_classroom_id) {
+                    $classroomId = $student->tpq_classroom_id;
+                }
+
+                // Resolve date
+                $parsedDate = $defaultDate;
+                if (!empty($rawDate)) {
+                    try {
+                        if (is_numeric($rawDate)) {
+                            $parsedDate = Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($rawDate))->format('Y-m-d');
+                        } else {
+                            $parsedDate = Carbon::parse($rawDate)->format('Y-m-d');
+                        }
+                    } catch (\Throwable $e) {
+                        $parsedDate = $defaultDate;
+                    }
+                }
+
+                // Extract fields
+                $parseNumeric = function($key) use ($row, $colMap) {
+                    if (!isset($colMap[$key])) return null;
+                    $val = str_replace(',', '.', trim((string)($row[$colMap[$key]] ?? '')));
+                    return is_numeric($val) ? (float)$val : null;
+                };
+
+                $parseString = function($key) use ($row, $colMap) {
+                    if (!isset($colMap[$key])) return null;
+                    $val = trim((string)($row[$colMap[$key]] ?? ''));
+                    return $val !== '' ? $val : null;
+                };
+
+                $parseBool = function($key) use ($row, $colMap) {
+                    if (!isset($colMap[$key])) return false;
+                    $val = strtolower(trim((string)($row[$colMap[$key]] ?? '')));
+                    return in_array($val, ['ya', 'yes', '1', 'true', 'positif']);
+                };
+
+                $height = $parseNumeric('height');
+                $weight = $parseNumeric('weight');
+                $headCirc = $parseNumeric('head_circumference');
+                $armCirc = $parseNumeric('arm_circumference');
+                $visusRight = $parseString('visus_right');
+                $visusLeft = $parseString('visus_left');
+                $kpsp = $parseString('kpsp_result');
+                $dental = $parseString('dental_health');
+                $bloodSugar = $parseNumeric('blood_sugar');
+                $hasLeprosy = $parseBool('has_leprosy');
+                $hasFrambesia = $parseBool('has_frambesia');
+                $notes = $parseString('notes');
+
+                $hasData = ($height !== null || $weight !== null || $headCirc !== null || $armCirc !== null ||
+                            $visusRight !== null || $visusLeft !== null || $kpsp !== null || $dental !== null ||
+                            $bloodSugar !== null || $hasLeprosy || $hasFrambesia || $notes !== null);
+
+                if (!$hasData) {
+                    continue;
+                }
+
+                $record = StudentDdtkRecord::firstOrNew([
+                    'student_id' => $student->id,
+                    'period' => $detectedPeriod,
+                ]);
+
+                $record->classroom_id = $classroomId;
+                $record->academic_year_id = $academicYearId;
+                $record->date = $parsedDate;
+
+                if ($height !== null) $record->height = $height;
+                if ($weight !== null) $record->weight = $weight;
+                if ($headCirc !== null) $record->head_circumference = $headCirc;
+                if ($armCirc !== null) $record->arm_circumference = $armCirc;
+
+                if ($visusRight !== null) $record->visus_right = $visusRight;
+                if ($visusLeft !== null) $record->visus_left = $visusLeft;
+                if ($kpsp !== null) $record->kpsp_result = $kpsp;
+                if ($dental !== null) $record->dental_health = $dental;
+                if ($bloodSugar !== null) $record->blood_sugar = $bloodSugar;
+                if ($hasLeprosy) $record->has_leprosy = true;
+                if ($hasFrambesia) $record->has_frambesia = true;
+                if ($notes !== null) $record->notes = $notes;
+
+                $record->recorded_by = $userId;
+                $record->save();
+
+                // Sync latest measurements to Student model
+                $studentUpdates = [];
+                if ($height !== null) $studentUpdates['height'] = $height;
+                if ($weight !== null) $studentUpdates['weight'] = $weight;
+                if ($headCirc !== null) $studentUpdates['head_circumference'] = $headCirc;
+                if ($armCirc !== null) $studentUpdates['arm_circumference'] = $armCirc;
+                if (!empty($studentUpdates)) {
+                    $student->update($studentUpdates);
+                }
+
+                $successCount++;
+            }
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return back()->with('error', 'Terjadi kesalahan saat memproses data import: ' . $e->getMessage());
+        }
+
+        $periodLabel = Carbon::hasFormat($detectedPeriod, 'Y-m') ? Carbon::createFromFormat('Y-m', $detectedPeriod)->translatedFormat('F Y') : $detectedPeriod;
+        $message = "Berhasil mengimpor {$successCount} data pemeriksaan DDTK/SDIDTK murid (Periode: {$periodLabel}).";
+        if ($skippedCount > 0) {
+            $message .= " ({$skippedCount} baris dilewati karena siswa tidak ditemukan).";
+        }
+
+        return redirect()->route('student-ddtk.index', [
+            'classroom_id' => $defaultClassroomId,
+            'period' => $detectedPeriod,
+            'tab' => $request->input('target_tab', 'inputDDTK'),
+        ])->with('success', $message)->with('import_errors', array_slice($errors, 0, 10));
+    }
 }

@@ -109,6 +109,8 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,adm
     Route::get('student-ddtk', [\App\Http\Controllers\StudentDdtkController::class, 'index'])->name('student-ddtk.index');
     Route::post('student-ddtk/store-ddtk', [\App\Http\Controllers\StudentDdtkController::class, 'storeDdtk'])->name('student-ddtk.store-ddtk');
     Route::post('student-ddtk/store-sdidtk', [\App\Http\Controllers\StudentDdtkController::class, 'storeSdidtk'])->name('student-ddtk.store-sdidtk');
+    Route::get('student-ddtk/template', [\App\Http\Controllers\StudentDdtkController::class, 'downloadTemplate'])->name('student-ddtk.template');
+    Route::post('student-ddtk/import', [\App\Http\Controllers\StudentDdtkController::class, 'importExcel'])->name('student-ddtk.import');
     Route::get('student-ddtk/export/excel', [\App\Http\Controllers\StudentDdtkController::class, 'exportExcel'])->name('student-ddtk.export.excel');
     Route::get('student-ddtk/print', [\App\Http\Controllers\StudentDdtkController::class, 'print'])->name('student-ddtk.print');
     Route::get('/ddtk', fn() => redirect()->route('student-ddtk.index'))->name('ddtk');
@@ -131,6 +133,8 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,adm
     Route::post('guest-books', [\App\Http\Controllers\GuestBookController::class, 'store'])->name('guest-books.store');
     Route::put('guest-books/{id}', [\App\Http\Controllers\GuestBookController::class, 'update'])->name('guest-books.update');
     Route::delete('guest-books/{id}', [\App\Http\Controllers\GuestBookController::class, 'destroy'])->name('guest-books.destroy');
+    Route::get('guest-books/template', [\App\Http\Controllers\GuestBookController::class, 'downloadTemplate'])->name('guest-books.template');
+    Route::post('guest-books/import', [\App\Http\Controllers\GuestBookController::class, 'importExcel'])->name('guest-books.import');
     Route::get('guest-books/export/excel', [\App\Http\Controllers\GuestBookController::class, 'exportExcel'])->name('guest-books.export.excel');
     Route::get('guest-books/download-pdf', [\App\Http\Controllers\GuestBookController::class, 'downloadPdf'])->name('guest-books.download.pdf');
     Route::get('guest-books/print', [\App\Http\Controllers\GuestBookController::class, 'print'])->name('guest-books.print');
