@@ -141,6 +141,8 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,adm
     // Absensi Murid (Harian & Bulanan)
     Route::get('student-attendances', [\App\Http\Controllers\StudentAttendanceController::class, 'index'])->name('student-attendances.index');
     Route::post('student-attendances', [\App\Http\Controllers\StudentAttendanceController::class, 'store'])->name('student-attendances.store');
+    Route::get('student-attendances/template', [\App\Http\Controllers\StudentAttendanceController::class, 'downloadTemplate'])->name('student-attendances.template');
+    Route::post('student-attendances/import', [\App\Http\Controllers\StudentAttendanceController::class, 'importExcel'])->name('student-attendances.import');
     Route::get('student-attendances/export/excel', [\App\Http\Controllers\StudentAttendanceController::class, 'exportMonthlyExcel'])->name('student-attendances.export.excel');
     Route::get('student-attendances/print', [\App\Http\Controllers\StudentAttendanceController::class, 'printMonthly'])->name('student-attendances.print');
     Route::get('/absensi-murid', fn() => redirect()->route('student-attendances.index'))->name('absensi-murid');

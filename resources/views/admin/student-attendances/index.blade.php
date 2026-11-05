@@ -41,6 +41,32 @@
 
         <!-- ERROR NOTIFICATION (JIKA ADA ERROR VALIDASI) -->
 
+                <!-- FLASH SUCCESS / IMPORT NOTIFICATION -->
+        @if(session('success'))
+            <div class="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 p-3 sm:p-3.5 rounded-xl flex items-start gap-2.5 text-xs shadow-xs">
+                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5"></i>
+                <div class="flex-1">
+                    <span class="font-bold">{{ session('success') }}</span>
+                    @if(session('import_errors'))
+                        <ul class="list-disc list-inside mt-1.5 space-y-0.5 text-slate-600 dark:text-slate-400 text-[11px]">
+                            @foreach(session('import_errors') as $err)
+                                <li>{{ $err }}</li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </div>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 p-3 sm:p-3.5 rounded-xl flex items-start gap-2.5 text-xs shadow-xs">
+                <i data-lucide="alert-circle" class="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5"></i>
+                <div>
+                    <span class="font-bold">{{ session('error') }}</span>
+                </div>
+            </div>
+        @endif
+
         @if(isset($errors) && $errors->any())
             <div class="bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 p-3 sm:p-3.5 rounded-xl flex items-start gap-2.5 text-xs shadow-xs">
                 <i data-lucide="alert-circle" class="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5"></i>
@@ -230,6 +256,12 @@
                     <input type="hidden" name="classroom_id" value="{{ $selectedClassroomId }}">
                     <input type="hidden" name="date" value="{{ $selectedDate }}">
 
+                    <!-- Hidden Inputs for Form Submission (Zero DOM Radio Name Collisions) -->
+                    @foreach($students as $st)
+                        <input type="hidden" name="attendances[{{ $st->id }}][status]" :value="statuses[{{ $st->id }}] || ''">
+                        <input type="hidden"  :value="notes[{{ $st->id }}] || ''">
+                    @endforeach
+
                     <!-- FORM ACTION TOOLBAR (Desktop: Kiri berdampingan, Kanan Simpan | Mobile: 1 Baris Sejajar) -->
                     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-2 sm:p-2.5 shadow-xs flex items-center justify-between gap-2 mb-3">
                         <!-- Group Kiri: Semua Hadir & Kosongkan berdampingan -->
@@ -246,6 +278,13 @@
                                 class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium transition-colors cursor-pointer whitespace-nowrap">
                                 <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 shrink-0"></i>
                                 <span>Kosongkan</span>
+                            </button>
+
+                            <!-- Import Excel Button -->
+                            <button type="button" @click="isImportModalOpen = true"
+                                class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded-lg text-xs font-semibold transition-colors cursor-pointer shadow-2xs whitespace-nowrap">
+                                <i data-lucide="file-up" class="w-3.5 h-3.5 text-indigo-600 shrink-0"></i>
+                                <span>Import Excel</span>
                             </button>
                         </div>
 
@@ -341,81 +380,57 @@
 
                                             <!-- STATUS: HADIR (H) -->
                                             <td class="py-2.5 px-2 text-center border-r border-slate-100 dark:border-slate-800 bg-emerald-50/10 dark:bg-emerald-950/5">
-                                                <label class="relative inline-flex items-center justify-center cursor-pointer p-1 rounded-lg group">
-                                                    <input type="radio" 
-                                                        name="attendances[{{ $st->id }}][status]" 
-                                                        value="H" 
-                                                        x-model="statuses[{{ $st->id }}]"
-                                                        @change="updateCounters()"
-                                                        class="sr-only peer">
-                                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs transition-all border
-                                                        border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800
-                                                        peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 peer-checked:shadow-sm
-                                                        hover:border-emerald-300 dark:hover:border-emerald-700">
-                                                        H
-                                                    </div>
-                                                </label>
+                                                <button type="button" 
+                                                    @click="setStatus({{ $st->id }}, 'H')"
+                                                    class="w-8 h-8 rounded-lg inline-flex items-center justify-center font-bold text-xs transition-all border cursor-pointer select-none"
+                                                    :class="statuses[{{ $st->id }}] === 'H'
+                                                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                                                        : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700'">
+                                                    H
+                                                </button>
                                             </td>
 
                                             <!-- STATUS: SAKIT (S) -->
                                             <td class="py-2.5 px-2 text-center border-r border-slate-100 dark:border-slate-800 bg-amber-50/10 dark:bg-amber-950/5">
-                                                <label class="relative inline-flex items-center justify-center cursor-pointer p-1 rounded-lg group">
-                                                    <input type="radio" 
-                                                        name="attendances[{{ $st->id }}][status]" 
-                                                        value="S" 
-                                                        x-model="statuses[{{ $st->id }}]"
-                                                        @change="updateCounters()"
-                                                        class="sr-only peer">
-                                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs transition-all border
-                                                        border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800
-                                                        peer-checked:bg-amber-500 peer-checked:text-white peer-checked:border-amber-500 peer-checked:shadow-sm
-                                                        hover:border-amber-300 dark:hover:border-amber-700">
-                                                        S
-                                                    </div>
-                                                </label>
+                                                <button type="button" 
+                                                    @click="setStatus({{ $st->id }}, 'S')"
+                                                    class="w-8 h-8 rounded-lg inline-flex items-center justify-center font-bold text-xs transition-all border cursor-pointer select-none"
+                                                    :class="statuses[{{ $st->id }}] === 'S'
+                                                        ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
+                                                        : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 hover:border-amber-300 dark:hover:border-amber-700'">
+                                                    S
+                                                </button>
                                             </td>
 
                                             <!-- STATUS: IZIN (I) -->
                                             <td class="py-2.5 px-2 text-center border-r border-slate-100 dark:border-slate-800 bg-sky-50/10 dark:bg-sky-950/5">
-                                                <label class="relative inline-flex items-center justify-center cursor-pointer p-1 rounded-lg group">
-                                                    <input type="radio" 
-                                                        name="attendances[{{ $st->id }}][status]" 
-                                                        value="I" 
-                                                        x-model="statuses[{{ $st->id }}]"
-                                                        @change="updateCounters()"
-                                                        class="sr-only peer">
-                                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs transition-all border
-                                                        border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800
-                                                        peer-checked:bg-sky-500 peer-checked:text-white peer-checked:border-sky-500 peer-checked:shadow-sm
-                                                        hover:border-sky-300 dark:hover:border-sky-700">
-                                                        I
-                                                    </div>
-                                                </label>
+                                                <button type="button" 
+                                                    @click="setStatus({{ $st->id }}, 'I')"
+                                                    class="w-8 h-8 rounded-lg inline-flex items-center justify-center font-bold text-xs transition-all border cursor-pointer select-none"
+                                                    :class="statuses[{{ $st->id }}] === 'I'
+                                                        ? 'bg-sky-500 text-white border-sky-500 shadow-sm'
+                                                        : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 hover:border-sky-300 dark:hover:border-sky-700'">
+                                                    I
+                                                </button>
                                             </td>
 
                                             <!-- STATUS: ALPA (A) -->
                                             <td class="py-2.5 px-2 text-center border-r border-slate-100 dark:border-slate-800 bg-rose-50/10 dark:bg-rose-950/5">
-                                                <label class="relative inline-flex items-center justify-center cursor-pointer p-1 rounded-lg group">
-                                                    <input type="radio" 
-                                                        name="attendances[{{ $st->id }}][status]" 
-                                                        value="A" 
-                                                        x-model="statuses[{{ $st->id }}]"
-                                                        @change="updateCounters()"
-                                                        class="sr-only peer">
-                                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs transition-all border
-                                                        border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800
-                                                        peer-checked:bg-rose-600 peer-checked:text-white peer-checked:border-rose-600 peer-checked:shadow-sm
-                                                        hover:border-rose-300 dark:hover:border-rose-700">
-                                                        A
-                                                    </div>
-                                                </label>
+                                                <button type="button" 
+                                                    @click="setStatus({{ $st->id }}, 'A')"
+                                                    class="w-8 h-8 rounded-lg inline-flex items-center justify-center font-bold text-xs transition-all border cursor-pointer select-none"
+                                                    :class="statuses[{{ $st->id }}] === 'A'
+                                                        ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
+                                                        : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 hover:border-rose-300 dark:hover:border-rose-700'">
+                                                    A
+                                                </button>
                                             </td>
 
                                             <!-- KETERANGAN INLINE INPUT -->
                                             <td class="py-2.5 px-4 min-w-[240px]">
                                                 <div class="relative w-full flex items-center">
                                                     <input type="text" 
-                                                        name="attendances[{{ $st->id }}][notes]" 
+                                                         
                                                         x-model="notes[{{ $st->id }}]"
                                                         placeholder="Catatan sakit, izin, atau alasan..." 
                                                         class="w-full pl-3 pr-8 py-1.5 text-xs bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-800 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
@@ -484,70 +499,50 @@
                                 <!-- Attendance Options (4 Big Touch-Friendly Buttons) -->
                                 <div class="grid grid-cols-4 gap-2">
                                     <!-- Hadir (H) -->
-                                    <label class="relative flex flex-col items-center justify-center py-2 px-1 rounded-xl border cursor-pointer transition-all select-none text-center"
+                                    <button type="button" @click="setStatus({{ $st->id }}, 'H')"
+                                        class="relative flex flex-col items-center justify-center py-2 px-1 rounded-xl border cursor-pointer transition-all select-none text-center active:scale-95"
                                         :class="statuses[{{ $st->id }}] === 'H'
                                             ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                                            : 'bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 active:scale-95'">
-                                        <input type="radio" 
-                                            name="attendances[{{ $st->id }}][status]" 
-                                            value="H" 
-                                            x-model="statuses[{{ $st->id }}]"
-                                            @change="updateCounters()"
-                                            class="sr-only">
+                                            : 'bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'">
                                         <span class="text-xs font-bold leading-none">H</span>
                                         <span class="text-[9px] mt-1 opacity-80 leading-none">Hadir</span>
-                                    </label>
+                                    </button>
 
                                     <!-- Sakit (S) -->
-                                    <label class="relative flex flex-col items-center justify-center py-2 px-1 rounded-xl border cursor-pointer transition-all select-none text-center"
+                                    <button type="button" @click="setStatus({{ $st->id }}, 'S')"
+                                        class="relative flex flex-col items-center justify-center py-2 px-1 rounded-xl border cursor-pointer transition-all select-none text-center active:scale-95"
                                         :class="statuses[{{ $st->id }}] === 'S'
                                             ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
-                                            : 'bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 active:scale-95'">
-                                        <input type="radio" 
-                                            name="attendances[{{ $st->id }}][status]" 
-                                            value="S" 
-                                            x-model="statuses[{{ $st->id }}]"
-                                            @change="updateCounters()"
-                                            class="sr-only">
+                                            : 'bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'">
                                         <span class="text-xs font-bold leading-none">S</span>
                                         <span class="text-[9px] mt-1 opacity-80 leading-none">Sakit</span>
-                                    </label>
+                                    </button>
 
                                     <!-- Izin (I) -->
-                                    <label class="relative flex flex-col items-center justify-center py-2 px-1 rounded-xl border cursor-pointer transition-all select-none text-center"
+                                    <button type="button" @click="setStatus({{ $st->id }}, 'I')"
+                                        class="relative flex flex-col items-center justify-center py-2 px-1 rounded-xl border cursor-pointer transition-all select-none text-center active:scale-95"
                                         :class="statuses[{{ $st->id }}] === 'I'
                                             ? 'bg-sky-500 text-white border-sky-500 shadow-sm'
-                                            : 'bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 active:scale-95'">
-                                        <input type="radio" 
-                                            name="attendances[{{ $st->id }}][status]" 
-                                            value="I" 
-                                            x-model="statuses[{{ $st->id }}]"
-                                            @change="updateCounters()"
-                                            class="sr-only">
+                                            : 'bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'">
                                         <span class="text-xs font-bold leading-none">I</span>
                                         <span class="text-[9px] mt-1 opacity-80 leading-none">Izin</span>
-                                    </label>
+                                    </button>
 
                                     <!-- Alpa (A) -->
-                                    <label class="relative flex flex-col items-center justify-center py-2 px-1 rounded-xl border cursor-pointer transition-all select-none text-center"
+                                    <button type="button" @click="setStatus({{ $st->id }}, 'A')"
+                                        class="relative flex flex-col items-center justify-center py-2 px-1 rounded-xl border cursor-pointer transition-all select-none text-center active:scale-95"
                                         :class="statuses[{{ $st->id }}] === 'A'
                                             ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
-                                            : 'bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 active:scale-95'">
-                                        <input type="radio" 
-                                            name="attendances[{{ $st->id }}][status]" 
-                                            value="A" 
-                                            x-model="statuses[{{ $st->id }}]"
-                                            @change="updateCounters()"
-                                            class="sr-only">
+                                            : 'bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'">
                                         <span class="text-xs font-bold leading-none">A</span>
                                         <span class="text-[9px] mt-1 opacity-80 leading-none">Alpa</span>
-                                    </label>
+                                    </button>
                                 </div>
 
                                 <!-- Notes input -->
                                 <div>
                                     <input type="text" 
-                                        name="attendances[{{ $st->id }}][notes]" 
+                                         
                                         x-model="notes[{{ $st->id }}]"
                                         placeholder="Keterangan sakit, izin, atau alasan..." 
                                         class="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-800 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500">
@@ -578,6 +573,12 @@
                 <form method="GET" action="{{ route('student-attendances.index') }}" id="monthlyFilterForm" class="flex flex-col lg:flex-row lg:items-end justify-between gap-3">
                     <input type="hidden" name="tab" value="monthly">
                     <input type="hidden" name="date" value="{{ $selectedDate }}">
+
+                    <!-- Hidden Inputs for Form Submission (Zero DOM Radio Name Collisions) -->
+                    @foreach($students as $st)
+                        <input type="hidden" name="attendances[{{ $st->id }}][status]" :value="statuses[{{ $st->id }}] || ''">
+                        <input type="hidden"  :value="notes[{{ $st->id }}] || ''">
+                    @endforeach
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
                         <!-- Filter Kelas -->
@@ -632,6 +633,13 @@
 
                     <!-- EXPORT & PRINT BUTTONS -->
                     <div class="flex flex-wrap items-center gap-2 pt-1 lg:pt-0 shrink-0">
+                        <!-- Tombol Import Excel -->
+                        <button type="button" @click="isImportModalOpen = true"
+                            class="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 text-xs font-semibold rounded-lg border border-indigo-200 dark:border-indigo-800 shadow-2xs transition-colors cursor-pointer">
+                            <i data-lucide="file-up" class="w-3.5 h-3.5 text-indigo-600"></i>
+                            <span>Import Excel</span>
+                        </button>
+
                         <!-- Tombol Ekspor Excel -->
                         <a href="{{ route('student-attendances.export.excel', ['classroom_id' => $selectedClassroomId, 'month' => $selectedMonth, 'year' => $selectedYear]) }}"
                             class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer">
@@ -855,6 +863,128 @@
             @endif
         </div>
 
+        <!-- MODAL IMPORT EXCEL -->
+        <div x-cloak x-show="isImportModalOpen" 
+             class="fixed inset-0 z-50 overflow-y-auto" 
+             style="display: none;"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0">
+             
+            <!-- Backdrop -->
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" @click="isImportModalOpen = false"></div>
+
+            <!-- Modal Wrapper -->
+            <div class="flex min-h-full items-center justify-center p-4 text-center">
+                <div class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-slate-900 text-left shadow-2xl transition-all w-full max-w-lg border border-slate-200 dark:border-slate-800"
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                     x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                     x-transition:leave="transition ease-in duration-200"
+                     x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                     x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
+                     
+                    <!-- Modal Header -->
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 px-5 py-4 bg-slate-50/50 dark:bg-slate-800/50">
+                        <div class="flex items-center gap-2.5">
+                            <span class="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                                <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+                            </span>
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-900 dark:text-white">Import Absensi Murid</h3>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Unggah file spreadsheet (.xlsx, .xls, .csv)</p>
+                            </div>
+                        </div>
+                        <button type="button" @click="isImportModalOpen = false" 
+                                class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg transition-colors cursor-pointer">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Modal Body / Form -->
+                    <form action="{{ route('student-attendances.import') }}" method="POST" enctype="multipart/form-data" class="p-5 space-y-4">
+                        @csrf
+
+                        <!-- Step 1: Download Template Notice -->
+                        <div class="p-3.5 bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl flex items-start gap-3">
+                            <i data-lucide="info" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5"></i>
+                            <div class="text-xs space-y-1.5 flex-1">
+                                <p class="font-semibold text-emerald-900 dark:text-emerald-300">Belum punya template Excel?</p>
+                                <p class="text-[11px] text-emerald-800/80 dark:text-emerald-400/90 leading-relaxed">
+                                    Unduh template resmi yang sudah terisi otomatis nama dan NIS murid rombel ini.
+                                </p>
+                                <div class="pt-1">
+                                    <a href="{{ route('student-attendances.template', ['classroom_id' => $selectedClassroomId, 'date' => $selectedDate]) }}"
+                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer">
+                                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                        <span>Unduh Template Excel</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Target Classroom & Date -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
+                                    Rombel Target <span class="text-rose-500">*</span>
+                                </label>
+                                <select name="classroom_id" required
+                                    class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500">
+                                    @php
+                                        $groupedClassesForModal = $classrooms->groupBy('sub_unit');
+                                    @endphp
+                                    @foreach($groupedClassesForModal as $unit => $classes)
+                                        <optgroup label="{{ $unit }}">
+                                            @foreach($classes as $c)
+                                                <option value="{{ $c->id }}" {{ $selectedClassroomId == $c->id ? 'selected' : '' }}>
+                                                    {{ $c->name }}
+                                                </option>
+                                            @endforeach
+                                        </optgroup>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
+                                    Tanggal Absensi <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="date" name="fallback_date" value="{{ $selectedDate }}" required
+                                    class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500">
+                            </div>
+                        </div>
+
+                        <!-- File Input -->
+                        <div class="text-left">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
+                                Pilih File Excel / CSV <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="file" name="file" accept=".xlsx,.xls,.csv" required
+                                class="w-full text-xs text-slate-700 dark:text-slate-300 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-indigo-950/50 dark:file:text-indigo-300 cursor-pointer border border-slate-200 dark:border-slate-700 rounded-lg p-1.5 bg-slate-50 dark:bg-slate-800">
+                            <p class="text-[10px] text-slate-400 mt-1">Maksimal ukuran file 5 MB. Kode status: H (Hadir), S (Sakit), I (Izin), A (Alpa).</p>
+                        </div>
+
+                        <!-- Modal Actions -->
+                        <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
+                            <button type="button" @click="isImportModalOpen = false"
+                                class="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+                                Batal
+                            </button>
+                            <button type="submit"
+                                class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg text-xs font-bold shadow-sm transition-colors cursor-pointer">
+                                <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+                                <span>Mulai Import</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- ALPINE.JS COMPONENT LOGIC -->
@@ -874,6 +1004,7 @@
                 selectedDate: config.selectedDate,
                 statuses: Object.assign({}, config.initialStatuses),
                 notes: Object.assign({}, config.initialNotes),
+                isImportModalOpen: false,
                 stats: {
                     total: 0,
                     h: 0,
@@ -886,6 +1017,13 @@
 
                 init() {
                     this.updateCounters();
+                    this.$watch('isImportModalOpen', (val) => {
+                        if (val) {
+                            this.$nextTick(() => {
+                                if (window.lucide) lucide.createIcons();
+                            });
+                        }
+                    });
                 },
 
                 hasValue(studentId) {
@@ -908,6 +1046,15 @@
                         dateInput.value = today;
                         document.getElementById('dailyFilterForm').submit();
                     }
+                },
+
+                setStatus(studentId, status) {
+                    if (this.statuses[studentId] === status) {
+                        this.statuses[studentId] = '';
+                    } else {
+                        this.statuses[studentId] = status;
+                    }
+                    this.updateCounters();
                 },
 
                 markAllAs(status) {
