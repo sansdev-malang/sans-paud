@@ -141,8 +141,8 @@
                     const target = link.getAttribute("target");
                     if (!href || href.startsWith("#") || href.startsWith("javascript:") || target === "_blank") return;
                     
-                    // Ignore export/download links
-                    const isDownload = href.includes("export") || href.includes("download") || link.hasAttribute("download");
+                    // Ignore export/download/template links
+                    const isDownload = href.includes("export") || href.includes("download") || href.includes("template") || link.hasAttribute("download") || link.dataset.noProgress === "true";
                     if (isDownload) return;
 
                     // Ignore links requiring confirmation until confirmed

@@ -575,10 +575,14 @@ class StudentAttendanceController extends Controller
 
     /**
      * Download Excel Template for importing student attendance.
+     * Supports both Monthly Matrix (1..31 columns) and Daily/Multi-date List format.
      */
     public function downloadTemplate(Request $request)
     {
         $classroomId = $request->get('classroom_id');
+        $format = $request->get('format', 'matrix'); // 'matrix' (default) or 'list'
+        $month = (int) $request->get('month', Carbon::now()->month);
+        $year = (int) $request->get('year', Carbon::now()->year);
         $date = $request->get('date', Carbon::today()->format('Y-m-d'));
 
         $classroom = null;
@@ -605,103 +609,272 @@ class StudentAttendanceController extends Controller
             }
         }
 
+        $monthNames = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
+        ];
+        $monthName = $monthNames[$month] ?? $month;
+
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Template Absensi');
 
-        // Title & Instruction
-        $sheet->setCellValue('A1', 'TEMPLATE IMPORT ABSENSI MURID');
-        $sheet->setCellValue('A2', strtoupper(setting('unit_name', setting('app_name', 'PAUD ANAK SALEH'))));
-        
-        $subTitle = "Petunjuk: Isi Status dengan H (Hadir), S (Sakit), I (Izin), atau A (Alpa). Format Tanggal: YYYY-MM-DD (contoh: {$date}).";
-        if ($classroom) {
-            $subTitle .= " | Rombel: {$classroom->name} ({$classroom->sub_unit})";
-        }
-        $sheet->setCellValue('A3', $subTitle);
+        if ($format === 'matrix') {
+            // ==========================================
+            // FORMAT MATRIKS BULANAN (TANGGAL 1 s/d 31)
+            // ==========================================
+            $sheet->setTitle('Template Matriks ' . substr($monthName, 0, 3));
+            $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth;
 
-        $sheet->getStyle('A1:A2')->getFont()->setBold(true)->setSize(12);
-        $sheet->getStyle('A3')->getFont()->setItalic(true)->setSize(9)->getColor()->setARGB('FF475569');
-
-        // Header Table
-        $headers = ['No', 'NIS', 'Nama Murid', 'Rombel', 'Tanggal (YYYY-MM-DD)', 'Status (H/S/I/A)', 'Keterangan'];
-        $headerRow = 5;
-
-        foreach ($headers as $colIndex => $h) {
-            $colLetter = Coordinate::stringFromColumnIndex($colIndex + 1);
-            $sheet->setCellValue("{$colLetter}{$headerRow}", $h);
-        }
-
-        // Header Style (Emerald Theme)
-        $sheet->getStyle("A{$headerRow}:G{$headerRow}")->applyFromArray([
-            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 10],
-            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
-            'fill' => [
-                'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '059669'], // emerald-600
-            ],
-            'borders' => [
-                'allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'CBD5E1']],
-            ],
-        ]);
-        $sheet->getRowDimension($headerRow)->setRowHeight(26);
-
-        // Pre-fill student rows
-        $currentRow = 6;
-        if ($students->isNotEmpty()) {
-            foreach ($students as $idx => $st) {
-                $sheet->setCellValue("A{$currentRow}", $idx + 1);
-                $sheet->setCellValueExplicit("B{$currentRow}", $st->nis ?: '', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-                $sheet->setCellValue("C{$currentRow}", $st->full_name);
-                $sheet->setCellValue("D{$currentRow}", $classroom ? $classroom->name : '');
-                $sheet->setCellValueExplicit("E{$currentRow}", $date, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-                $sheet->setCellValue("F{$currentRow}", 'H');
-                $sheet->setCellValue("G{$currentRow}", '');
-                $currentRow++;
+            // Title & Instruction
+            $sheet->setCellValue('A1', 'TEMPLATE IMPORT ABSENSI MURID (BULANAN)');
+            $sheet->setCellValue('A2', strtoupper(setting('unit_name', setting('app_name', 'PAUD ANAK SALEH'))));
+            
+            $subTitle = "Periode: {$monthName} {$year} | Format: Matriks Bulanan (Tanggal 1 s/d {$daysInMonth})";
+            if ($classroom) {
+                $subTitle .= " | Rombel: {$classroom->name} ({$classroom->sub_unit})";
             }
+            $sheet->setCellValue('A3', $subTitle);
+            $sheet->setCellValue('A4', 'Petunjuk: Isi sel tanggal dengan kode H (Hadir), S (Sakit), I (Izin), atau A (Alpa). Hari libur atau tanggal tanpa KBM cukup dikosongkan.');
+
+            $sheet->getStyle('A1:A2')->getFont()->setBold(true)->setSize(12);
+            $sheet->getStyle('A3')->getFont()->setBold(true)->setSize(10)->getColor()->setARGB('FF1E293B');
+            $sheet->getStyle('A4')->getFont()->setItalic(true)->setSize(9)->getColor()->setARGB('FF475569');
+
+            // Header Table Row 6
+            $headerRow = 6;
+            $sheet->setCellValue("A{$headerRow}", 'No');
+            $sheet->setCellValue("B{$headerRow}", 'NIS');
+            $sheet->setCellValue("C{$headerRow}", 'Nama Murid');
+            $sheet->setCellValue("D{$headerRow}", 'Rombel');
+
+            // Day columns (Col 5 / E onwards)
+            for ($d = 1; $d <= $daysInMonth; $d++) {
+                $colLetter = Coordinate::stringFromColumnIndex(4 + $d);
+                $sheet->setCellValue("{$colLetter}{$headerRow}", $d);
+            }
+
+            // Summary columns
+            $colH = Coordinate::stringFromColumnIndex(5 + $daysInMonth);
+            $colS = Coordinate::stringFromColumnIndex(6 + $daysInMonth);
+            $colI = Coordinate::stringFromColumnIndex(7 + $daysInMonth);
+            $colA = Coordinate::stringFromColumnIndex(8 + $daysInMonth);
+
+            $sheet->setCellValue("{$colH}{$headerRow}", 'H');
+            $sheet->setCellValue("{$colS}{$headerRow}", 'S');
+            $sheet->setCellValue("{$colI}{$headerRow}", 'I');
+            $sheet->setCellValue("{$colA}{$headerRow}", 'A');
+
+            $lastColLetter = $colA;
+
+            // Header Style
+            $sheet->getStyle("A{$headerRow}:D{$headerRow}")->applyFromArray([
+                'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 10],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '059669']],
+                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'CBD5E1']]],
+            ]);
+
+            $sheet->getStyle("E{$headerRow}:{$lastColLetter}{$headerRow}")->applyFromArray([
+                'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 10],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '059669']],
+                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'CBD5E1']]],
+            ]);
+
+            // Differentiate Sundays in header with rose tint
+            for ($d = 1; $d <= $daysInMonth; $d++) {
+                $dayDate = Carbon::createFromDate($year, $month, $d);
+                if ($dayDate->isSunday()) {
+                    $cLetter = Coordinate::stringFromColumnIndex(4 + $d);
+                    $sheet->getStyle("{$cLetter}{$headerRow}")->getFill()->getStartColor()->setARGB('FFE11D48');
+                }
+            }
+
+            $sheet->getStyle("{$colH}{$headerRow}:{$colA}{$headerRow}")->applyFromArray([
+                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '047857']],
+            ]);
+
+            $sheet->getRowDimension($headerRow)->setRowHeight(26);
+
+            // Populate Student rows
+            $currentRow = $headerRow + 1;
+            if ($students->isNotEmpty()) {
+                foreach ($students as $idx => $st) {
+                    $sheet->setCellValue("A{$currentRow}", $idx + 1);
+                    $sheet->setCellValueExplicit("B{$currentRow}", $st->nis ?: '', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+                    $sheet->setCellValue("C{$currentRow}", $st->full_name);
+                    $sheet->setCellValue("D{$currentRow}", $classroom ? $classroom->name : '');
+
+                    // Pre-fill 'H' on Monday-Saturday, empty on Sunday
+                    for ($d = 1; $d <= $daysInMonth; $d++) {
+                        $colLetter = Coordinate::stringFromColumnIndex(4 + $d);
+                        $dayDate = Carbon::createFromDate($year, $month, $d);
+                        if ($dayDate->isSunday()) {
+                            $sheet->setCellValue("{$colLetter}{$currentRow}", '');
+                        } else {
+                            $sheet->setCellValue("{$colLetter}{$currentRow}", 'H');
+                        }
+                    }
+
+                    // Excel formulas for quick summary
+                    $firstDayCol = 'E';
+                    $lastDayCol = Coordinate::stringFromColumnIndex(4 + $daysInMonth);
+                    $sheet->setCellValue("{$colH}{$currentRow}", "=COUNTIF({$firstDayCol}{$currentRow}:{$lastDayCol}{$currentRow}, \"H\")");
+                    $sheet->setCellValue("{$colS}{$currentRow}", "=COUNTIF({$firstDayCol}{$currentRow}:{$lastDayCol}{$currentRow}, \"S\")");
+                    $sheet->setCellValue("{$colI}{$currentRow}", "=COUNTIF({$firstDayCol}{$currentRow}:{$lastDayCol}{$currentRow}, \"I\")");
+                    $sheet->setCellValue("{$colA}{$currentRow}", "=COUNTIF({$firstDayCol}{$currentRow}:{$lastDayCol}{$currentRow}, \"A\")");
+
+                    $currentRow++;
+                }
+            } else {
+                // 3 sample rows
+                $sampleData = [
+                    ['NIS' => '12345', 'Nama' => 'Ahmad Fulan', 'Rombel' => 'Kelompok A1'],
+                    ['NIS' => '12346', 'Nama' => 'Fatimah Zahra', 'Rombel' => 'Kelompok A1'],
+                    ['NIS' => '12347', 'Nama' => 'Ali Zainal', 'Rombel' => 'Kelompok A1'],
+                ];
+                foreach ($sampleData as $idx => $sample) {
+                    $sheet->setCellValue("A{$currentRow}", $idx + 1);
+                    $sheet->setCellValueExplicit("B{$currentRow}", $sample['NIS'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+                    $sheet->setCellValue("C{$currentRow}", $sample['Nama']);
+                    $sheet->setCellValue("D{$currentRow}", $sample['Rombel']);
+                    for ($d = 1; $d <= $daysInMonth; $d++) {
+                        $colLetter = Coordinate::stringFromColumnIndex(4 + $d);
+                        $dayDate = Carbon::createFromDate($year, $month, $d);
+                        if (!$dayDate->isSunday()) {
+                            $sheet->setCellValue("{$colLetter}{$currentRow}", 'H');
+                        }
+                    }
+                    $firstDayCol = 'E';
+                    $lastDayCol = Coordinate::stringFromColumnIndex(4 + $daysInMonth);
+                    $sheet->setCellValue("{$colH}{$currentRow}", "=COUNTIF({$firstDayCol}{$currentRow}:{$lastDayCol}{$currentRow}, \"H\")");
+                    $sheet->setCellValue("{$colS}{$currentRow}", "=COUNTIF({$firstDayCol}{$currentRow}:{$lastDayCol}{$currentRow}, \"S\")");
+                    $sheet->setCellValue("{$colI}{$currentRow}", "=COUNTIF({$firstDayCol}{$currentRow}:{$lastDayCol}{$currentRow}, \"I\")");
+                    $sheet->setCellValue("{$colA}{$currentRow}", "=COUNTIF({$firstDayCol}{$currentRow}:{$lastDayCol}{$currentRow}, \"A\")");
+                    $currentRow++;
+                }
+            }
+
+            $lastRow = max($headerRow + 1, $currentRow - 1);
+
+            $sheet->getStyle("A{$headerRow}:{$lastColLetter}{$lastRow}")->applyFromArray([
+                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'CBD5E1']]],
+                'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
+            ]);
+
+            $sheet->getStyle("A7:B{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("E7:{$lastColLetter}{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+            foreach (['A', 'B', 'C', 'D'] as $col) {
+                $sheet->getColumnDimension($col)->setAutoSize(true);
+            }
+            for ($d = 1; $d <= $daysInMonth; $d++) {
+                $cLetter = Coordinate::stringFromColumnIndex(4 + $d);
+                $sheet->getColumnDimension($cLetter)->setWidth(4.5);
+            }
+            foreach ([$colH, $colS, $colI, $colA] as $cSum) {
+                $sheet->getColumnDimension($cSum)->setWidth(5.5);
+            }
+
+            $filename = 'Template_Absensi_Bulanan_' . ($classroom ? str_replace(' ', '_', $classroom->name) . '_' : '') . "{$monthName}_{$year}.xlsx";
+
         } else {
-            // Provide 3 sample rows
-            $sampleData = [
-                ['NIS' => '12345', 'Nama' => 'Ahmad Fulan', 'Rombel' => 'Kelompok A1', 'Status' => 'H', 'Ket' => ''],
-                ['NIS' => '12346', 'Nama' => 'Fatimah Zahra', 'Rombel' => 'Kelompok A1', 'Status' => 'S', 'Ket' => 'Demam flu'],
-                ['NIS' => '12347', 'Nama' => 'Ali Zainal', 'Rombel' => 'Kelompok A1', 'Status' => 'I', 'Ket' => 'Acara keluarga'],
-            ];
+            // ==========================================
+            // FORMAT DAFTAR BARIS / MULTI-TANGGAL
+            // ==========================================
+            $sheet->setTitle('Template Daftar Absensi');
 
-            foreach ($sampleData as $idx => $sample) {
-                $sheet->setCellValue("A{$currentRow}", $idx + 1);
-                $sheet->setCellValueExplicit("B{$currentRow}", $sample['NIS'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-                $sheet->setCellValue("C{$currentRow}", $sample['Nama']);
-                $sheet->setCellValue("D{$currentRow}", $sample['Rombel']);
-                $sheet->setCellValueExplicit("E{$currentRow}", $date, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-                $sheet->setCellValue("F{$currentRow}", $sample['Status']);
-                $sheet->setCellValue("G{$currentRow}", $sample['Ket']);
-                $currentRow++;
+            // Title & Instruction
+            $sheet->setCellValue('A1', 'TEMPLATE IMPORT ABSENSI MURID (DAFTAR / MULTI-TANGGAL)');
+            $sheet->setCellValue('A2', strtoupper(setting('unit_name', setting('app_name', 'PAUD ANAK SALEH'))));
+            
+            $subTitle = "Petunjuk: Isi Status dengan H (Hadir), S (Sakit), I (Izin), atau A (Alpa). Format Tanggal: YYYY-MM-DD. Satu file bisa berisi banyak baris & tanggal sekaligus.";
+            if ($classroom) {
+                $subTitle .= " | Rombel: {$classroom->name} ({$classroom->sub_unit})";
             }
+            $sheet->setCellValue('A3', $subTitle);
+
+            $sheet->getStyle('A1:A2')->getFont()->setBold(true)->setSize(12);
+            $sheet->getStyle('A3')->getFont()->setItalic(true)->setSize(9)->getColor()->setARGB('FF475569');
+
+            // Header Table
+            $headers = ['No', 'NIS', 'Nama Murid', 'Rombel', 'Tanggal (YYYY-MM-DD)', 'Status (H/S/I/A)', 'Keterangan'];
+            $headerRow = 5;
+
+            foreach ($headers as $colIndex => $h) {
+                $colLetter = Coordinate::stringFromColumnIndex($colIndex + 1);
+                $sheet->setCellValue("{$colLetter}{$headerRow}", $h);
+            }
+
+            // Header Style (Emerald Theme)
+            $sheet->getStyle("A{$headerRow}:G{$headerRow}")->applyFromArray([
+                'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 10],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+                'fill' => [
+                    'fillType' => Fill::FILL_SOLID,
+                    'startColor' => ['rgb' => '059669'],
+                ],
+                'borders' => [
+                    'allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'CBD5E1']],
+                ],
+            ]);
+            $sheet->getRowDimension($headerRow)->setRowHeight(26);
+
+            $currentRow = 6;
+            if ($students->isNotEmpty()) {
+                foreach ($students as $idx => $st) {
+                    $sheet->setCellValue("A{$currentRow}", $idx + 1);
+                    $sheet->setCellValueExplicit("B{$currentRow}", $st->nis ?: '', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+                    $sheet->setCellValue("C{$currentRow}", $st->full_name);
+                    $sheet->setCellValue("D{$currentRow}", $classroom ? $classroom->name : '');
+                    $sheet->setCellValueExplicit("E{$currentRow}", $date, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+                    $sheet->setCellValue("F{$currentRow}", 'H');
+                    $sheet->setCellValue("G{$currentRow}", '');
+                    $currentRow++;
+                }
+            } else {
+                $sampleData = [
+                    ['NIS' => '12345', 'Nama' => 'Ahmad Fulan', 'Rombel' => 'Kelompok A1', 'Tgl' => $date, 'Status' => 'H', 'Ket' => ''],
+                    ['NIS' => '12346', 'Nama' => 'Fatimah Zahra', 'Rombel' => 'Kelompok A1', 'Tgl' => $date, 'Status' => 'S', 'Ket' => 'Demam flu'],
+                    ['NIS' => '12347', 'Nama' => 'Ali Zainal', 'Rombel' => 'Kelompok A1', 'Tgl' => $date, 'Status' => 'I', 'Ket' => 'Acara keluarga'],
+                ];
+
+                foreach ($sampleData as $idx => $sample) {
+                    $sheet->setCellValue("A{$currentRow}", $idx + 1);
+                    $sheet->setCellValueExplicit("B{$currentRow}", $sample['NIS'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+                    $sheet->setCellValue("C{$currentRow}", $sample['Nama']);
+                    $sheet->setCellValue("D{$currentRow}", $sample['Rombel']);
+                    $sheet->setCellValueExplicit("E{$currentRow}", $sample['Tgl'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+                    $sheet->setCellValue("F{$currentRow}", $sample['Status']);
+                    $sheet->setCellValue("G{$currentRow}", $sample['Ket']);
+                    $currentRow++;
+                }
+            }
+
+            $lastRow = max(6, $currentRow - 1);
+
+            $sheet->getStyle("A6:G{$lastRow}")->applyFromArray([
+                'borders' => [
+                    'allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'E2E8F0']],
+                ],
+                'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
+            ]);
+
+            $sheet->getStyle("A6:A{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("B6:B{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("E6:E{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("F6:F{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->applyFromArray([
+                'font' => ['bold' => true],
+            ]);
+
+            foreach (range(1, 7) as $colIndex) {
+                $colLetter = Coordinate::stringFromColumnIndex($colIndex);
+                $sheet->getColumnDimension($colLetter)->setAutoSize(true);
+            }
+
+            $filename = 'Template_Absensi_Daftar_' . ($classroom ? str_replace(' ', '_', $classroom->name) . '_' : '') . date('Ymd_His') . '.xlsx';
         }
-
-        $lastRow = max(6, $currentRow - 1);
-
-        // Borders & Alignments
-        $sheet->getStyle("A6:G{$lastRow}")->applyFromArray([
-            'borders' => [
-                'allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'E2E8F0']],
-            ],
-            'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
-        ]);
-
-        $sheet->getStyle("A6:A{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle("B6:B{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle("E6:E{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle("F6:F{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->applyFromArray([
-            'font' => ['bold' => true],
-        ]);
-
-        // Auto-size columns
-        foreach (range(1, 7) as $colIndex) {
-            $colLetter = Coordinate::stringFromColumnIndex($colIndex);
-            $sheet->getColumnDimension($colLetter)->setAutoSize(true);
-        }
-
-        $filename = 'Template_Absensi_Murid_' . ($classroom ? str_replace(' ', '_', $classroom->name) . '_' : '') . date('Ymd_His') . '.xlsx';
 
         return response()->streamDownload(function () use ($spreadsheet) {
             $writer = new Xlsx($spreadsheet);
@@ -714,17 +887,24 @@ class StudentAttendanceController extends Controller
 
     /**
      * Import Student Attendance from Excel file (.xlsx, .xls, .csv).
+     * Automatically detects format:
+     * 1. Monthly Matrix Format: Columns 1..31 (Imports whole month attendance at once!)
+     * 2. Daily / Multi-Date List Format: Columns NIS, Nama, Tanggal, Status (Imports multiple dates per row)
      */
     public function importExcel(Request $request)
     {
         $request->validate([
             'file' => 'required|file|mimes:xlsx,xls,csv|max:5120',
             'classroom_id' => 'nullable|exists:classrooms,id',
+            'month' => 'nullable|integer|between:1,12',
+            'year' => 'nullable|integer|between:2000,2100',
             'fallback_date' => 'nullable|date',
         ]);
 
         $file = $request->file('file');
         $defaultClassroomId = $request->input('classroom_id');
+        $inputMonth = (int) $request->input('month');
+        $inputYear = (int) $request->input('year');
         $fallbackDate = $request->input('fallback_date', Carbon::today()->format('Y-m-d'));
 
         try {
@@ -735,59 +915,8 @@ class StudentAttendanceController extends Controller
             return back()->with('error', 'Gagal membaca file Excel: ' . $e->getMessage());
         }
 
-        // Find header row (must contain 'NIS' or 'Nama' or 'Status')
-        $headerRowIndex = null;
-        $colMap = [
-            'nis' => null,
-            'name' => null,
-            'classroom' => null,
-            'date' => null,
-            'status' => null,
-            'notes' => null,
-        ];
-
-        foreach ($rows as $rowIndex => $row) {
-            $rowValues = array_map(fn($v) => strtolower(trim((string)$v)), $row);
-            
-            $hasStatus = false;
-            $hasNameOrNis = false;
-
-            foreach ($rowValues as $colKey => $val) {
-                if (str_contains($val, 'nis')) {
-                    $colMap['nis'] = $colKey;
-                    $hasNameOrNis = true;
-                } elseif (str_contains($val, 'nama')) {
-                    $colMap['name'] = $colKey;
-                    $hasNameOrNis = true;
-                } elseif (str_contains($val, 'rombel') || str_contains($val, 'kelas')) {
-                    $colMap['classroom'] = $colKey;
-                } elseif (str_contains($val, 'tanggal') || str_contains($val, 'tgl') || str_contains($val, 'date')) {
-                    $colMap['date'] = $colKey;
-                } elseif (str_contains($val, 'status')) {
-                    $colMap['status'] = $colKey;
-                    $hasStatus = true;
-                } elseif (str_contains($val, 'keterangan') || str_contains($val, 'catatan') || str_contains($val, 'note')) {
-                    $colMap['notes'] = $colKey;
-                }
-            }
-
-            if ($hasStatus && $hasNameOrNis) {
-                $headerRowIndex = $rowIndex;
-                break;
-            }
-        }
-
-        // Fallback default column mapping if header text matching missed
-        if (!$headerRowIndex) {
-            $headerRowIndex = 5;
-            $colMap = [
-                'nis' => 'B',
-                'name' => 'C',
-                'classroom' => 'D',
-                'date' => 'E',
-                'status' => 'F',
-                'notes' => 'G',
-            ];
+        if (empty($rows)) {
+            return back()->with('error', 'File Excel kosong atau tidak terbaca.');
         }
 
         // Active Academic Year
@@ -802,113 +931,313 @@ class StudentAttendanceController extends Controller
         $allClassrooms = Classroom::where('is_active', true)->get();
         $classroomsByName = $allClassrooms->keyBy(fn($c) => strtolower(trim((string)$c->name)));
 
+        // Extract metadata text from rows 1 to 5 for Month & Year detection
+        $metaText = '';
+        for ($r = 1; $r <= 5; $r++) {
+            if (isset($rows[$r])) {
+                $metaText .= ' ' . implode(' ', array_filter($rows[$r]));
+            }
+        }
+
+        $detectedYear = $inputYear;
+        if (!$detectedYear && preg_match('/\b(20\d{2})\b/', $metaText, $ym)) {
+            $detectedYear = (int)$ym[1];
+        }
+        $detectedYear = $detectedYear ?: Carbon::now()->year;
+
+        $detectedMonth = $inputMonth;
+        if (!$detectedMonth) {
+            $indonesianMonths = [
+                'januari' => 1, 'februari' => 2, 'maret' => 3, 'april' => 4,
+                'mei' => 5, 'juni' => 6, 'juli' => 7, 'agustus' => 8,
+                'september' => 9, 'oktober' => 10, 'november' => 11, 'desember' => 12,
+                'jan' => 1, 'feb' => 2, 'mar' => 3, 'apr' => 4, 'jun' => 6,
+                'jul' => 7, 'agu' => 8, 'ags' => 8, 'sep' => 9, 'okt' => 10, 'nov' => 11, 'des' => 12
+            ];
+            foreach ($indonesianMonths as $mName => $mNum) {
+                if (stripos($metaText, $mName) !== false) {
+                    $detectedMonth = $mNum;
+                    break;
+                }
+            }
+        }
+        $detectedMonth = $detectedMonth ?: Carbon::now()->month;
+
+        // Auto-detect Format: Scan rows 1..10 for Header Row
+        $headerRowIndex = null;
+        $isMatrixFormat = false;
+        $matrixDayCols = []; // colKey => dayNumber
+        $listColMap = [
+            'nis' => null,
+            'name' => null,
+            'classroom' => null,
+            'date' => null,
+            'status' => null,
+            'notes' => null,
+        ];
+
+        foreach ($rows as $rowIndex => $row) {
+            if ($rowIndex > 10) break;
+
+            // Check if row has multiple numeric day columns (e.g. 1..31)
+            $dayCols = [];
+            foreach ($row as $colKey => $cellVal) {
+                $clean = trim((string)$cellVal);
+                if (is_numeric($clean) && (int)$clean >= 1 && (int)$clean <= 31) {
+                    $dayCols[$colKey] = (int)$clean;
+                }
+            }
+
+            if (count($dayCols) >= 3) {
+                $isMatrixFormat = true;
+                $headerRowIndex = $rowIndex;
+                $matrixDayCols = $dayCols;
+                break;
+            }
+
+            // Check if row has list columns (Status + Name or NIS)
+            $rowValues = array_map(fn($v) => strtolower(trim((string)$v)), $row);
+            $hasStatus = false;
+            $hasNameOrNis = false;
+
+            foreach ($rowValues as $colKey => $val) {
+                if (str_contains($val, 'nis')) {
+                    $listColMap['nis'] = $colKey;
+                    $hasNameOrNis = true;
+                } elseif (str_contains($val, 'nama')) {
+                    $listColMap['name'] = $colKey;
+                    $hasNameOrNis = true;
+                } elseif (str_contains($val, 'rombel') || str_contains($val, 'kelas')) {
+                    $listColMap['classroom'] = $colKey;
+                } elseif (str_contains($val, 'tanggal') || str_contains($val, 'tgl') || str_contains($val, 'date')) {
+                    $listColMap['date'] = $colKey;
+                } elseif (str_contains($val, 'status')) {
+                    $listColMap['status'] = $colKey;
+                    $hasStatus = true;
+                } elseif (str_contains($val, 'keterangan') || str_contains($val, 'catatan') || str_contains($val, 'note')) {
+                    $listColMap['notes'] = $colKey;
+                }
+            }
+
+            if ($hasStatus && $hasNameOrNis) {
+                $isMatrixFormat = false;
+                $headerRowIndex = $rowIndex;
+                break;
+            }
+        }
+
+        // Helper to resolve student
+        $resolveStudent = function($rawNis, $rawName) use ($studentsByNis, $studentsByName, $allStudents) {
+            if (!empty($rawNis) && isset($studentsByNis[$rawNis])) {
+                return $studentsByNis[$rawNis];
+            }
+            if (!empty($rawName)) {
+                $lower = strtolower(trim($rawName));
+                if (isset($studentsByName[$lower])) {
+                    return $studentsByName[$lower];
+                }
+                return $allStudents->first(function ($s) use ($lower) {
+                    return str_contains(strtolower($s->full_name), $lower) || str_contains($lower, strtolower($s->full_name));
+                });
+            }
+            return null;
+        };
+
+        // Helper to resolve classroom
+        $resolveClassroom = function($rawClass, $student) use ($classroomsByName, $defaultClassroomId) {
+            if (!empty($rawClass) && isset($classroomsByName[strtolower(trim($rawClass))])) {
+                return $classroomsByName[strtolower(trim($rawClass))]->id;
+            }
+            if ($defaultClassroomId) {
+                return $defaultClassroomId;
+            }
+            if ($student) {
+                return $student->classroom_id ?: ($student->daycare_classroom_id ?: $student->tpq_classroom_id);
+            }
+            return null;
+        };
+
+        // Helper to standardize status code
+        $normalizeStatus = function($raw) {
+            $raw = strtoupper(trim((string)$raw));
+            if (in_array($raw, ['H', 'HADIR', 'PRESENT'])) return 'H';
+            if (in_array($raw, ['S', 'SAKIT', 'SICK'])) return 'S';
+            if (in_array($raw, ['I', 'IZIN', 'IJIN', 'PERMIT'])) return 'I';
+            if (in_array($raw, ['A', 'ALPA', 'ALFA', 'ABSENT'])) return 'A';
+            return null;
+        };
+
         $successCount = 0;
         $skippedCount = 0;
+        $processedStudents = 0;
         $errors = [];
 
         DB::beginTransaction();
         try {
-            foreach ($rows as $rowIndex => $row) {
-                if ($rowIndex <= $headerRowIndex) {
-                    continue;
+            if ($isMatrixFormat) {
+                // ==========================================
+                // 1. PROCESS MONTHLY MATRIX FORMAT
+                // ==========================================
+                // Identify NIS, Nama, Rombel columns in header row
+                $headerRowValues = array_map(fn($v) => strtolower(trim((string)$v)), $rows[$headerRowIndex]);
+                $nisCol = null; $nameCol = null; $classCol = null;
+                foreach ($headerRowValues as $colKey => $val) {
+                    if (str_contains($val, 'nis')) $nisCol = $colKey;
+                    elseif (str_contains($val, 'nama')) $nameCol = $colKey;
+                    elseif (str_contains($val, 'rombel') || str_contains($val, 'kelas')) $classCol = $colKey;
                 }
+                // Fallbacks if not explicitly found
+                $nisCol = $nisCol ?: 'B';
+                $nameCol = $nameCol ?: 'C';
+                $classCol = $classCol ?: 'D';
 
-                $rawNis = isset($colMap['nis']) ? trim((string)($row[$colMap['nis']] ?? '')) : '';
-                $rawName = isset($colMap['name']) ? trim((string)($row[$colMap['name']] ?? '')) : '';
-                $rawClass = isset($colMap['classroom']) ? trim((string)($row[$colMap['classroom']] ?? '')) : '';
-                $rawDate = isset($colMap['date']) ? trim((string)($row[$colMap['date']] ?? '')) : '';
-                $rawStatus = isset($colMap['status']) ? strtoupper(trim((string)($row[$colMap['status']] ?? ''))) : '';
-                $rawNotes = isset($colMap['notes']) ? trim((string)($row[$colMap['notes']] ?? '')) : '';
+                foreach ($rows as $rowIndex => $row) {
+                    if ($rowIndex <= $headerRowIndex) continue;
 
-                // Skip completely empty rows
-                if (empty($rawNis) && empty($rawName) && empty($rawStatus)) {
-                    continue;
-                }
+                    $rawNis = isset($row[$nisCol]) ? trim((string)$row[$nisCol]) : '';
+                    $rawName = isset($row[$nameCol]) ? trim((string)$row[$nameCol]) : '';
+                    $rawClass = isset($row[$classCol]) ? trim((string)$row[$classCol]) : '';
 
-                // Match Student
-                $student = null;
-                if (!empty($rawNis) && isset($studentsByNis[$rawNis])) {
-                    $student = $studentsByNis[$rawNis];
-                } elseif (!empty($rawName)) {
-                    $lowerName = strtolower($rawName);
-                    if (isset($studentsByName[$lowerName])) {
-                        $student = $studentsByName[$lowerName];
-                    } else {
-                        // Fuzzy search by substring
-                        $student = $allStudents->first(function ($s) use ($lowerName) {
-                            return str_contains(strtolower($s->full_name), $lowerName) || str_contains($lowerName, strtolower($s->full_name));
-                        });
+                    if (empty($rawNis) && empty($rawName)) continue;
+
+                    $student = $resolveStudent($rawNis, $rawName);
+                    if (!$student) {
+                        $skippedCount++;
+                        $errors[] = "Baris {$rowIndex}: Murid '{$rawName}' (NIS: {$rawNis}) tidak ditemukan.";
+                        continue;
+                    }
+
+                    $classroomId = $resolveClassroom($rawClass, $student);
+                    if (!$classroomId) {
+                        $skippedCount++;
+                        $errors[] = "Baris {$rowIndex}: Rombel untuk murid '{$student->full_name}' tidak dapat ditentukan.";
+                        continue;
+                    }
+
+                    $hasStudentAttendance = false;
+
+                    // Loop through each day column in the month
+                    foreach ($matrixDayCols as $colKey => $dayNum) {
+                        $rawStatus = isset($row[$colKey]) ? trim((string)$row[$colKey]) : '';
+                        if (empty($rawStatus) || $rawStatus === '-' || $rawStatus === '.') {
+                            continue;
+                        }
+
+                        $status = $normalizeStatus($rawStatus);
+                        if (!$status) {
+                            continue;
+                        }
+
+                        if (!checkdate($detectedMonth, $dayNum, $detectedYear)) {
+                            continue;
+                        }
+
+                        $targetDate = sprintf('%04d-%02d-%02d', $detectedYear, $detectedMonth, $dayNum);
+
+                        StudentAttendance::updateOrCreate(
+                            [
+                                'student_id' => $student->id,
+                                'date' => $targetDate,
+                            ],
+                            [
+                                'classroom_id' => $classroomId,
+                                'academic_year_id' => $academicYearId,
+                                'status' => $status,
+                                'notes' => null,
+                                'recorded_by' => $userId,
+                            ]
+                        );
+
+                        $successCount++;
+                        $hasStudentAttendance = true;
+                    }
+
+                    if ($hasStudentAttendance) {
+                        $processedStudents++;
                     }
                 }
 
-                if (!$student) {
-                    $skippedCount++;
-                    $errors[] = "Baris {$rowIndex}: Murid '{$rawName}' (NIS: {$rawNis}) tidak ditemukan.";
-                    continue;
+            } else {
+                // ==========================================
+                // 2. PROCESS DAILY / MULTI-DATE LIST FORMAT
+                // ==========================================
+                if (!$headerRowIndex) {
+                    $headerRowIndex = 5;
+                    $listColMap = [
+                        'nis' => 'B',
+                        'name' => 'C',
+                        'classroom' => 'D',
+                        'date' => 'E',
+                        'status' => 'F',
+                        'notes' => 'G',
+                    ];
                 }
 
-                // Resolve Status (H, S, I, A)
-                $status = null;
-                if (in_array($rawStatus, ['H', 'HADIR', 'PRESENT'])) $status = 'H';
-                elseif (in_array($rawStatus, ['S', 'SAKIT', 'SICK'])) $status = 'S';
-                elseif (in_array($rawStatus, ['I', 'IZIN', 'IJIN', 'PERMIT'])) $status = 'I';
-                elseif (in_array($rawStatus, ['A', 'ALPA', 'ALFA', 'ABSENT'])) $status = 'A';
+                foreach ($rows as $rowIndex => $row) {
+                    if ($rowIndex <= $headerRowIndex) continue;
 
-                if (!$status) {
-                    $skippedCount++;
-                    $errors[] = "Baris {$rowIndex}: Status '{$rawStatus}' tidak valid (Gunakan H, S, I, atau A).";
-                    continue;
-                }
+                    $rawNis = isset($listColMap['nis']) ? trim((string)($row[$listColMap['nis']] ?? '')) : '';
+                    $rawName = isset($listColMap['name']) ? trim((string)($row[$listColMap['name']] ?? '')) : '';
+                    $rawClass = isset($listColMap['classroom']) ? trim((string)($row[$listColMap['classroom']] ?? '')) : '';
+                    $rawDate = isset($listColMap['date']) ? trim((string)($row[$listColMap['date']] ?? '')) : '';
+                    $rawStatus = isset($listColMap['status']) ? trim((string)($row[$listColMap['status']] ?? '')) : '';
+                    $rawNotes = isset($listColMap['notes']) ? trim((string)($row[$listColMap['notes']] ?? '')) : '';
 
-                // Resolve Date
-                $parsedDate = null;
-                if (!empty($rawDate)) {
-                    try {
-                        if (is_numeric($rawDate)) {
-                            $parsedDate = Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($rawDate))->format('Y-m-d');
-                        } else {
-                            $parsedDate = Carbon::parse($rawDate)->format('Y-m-d');
+                    if (empty($rawNis) && empty($rawName) && empty($rawStatus)) continue;
+
+                    $student = $resolveStudent($rawNis, $rawName);
+                    if (!$student) {
+                        $skippedCount++;
+                        $errors[] = "Baris {$rowIndex}: Murid '{$rawName}' (NIS: {$rawNis}) tidak ditemukan.";
+                        continue;
+                    }
+
+                    $status = $normalizeStatus($rawStatus);
+                    if (!$status) {
+                        $skippedCount++;
+                        $errors[] = "Baris {$rowIndex}: Status '{$rawStatus}' tidak valid (Gunakan H, S, I, atau A).";
+                        continue;
+                    }
+
+                    // Resolve Date for this row
+                    $parsedDate = null;
+                    if (!empty($rawDate)) {
+                        try {
+                            if (is_numeric($rawDate)) {
+                                $parsedDate = Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($rawDate))->format('Y-m-d');
+                            } else {
+                                $parsedDate = Carbon::parse($rawDate)->format('Y-m-d');
+                            }
+                        } catch (\Throwable $e) {
+                            $parsedDate = $fallbackDate;
                         }
-                    } catch (\Throwable $e) {
+                    } else {
                         $parsedDate = $fallbackDate;
                     }
-                } else {
-                    $parsedDate = $fallbackDate;
+
+                    $classroomId = $resolveClassroom($rawClass, $student);
+                    if (!$classroomId) {
+                        $skippedCount++;
+                        $errors[] = "Baris {$rowIndex}: Rombel untuk murid '{$student->full_name}' tidak dapat ditentukan.";
+                        continue;
+                    }
+
+                    StudentAttendance::updateOrCreate(
+                        [
+                            'student_id' => $student->id,
+                            'date' => $parsedDate,
+                        ],
+                        [
+                            'classroom_id' => $classroomId,
+                            'academic_year_id' => $academicYearId,
+                            'status' => $status,
+                            'notes' => !empty($rawNotes) ? $rawNotes : null,
+                            'recorded_by' => $userId,
+                        ]
+                    );
+
+                    $successCount++;
                 }
-
-                // Resolve Classroom ID
-                $classroomId = $defaultClassroomId;
-                if (!empty($rawClass) && isset($classroomsByName[strtolower($rawClass)])) {
-                    $classroomId = $classroomsByName[strtolower($rawClass)]->id;
-                } elseif ($student->classroom_id) {
-                    $classroomId = $student->classroom_id;
-                } elseif ($student->daycare_classroom_id) {
-                    $classroomId = $student->daycare_classroom_id;
-                } elseif ($student->tpq_classroom_id) {
-                    $classroomId = $student->tpq_classroom_id;
-                }
-
-                if (!$classroomId) {
-                    $skippedCount++;
-                    $errors[] = "Baris {$rowIndex}: Rombel untuk murid '{$student->full_name}' tidak dapat ditentukan.";
-                    continue;
-                }
-
-                StudentAttendance::updateOrCreate(
-                    [
-                        'student_id' => $student->id,
-                        'date' => $parsedDate,
-                    ],
-                    [
-                        'classroom_id' => $classroomId,
-                        'academic_year_id' => $academicYearId,
-                        'status' => $status,
-                        'notes' => !empty($rawNotes) ? $rawNotes : null,
-                        'recorded_by' => $userId,
-                    ]
-                );
-
-                $successCount++;
             }
 
             DB::commit();
@@ -917,15 +1246,29 @@ class StudentAttendanceController extends Controller
             return back()->with('error', 'Terjadi kesalahan saat memproses data import: ' . $e->getMessage());
         }
 
-        $message = "Berhasil mengimpor {$successCount} data absensi murid.";
+        $monthNames = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
+        ];
+        $displayMonth = $monthNames[$detectedMonth] ?? $detectedMonth;
+
+        if ($isMatrixFormat) {
+            $message = "Berhasil mengimpor {$successCount} data absensi murid ({$processedStudents} siswa) untuk periode {$displayMonth} {$detectedYear}.";
+        } else {
+            $message = "Berhasil mengimpor {$successCount} data absensi murid dari file Excel.";
+        }
+
         if ($skippedCount > 0) {
             $message .= " ({$skippedCount} baris dilewati karena data tidak lengkap / siswa tidak ditemukan).";
         }
 
         return redirect()->route('student-attendances.index', [
             'classroom_id' => $defaultClassroomId,
+            'month' => $detectedMonth,
+            'year' => $detectedYear,
             'date' => $fallbackDate,
-            'tab' => 'daily',
+            'tab' => $isMatrixFormat ? 'monthly' : 'daily',
         ])->with('success', $message)->with('import_errors', array_slice($errors, 0, 10));
     }
 }

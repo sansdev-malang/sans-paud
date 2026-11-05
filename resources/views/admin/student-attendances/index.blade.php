@@ -41,19 +41,17 @@
 
         <!-- ERROR NOTIFICATION (JIKA ADA ERROR VALIDASI) -->
 
-                <!-- FLASH SUCCESS / IMPORT NOTIFICATION -->
-        @if(session('success'))
-            <div class="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 p-3 sm:p-3.5 rounded-xl flex items-start gap-2.5 text-xs shadow-xs">
-                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5"></i>
+                <!-- IMPORT WARNING NOTIFICATION (JIKA ADA BARIS DILEWATI) -->
+        @if(session('import_errors') && count(session('import_errors')) > 0)
+            <div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 p-3 sm:p-3.5 rounded-xl flex items-start gap-2.5 text-xs shadow-xs">
+                <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5"></i>
                 <div class="flex-1">
-                    <span class="font-bold">{{ session('success') }}</span>
-                    @if(session('import_errors'))
-                        <ul class="list-disc list-inside mt-1.5 space-y-0.5 text-slate-600 dark:text-slate-400 text-[11px]">
-                            @foreach(session('import_errors') as $err)
-                                <li>{{ $err }}</li>
-                            @endforeach
-                        </ul>
-                    @endif
+                    <span class="font-bold">Catatan Import: Beberapa baris dilewati</span>
+                    <ul class="list-disc list-inside mt-1 space-y-0.5 text-slate-600 dark:text-slate-400 text-[11px]">
+                        @foreach(session('import_errors') as $err)
+                            <li>{{ $err }}</li>
+                        @endforeach
+                    </ul>
                 </div>
             </div>
         @endif
@@ -909,31 +907,51 @@
                         @csrf
 
                         <!-- Step 1: Download Template Notice -->
-                        <div class="p-3.5 bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl flex items-start gap-3">
-                            <i data-lucide="info" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5"></i>
-                            <div class="text-xs space-y-1.5 flex-1">
-                                <p class="font-semibold text-emerald-900 dark:text-emerald-300">Belum punya template Excel?</p>
-                                <p class="text-[11px] text-emerald-800/80 dark:text-emerald-400/90 leading-relaxed">
-                                    Unduh template resmi yang sudah terisi otomatis nama dan NIS murid rombel ini.
-                                </p>
-                                <div class="pt-1">
-                                    <a href="{{ route('student-attendances.template', ['classroom_id' => $selectedClassroomId, 'date' => $selectedDate]) }}"
-                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer">
-                                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
-                                        <span>Unduh Template Excel</span>
-                                    </a>
+                        <div class="p-3.5 bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl space-y-2.5">
+                            <div class="flex items-start gap-2.5">
+                                <i data-lucide="info" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5"></i>
+                                <div class="text-xs space-y-1 flex-1">
+                                    <p class="font-semibold text-emerald-900 dark:text-emerald-300">Belum punya template Excel?</p>
+                                    <p class="text-[11px] text-emerald-800/80 dark:text-emerald-400/90 leading-relaxed">
+                                        Unduh template resmi yang sudah terisi otomatis nama &amp; NIS murid rombel ini. Pilih format yang Anda inginkan:
+                                    </p>
                                 </div>
                             </div>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-0.5">
+                                <!-- Template Matriks Bulanan -->
+                                <a :href="getMatrixTemplateUrl()"
+                                   download
+                                   data-no-progress="true"
+                                   @click="if(typeof NProgress !== 'undefined') NProgress.done()"
+                                   class="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer text-center">
+                                    <i data-lucide="calendar-days" class="w-3.5 h-3.5 shrink-0"></i>
+                                    <span>Matriks Bulanan (Tgl 1 s/d 31)</span>
+                                </a>
+
+                                <!-- Template Daftar Baris -->
+                                <a :href="getListTemplateUrl()"
+                                   download
+                                   data-no-progress="true"
+                                   @click="if(typeof NProgress !== 'undefined') NProgress.done()"
+                                   class="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer text-center">
+                                    <i data-lucide="list" class="w-3.5 h-3.5 shrink-0 text-emerald-600"></i>
+                                    <span>Daftar Baris (Multi-Tanggal)</span>
+                                </a>
+                            </div>
+                            <p class="text-[10px] text-slate-500 dark:text-slate-400">
+                                💡 <strong>Tips:</strong> Gunakan <strong>Matriks Bulanan</strong> untuk mengisi &amp; merekap absensi sebulan penuh sekaligus!
+                            </p>
                         </div>
 
-                        <!-- Target Classroom & Date -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
-                            <div>
+                        <!-- Target Classroom & Period -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
+                            <div class="sm:col-span-1">
                                 <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
                                     Rombel Target <span class="text-rose-500">*</span>
                                 </label>
-                                <select name="classroom_id" required
-                                    class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500">
+                                <select name="classroom_id" x-model="importClassroomId" required
+                                    class="w-full px-2.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500">
                                     @php
                                         $groupedClassesForModal = $classrooms->groupBy('sub_unit');
                                     @endphp
@@ -951,12 +969,42 @@
 
                             <div>
                                 <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                                    Tanggal Absensi <span class="text-rose-500">*</span>
+                                    Bulan <span class="text-slate-400 font-normal">(Matriks)</span>
                                 </label>
-                                <input type="date" name="fallback_date" value="{{ $selectedDate }}" required
-                                    class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500">
+                                <select name="month" x-model="importMonth"
+                                    class="w-full px-2.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500">
+                                    @php
+                                        $monthOptions = [
+                                            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+                                            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+                                            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+                                        ];
+                                        $curM = $selectedMonth ?? now()->month;
+                                    @endphp
+                                    @foreach($monthOptions as $mNum => $mName)
+                                        <option value="{{ $mNum }}" {{ $curM == $mNum ? 'selected' : '' }}>{{ $mName }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
+                                    Tahun <span class="text-slate-400 font-normal">(Matriks)</span>
+                                </label>
+                                <select name="year" x-model="importYear"
+                                    class="w-full px-2.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500">
+                                    @php
+                                        $curY = $selectedYear ?? now()->year;
+                                    @endphp
+                                    @for($y = $curY - 1; $y <= $curY + 1; $y++)
+                                        <option value="{{ $y }}" {{ $curY == $y ? 'selected' : '' }}>{{ $y }}</option>
+                                    @endfor
+                                </select>
                             </div>
                         </div>
+
+                        <!-- Fallback Date (Hidden, using current selected date) -->
+                        <input type="hidden" name="fallback_date" :value="importDate">
 
                         <!-- File Input -->
                         <div class="text-left">
@@ -965,7 +1013,13 @@
                             </label>
                             <input type="file" name="file" accept=".xlsx,.xls,.csv" required
                                 class="w-full text-xs text-slate-700 dark:text-slate-300 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-indigo-950/50 dark:file:text-indigo-300 cursor-pointer border border-slate-200 dark:border-slate-700 rounded-lg p-1.5 bg-slate-50 dark:bg-slate-800">
-                            <p class="text-[10px] text-slate-400 mt-1">Maksimal ukuran file 5 MB. Kode status: H (Hadir), S (Sakit), I (Izin), A (Alpa).</p>
+                            <div class="flex items-center flex-wrap gap-x-2 gap-y-1 mt-1.5 text-[10px] text-slate-500 dark:text-slate-400">
+                                <span class="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
+                                    <i data-lucide="check" class="w-3 h-3"></i> Otomatis Deteksi Format
+                                </span>
+                                <span>• Mendukung Matriks Bulanan &amp; Multi-Tanggal</span>
+                                <span>• Kode: <strong>H</strong>, <strong>S</strong>, <strong>I</strong>, <strong>A</strong></span>
+                            </div>
                         </div>
 
                         <!-- Modal Actions -->
@@ -1005,6 +1059,21 @@
                 statuses: Object.assign({}, config.initialStatuses),
                 notes: Object.assign({}, config.initialNotes),
                 isImportModalOpen: false,
+                importClassroomId: config.classroomId || '',
+                importMonth: {{ (int)($selectedMonth ?? now()->month) }},
+                importYear: {{ (int)($selectedYear ?? now()->year) }},
+                importDate: config.selectedDate || '{{ now()->format('Y-m-d') }}',
+
+                getMatrixTemplateUrl() {
+                    const cid = this.importClassroomId || config.classroomId || '';
+                    return `{{ route('student-attendances.template') }}?format=matrix&classroom_id=${cid}&month=${this.importMonth}&year=${this.importYear}`;
+                },
+
+                getListTemplateUrl() {
+                    const cid = this.importClassroomId || config.classroomId || '';
+                    return `{{ route('student-attendances.template') }}?format=list&classroom_id=${cid}&date=${this.importDate}`;
+                },
+
                 stats: {
                     total: 0,
                     h: 0,
