@@ -902,6 +902,11 @@
                     
                     if (!href || href.startsWith('#') || href.startsWith('javascript:') || target === '_blank') return;
                     
+                    // Exclude template downloads or explicit no-progress from NProgress/interceptor
+                    if (href.includes('template') || link.dataset.noProgress === 'true' || link.hasAttribute('data-no-progress')) {
+                        return;
+                    }
+
                     // Check if it's an export/download link
                     const isDownload = href.includes('export') || href.includes('download') || link.hasAttribute('download');
                     if (isDownload) {
@@ -988,6 +993,38 @@
                     const defaultTitle = type === 'success' ? 'Sukses!' : (type === 'error' ? 'Perhatian!' : 'Mengunduh...');
                     if (typeof window.showToast === 'function') {
                         window.showToast(defaultTitle, message, type);
+                    }
+                };
+
+                window.downloadTemplateBlob = async function(url, defaultFallbackFilename = 'template.xlsx') {
+                    const response = await fetch(url, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    if (!response.ok) {
+                        throw new Error(`Server status ${response.status}`);
+                    }
+                    let filename = defaultFallbackFilename;
+                    const disposition = response.headers.get('content-disposition');
+                    if (disposition && disposition.includes('filename=')) {
+                        const matches = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                        if (matches && matches[1]) {
+                            filename = matches[1].replace(/['"]/g, '').trim();
+                        }
+                    }
+                    const blob = await response.blob();
+                    const blobUrl = window.URL.createObjectURL(blob);
+                    const tempLink = document.createElement('a');
+                    tempLink.style.display = 'none';
+                    tempLink.href = blobUrl;
+                    tempLink.download = filename;
+                    document.body.appendChild(tempLink);
+                    tempLink.click();
+                    setTimeout(() => {
+                        document.body.removeChild(tempLink);
+                        window.URL.revokeObjectURL(blobUrl);
+                    }, 150);
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('Sukses!', 'Template Excel berhasil diunduh.', 'success');
                     }
                 };
             })();

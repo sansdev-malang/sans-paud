@@ -795,6 +795,7 @@ class StudentDdtkController extends Controller
         }, $filename, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Cache-Control' => 'max-age=0',
+            'Access-Control-Expose-Headers' => 'Content-Disposition',
         ]);
     }
 

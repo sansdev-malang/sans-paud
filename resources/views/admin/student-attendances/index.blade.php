@@ -920,24 +920,50 @@
                             
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-0.5">
                                 <!-- Template Matriks Bulanan -->
-                                <a :href="getMatrixTemplateUrl()"
-                                   download
-                                   data-no-progress="true"
-                                   @click="if(typeof NProgress !== 'undefined') NProgress.done()"
-                                   class="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer text-center">
-                                    <i data-lucide="calendar-days" class="w-3.5 h-3.5 shrink-0"></i>
-                                    <span>Matriks Bulanan (Tgl 1 s/d 31)</span>
-                                </a>
+                                <button type="button"
+                                   @click="downloadTemplate('matrix')"
+                                   :disabled="downloadingTemplate !== null"
+                                   :class="downloadingTemplate === 'matrix' ? 'opacity-80 cursor-wait pointer-events-none' : ''"
+                                   class="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-lg text-xs font-semibold shadow-xs transition-all cursor-pointer text-center">
+                                    <template x-if="downloadingTemplate !== 'matrix'">
+                                        <span class="inline-flex items-center gap-1.5">
+                                            <i data-lucide="calendar-days" class="w-3.5 h-3.5 shrink-0"></i>
+                                            <span>Matriks Bulanan (Tgl 1 s/d 31)</span>
+                                        </span>
+                                    </template>
+                                    <template x-if="downloadingTemplate === 'matrix'">
+                                        <span class="inline-flex items-center gap-2">
+                                            <svg class="animate-spin w-3.5 h-3.5 text-white shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            <span>Mengunduh Template...</span>
+                                        </span>
+                                    </template>
+                                </button>
 
                                 <!-- Template Daftar Baris -->
-                                <a :href="getListTemplateUrl()"
-                                   download
-                                   data-no-progress="true"
-                                   @click="if(typeof NProgress !== 'undefined') NProgress.done()"
-                                   class="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer text-center">
-                                    <i data-lucide="list" class="w-3.5 h-3.5 shrink-0 text-emerald-600"></i>
-                                    <span>Daftar Baris (Multi-Tanggal)</span>
-                                </a>
+                                <button type="button"
+                                   @click="downloadTemplate('list')"
+                                   :disabled="downloadingTemplate !== null"
+                                   :class="downloadingTemplate === 'list' ? 'opacity-80 cursor-wait pointer-events-none' : ''"
+                                   class="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg text-xs font-semibold shadow-xs transition-all cursor-pointer text-center">
+                                    <template x-if="downloadingTemplate !== 'list'">
+                                        <span class="inline-flex items-center gap-1.5">
+                                            <i data-lucide="list" class="w-3.5 h-3.5 shrink-0 text-emerald-600"></i>
+                                            <span>Daftar Baris (Multi-Tanggal)</span>
+                                        </span>
+                                    </template>
+                                    <template x-if="downloadingTemplate === 'list'">
+                                        <span class="inline-flex items-center gap-2">
+                                            <svg class="animate-spin w-3.5 h-3.5 text-emerald-600 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            <span>Mengunduh Template...</span>
+                                        </span>
+                                    </template>
+                                </button>
                             </div>
                             <p class="text-[10px] text-slate-500 dark:text-slate-400">
                                 💡 <strong>Tips:</strong> Gunakan <strong>Matriks Bulanan</strong> untuk mengisi &amp; merekap absensi sebulan penuh sekaligus!
@@ -1059,6 +1085,7 @@
                 statuses: Object.assign({}, config.initialStatuses),
                 notes: Object.assign({}, config.initialNotes),
                 isImportModalOpen: false,
+                downloadingTemplate: null,
                 importClassroomId: config.classroomId || '',
                 importMonth: {{ (int)($selectedMonth ?? now()->month) }},
                 importYear: {{ (int)($selectedYear ?? now()->year) }},
@@ -1072,6 +1099,27 @@
                 getListTemplateUrl() {
                     const cid = this.importClassroomId || config.classroomId || '';
                     return `{{ route('student-attendances.template') }}?format=list&classroom_id=${cid}&date=${this.importDate}`;
+                },
+
+                async downloadTemplate(format) {
+                    if (this.downloadingTemplate) return;
+                    this.downloadingTemplate = format;
+                    const url = format === 'matrix' ? this.getMatrixTemplateUrl() : this.getListTemplateUrl();
+                    try {
+                        await window.downloadTemplateBlob(url, `Template_Absensi_${format}.xlsx`);
+                    } catch (e) {
+                        console.error('Download error:', e);
+                        if (typeof window.showToast === 'function') {
+                            window.showToast('Gagal Unduh', 'Gagal mengunduh template: ' + e.message, 'error');
+                        } else {
+                            alert('Gagal mengunduh template: ' + e.message);
+                        }
+                    } finally {
+                        this.downloadingTemplate = null;
+                        this.$nextTick(() => {
+                            if (typeof lucide !== 'undefined') lucide.createIcons();
+                        });
+                    }
                 },
 
                 stats: {

@@ -1222,12 +1222,28 @@
                             </div>
                         </div>
 
-                        <!-- Download Button -->
-                        <a :href="getTemplateUrl()" download data-no-progress="true"
-                            class="inline-flex items-center justify-center gap-2 w-full px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer">
-                            <i data-lucide="download" class="w-3.5 h-3.5"></i>
-                            <span>Unduh Template Excel (<span x-text="importType === 'all' ? 'Lengkap' : importType.toUpperCase()"></span>)</span>
-                        </a>
+                        <!-- Download Button with Exact Timing Loading Animation -->
+                        <button type="button"
+                            @click="downloadTemplate()"
+                            :disabled="isDownloadingTemplate"
+                            :class="isDownloadingTemplate ? 'opacity-80 cursor-wait pointer-events-none' : ''"
+                            class="inline-flex items-center justify-center gap-2 w-full px-3 py-2 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white rounded-lg text-xs font-semibold shadow-xs transition-all cursor-pointer">
+                            <template x-if="!isDownloadingTemplate">
+                                <span class="inline-flex items-center gap-2">
+                                    <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                    <span>Unduh Template Excel (<span x-text="importType === 'all' ? 'Lengkap' : importType.toUpperCase()"></span>)</span>
+                                </span>
+                            </template>
+                            <template x-if="isDownloadingTemplate">
+                                <span class="inline-flex items-center gap-2">
+                                    <svg class="animate-spin w-3.5 h-3.5 text-white shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span>Mengunduh Template Excel...</span>
+                                </span>
+                            </template>
+                        </button>
                     </div>
 
                     <!-- Step 2: Upload File -->
@@ -1286,6 +1302,7 @@
                 selectedMetric: 'tb_bb',
                 chartInstance: null,
                 isImportModalOpen: false,
+                isDownloadingTemplate: false,
                 importType: 'ddtk',
                 importClassroomId: config.classroomId || '',
                 importPeriod: config.selectedPeriod,
@@ -1308,6 +1325,26 @@
                     if (this.importPeriod) params.set('period', this.importPeriod);
                     params.set('date', this.selectedDate);
                     return `${base}?${params.toString()}`;
+                },
+
+                async downloadTemplate() {
+                    if (this.isDownloadingTemplate) return;
+                    this.isDownloadingTemplate = true;
+                    try {
+                        await window.downloadTemplateBlob(this.getTemplateUrl(), `Template_${this.importType}.xlsx`);
+                    } catch (e) {
+                        console.error('Download error:', e);
+                        if (typeof window.showToast === 'function') {
+                            window.showToast('Gagal Unduh', 'Gagal mengunduh template: ' + e.message, 'error');
+                        } else {
+                            alert('Gagal mengunduh template: ' + e.message);
+                        }
+                    } finally {
+                        this.isDownloadingTemplate = false;
+                        this.$nextTick(() => {
+                            if (typeof lucide !== 'undefined') lucide.createIcons();
+                        });
+                    }
                 },
 
                 init() {
