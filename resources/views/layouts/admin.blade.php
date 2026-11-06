@@ -139,10 +139,10 @@
                     if (!link) return;
                     const href = link.getAttribute("href");
                     const target = link.getAttribute("target");
-                    if (!href || href.startsWith("#") || href.startsWith("javascript:") || target === "_blank") return;
+                    if (!href || href.startsWith("#") || href.startsWith("javascript:") || href.startsWith("blob:") || href.startsWith("data:") || target === "_blank") return;
                     
                     // Ignore export/download/template links
-                    const isDownload = href.includes("export") || href.includes("download") || href.includes("template") || link.hasAttribute("download") || link.dataset.noProgress === "true";
+                    const isDownload = href.includes("export") || href.includes("download") || href.includes("template") || link.hasAttribute("download") || link.dataset.noProgress === "true" || link.hasAttribute("data-no-progress");
                     if (isDownload) return;
 
                     // Ignore links requiring confirmation until confirmed
@@ -895,15 +895,15 @@
                 // Handle clicking specific interactive links
                 document.addEventListener('click', function (e) {
                     const link = e.target.closest('a');
-                    if (!link || link.hasAttribute('data-no-loader')) return;
+                    if (!link || link.hasAttribute('data-no-loader') || link.hasAttribute('data-no-progress') || link.hasAttribute('data-blob-download')) return;
                     
                     const href = link.getAttribute('href');
                     const target = link.getAttribute('target');
                     
-                    if (!href || href.startsWith('#') || href.startsWith('javascript:') || target === '_blank') return;
+                    if (!href || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('blob:') || href.startsWith('data:') || target === '_blank') return;
                     
-                    // Exclude template downloads or explicit no-progress from NProgress/interceptor
-                    if (href.includes('template') || link.dataset.noProgress === 'true' || link.hasAttribute('data-no-progress')) {
+                    // Exclude template downloads, blob downloads, or explicit no-progress from NProgress/interceptor
+                    if (href.includes('template') || link.dataset.noProgress === 'true' || link.hasAttribute('data-no-progress') || link.hasAttribute('data-blob-download')) {
                         return;
                     }
 
@@ -1005,10 +1005,17 @@
                     }
                     let filename = defaultFallbackFilename;
                     const disposition = response.headers.get('content-disposition');
-                    if (disposition && disposition.includes('filename=')) {
-                        const matches = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-                        if (matches && matches[1]) {
-                            filename = matches[1].replace(/['"]/g, '').trim();
+                    if (disposition) {
+                        if (disposition.includes("filename*=")) {
+                            const matches = disposition.match(/filename\*=([^;]*)/);
+                            if (matches && matches[1]) {
+                                filename = decodeURIComponent(matches[1].replace(/UTF-8''/i, '').replace(/['"]/g, '').trim());
+                            }
+                        } else if (disposition.includes('filename=')) {
+                            const matches = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                            if (matches && matches[1]) {
+                                filename = matches[1].replace(/['"]/g, '').trim();
+                            }
                         }
                     }
                     const blob = await response.blob();
@@ -1017,12 +1024,18 @@
                     tempLink.style.display = 'none';
                     tempLink.href = blobUrl;
                     tempLink.download = filename;
+                    tempLink.setAttribute('data-no-progress', 'true');
+                    tempLink.setAttribute('data-no-loader', 'true');
+                    tempLink.setAttribute('data-blob-download', 'true');
+                    tempLink.dataset.noProgress = 'true';
                     document.body.appendChild(tempLink);
                     tempLink.click();
                     setTimeout(() => {
-                        document.body.removeChild(tempLink);
+                        if (document.body.contains(tempLink)) {
+                            document.body.removeChild(tempLink);
+                        }
                         window.URL.revokeObjectURL(blobUrl);
-                    }, 150);
+                    }, 2000);
                     if (typeof window.showToast === 'function') {
                         window.showToast('Sukses!', 'Template Excel berhasil diunduh.', 'success');
                     }
