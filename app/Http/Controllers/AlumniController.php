@@ -397,7 +397,10 @@ class AlumniController extends Controller
         $dataEndRow = max($currentRow - 1, $startRow);
         $sheet->getStyle("A{$startRow}:{$lastCol}{$dataEndRow}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFE2E8F0'));
 
-        foreach (range(1, count($headers)) as $colIndex) {
+        // Kolom A (No): Lebar tetap kompak (width: 6) agar tidak melar akibat teks judul di baris 1-3
+        $sheet->getColumnDimension('A')->setAutoSize(false)->setWidth(6);
+
+        foreach (range(2, count($headers)) as $colIndex) {
             $colLetter = Coordinate::stringFromColumnIndex($colIndex);
             $sheet->getColumnDimension($colLetter)->setAutoSize(true);
         }

@@ -504,7 +504,10 @@ class StudentDdtkController extends Controller
         // Borders
         $sheet->getStyle("A5:{$lastCol}" . ($currentRow - 1))->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFCBD5E1'));
 
-        foreach (range(1, 16) as $colIndex) {
+        // Kolom A (No): Lebar tetap kompak (width: 6) agar tidak melar akibat teks judul di baris 1-3
+        $sheet->getColumnDimension('A')->setAutoSize(false)->setWidth(6);
+
+        foreach (range(2, 16) as $colIndex) {
             $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($colIndex))->setAutoSize(true);
         }
 
@@ -783,7 +786,11 @@ class StudentDdtkController extends Controller
         $sheet->getStyle("A7:B{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle("E7:E{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        foreach (range(1, $totalCols) as $cIdx) {
+        // Kolom A (No): Lebar tetap kompak (width: 6) agar tidak melar akibat teks judul & petunjuk panjang di baris 1-4
+        $sheet->getColumnDimension('A')->setAutoSize(false)->setWidth(6);
+
+        // Kolom B dst: Auto-size menyesuaikan panjang data
+        foreach (range(2, $totalCols) as $cIdx) {
             $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($cIdx))->setAutoSize(true);
         }
 
