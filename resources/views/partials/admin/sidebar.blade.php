@@ -173,7 +173,7 @@
         </div>
 
         <!-- ==========================================
-             2. KATEGORI: KESISWAAN
+             2. KATEGORI: MANAJEMEN MURID
              ========================================== -->
         @php
             $isStudentActive = Request::routeIs(
@@ -187,12 +187,12 @@
                 class="menu-item w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-xs font-medium relative group cursor-pointer {{ $isStudentActive ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/50' }}">
                 <div class="flex items-center gap-3">
                     <i data-lucide="users" class="menu-icon w-4 h-4 shrink-0 {{ $isStudentActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-blue-500/80 dark:text-blue-400' }}"></i>
-                    <span class="menu-text">Kesiswaan</span>
+                    <span class="menu-text">Manajemen Murid</span>
                 </div>
                 <i data-lucide="chevron-right" class="chevron-icon w-3.5 h-3.5 transition-transform duration-200 shrink-0"
                     :style="openStudent ? 'transform: rotate(90deg);' : ''"></i>
                 <span class="sidebar-tooltip absolute left-full ml-3 px-2 py-1 bg-slate-900 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-50 dark:text-slate-100 text-xs font-semibold rounded-md shadow-md opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all origin-left duration-100 pointer-events-none whitespace-nowrap z-50">
-                    Kesiswaan
+                    Manajemen Murid
                 </span>
             </button>
 
