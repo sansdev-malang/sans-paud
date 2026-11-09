@@ -90,19 +90,12 @@
     <div class="p-4 sm:p-5 lg:p-6 space-y-4 lg:space-y-5" x-data="studentApp()">
 
         <!-- GREETING / PAGE TITLE -->
-        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3.5 w-full text-left">
+        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3 w-full text-left">
             <div class="flex flex-col gap-0.5">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl border border-indigo-500/20 flex items-center justify-center shrink-0">
-                        <i data-lucide="users" class="w-5 h-5 shrink-0"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">
-                            Data Murid
-                        </h2>
-                        <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">Database komprehensif murid, penempatan kelompok, daycare, TPQ, dan orang tua {{ function_exists('setting') ? setting('unit_name', 'PAUD Terpadu Anak Saleh') : 'PAUD Terpadu Anak Saleh' }}.</p>
-                    </div>
-                </div>
+                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">
+                    Data Murid
+                </h2>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">Database komprehensif murid, penempatan kelompok, daycare, TPQ, dan orang tua {{ function_exists('setting') ? setting('unit_name', 'PAUD Terpadu Anak Saleh') : 'PAUD Terpadu Anak Saleh' }}.</p>
             </div>
 
             <!-- ACTION CONTROLS: ACTION BUTTONS -->
@@ -275,103 +268,99 @@
             </div>
         </section>
 
-        <!-- SEARCH & FILTERS -->
-        <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs w-full">
-            <form method="GET" action="{{ route('students.index') }}" class="flex flex-col lg:flex-row gap-2.5 items-stretch lg:items-center justify-between">
+        <!-- SEARCH & FILTERS (SEJAJAR SATU BARIS RAPI) -->
+        <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 sm:p-3 shadow-xs w-full">
+            <form method="GET" action="{{ route('students.index') }}" class="flex items-center gap-1.5 sm:gap-2 w-full overflow-x-auto whitespace-nowrap py-0.5">
                 <!-- Search Box -->
-                <div class="relative w-full lg:max-w-xs">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500"></i>
+                <div class="relative w-44 sm:w-52 shrink-0">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-400">
+                        <i data-lucide="search" class="w-3.5 h-3.5"></i>
                     </span>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama, NIS, NIK, No. Ortu..."
-                        style="padding-left: 2.25rem;"
-                        class="w-full h-8.5 pr-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 placeholder-slate-400 shadow-inner">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama, NIS, NIK..."
+                        class="w-full h-8 pl-8 pr-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900 dark:text-slate-50 placeholder-slate-400">
                 </div>
 
-                <!-- Filter Select Toolbar -->
-                <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-                    <!-- Filter Tahun Ajaran -->
-                    <select name="academic_year_id" onchange="this.form.submit()"
-                        class="h-8.5 px-2.5 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-xs">
-                        <option value="all" {{ ($selectedYearId ?? '') === 'all' ? 'selected' : '' }}>Semua TA</option>
-                        @foreach($academicYears as $year)
-                            <option value="{{ $year->id }}" {{ ($selectedYearId ?? '') == $year->id ? 'selected' : '' }}>
-                                TA {{ $year->name }} {{ $year->is_active ? '★' : '' }}
-                            </option>
-                        @endforeach
-                    </select>
+                <!-- Filter Tahun Ajaran -->
+                <select name="academic_year_id" onchange="this.form.submit()"
+                    class="h-8 px-2 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-xs shrink-0">
+                    <option value="all" {{ ($selectedYearId ?? '') === 'all' ? 'selected' : '' }}>Semua TA</option>
+                    @foreach($academicYears as $year)
+                        <option value="{{ $year->id }}" {{ ($selectedYearId ?? '') == $year->id ? 'selected' : '' }}>
+                            TA {{ $year->name }} {{ $year->is_active ? '★' : '' }}
+                        </option>
+                    @endforeach
+                </select>
 
-                    <!-- Filter Jenjang -->
-                    <select name="jenjang_id" onchange="this.form.submit()"
-                        class="h-8.5 px-2.5 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-xs">
-                        <option value="all" {{ ($selectedJenjangId ?? 'all') === 'all' ? 'selected' : '' }}>Semua Jenjang</option>
-                        @foreach($jenjangs as $j)
-                            <option value="{{ $j->id }}" {{ ($selectedJenjangId ?? '') == $j->id ? 'selected' : '' }}>
-                                {{ $j->name }}
-                            </option>
-                        @endforeach
-                    </select>
+                <!-- Filter Jenjang -->
+                <select name="jenjang_id" onchange="this.form.submit()"
+                    class="h-8 px-2 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-xs shrink-0">
+                    <option value="all" {{ ($selectedJenjangId ?? 'all') === 'all' ? 'selected' : '' }}>Semua Jenjang</option>
+                    @foreach($jenjangs as $j)
+                        <option value="{{ $j->id }}" {{ ($selectedJenjangId ?? '') == $j->id ? 'selected' : '' }}>
+                            {{ $j->name }}
+                        </option>
+                    @endforeach
+                </select>
 
-                    <!-- Filter Tingkat Kelas -->
-                    <select name="class_level_id" onchange="this.form.submit()"
-                        class="h-8.5 px-2.5 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-xs">
-                        <option value="all">Semua Tingkat</option>
-                        @foreach($classLevels as $lvl)
-                            <option value="{{ $lvl->id }}" {{ request('class_level_id') == $lvl->id ? 'selected' : '' }}>
-                                {{ $lvl->name }}
-                            </option>
-                        @endforeach
-                    </select>
+                <!-- Filter Tingkat Kelas -->
+                <select name="class_level_id" onchange="this.form.submit()"
+                    class="h-8 px-2 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-xs shrink-0">
+                    <option value="all">Semua Tingkat</option>
+                    @foreach($classLevels as $lvl)
+                        <option value="{{ $lvl->id }}" {{ request('class_level_id') == $lvl->id ? 'selected' : '' }}>
+                            {{ $lvl->name }}
+                        </option>
+                    @endforeach
+                </select>
 
-                    <!-- Filter Kelompok Belajar -->
-                    <select name="classroom_id" onchange="this.form.submit()"
-                        class="h-8.5 px-2.5 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-xs max-w-[150px] truncate">
-                        <option value="all">Semua Kelompok</option>
-                        @foreach($classrooms as $rombel)
-                            <option value="{{ $rombel->id }}" {{ request('classroom_id') == $rombel->id ? 'selected' : '' }}>
-                                {{ $rombel->full_name }}
-                            </option>
-                        @endforeach
-                    </select>
+                <!-- Filter Kelompok Belajar -->
+                <select name="classroom_id" onchange="this.form.submit()"
+                    class="h-8 px-2 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-xs max-w-[130px] truncate shrink-0">
+                    <option value="all">Semua Kelompok</option>
+                    @foreach($classrooms as $rombel)
+                        <option value="{{ $rombel->id }}" {{ request('classroom_id') == $rombel->id ? 'selected' : '' }}>
+                            {{ $rombel->name }}
+                        </option>
+                    @endforeach
+                </select>
 
-                    <!-- Filter Tipe Murid (Reguler / Inklusi PDBK) -->
-                    <select name="student_type" onchange="this.form.submit()"
-                        class="h-8.5 px-2.5 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-xs">
-                        <option value="">Semua Tipe</option>
-                        <option value="REGULER" {{ ($selectedStudentType ?? request('student_type')) == 'REGULER' ? 'selected' : '' }}>Reguler</option>
-                        <option value="PDBK" {{ ($selectedStudentType ?? request('student_type')) == 'PDBK' ? 'selected' : '' }}>PDBK (Inklusi)</option>
-                    </select>
+                <!-- Filter Tipe Murid (Reguler / Inklusi PDBK) -->
+                <select name="student_type" onchange="this.form.submit()"
+                    class="h-8 px-2 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-xs shrink-0">
+                    <option value="">Semua Tipe</option>
+                    <option value="REGULER" {{ ($selectedStudentType ?? request('student_type')) == 'REGULER' ? 'selected' : '' }}>Reguler</option>
+                    <option value="PDBK" {{ ($selectedStudentType ?? request('student_type')) == 'PDBK' ? 'selected' : '' }}>PDBK (Inklusi)</option>
+                </select>
 
-                    <!-- Filter Status -->
-                    <select name="status" onchange="this.form.submit()"
-                        class="h-8.5 px-2.5 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-xs">
-                        <option value="all">Semua Status</option>
-                        <option value="aktif" {{ request('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>
-                        <option value="lulus" {{ request('status') == 'lulus' ? 'selected' : '' }}>Lulus</option>
-                        <option value="mutasi" {{ request('status') == 'mutasi' ? 'selected' : '' }}>Mutasi</option>
-                        <option value="keluar" {{ request('status') == 'keluar' ? 'selected' : '' }}>Keluar</option>
-                        <option value="nonaktif" {{ request('status') == 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
-                    </select>
+                <!-- Filter Status -->
+                <select name="status" onchange="this.form.submit()"
+                    class="h-8 px-2 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-xs shrink-0">
+                    <option value="all">Semua Status</option>
+                    <option value="aktif" {{ request('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>
+                    <option value="lulus" {{ request('status') == 'lulus' ? 'selected' : '' }}>Lulus</option>
+                    <option value="mutasi" {{ request('status') == 'mutasi' ? 'selected' : '' }}>Mutasi</option>
+                    <option value="keluar" {{ request('status') == 'keluar' ? 'selected' : '' }}>Keluar</option>
+                    <option value="nonaktif" {{ request('status') == 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
+                </select>
 
-                    <!-- Filter Jumlah Baris (Per Page) -->
-                    <select name="per_page" onchange="this.form.submit()"
-                        class="h-8.5 px-2.5 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-xs"
-                        title="Tampilkan jumlah baris per halaman">
-                        <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15 baris</option>
-                        <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25 baris</option>
-                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 baris</option>
-                        <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100 baris</option>
-                        <option value="all" {{ request('per_page') === 'all' ? 'selected' : '' }}>Semua Baris</option>
-                    </select>
+                <!-- Filter Jumlah Baris (Per Page) -->
+                <select name="per_page" onchange="this.form.submit()"
+                    class="h-8 px-2 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-xs shrink-0"
+                    title="Tampilkan jumlah baris per halaman">
+                    <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15 baris</option>
+                    <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25 baris</option>
+                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 baris</option>
+                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100 baris</option>
+                    <option value="all" {{ request('per_page') === 'all' ? 'selected' : '' }}>Semua Baris</option>
+                </select>
 
-                    @if(request()->hasAny(['search', 'academic_year_id', 'jenjang_id', 'class_level_id', 'classroom_id', 'student_type', 'status', 'gender']) || (request('per_page') && request('per_page') != 15))
-                        <a href="{{ route('students.index') }}" 
-                            class="h-8.5 px-2.5 inline-flex items-center justify-center text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors"
-                            title="Reset Filter">
-                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-                        </a>
-                    @endif
-                </div>
+                @if(request()->hasAny(['search', 'academic_year_id', 'jenjang_id', 'class_level_id', 'classroom_id', 'student_type', 'status', 'gender']) || (request('per_page') && request('per_page') != 15))
+                    <a href="{{ route('students.index') }}" 
+                        class="h-8 px-2.5 inline-flex items-center justify-center text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors shrink-0"
+                        title="Reset Filter">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                    </a>
+                @endif
             </form>
         </section>
 
