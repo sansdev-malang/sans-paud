@@ -74,14 +74,10 @@ class StudentController extends Controller
         }
         $jenjangs = $jenjangsQuery->get();
 
-        $selectedJenjangId = $request->get('jenjang_id');
+        $selectedJenjangId = $request->get('jenjang_id', 'all');
         if (!$isAdminUser) {
-            if (!$selectedJenjangId || !in_array($selectedJenjangId, $myJenjangIds)) {
+            if (!$selectedJenjangId || $selectedJenjangId === 'all' || !in_array($selectedJenjangId, $myJenjangIds)) {
                 $selectedJenjangId = !empty($myJenjangIds) ? $myJenjangIds[0] : null;
-            }
-        } else {
-            if (!$selectedJenjangId && $jenjangs->isNotEmpty()) {
-                $selectedJenjangId = $jenjangs->first()->id;
             }
         }
 
@@ -198,6 +194,22 @@ class StudentController extends Controller
             });
         }
 
+        // Filter: Tipe Murid (Reguler / Inklusi PDBK)
+        $selectedStudentType = $request->get('student_type');
+        if ($selectedStudentType === 'PDBK') {
+            $query->where(function ($q) {
+                $q->whereIn('special_needs', ['02) Ya', 'Ya'])
+                  ->orWhere(function ($sq) {
+                      $sq->whereNotNull('special_needs')->whereRaw("LOWER(special_needs) NOT LIKE '%tidak%'");
+                  });
+            });
+        } elseif ($selectedStudentType === 'REGULER') {
+            $query->where(function ($q) {
+                $q->whereNull('special_needs')
+                  ->orWhereIn('special_needs', ['01) Tidak', 'Tidak', '']);
+            });
+        }
+
         // Filter: Status
         $selectedStatus = $request->get('status', 'all');
         if ($selectedStatus && $selectedStatus !== 'all') {
@@ -255,7 +267,8 @@ class StudentController extends Controller
             COUNT(*) as total_all,
             SUM(CASE WHEN status = 'aktif' THEN 1 ELSE 0 END) as total_active,
             SUM(CASE WHEN status = 'aktif' AND gender IN ('L', 'Laki-laki', 'Male') THEN 1 ELSE 0 END) as male,
-            SUM(CASE WHEN status = 'aktif' AND gender IN ('P', 'Perempuan', 'Female') THEN 1 ELSE 0 END) as female
+            SUM(CASE WHEN status = 'aktif' AND gender IN ('P', 'Perempuan', 'Female') THEN 1 ELSE 0 END) as female,
+            SUM(CASE WHEN status = 'aktif' AND (special_needs IN ('02) Ya', 'Ya') OR (special_needs IS NOT NULL AND LOWER(special_needs) NOT LIKE '%tidak%')) THEN 1 ELSE 0 END) as pdbk
         ")->first();
 
         $rombelQuery = Classroom::where('is_active', true);
@@ -278,6 +291,7 @@ class StudentController extends Controller
             'total_all' => (int) ($aggregated->total_all ?? 0),
             'male' => (int) ($aggregated->male ?? 0),
             'female' => (int) ($aggregated->female ?? 0),
+            'pdbk' => (int) ($aggregated->pdbk ?? 0),
             'classrooms' => $totalClassrooms,
         ];
 
@@ -339,11 +353,11 @@ class StudentController extends Controller
             ->orderBy('name')
             ->get();
 
-        // Pagination with custom per-page selector
-        $perPageInput = $request->get('per_page', 20);
+        // Pagination with custom per-page selector (default 15 like sans-sd)
+        $perPageInput = $request->get('per_page', 15);
         $perPage = ($perPageInput === 'all' || $perPageInput === 'semua' || (int)$perPageInput >= 9999) ? 99999 : (int)$perPageInput;
-        if (!in_array($perPage, [10, 20, 25, 50, 100, 99999])) {
-            $perPage = 20;
+        if (!in_array($perPage, [15, 25, 50, 100, 99999])) {
+            $perPage = 15;
         }
 
         $students = $query->orderBy('status', 'asc')
@@ -368,6 +382,7 @@ class StudentController extends Controller
             'selectedJenjangId',
             'selectedClassLevelId',
             'selectedClassroomId',
+            'selectedStudentType',
             'selectedStatus',
             'selectedGender',
             'perPage'

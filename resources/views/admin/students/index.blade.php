@@ -1,294 +1,374 @@
 <x-admin-layout>
-    <div class="p-3.5 sm:p-5 lg:p-6 space-y-3.5 sm:space-y-5 lg:space-y-6" x-data="studentApp()">
+    <!-- Alpine.js Application Logic (Loaded before DOM element for seamless initialization) -->
+    <script>
+        function studentApp() {
+            return {
+                importModalOpen: false,
+                exportDropdownOpen: false,
+                downloadingTemplate: false,
+
+                downloadTemplate() {
+                    this.downloadingTemplate = true;
+                    window.location.href = "{{ route('students.download-template') }}";
+                    setTimeout(() => {
+                        this.downloadingTemplate = false;
+                    }, 2000);
+                },
+
+                confirmModal: {
+                    open: false,
+                    id: null,
+                    title: '',
+                    message: '',
+                    loading: false
+                },
+
+                confirmDeleteStudent(id, name) {
+                    this.confirmModal = {
+                        open: true,
+                        id: id,
+                        title: 'Hapus Data Murid?',
+                        message: `Apakah Anda yakin ingin menghapus data murid <strong>${name}</strong>? Data yang telah dihapus tidak dapat dipulihkan.`,
+                        loading: false
+                    };
+                    this.$nextTick(() => {
+                        if (window.lucide) lucide.createIcons();
+                    });
+                },
+
+                executeConfirmDelete() {
+                    if (this.confirmModal.loading) return;
+                    this.confirmModal.loading = true;
+
+                    fetch(`/students/${this.confirmModal.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(async res => {
+                        this.confirmModal.loading = false;
+                        const data = await res.json();
+                        if (res.ok && data.success) {
+                            this.confirmModal.open = false;
+                            if (window.setPendingToast) {
+                                window.setPendingToast(data.message || 'Data murid berhasil dihapus!', 'success');
+                            }
+                            window.location.reload();
+                        } else {
+                            const errMsg = data.message || 'Gagal menghapus data murid.';
+                            if (window.showToastNotification) {
+                                window.showToastNotification(errMsg, 'error');
+                            } else {
+                                alert(errMsg);
+                            }
+                        }
+                    })
+                    .catch(err => {
+                        this.confirmModal.loading = false;
+                        if (window.showToastNotification) {
+                            window.showToastNotification('Error: ' + err.message, 'error');
+                        } else {
+                            alert('Error: ' + err.message);
+                        }
+                    });
+                }
+            };
+        }
+        window.studentApp = studentApp;
+        window.downloadTemplate = function() {
+            window.location.href = "{{ route('students.download-template') }}";
+        };
+        document.addEventListener('alpine:init', () => {
+            if (typeof Alpine !== 'undefined' && Alpine.data) {
+                Alpine.data('studentApp', studentApp);
+            }
+        });
+    </script>
+
+    <div class="p-4 sm:p-5 lg:p-6 space-y-4 lg:space-y-5" x-data="studentApp()">
 
         <!-- GREETING / PAGE TITLE -->
-        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3 w-full text-left">
+        <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3.5 w-full text-left">
             <div class="flex flex-col gap-0.5">
-                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Daftar Murid</h2>
-                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Database komprehensif murid, penempatan kelompok, daycare, dan TPQ Anak Saleh.</p>
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl border border-indigo-500/20 flex items-center justify-center shrink-0">
+                        <i data-lucide="users" class="w-5 h-5 shrink-0"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">
+                            Data Murid
+                        </h2>
+                        <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">Database komprehensif murid, penempatan kelompok, daycare, TPQ, dan orang tua {{ function_exists('setting') ? setting('unit_name', 'PAUD Terpadu Anak Saleh') : 'PAUD Terpadu Anak Saleh' }}.</p>
+                    </div>
+                </div>
             </div>
 
-            <!-- ACTION CONTROLS -->
-            <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 shrink-0">
-                <!-- Impor Excel Button -->
+            <!-- ACTION CONTROLS: ACTION BUTTONS -->
+            <div class="flex flex-wrap items-center gap-2 shrink-0">
                 <button type="button" @click="importModalOpen = true"
-                    class="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] sm:text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-colors cursor-pointer">
-                    <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-slate-500"></i>
-                    Impor Excel
+                    class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-colors cursor-pointer shrink-0">
+                    <i data-lucide="upload" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0"></i>
+                    <span>Impor Excel</span>
                 </button>
 
-                @php
-                    $currentFilterParams = array_merge([
-                        'academic_year_id' => $selectedYearId,
-                        'jenjang_id' => $selectedJenjangId,
-                    ], request()->query());
-
-                    $allStudentsParams = [
-                        'academic_year_id' => $selectedYearId,
-                        'jenjang_id' => 'all',
-                    ];
-                @endphp
-                <!-- Ekspor Dropdown (Excel & PDF) -->
-                <div x-data="{ exportOpen: false }" class="relative">
-                    <button type="button" @click="exportOpen = !exportOpen" @click.outside="exportOpen = false"
-                        class="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] sm:text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-colors cursor-pointer">
-                        <i data-lucide="download" class="w-3.5 h-3.5 text-slate-500"></i>
+                <!-- DROPDOWN EKSPOR -->
+                <div class="relative shrink-0" @click.outside="exportDropdownOpen = false">
+                    <button type="button" @click="exportDropdownOpen = !exportDropdownOpen"
+                        class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-colors cursor-pointer">
+                        <i data-lucide="download" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0"></i>
                         <span>Ekspor Data</span>
-                        <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400"></i>
+                        <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0" :class="{ 'rotate-180': exportDropdownOpen }"></i>
                     </button>
-                    
-                    <div x-show="exportOpen" x-cloak
-                        x-transition:enter="transition ease-out duration-100"
-                        x-transition:enter-start="transform opacity-0 scale-95"
-                        x-transition:enter-end="transform opacity-100 scale-100"
-                        x-transition:leave="transition ease-in duration-75"
-                        x-transition:leave-start="transform opacity-100 scale-100"
-                        x-transition:leave-end="transform opacity-0 scale-95"
-                        class="absolute right-0 mt-1.5 w-60 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 py-1.5 overflow-hidden">
+
+                    <div x-show="exportDropdownOpen"
+                        x-cloak
+                        style="display: none;"
+                        class="absolute right-0 mt-1.5 w-60 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-1.5 z-50 divide-y divide-slate-100 dark:divide-slate-800/60">
                         
-                        <!-- Group 1: Sesuai Filter Saat Ini -->
-                        <div class="px-3 py-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                            Sesuai Filter Saat Ini
+                        <div class="px-3 py-1.5 bg-slate-50/50 dark:bg-slate-800/30">
+                            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Pilihan Format Dokumen</p>
                         </div>
-                        <a href="{{ route('students.export.excel', $currentFilterParams) }}"
-                            class="flex items-center gap-2.5 px-3.5 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">
-                            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0"></i>
-                            <span>Excel (.xlsx) <span class="text-[10px] text-slate-400">({{ $students->total() }} murid)</span></span>
-                        </a>
-                        <a href="{{ route('students.export.pdf', $currentFilterParams) }}"
-                            class="flex items-center gap-2.5 px-3.5 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 dark:hover:text-rose-400 transition-colors">
-                            <i data-lucide="file-text" class="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0"></i>
-                            <span>PDF (.pdf) <span class="text-[10px] text-slate-400">({{ $students->total() }} murid)</span></span>
-                        </a>
 
-                        <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
+                        <div class="py-1">
+                            <!-- Ekspor Excel -->
+                            <a href="{{ route('students.export.excel', request()->all()) }}" @click="exportDropdownOpen = false"
+                                class="flex items-center gap-2.5 px-3 py-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors group">
+                                <div class="w-7 h-7 flex items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60 shrink-0">
+                                    <i data-lucide="file-spreadsheet" class="w-4 h-4 shrink-0"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <span class="font-semibold block text-slate-800 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 truncate">Ekspor File Excel</span>
+                                    <span class="text-[10px] text-slate-400 block truncate">Format .xlsx lengkap database murid</span>
+                                </div>
+                            </a>
 
-                        <!-- Group 2: Semua Jenjang / Semua Murid -->
-                        <div class="px-3 py-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                            Semua Murid (T.A. {{ $selectedYear?->name ?? 'Aktif' }})
+                            <!-- Unduh PDF -->
+                            <a href="{{ route('students.export.pdf', request()->all()) }}" @click="exportDropdownOpen = false"
+                                class="flex items-center gap-2.5 px-3 py-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 dark:hover:text-rose-400 transition-colors group">
+                                <div class="w-7 h-7 flex items-center justify-center rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60 shrink-0">
+                                    <i data-lucide="file-text" class="w-4 h-4 shrink-0"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <span class="font-semibold block text-slate-800 dark:text-slate-200 group-hover:text-rose-600 dark:group-hover:text-rose-400 truncate">Unduh Dokumen PDF</span>
+                                    <span class="text-[10px] text-slate-400 block truncate">Format landscape siap cetak</span>
+                                </div>
+                            </a>
                         </div>
-                        <a href="{{ route('students.export.excel', $allStudentsParams) }}"
-                            class="flex items-center gap-2.5 px-3.5 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">
-                            <i data-lucide="sheet" class="w-4 h-4 text-emerald-500 shrink-0"></i>
-                            <span>Excel - Semua Jenjang</span>
-                        </a>
-                        <a href="{{ route('students.export.pdf', $allStudentsParams) }}"
-                            class="flex items-center gap-2.5 px-3.5 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 dark:hover:text-rose-400 transition-colors">
-                            <i data-lucide="printer" class="w-4 h-4 text-rose-500 shrink-0"></i>
-                            <span>PDF - Semua Jenjang</span>
-                        </a>
                     </div>
                 </div>
 
-                <!-- Tambah Murid Button -->
                 <a href="{{ route('students.create') }}"
-                    class="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] sm:text-xs font-semibold rounded-lg shadow-sm transition-colors">
-                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                    Tambah Murid
+                    class="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer shrink-0">
+                    <i data-lucide="plus" class="w-3.5 h-3.5 shrink-0"></i>
+                    <span>Tambah Murid</span>
                 </a>
             </div>
         </section>
 
-        <!-- IMPORT ERRORS ALERT -->
+        <!-- IMPORT ERRORS NOTIFICATION (IF ANY ROWS SKIPPED) -->
         @if(session('import_errors'))
-            <div class="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-900 text-rose-800 dark:text-rose-400 p-3 sm:p-4 rounded-xl flex items-start gap-3 text-left w-full">
-                <i data-lucide="alert-triangle" class="w-5 h-5 mt-0.5 shrink-0 text-rose-500 dark:text-rose-400"></i>
-                <div class="space-y-1">
-                    <h5 class="text-xs font-bold">Beberapa baris data murid gagal diimpor:</h5>
-                    <ul class="list-disc list-inside text-[11px] leading-relaxed opacity-90 max-h-40 overflow-y-auto">
-                        @foreach(session('import_errors') as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
+            <div class="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 text-xs space-y-2 shadow-xs">
+                <div class="flex items-center gap-2 font-bold">
+                    <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0"></i>
+                    <span>Catatan Impor (Beberapa baris dilewati):</span>
                 </div>
+                <ul class="list-disc list-inside space-y-1 pl-2 text-[11px] text-rose-700 dark:text-rose-300 max-h-40 overflow-y-auto">
+                    @foreach(session('import_errors') as $err)
+                        <li>{{ $err }}</li>
+                    @endforeach
+                </ul>
             </div>
         @endif
 
         <!-- STATS CARDS GRID -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
+        <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3 lg:gap-3.5">
             <!-- Stat Card 1: Total Murid Aktif -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
-                <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-100 dark:border-indigo-900/40">
-                    <i data-lucide="users" class="w-5 h-5"></i>
-                </div>
-                <div class="min-w-0">
-                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Total Murid Aktif</p>
-                    <div class="flex items-baseline gap-1.5 mt-0.5">
-                        <h3 class="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 font-mono">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-xs flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Murid Aktif</p>
+                        <h3 class="text-lg sm:text-xl font-black tracking-tight text-slate-900 dark:text-slate-50 mt-1">
                             {{ number_format($stats['total_active']) }}
                         </h3>
-                        <span class="text-[10px] text-slate-400 font-medium truncate">dari {{ number_format($stats['total_all']) }} terdaftar</span>
                     </div>
+                    <div class="w-8 h-8 flex items-center justify-center bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-lg border border-indigo-100 dark:border-indigo-900/50 shrink-0">
+                        <i data-lucide="users" class="w-4 h-4 shrink-0"></i>
+                    </div>
+                </div>
+                <div class="mt-2 text-[10px] text-slate-400">
+                    Total terdata: <span class="font-semibold text-slate-600 dark:text-slate-300">{{ number_format($stats['total_all']) }}</span>
                 </div>
             </div>
 
             <!-- Stat Card 2: Laki-laki -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
-                <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 border border-blue-100 dark:border-blue-900/40">
-                    <i data-lucide="user" class="w-5 h-5"></i>
-                </div>
-                <div class="min-w-0">
-                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Laki-laki (Putra)</p>
-                    <div class="flex items-baseline gap-1.5 mt-0.5">
-                        <h3 class="text-xl font-bold tracking-tight text-blue-600 dark:text-blue-400 font-mono">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-xs flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Putra (L)</p>
+                        <h3 class="text-lg sm:text-xl font-black tracking-tight text-slate-900 dark:text-slate-50 mt-1">
                             {{ number_format($stats['male']) }}
                         </h3>
-                        <span class="text-[10px] text-slate-400 font-medium truncate">Murid putra aktif</span>
                     </div>
+                    <div class="w-8 h-8 flex items-center justify-center bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-lg border border-blue-100 dark:border-blue-900/50 shrink-0">
+                        <i data-lucide="user" class="w-4 h-4 shrink-0"></i>
+                    </div>
+                </div>
+                <div class="mt-2 text-[10px] text-slate-400">
+                    {{ $stats['total_active'] > 0 ? round(($stats['male'] / $stats['total_active']) * 100) : 0 }}% dari total aktif
                 </div>
             </div>
 
             <!-- Stat Card 3: Perempuan -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
-                <div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 border border-rose-100 dark:border-rose-900/40">
-                    <i data-lucide="user-check" class="w-5 h-5"></i>
-                </div>
-                <div class="min-w-0">
-                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Perempuan (Putri)</p>
-                    <div class="flex items-baseline gap-1.5 mt-0.5">
-                        <h3 class="text-xl font-bold tracking-tight text-rose-600 dark:text-rose-400 font-mono">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-xs flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Putri (P)</p>
+                        <h3 class="text-lg sm:text-xl font-black tracking-tight text-slate-900 dark:text-slate-50 mt-1">
                             {{ number_format($stats['female']) }}
                         </h3>
-                        <span class="text-[10px] text-slate-400 font-medium truncate">Murid putri aktif</span>
                     </div>
+                    <div class="w-8 h-8 flex items-center justify-center bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-lg border border-rose-100 dark:border-rose-900/50 shrink-0">
+                        <i data-lucide="user-check" class="w-4 h-4 shrink-0"></i>
+                    </div>
+                </div>
+                <div class="mt-2 text-[10px] text-slate-400">
+                    {{ $stats['total_active'] > 0 ? round(($stats['female'] / $stats['total_active']) * 100) : 0 }}% dari total aktif
                 </div>
             </div>
 
-            <!-- Stat Card 4: Total Kelompok Belajar -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
-                <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 border border-purple-100 dark:border-purple-900/40">
-                    <i data-lucide="shapes" class="w-5 h-5"></i>
+            <!-- Stat Card 4: Inklusi (PDBK) -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-xs flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Inklusi (PDBK)</p>
+                        <h3 class="text-lg sm:text-xl font-black tracking-tight text-purple-700 dark:text-purple-300 mt-1">
+                            {{ number_format($stats['pdbk']) }}
+                        </h3>
+                    </div>
+                    <div class="w-8 h-8 flex items-center justify-center bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 rounded-lg border border-purple-100 dark:border-purple-900/50 shrink-0">
+                        <i data-lucide="heart-handshake" class="w-4 h-4 shrink-0"></i>
+                    </div>
                 </div>
-                <div class="min-w-0">
-                    <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Kelompok Belajar</p>
-                    <div class="flex items-baseline gap-1.5 mt-0.5">
-                        <h3 class="text-xl font-bold tracking-tight text-purple-600 dark:text-purple-400 font-mono">
+                <div class="mt-2 text-[10px] text-purple-600/80 dark:text-purple-400/80">
+                    Berkebutuhan khusus
+                </div>
+            </div>
+
+            <!-- Stat Card 5: Total Kelompok Belajar -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-xs flex flex-col justify-between col-span-2 sm:col-span-1">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Kelompok Belajar</p>
+                        <h3 class="text-lg sm:text-xl font-black tracking-tight text-slate-900 dark:text-slate-50 mt-1">
                             {{ number_format($stats['classrooms']) }}
                         </h3>
-                        <span class="text-[10px] text-slate-400 font-medium truncate">Kelompok aktif jenjang ini</span>
                     </div>
+                    <div class="w-8 h-8 flex items-center justify-center bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-lg border border-emerald-100 dark:border-emerald-900/50 shrink-0">
+                        <i data-lucide="layout-grid" class="w-4 h-4 shrink-0"></i>
+                    </div>
+                </div>
+                <div class="mt-2 text-[10px] text-slate-400">
+                    {{ $stats['classrooms'] }} Kelompok Aktif
                 </div>
             </div>
         </section>
 
-        <!-- UNIFIED FILTER TOOLBAR (JENJANG TABS, SEARCH & DROPDOWN FILTERS) -->
-        <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 sm:p-3 shadow-xs space-y-2">
-            <form method="GET" action="{{ route('students.index') }}" class="space-y-2">
-                <input type="hidden" name="jenjang_id" value="{{ $selectedJenjangId }}">
-
-                <!-- Row 1: Jenjang Tabs on Left & Search Box on Right -->
-                <div class="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-2.5">
-                    <!-- Jenjang Tabs -->
-                    <div class="flex flex-wrap items-center gap-1.5">
-                        @foreach($jenjangs as $j)
-                            <a href="{{ route('students.index', array_merge(request()->except('jenjang_id', 'class_level_id', 'classroom_id'), ['jenjang_id' => $j->id])) }}"
-                                class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5 {{ $selectedJenjangId == $j->id ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700' }}">
-                                @if($j->code === 'KB' || $j->code === 'PG')
-                                    <span>🧸</span>
-                                @elseif($j->code === 'TK')
-                                    <span>🎒</span>
-                                @elseif($j->code === 'DAYCARE' || $j->code === 'TPA')
-                                    <span>👶</span>
-                                @elseif($j->code === 'TPQ')
-                                    <span>📖</span>
-                                @else
-                                    <span>✨</span>
-                                @endif
-                                <span>{{ $j->name }}</span>
-                                <span class="px-1.5 py-0.2 rounded-full text-[9.5px] font-bold {{ $selectedJenjangId == $j->id ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300' }}">
-                                    {{ $j->students_count ?? 0 }}
-                                </span>
-                            </a>
-                        @endforeach
-                    </div>
-
-                    <!-- Search Box -->
-                    <div class="w-full lg:w-64 relative">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none">
-                            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400"></i>
-                        </span>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama, NIS, No. Ortu..."
-                            style="padding-left: 2rem;"
-                            class="w-full h-8 pr-2.5 text-[11px] bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 placeholder-slate-400 transition-colors">
-                    </div>
+        <!-- SEARCH & FILTERS -->
+        <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs w-full">
+            <form method="GET" action="{{ route('students.index') }}" class="flex flex-col lg:flex-row gap-2.5 items-stretch lg:items-center justify-between">
+                <!-- Search Box -->
+                <div class="relative w-full lg:max-w-xs">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500"></i>
+                    </span>
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama, NIS, NIK, No. Ortu..."
+                        style="padding-left: 2.25rem;"
+                        class="w-full h-8.5 pr-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 placeholder-slate-400 shadow-inner">
                 </div>
 
-                <!-- Row 2: Secondary Dropdown Filters -->
-                <div class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100 dark:border-slate-800/80">
-                    <!-- Filter 1: Tahun Ajaran -->
-                    <div class="inline-flex items-center bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg h-8 px-2.5 gap-1 shadow-xs">
-                        <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider shrink-0">TA:</span>
-                        <select name="academic_year_id" onchange="this.form.submit()"
-                            class="h-full py-0 pl-1 pr-6 text-[11px] font-bold bg-transparent text-slate-900 dark:text-slate-100 focus:outline-none cursor-pointer border-0">
-                            <option value="all" {{ $selectedYearId === 'all' ? 'selected' : '' }} class="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-semibold">Semua TA</option>
-                            @foreach($academicYears as $year)
-                                <option value="{{ $year->id }}" {{ $selectedYearId == $year->id ? 'selected' : '' }} class="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-semibold">
-                                    {{ $year->name }} {{ $year->is_active ? ' (Aktif)' : '' }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                <!-- Filter Select Toolbar -->
+                <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+                    <!-- Filter Tahun Ajaran -->
+                    <select name="academic_year_id" onchange="this.form.submit()"
+                        class="h-8.5 px-2.5 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-xs">
+                        <option value="all" {{ ($selectedYearId ?? '') === 'all' ? 'selected' : '' }}>Semua TA</option>
+                        @foreach($academicYears as $year)
+                            <option value="{{ $year->id }}" {{ ($selectedYearId ?? '') == $year->id ? 'selected' : '' }}>
+                                TA {{ $year->name }} {{ $year->is_active ? '★' : '' }}
+                            </option>
+                        @endforeach
+                    </select>
 
-                    <!-- Filter 2: Kelas (Sesuai Jenjang Aktif) -->
-                    <select name="class_level_id" id="filter_class_level_id" onchange="handleClassLevelFilterChange(this)"
-                        class="h-8 py-0 pl-2.5 pr-7 text-[11px] font-medium bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-xs hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
-                        <option value="all" class="bg-white dark:bg-slate-900">Semua Kelas</option>
+                    <!-- Filter Jenjang -->
+                    <select name="jenjang_id" onchange="this.form.submit()"
+                        class="h-8.5 px-2.5 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-xs">
+                        <option value="all" {{ ($selectedJenjangId ?? 'all') === 'all' ? 'selected' : '' }}>Semua Jenjang</option>
+                        @foreach($jenjangs as $j)
+                            <option value="{{ $j->id }}" {{ ($selectedJenjangId ?? '') == $j->id ? 'selected' : '' }}>
+                                {{ $j->name }}
+                            </option>
+                        @endforeach
+                    </select>
+
+                    <!-- Filter Tingkat Kelas -->
+                    <select name="class_level_id" onchange="this.form.submit()"
+                        class="h-8.5 px-2.5 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-xs">
+                        <option value="all">Semua Tingkat</option>
                         @foreach($classLevels as $lvl)
-                            <option value="{{ $lvl->id }}" {{ ($selectedClassLevelId ?? request('class_level_id')) == $lvl->id ? 'selected' : '' }} class="bg-white dark:bg-slate-900">
-                                Kelas {{ $lvl->name }}
+                            <option value="{{ $lvl->id }}" {{ request('class_level_id') == $lvl->id ? 'selected' : '' }}>
+                                {{ $lvl->name }}
                             </option>
                         @endforeach
                     </select>
 
-                    <!-- Filter 3: Kelompok Belajar -->
-                    <select name="classroom_id" id="filter_classroom_id" onchange="this.form.submit()"
-                        class="h-8 py-0 pl-2.5 pr-7 text-[11px] font-medium bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-xs hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
-                        <option value="all" class="bg-white dark:bg-slate-900">Semua Kelompok</option>
+                    <!-- Filter Kelompok Belajar -->
+                    <select name="classroom_id" onchange="this.form.submit()"
+                        class="h-8.5 px-2.5 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-xs max-w-[150px] truncate">
+                        <option value="all">Semua Kelompok</option>
                         @foreach($classrooms as $rombel)
-                            <option value="{{ $rombel->id }}" {{ ($selectedClassroomId ?? request('classroom_id')) == $rombel->id ? 'selected' : '' }} class="bg-white dark:bg-slate-900">
-                                Kelompok {{ $rombel->name }}
+                            <option value="{{ $rombel->id }}" {{ request('classroom_id') == $rombel->id ? 'selected' : '' }}>
+                                {{ $rombel->full_name }}
                             </option>
                         @endforeach
                     </select>
 
-                    <!-- Filter 4: Status Murid -->
+                    <!-- Filter Tipe Murid (Reguler / Inklusi PDBK) -->
+                    <select name="student_type" onchange="this.form.submit()"
+                        class="h-8.5 px-2.5 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-xs">
+                        <option value="">Semua Tipe</option>
+                        <option value="REGULER" {{ ($selectedStudentType ?? request('student_type')) == 'REGULER' ? 'selected' : '' }}>Reguler</option>
+                        <option value="PDBK" {{ ($selectedStudentType ?? request('student_type')) == 'PDBK' ? 'selected' : '' }}>PDBK (Inklusi)</option>
+                    </select>
+
+                    <!-- Filter Status -->
                     <select name="status" onchange="this.form.submit()"
-                        class="h-8 py-0 pl-2.5 pr-7 text-[11px] font-medium bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-xs hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
-                        <option value="all" {{ $selectedStatus === 'all' ? 'selected' : '' }} class="bg-white dark:bg-slate-900">Semua Status</option>
-                        <option value="aktif" {{ $selectedStatus === 'aktif' ? 'selected' : '' }} class="bg-white dark:bg-slate-900">Aktif</option>
-                        <option value="lulus" {{ $selectedStatus === 'lulus' ? 'selected' : '' }} class="bg-white dark:bg-slate-900">Lulus</option>
-                        <option value="mutasi" {{ $selectedStatus === 'mutasi' ? 'selected' : '' }} class="bg-white dark:bg-slate-900">Mutasi</option>
-                        <option value="keluar" {{ $selectedStatus === 'keluar' ? 'selected' : '' }} class="bg-white dark:bg-slate-900">Keluar</option>
-                        <option value="nonaktif" {{ $selectedStatus === 'nonaktif' ? 'selected' : '' }} class="bg-white dark:bg-slate-900">Nonaktif</option>
+                        class="h-8.5 px-2.5 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-xs">
+                        <option value="all">Semua Status</option>
+                        <option value="aktif" {{ request('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>
+                        <option value="lulus" {{ request('status') == 'lulus' ? 'selected' : '' }}>Lulus</option>
+                        <option value="mutasi" {{ request('status') == 'mutasi' ? 'selected' : '' }}>Mutasi</option>
+                        <option value="keluar" {{ request('status') == 'keluar' ? 'selected' : '' }}>Keluar</option>
+                        <option value="nonaktif" {{ request('status') == 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
                     </select>
 
-                    <!-- Filter 5: Gender -->
-                    <select name="gender" onchange="this.form.submit()"
-                        class="h-8 py-0 pl-2.5 pr-7 text-[11px] font-medium bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-xs hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
-                        <option value="all" {{ $selectedGender === 'all' ? 'selected' : '' }} class="bg-white dark:bg-slate-900">Semua Gender</option>
-                        <option value="L" {{ $selectedGender === 'L' ? 'selected' : '' }} class="bg-white dark:bg-slate-900">Putra (L)</option>
-                        <option value="P" {{ $selectedGender === 'P' ? 'selected' : '' }} class="bg-white dark:bg-slate-900">Putri (P)</option>
+                    <!-- Filter Jumlah Baris (Per Page) -->
+                    <select name="per_page" onchange="this.form.submit()"
+                        class="h-8.5 px-2.5 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-xs"
+                        title="Tampilkan jumlah baris per halaman">
+                        <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15 baris</option>
+                        <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25 baris</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 baris</option>
+                        <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100 baris</option>
+                        <option value="all" {{ request('per_page') === 'all' ? 'selected' : '' }}>Semua Baris</option>
                     </select>
 
-                    <!-- Filter 6: Pilihan Jumlah Baris / Tampilkan -->
-                    <div class="inline-flex items-center bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg h-8 px-2.5 gap-1 shadow-xs" title="Pilih jumlah baris data per halaman">
-                        <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider shrink-0">Baris:</span>
-                        <select name="per_page" onchange="this.form.submit()"
-                            class="h-full py-0 pl-1 pr-6 text-[11px] font-bold bg-transparent text-slate-900 dark:text-slate-100 focus:outline-none cursor-pointer border-0">
-                            <option value="10" {{ ($perPage ?? 20) == 10 ? 'selected' : '' }} class="bg-white dark:bg-slate-900">10</option>
-                            <option value="20" {{ ($perPage ?? 20) == 20 ? 'selected' : '' }} class="bg-white dark:bg-slate-900">20</option>
-                            <option value="50" {{ ($perPage ?? 20) == 50 ? 'selected' : '' }} class="bg-white dark:bg-slate-900">50</option>
-                            <option value="100" {{ ($perPage ?? 20) == 100 ? 'selected' : '' }} class="bg-white dark:bg-slate-900">100</option>
-                            <option value="all" {{ ($perPage ?? 20) >= 9999 ? 'selected' : '' }} class="bg-white dark:bg-slate-900">Semua</option>
-                        </select>
-                    </div>
-
-                    @if(request()->hasAny(['search', 'academic_year_id', 'class_level_id', 'classroom_id', 'status', 'gender']) || (request()->filled('per_page') && request('per_page') != 20))
-                        <a href="{{ route('students.index', ['jenjang_id' => $selectedJenjangId]) }}" 
-                            class="h-8 px-2.5 inline-flex items-center justify-center gap-1 text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 shadow-xs transition-colors cursor-pointer"
+                    @if(request()->hasAny(['search', 'academic_year_id', 'jenjang_id', 'class_level_id', 'classroom_id', 'student_type', 'status', 'gender']) || (request('per_page') && request('per_page') != 15))
+                        <a href="{{ route('students.index') }}" 
+                            class="h-8.5 px-2.5 inline-flex items-center justify-center text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors"
                             title="Reset Filter">
-                            <i data-lucide="rotate-ccw" class="w-3 h-3"></i>
-                            <span>Reset</span>
+                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
                         </a>
                     @endif
                 </div>
@@ -297,176 +377,163 @@
 
         <!-- TABLE LIST MURID -->
         <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden w-full">
-            <div class="overflow-x-auto overflow-y-auto" style="max-height: calc(100vh - 240px);">
-                <table class="w-full min-w-[900px] text-xs border-collapse">
-                    <thead class="sticky top-0 z-10 shadow-xs">
-                        <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
-                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-36 whitespace-nowrap">Tahun Ajaran</th>
-                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-40 whitespace-nowrap">Jenjang</th>
-                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-32 whitespace-nowrap">Kelas</th>
-                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-36 whitespace-nowrap">Kelompok</th>
-                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Nama Murid</th>
-                            <th class="px-5 py-3.5 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28 whitespace-nowrap">Status</th>
-                            <th class="px-5 py-3.5 text-right text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28 whitespace-nowrap">Aksi</th>
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-900/50">
+                            <th class="w-12 sm:w-14 px-2 py-2.5 sm:py-3 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider shrink-0" style="width: 52px; max-width: 52px;">No</th>
+                            <th class="px-3 py-2.5 sm:px-4 sm:py-3 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28 whitespace-nowrap">NIS</th>
+                            <th class="px-3 py-2.5 sm:px-4 sm:py-3 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-full min-w-[240px]">Nama Murid & Tipe</th>
+                            <th class="px-3 py-2.5 sm:px-4 sm:py-3 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[200px] sm:min-w-[220px]">Kelompok & Jenjang</th>
+                            <th class="px-3 py-2.5 sm:px-4 sm:py-3 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-24 sm:w-28 whitespace-nowrap">L/P & Usia</th>
+                            <th class="px-3 py-2.5 sm:px-4 sm:py-3 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[160px]">Orang Tua & WA</th>
+                            <th class="px-3 py-2.5 sm:px-4 sm:py-3 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-24 whitespace-nowrap">Status</th>
+                            <th class="px-3 py-2.5 sm:px-4 sm:py-3 text-right text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-24 sm:w-28 whitespace-nowrap">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
                         @forelse($students as $index => $s)
-                            <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors group">
-                                <!-- 1. Tahun Ajaran -->
-                                <td class="px-5 py-3.5 font-semibold text-slate-900 dark:text-slate-100 whitespace-nowrap">
-                                    <span class="inline-flex items-center gap-1.5">
-                                        <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400"></i>
-                                        {{ $s->academicYear?->name ?? '-' }}
-                                    </span>
+                            @php
+                                $isPdbk = ($s->special_needs && (in_array($s->special_needs, ['02) Ya', 'Ya']) || !str_contains(strtolower($s->special_needs), 'tidak'))) || !empty($s->special_needs_detail);
+                            @endphp
+                            <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition-colors group">
+                                <td class="w-12 sm:w-14 px-2 py-2.5 sm:py-3 text-center text-slate-400 font-mono text-[11px] whitespace-nowrap shrink-0" style="width: 52px; max-width: 52px;">
+                                    {{ $students->firstItem() + $index }}
                                 </td>
-
-                                <!-- 2. Jenjang -->
-                                <td class="px-5 py-3.5 whitespace-nowrap">
-                                    @php
-                                        $jenjangObj = $s->jenjang ?? $s->classroom?->jenjang ?? $s->classLevel?->jenjang;
-                                        $jCode = $jenjangObj?->code ?? $s->sub_unit;
-                                        $jName = $jenjangObj?->name ?? ($jCode ? ($jenjangs->firstWhere('code', $jCode)?->name ?? strtoupper($jCode)) : '-');
-
-                                        $allJenjang = [];
-                                        if ($jName && $jName !== '-') {
-                                            $allJenjang[] = $jName;
-                                        }
-
-                                        // Dynamic Daycare Jenjang from Master
-                                        if ($s->daycare_classroom_id && $jCode !== 'DAYCARE' && $jCode !== 'TPA') {
-                                            $dcJenjang = $s->daycareClassroom?->jenjang ?? $jenjangs->first(fn($j) => in_array($j->code, ['DAYCARE', 'TPA']) || str_contains(strtoupper($j->name), 'DAYCARE') || str_contains(strtoupper($j->name), 'TPA'));
-                                            $dcName = $dcJenjang?->name ?? 'Daycare (TPA)';
-                                            if (!in_array($dcName, $allJenjang)) {
-                                                $allJenjang[] = $dcName;
-                                            }
-                                        }
-
-                                        // Dynamic TPQ Jenjang from Master
-                                        if ($s->is_tpq && $jCode !== 'TPQ') {
-                                            $tpqJenjang = $s->tpqClassroom?->jenjang ?? $jenjangs->first(fn($j) => $j->code === 'TPQ' || str_contains(strtoupper($j->name), 'TPQ'));
-                                            $tpqName = $tpqJenjang?->name ?? 'TPQ';
-                                            if (!in_array($tpqName, $allJenjang)) {
-                                                $allJenjang[] = $tpqName;
-                                            }
-                                        }
-                                    @endphp
-                                    <span class="font-bold text-slate-800 dark:text-slate-200">
-                                        {{ count($allJenjang) > 0 ? implode(', ', $allJenjang) : '-' }}
-                                    </span>
+                                <td class="px-3 py-2.5 sm:px-4 sm:py-3 font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap">
+                                    {{ $s->nis ?: '-' }}
                                 </td>
-
-                                <!-- 3. Kelas -->
-                                <td class="px-5 py-3.5 font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap">
-                                    {{ $s->classLevel?->name ?? $s->classroom?->classLevel?->name ?? '-' }}
-                                </td>
-
-                                <!-- 4. Kelompok -->
-                                <td class="px-5 py-3.5 whitespace-nowrap">
-                                    @php
-                                        $primaryGroup = $s->classroom?->name;
-                                        if (!$primaryGroup && $s->daycareClassroom) {
-                                            $primaryGroup = $s->daycareClassroom->name;
-                                        }
-
-                                        $allGroups = [];
-                                        if ($primaryGroup) {
-                                            $allGroups[] = $primaryGroup;
-                                        }
-                                        if ($s->daycareClassroom && !in_array($s->daycareClassroom->name, $allGroups)) {
-                                            $allGroups[] = $s->daycareClassroom->name;
-                                        }
-                                        if ($s->is_tpq || $s->tpq_classroom_id) {
-                                            $tpqName = $s->tpqClassroom?->name ?? 'TPQ';
-                                            if (!in_array($tpqName, $allGroups)) {
-                                                $allGroups[] = $tpqName;
-                                            }
-                                        }
-                                    @endphp
-                                    <span class="font-bold text-slate-900 dark:text-slate-100">
-                                        {{ count($allGroups) > 0 ? implode(', ', $allGroups) : '-' }}
-                                    </span>
-                                </td>
-
-                                <!-- 5. Nama Murid & NIS -->
-                                <td class="px-5 py-3.5">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-100 dark:border-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
-                                            {{ $s->avatar_initials }}
-                                        </div>
-                                        <div class="flex flex-col min-w-0">
-                                            <span class="font-bold text-slate-900 dark:text-slate-100 text-xs tracking-tight">
-                                                {{ $s->full_name }}
-                                            </span>
-                                            <div class="flex flex-wrap items-center gap-1.5 mt-0.5 text-[10.5px] text-slate-400">
-                                                @if($s->nis)
-                                                    <span class="font-mono text-indigo-600 dark:text-indigo-400 font-bold">NIS: {{ $s->nis }}</span>
-                                                    <span>&bull;</span>
+                                <td class="px-3 py-2.5 sm:px-4 sm:py-3">
+                                    <div class="flex items-center gap-2.5 sm:gap-3">
+                                        @if($s->student_photo_url)
+                                            <img src="{{ $s->student_photo_url }}" width="32" height="32" alt="{{ $s->full_name }}" class="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover ring-1 ring-slate-200 dark:ring-slate-700 shrink-0 aspect-square">
+                                        @else
+                                            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-100 dark:border-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0 aspect-square">
+                                                {{ $s->avatar_initials }}
+                                            </div>
+                                        @endif
+                                        <div class="flex flex-col">
+                                            <div class="flex items-center gap-1.5 flex-wrap">
+                                                <a href="{{ route('students.show', $s->id) }}" class="font-bold text-slate-900 dark:text-slate-100 text-xs tracking-tight hover:text-indigo-600 dark:hover:text-indigo-400">
+                                                    {{ $s->full_name }}
+                                                </a>
+                                                @if($isPdbk)
+                                                    <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800 shrink-0" title="{{ $s->special_needs_detail ?: 'PDBK' }}">
+                                                        PDBK
+                                                    </span>
                                                 @endif
-                                                <span>{{ $s->formatted_gender }}</span>
-                                                @if($s->nickname)
-                                                    <span>&bull;</span>
-                                                    <span class="italic">({{ $s->nickname }})</span>
+                                            </div>
+                                            <div class="flex items-center gap-2 mt-0.5 text-[10px] text-slate-400">
+                                                @if($s->nik)
+                                                    <span>NIK: {{ $s->nik }}</span>
+                                                @endif
+                                                @if($s->spmb_candidate_id)
+                                                    <span class="px-1.5 py-0.2 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-medium">SPMB</span>
                                                 @endif
                                             </div>
                                         </div>
                                     </div>
                                 </td>
-
-                                <!-- 6. Status -->
-                                <td class="px-5 py-3.5 text-center whitespace-nowrap">
+                                <td class="px-3 py-2.5 sm:px-4 sm:py-3 min-w-[200px] sm:min-w-[220px]">
+                                    <div class="flex flex-col">
+                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                            <span class="font-semibold text-slate-800 dark:text-slate-200">
+                                                {{ $s->classroom ? $s->classroom->name : ($s->daycareClassroom ? $s->daycareClassroom->name : 'Belum Ditentukan') }}
+                                            </span>
+                                            @if($s->daycareClassroom && $s->classroom_id)
+                                                <span class="text-[9.5px] px-1.5 py-0.2 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 font-medium border border-amber-200 dark:border-amber-800/50">
+                                                    Daycare
+                                                </span>
+                                            @endif
+                                            @if($s->is_tpq || $s->tpq_classroom_id)
+                                                <span class="text-[9.5px] px-1.5 py-0.2 rounded bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-400 font-medium border border-teal-200 dark:border-teal-800/50">
+                                                    TPQ
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <div class="flex items-center gap-1.5 mt-0.5 whitespace-nowrap">
+                                            <span class="text-[11px] text-slate-400">
+                                                {{ $s->classroom?->classLevel?->name ?? $s->classLevel?->name ?? ($s->jenjang?->name ?? '-') }}
+                                            </span>
+                                            @if($s->academicYear)
+                                                <span class="text-[10px] px-1.5 py-0.2 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-medium font-mono border border-indigo-100 dark:border-indigo-900/50 shrink-0">
+                                                    TA {{ $s->academicYear->name }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-3 py-2.5 sm:px-4 sm:py-3">
+                                    <div class="flex flex-col text-slate-600 dark:text-slate-300">
+                                        <span class="font-medium">{{ $s->formatted_gender }}</span>
+                                        <span class="text-[10px] text-slate-400">{{ $s->age ?: '-' }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-3 py-2.5 sm:px-4 sm:py-3">
+                                    <div class="flex flex-col">
+                                        <span class="font-medium text-slate-800 dark:text-slate-200 truncate max-w-[160px]">
+                                            {{ $s->father_name ?: ($s->mother_name ?: ($s->guardian_name ?: '-')) }}
+                                        </span>
+                                        @if($s->clean_parent_phone)
+                                            <a href="{{ $s->whatsapp_url }}" target="_blank" class="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline font-mono mt-0.5">
+                                                <i data-lucide="message-circle" class="w-3 h-3 shrink-0"></i>
+                                                {{ $s->parent_phone }}
+                                            </a>
+                                        @else
+                                            <span class="text-[11px] text-slate-400">-</span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="px-3 py-2.5 sm:px-4 sm:py-3">
                                     @if($s->status === 'aktif')
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800 shadow-2xs">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">
                                             Aktif
                                         </span>
                                     @elseif($s->status === 'lulus')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800/40">
                                             Lulus
                                         </span>
                                     @elseif($s->status === 'mutasi')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/40">
                                             Mutasi
                                         </span>
+                                    @elseif($s->status === 'keluar')
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800/40">
+                                            Keluar
+                                        </span>
                                     @else
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
                                             {{ ucfirst($s->status) }}
                                         </span>
                                     @endif
                                 </td>
-
-                                <!-- 7. Aksi -->
-                                <td class="px-5 py-3.5 text-right whitespace-nowrap">
+                                <td class="px-3 py-2.5 sm:px-4 sm:py-3 text-right">
                                     <div class="flex items-center justify-end gap-1">
                                         <a href="{{ route('students.show', $s->id) }}"
-                                            class="p-1.5 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg transition-colors inline-flex items-center justify-center"
+                                            class="w-7 h-7 inline-flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg transition-colors cursor-pointer shrink-0"
                                             title="Lihat Detail Murid (Dossier)">
-                                            <i data-lucide="eye" class="w-4 h-4"></i>
+                                            <i data-lucide="eye" class="w-4 h-4 shrink-0"></i>
                                         </a>
                                         <a href="{{ route('students.edit', $s->id) }}"
-                                            class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 rounded-lg transition-colors inline-flex items-center justify-center"
+                                            class="w-7 h-7 inline-flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-amber-600 dark:hover:text-amber-400 rounded-lg transition-colors cursor-pointer shrink-0"
                                             title="Edit Data Murid">
-                                            <i data-lucide="edit-2" class="w-4 h-4"></i>
+                                            <i data-lucide="edit-2" class="w-4 h-4 shrink-0"></i>
                                         </a>
-                                        <button type="button" @click="deleteStudent({{ $s->id }}, '{{ addslashes($s->full_name) }}')"
-                                            class="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg transition-colors cursor-pointer"
-                                            title="Hapus Murid">
-                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        <button type="button" @click="confirmDeleteStudent({{ $s->id }}, '{{ addslashes($s->full_name) }}')"
+                                            class="w-7 h-7 inline-flex items-center justify-center hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg transition-colors cursor-pointer shrink-0"
+                                            title="Hapus Data Murid">
+                                            <i data-lucide="trash-2" class="w-4 h-4 shrink-0"></i>
                                         </button>
                                     </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-6 py-12 text-center">
-                                    <div class="max-w-sm mx-auto flex flex-col items-center justify-center">
-                                        <div class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 flex items-center justify-center text-indigo-500 mb-3 border border-indigo-100 dark:border-indigo-900/50">
-                                            <i data-lucide="users" class="w-6 h-6"></i>
-                                        </div>
-                                        <h4 class="text-sm font-bold text-slate-800 dark:text-slate-200">Belum Ada Data Murid</h4>
-                                        <p class="text-xs text-slate-400 mt-1 mb-4 text-center">
-                                            Data murid tidak ditemukan pada filter ini. Anda dapat menambah data baru atau mengimpor dari file Excel.
-                                        </p>
+                                <td colspan="8" class="px-6 py-12 text-center text-slate-400">
+                                    <div class="flex flex-col items-center justify-center">
+                                        <i data-lucide="users" class="w-8 h-8 text-slate-300 dark:text-slate-600 mb-2"></i>
+                                        <p class="font-semibold text-slate-600 dark:text-slate-400">Tidak ada data murid ditemukan</p>
+                                        <p class="text-[11px] text-slate-400 mt-0.5">Coba sesuaikan filter atau tambahkan murid baru / impor dari Excel.</p>
                                     </div>
                                 </td>
                             </tr>
@@ -475,22 +542,14 @@
                 </table>
             </div>
 
-            <!-- PAGINATION -->
-            <div class="px-5 sm:px-6 py-3.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
-                <div class="flex items-center gap-2">
-                    @if($students->total() > 0)
-                        <span>Menampilkan <span class="font-bold text-slate-800 dark:text-slate-200">{{ $students->firstItem() ?? 1 }}</span> s/d <span class="font-bold text-slate-800 dark:text-slate-200">{{ $students->lastItem() ?? $students->total() }}</span> dari total <span class="font-bold text-slate-900 dark:text-slate-100">{{ $students->total() }}</span> murid</span>
-                    @else
-                        <span>Tidak ada data murid yang ditampilkan</span>
-                    @endif
-
-                    @if(($perPage ?? 20) >= 9999)
-                        <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
-                            Mode Semua Baris
-                        </span>
+            <!-- TABLE FOOTER & PAGINATION -->
+            <div class="px-4 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
+                <div>
+                    Menampilkan <span class="font-semibold text-slate-700 dark:text-slate-200">{{ $students->firstItem() ?? 0 }}</span> - <span class="font-semibold text-slate-700 dark:text-slate-200">{{ $students->lastItem() ?? 0 }}</span> dari <span class="font-semibold text-slate-700 dark:text-slate-200">{{ $students->total() }}</span> murid
+                    @if(request('per_page') === 'all')
+                        <span class="ml-1 text-indigo-600 dark:text-indigo-400 font-medium">(Semua ditampilkan)</span>
                     @endif
                 </div>
-
                 @if($students->hasPages())
                     <div>
                         {{ $students->links() }}
@@ -499,1765 +558,135 @@
             </div>
         </section>
 
-        <!-- MODAL TAMBAH / EDIT MURID (5-STEP WIZARD FORM) -->
-        <template x-teleport="body">
-            <div x-show="formModalOpen" x-cloak class="fixed inset-0 z-[99999] flex items-center justify-center p-2.5 sm:p-4" style="top: 0px !important; left: 0px !important; right: 0px !important; bottom: 0px !important; margin: 0px !important; z-index: 99999 !important; background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);">
-                <div @click.outside="formModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col text-left my-auto" style="height: 640px; max-height: min(640px, calc(100vh - 32px));">
+        <!-- MODAL IMPOR EXCEL MURID (MASSAL) -->
+        <div x-show="importModalOpen" x-cloak class="fixed inset-0 z-[9999] flex items-center justify-center p-4" style="display: none; margin-top: 0px !important; z-index: 9999; background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);">
+            <div @click.outside="importModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col">
                 
-                <form novalidate @submit.prevent="submitForm" class="flex flex-col h-full w-full overflow-hidden">
-                    <!-- Modal Header -->
-                    <div class="p-3.5 sm:p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-900/80 shrink-0">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
-                                <i :data-lucide="isEdit ? 'edit-2' : 'user-plus'" class="w-4 h-4"></i>
+                <form action="{{ route('students.import') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <!-- Header -->
+                    <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm z-10">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 font-bold text-sm flex items-center justify-center">
+                                <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
                             </div>
                             <div>
-                                <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-50" x-text="isEdit ? 'Edit Formulir Data Siswa Lengkap' : 'Tambah Murid Baru (Formulir Lengkap)'"></h3>
-                                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">Konfigurasi lengkap 5 tahap: identitas diri, domisili, keluarga, fisik PAUD, dan tumbuh kembang.</p>
+                                <h3 class="text-base font-bold text-slate-900 dark:text-slate-50">Impor Murid Massal (Excel)</h3>
+                                <p class="text-xs text-slate-400 mt-0.5">Unggah database murid PAUD / Daycare / TPQ.</p>
                             </div>
                         </div>
-                        <button type="button" @click="formModalOpen = false" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer">
-                            <i data-lucide="x" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                        <button type="button" @click="importModalOpen = false" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                            <i data-lucide="x" class="w-5 h-5"></i>
                         </button>
                     </div>
 
-                    <!-- 5-Step Stepper Navigation -->
-                    <div class="flex items-center border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs px-3.5 sm:px-5 py-2 sm:py-2.5 gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar shrink-0">
-                        <button type="button" @click="goToTab('tab1_identitas')"
-                            :class="formTab === 'tab1_identitas' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'"
-                            class="px-2.5 sm:px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0 relative text-[11px] sm:text-xs transition-colors">
-                            <span class="w-4 h-4 rounded-full bg-white/20 text-[10px] flex items-center justify-center font-bold">1</span>
-                            <span>Identitas & Akademik</span>
-                            <span x-show="hasTabError('tab1_identitas')" class="w-2 h-2 rounded-full bg-rose-500 shrink-0 ring-2 ring-white"></span>
-                        </button>
-                        <button type="button" @click="goToTab('tab2_domisili')"
-                            :class="formTab === 'tab2_domisili' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'"
-                            class="px-2.5 sm:px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0 relative text-[11px] sm:text-xs transition-colors">
-                            <span class="w-4 h-4 rounded-full bg-white/20 text-[10px] flex items-center justify-center font-bold">2</span>
-                            <span>Domisili & Alamat</span>
-                            <span x-show="hasTabError('tab2_domisili')" class="w-2 h-2 rounded-full bg-rose-500 shrink-0 ring-2 ring-white"></span>
-                        </button>
-                        <button type="button" @click="goToTab('tab3_keluarga')"
-                            :class="formTab === 'tab3_keluarga' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'"
-                            class="px-2.5 sm:px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0 relative text-[11px] sm:text-xs transition-colors">
-                            <span class="w-4 h-4 rounded-full bg-white/20 text-[10px] flex items-center justify-center font-bold">3</span>
-                            <span>Keluarga & Kontak</span>
-                            <span x-show="hasTabError('tab3_keluarga')" class="w-2 h-2 rounded-full bg-rose-500 shrink-0 ring-2 ring-white"></span>
-                        </button>
-                        <button type="button" @click="goToTab('tab4_fisik')"
-                            :class="formTab === 'tab4_fisik' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'"
-                            class="px-2.5 sm:px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0 relative text-[11px] sm:text-xs transition-colors">
-                            <span class="w-4 h-4 rounded-full bg-white/20 text-[10px] flex items-center justify-center font-bold">4</span>
-                            <span>Fisik & PAUD</span>
-                            <span x-show="hasTabError('tab4_fisik')" class="w-2 h-2 rounded-full bg-rose-500 shrink-0 ring-2 ring-white"></span>
-                        </button>
-                        <button type="button" @click="goToTab('tab5_tumbuhkembang')"
-                            :class="formTab === 'tab5_tumbuhkembang' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'"
-                            class="px-2.5 sm:px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0 relative text-[11px] sm:text-xs transition-colors">
-                            <span class="w-4 h-4 rounded-full bg-white/20 text-[10px] flex items-center justify-center font-bold">5</span>
-                            <span>Tumbuh Kembang</span>
-                            <span x-show="hasTabError('tab5_tumbuhkembang')" class="w-2 h-2 rounded-full bg-rose-500 shrink-0 ring-2 ring-white"></span>
-                        </button>
-                    </div>
+                    <!-- Body -->
+                    <div class="p-6 space-y-4 text-xs">
+                        <div class="p-4 rounded-xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 space-y-2.5">
+                            <div class="flex items-center justify-between gap-3">
+                                <span class="font-bold text-indigo-900 dark:text-indigo-300">Format Template Excel</span>
+                                <a href="{{ route('students.download-template') }}" 
+                                    class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold transition-all shadow-xs cursor-pointer">
+                                    <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                    <span>Unduh Template (.xlsx)</span>
+                                </a>
+                            </div>
+                            <p class="text-[11px] text-indigo-800/80 dark:text-indigo-300/80 leading-relaxed">
+                                Gunakan template resmi untuk mengisi data murid. Di dalam file Excel terdapat petunjuk kolom rombel dan tahun ajaran aktif di sistem.
+                            </p>
+                        </div>
 
-                    <!-- Modal Body (Flex-1 container ensuring identical height across all tabs) -->
-                    <div class="p-4 sm:p-5 space-y-4 text-xs overflow-y-auto flex-1 min-h-0 overscroll-contain" style="flex: 1 1 0%; min-height: 0;">
-                        
-                        <!-- TAB 1: IDENTITAS & PENEMPATAN AKADEMIK -->
-                        <div x-show="formTab === 'tab1_identitas'" class="space-y-4">
-                            <!-- Card 1: Penempatan Akademik -->
-                            <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3.5">
-                                <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
-                                    <i data-lucide="shapes" class="w-3.5 h-3.5"></i>
-                                    Penempatan Akademik & Kelompok Belajar
-                                </h4>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tahun Ajaran <span class="text-rose-500">*</span></label>
-                                        <select x-model="formData.academic_year_id" @change="onAcademicYearChange()"
-                                            :class="formErrors.academic_year_id ? 'border-rose-500 ring-1 ring-rose-500/30' : 'border-slate-200 dark:border-slate-800'"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-semibold cursor-pointer">
-                                            @foreach($academicYears as $year)
-                                                <option value="{{ $year->id }}">{{ $year->name }} {{ $year->is_active ? '(Aktif)' : '' }}</option>
-                                            @endforeach
-                                        </select>
-                                        <p x-show="formErrors.academic_year_id" x-text="formErrors.academic_year_id" class="text-[10px] text-rose-500 font-semibold mt-1"></p>
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Jenjang Pendidikan <span class="text-rose-500">*</span></label>
-                                        <select x-model="formData.jenjang_id" @change="onJenjangChange()"
-                                            :class="formErrors.jenjang_id ? 'border-rose-500 ring-1 ring-rose-500/30' : 'border-slate-200 dark:border-slate-800'"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer font-semibold">
-                                            <option value="">-- Pilih Jenjang --</option>
-                                            @foreach($jenjangs as $j)
-                                                <option value="{{ $j->id }}">{{ $j->name }}</option>
-                                            @endforeach
-                                        </select>
-                                        <p x-show="formErrors.jenjang_id" x-text="formErrors.jenjang_id" class="text-[10px] text-rose-500 font-semibold mt-1"></p>
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tingkat Kelas</label>
-                                        <select x-model="formData.class_level_id" @change="onClassLevelChange()"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
-                                            <option value="">-- Pilih Kelas --</option>
-                                            <template x-for="lvl in availableClassLevels" :key="lvl.id">
-                                                <option :value="lvl.id" x-text="lvl.name"></option>
-                                            </template>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kelompok Belajar</label>
-                                        <select x-model="formData.classroom_id"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer font-semibold">
-                                            <option value="">-- Pilih Kelompok --</option>
-                                            <template x-for="rombel in availableClassrooms" :key="rombel.id">
-                                                <option :value="rombel.id" x-text="rombel.name + (rombel.homeroom_teacher ? ' (' + rombel.homeroom_teacher.name + ')' : '')"></option>
-                                            </template>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Status Murid <span class="text-rose-500">*</span></label>
-                                        <select x-model="formData.status" @change="clearError('status')"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer font-semibold">
-                                            <option value="aktif">Aktif</option>
-                                            <option value="lulus">Lulus</option>
-                                            <option value="mutasi">Mutasi</option>
-                                            <option value="keluar">Keluar</option>
-                                            <option value="nonaktif">Nonaktif</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-slate-200/60 dark:border-slate-800/60">
-                                    <div class="flex items-center gap-2 pt-2">
-                                        <input type="checkbox" id="form_is_tpq" x-model="formData.is_tpq" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 dark:border-slate-700 cursor-pointer">
-                                        <label for="form_is_tpq" class="text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
-                                            Ikut Program TPQ Sekolah
-                                        </label>
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kelompok Daycare <span class="text-slate-400 font-normal">(Opsional)</span></label>
-                                        <select x-model="formData.daycare_classroom_id"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
-                                            <option value="">-- Tidak Ikut Daycare --</option>
-                                            @foreach($daycareClassrooms as $dc)
-                                                <option value="{{ $dc->id }}">{{ $dc->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kelompok Belajar Tujuan (Default)</label>
+                                <select name="default_classroom_id"
+                                    class="w-full h-8.5 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                                    <option value="">Gunakan kolom di Excel (Otomatis)</option>
+                                    @foreach($allClassrooms as $r)
+                                        <option value="{{ $r->id }}">{{ $r->full_name }} (TA {{ $r->academicYear->name ?? '-' }})</option>
+                                    @endforeach
+                                </select>
+                                <p class="text-[10px] text-slate-400 mt-1">Pilih kelompok default jika file tidak memuat kolom kelompok belajar.</p>
                             </div>
 
-                            <!-- Card 2: Biodata Induk Ananda -->
-                            <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3.5">
-                                <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
-                                    <i data-lucide="user" class="w-3.5 h-3.5"></i>
-                                    Biodata & Legalitas Kependudukan Ananda
-                                </h4>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div class="sm:col-span-2">
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Lengkap Ananda <span class="text-rose-500">*</span></label>
-                                        <input type="text" x-model="formData.full_name" @input="if (formErrors.full_name) clearError('full_name')" placeholder="Nama lengkap sesuai akta kelahiran"
-                                            :class="formErrors.full_name ? 'border-rose-500 ring-1 ring-rose-500/30' : 'border-slate-200 dark:border-slate-800'"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-semibold">
-                                        <p x-show="formErrors.full_name" x-text="formErrors.full_name" class="text-[10px] text-rose-500 font-semibold mt-1"></p>
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Panggilan</label>
-                                        <input type="text" x-model="formData.nickname" placeholder="Nama panggilan akrab"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Jenis Kelamin <span class="text-rose-500">*</span></label>
-                                        <select x-model="formData.gender" @change="clearError('gender')"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer font-semibold">
-                                            <option value="L">Laki-laki (Putra)</option>
-                                            <option value="P">Perempuan (Putri)</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tempat Lahir</label>
-                                        <input type="text" x-model="formData.birth_place" placeholder="Kota kelahiran (cth: Malang)"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tanggal Lahir</label>
-                                        <input type="date" x-model="formData.birth_date"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-semibold">
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">NIS <span class="text-slate-400 font-normal">(Nomor Induk Siswa)</span></label>
-                                        <input type="text" x-model="formData.nis" placeholder="Contoh: 27.PAUD.001"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">NISN</label>
-                                        <input type="text" x-model="formData.nisn" placeholder="10 digit nomor NISN"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">NIK Anak (KTP/KIA)</label>
-                                        <input type="text" x-model="formData.nik" placeholder="16 digit NIK"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">No. Kartu Keluarga (KK)</label>
-                                        <input type="text" x-model="formData.no_kk" placeholder="16 digit nomor KK"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">No. Registrasi Akta Lahir</label>
-                                        <input type="text" x-model="formData.no_akta" placeholder="Nomor registrasi akta kelahiran"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Agama</label>
-                                        <select x-model="formData.religion"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
-                                            <option value="Islam">Islam</option>
-                                            <option value="Kristen">Kristen</option>
-                                            <option value="Katolik">Katolik</option>
-                                            <option value="Hindu">Hindu</option>
-                                            <option value="Buddha">Buddha</option>
-                                            <option value="Konghucu">Konghucu</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kewarganegaraan</label>
-                                        <select x-model="formData.citizenship"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
-                                            <option value="WNI">WNI (Warga Negara Indonesia)</option>
-                                            <option value="WNA">WNA (Warga Negara Asing)</option>
-                                        </select>
-                                    </div>
-                                </div>
+                            <div>
+                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tahun Ajaran (Default)</label>
+                                <select name="default_academic_year_id"
+                                    class="w-full h-8.5 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-900 dark:text-slate-50 cursor-pointer">
+                                    @foreach($academicYears as $y)
+                                        <option value="{{ $y->id }}" {{ $y->is_active ? 'selected' : '' }}>
+                                            TA {{ $y->name }} {{ $y->is_active ? '(Aktif)' : '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <p class="text-[10px] text-slate-400 mt-1">Tahun ajaran penempatan murid yang diimpor.</p>
                             </div>
                         </div>
 
-                        <!-- TAB 2: DOMISILI & ALAMAT -->
-                        <div x-show="formTab === 'tab2_domisili'" class="space-y-4">
-                            <!-- Card 1: Alamat Rumah -->
-                            <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3.5">
-                                <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-sky-600 dark:text-sky-400">
-                                    <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
-                                    Alamat Domisili Tempat Tinggal
-                                </h4>
-
-                                <div>
-                                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Alamat Jalan / Tempat Tinggal</label>
-                                    <input type="text" x-model="formData.address" placeholder="Nama Jalan, Gang, Nomor Rumah"
-                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                </div>
-
-                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">RT</label>
-                                        <input type="text" x-model="formData.rt" placeholder="01"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">RW</label>
-                                        <input type="text" x-model="formData.rw" placeholder="05"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kelurahan / Desa</label>
-                                        <input type="text" x-model="formData.kelurahan" placeholder="Kelurahan"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kecamatan</label>
-                                        <input type="text" x-model="formData.kecamatan" placeholder="Kecamatan"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kota / Kabupaten</label>
-                                        <input type="text" x-model="formData.city" placeholder="Malang"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kode Pos</label>
-                                        <input type="text" x-model="formData.postal_code" placeholder="65141"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Card 2: Tempat Tinggal & Aksesibilitas Sekolah -->
-                            <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3.5">
-                                <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-sky-600 dark:text-sky-400">
-                                    <i data-lucide="home" class="w-3.5 h-3.5"></i>
-                                    Tempat Tinggal, Transportasi & Lingkungan
-                                </h4>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tinggal Bersama</label>
-                                        <select x-model="formData.living_with"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
-                                            <option value="Bersama Orang Tua">Bersama Orang Tua</option>
-                                            <option value="Bersama Wali">Bersama Wali</option>
-                                            <option value="Kos / Asrama">Kos / Asrama</option>
-                                            <option value="Panti Asuhan">Panti Asuhan</option>
-                                            <option value="Lainnya">Lainnya</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Transportasi ke Sekolah</label>
-                                        <select x-model="formData.transportation"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
-                                            <option value="Sepeda Motor">Sepeda Motor</option>
-                                            <option value="Mobil Pribadi">Mobil Pribadi</option>
-                                            <option value="Antar Jemput">Antar Jemput Sekolah</option>
-                                            <option value="Jalan Kaki">Jalan Kaki</option>
-                                            <option value="Angkutan Umum">Angkutan Umum</option>
-                                            <option value="Sepeda">Sepeda</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Jarak ke Sekolah (km)</label>
-                                        <input type="text" x-model="formData.distance_to_school" placeholder="Contoh: 2.5"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Waktu Tempuh (menit)</label>
-                                        <input type="number" min="0" max="300" x-model="formData.travel_time_minutes" placeholder="Contoh: 15"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 border-t border-slate-200/60 dark:border-slate-800/60">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kondisi Sekitar Rumah</label>
-                                        <select x-model="formData.surroundings"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
-                                            <option value="Perumahan">Perumahan / Kompleks</option>
-                                            <option value="Perkampungan">Perkampungan</option>
-                                            <option value="Tepi Jalan Raya">Tepi Jalan Raya</option>
-                                            <option value="Dekat Sawah/Sungai">Dekat Sawah / Sungai</option>
-                                            <option value="Lainnya">Lainnya</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Dekat Masjid / Musholla?</label>
-                                        <select x-model="formData.near_mosque"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
-                                            <option value="Ya">Ya (Dekat)</option>
-                                            <option value="Tidak">Tidak</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Ikut TPQ Luar Rumah?</label>
-                                        <select x-model="formData.external_tpq"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
-                                            <option value="Tidak">Tidak</option>
-                                            <option value="Ya">Ya (Ikut TPQ Luar)</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- TAB 3: DATA KELUARGA & KONTAK -->
-                        <div x-show="formTab === 'tab3_keluarga'" class="space-y-4">
-                            <!-- Banner No WA Utama -->
-                            <div class="p-3.5 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 rounded-xl space-y-1.5">
-                                <label class="block font-bold text-emerald-900 dark:text-emerald-200 text-xs flex items-center gap-1.5">
-                                    <i data-lucide="phone-call" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
-                                    Nomor WhatsApp Utama Kontak Keluarga <span class="text-rose-500">*</span>
-                                </label>
-                                <p class="text-[11px] text-emerald-700 dark:text-emerald-400">
-                                    Nomor ini digunakan untuk pengiriman laporan harian, notifikasi pengumuman, dan tautan e-Rapor resmi sekolah.
-                                </p>
-                                <input type="text" x-model="formData.parent_phone" @input="if (formErrors.parent_phone) clearError('parent_phone')" placeholder="Contoh: 081234567890"
-                                    :class="formErrors.parent_phone ? 'border-rose-500 ring-1 ring-rose-500/30' : 'border-emerald-300 dark:border-emerald-700'"
-                                    class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-900 dark:text-slate-50 font-mono font-bold">
-                                <p x-show="formErrors.parent_phone" x-text="formErrors.parent_phone" class="text-[10px] text-rose-500 font-semibold mt-1"></p>
-                            </div>
-
-                            <!-- Ayah Kandung -->
-                            <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3.5">
-                                <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
-                                    <i data-lucide="user" class="w-3.5 h-3.5"></i>
-                                    Data Ayah Kandung
-                                </h4>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div class="sm:col-span-2">
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Lengkap Ayah</label>
-                                        <input type="text" x-model="formData.father_name" placeholder="Nama ayah kandung"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-semibold">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Gelar Ayah</label>
-                                        <input type="text" x-model="formData.father_title" placeholder="Contoh: S.T., M.M."
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">NIK Ayah</label>
-                                        <input type="text" x-model="formData.father_nik" placeholder="16 digit NIK"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tempat & Tgl Lahir Ayah</label>
-                                        <input type="text" x-model="formData.father_birth" placeholder="Malang, 12-05-1985"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Pendidikan Terakhir</label>
-                                        <select x-model="formData.father_education"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
-                                            <option value="">-- Pilih Pendidikan --</option>
-                                            <option value="SD / Sederajat">SD / Sederajat</option>
-                                            <option value="SMP / Sederajat">SMP / Sederajat</option>
-                                            <option value="SMA / SMK / Sederajat">SMA / SMK / Sederajat</option>
-                                            <option value="D3">Diploma (D3)</option>
-                                            <option value="S1 / D4">Sarjana (S1 / D4)</option>
-                                            <option value="S2">Magister (S2)</option>
-                                            <option value="S3">Doktor (S3)</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Pekerjaan Ayah</label>
-                                        <input type="text" x-model="formData.father_job" placeholder="PNS / Swasta / Wiraswasta"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Instansi / Tempat Kerja</label>
-                                        <input type="text" x-model="formData.father_workplace" placeholder="Nama kantor / instansi"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">No. HP / WA Ayah</label>
-                                        <input type="text" x-model="formData.father_phone" placeholder="08xxxxxxxxxx"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Ibu Kandung -->
-                            <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3.5">
-                                <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-pink-600 dark:text-pink-400">
-                                    <i data-lucide="user" class="w-3.5 h-3.5"></i>
-                                    Data Ibu Kandung
-                                </h4>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div class="sm:col-span-2">
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Lengkap Ibu</label>
-                                        <input type="text" x-model="formData.mother_name" placeholder="Nama ibu kandung"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-semibold">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Gelar Ibu</label>
-                                        <input type="text" x-model="formData.mother_title" placeholder="Contoh: S.Pd."
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">NIK Ibu</label>
-                                        <input type="text" x-model="formData.mother_nik" placeholder="16 digit NIK"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tempat & Tgl Lahir Ibu</label>
-                                        <input type="text" x-model="formData.mother_birth" placeholder="Malang, 20-08-1988"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Pendidikan Terakhir</label>
-                                        <select x-model="formData.mother_education"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
-                                            <option value="">-- Pilih Pendidikan --</option>
-                                            <option value="SD / Sederajat">SD / Sederajat</option>
-                                            <option value="SMP / Sederajat">SMP / Sederajat</option>
-                                            <option value="SMA / SMK / Sederajat">SMA / SMK / Sederajat</option>
-                                            <option value="D3">Diploma (D3)</option>
-                                            <option value="S1 / D4">Sarjana (S1 / D4)</option>
-                                            <option value="S2">Magister (S2)</option>
-                                            <option value="S3">Doktor (S3)</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Pekerjaan Ibu</label>
-                                        <input type="text" x-model="formData.mother_job" placeholder="Ibu Rumah Tangga / Guru / PNS"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Instansi / Tempat Kerja</label>
-                                        <input type="text" x-model="formData.mother_workplace" placeholder="Nama kantor / instansi"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">No. HP / WA Ibu</label>
-                                        <input type="text" x-model="formData.mother_phone" placeholder="08xxxxxxxxxx"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Data Wali Murid (Optional Toggle) -->
-                            <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3">
-                                <div class="flex items-center justify-between">
-                                    <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
-                                        <i data-lucide="shield" class="w-3.5 h-3.5"></i>
-                                        Data Wali Murid <span class="text-slate-400 font-normal lowercase">(jika tinggal bersama wali)</span>
-                                    </h4>
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" x-model="formData.has_guardian" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 dark:border-slate-700 cursor-pointer">
-                                        <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">Ada Data Wali</span>
-                                    </label>
-                                </div>
-
-                                <div x-show="formData.has_guardian" class="space-y-3 pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <div>
-                                            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Lengkap Wali</label>
-                                            <input type="text" x-model="formData.guardian_name" placeholder="Nama wali murid"
-                                                class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                        </div>
-                                        <div>
-                                            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Hubungan dengan Ananda</label>
-                                            <input type="text" x-model="formData.guardian_relation" placeholder="Contoh: Kakek / Paman / Kakak"
-                                                class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                        </div>
-                                    </div>
-                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                        <div>
-                                            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">NIK Wali</label>
-                                            <input type="text" x-model="formData.guardian_nik" placeholder="16 digit NIK"
-                                                class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
-                                        </div>
-                                        <div>
-                                            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Pekerjaan Wali</label>
-                                            <input type="text" x-model="formData.guardian_job" placeholder="Pekerjaan"
-                                                class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                        </div>
-                                        <div>
-                                            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">No. HP Wali</label>
-                                            <input type="text" x-model="formData.guardian_phone" placeholder="08xxxxxxxxxx"
-                                                class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- TAB 4: FISIK & KEBIASAAN PAUD -->
-                        <div x-show="formTab === 'tab4_fisik'" class="space-y-4">
-                            <!-- Card 1: Antropometri & Kesehatan Fisik -->
-                            <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3.5">
-                                <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-teal-600 dark:text-teal-400">
-                                    <i data-lucide="heart-pulse" class="w-3.5 h-3.5"></i>
-                                    Pengukuran Fisik (Antropometri) & Medis Dasar
-                                </h4>
-
-                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tinggi Badan (cm)</label>
-                                        <input type="number" step="0.1" min="0" max="250" x-model="formData.height" placeholder="Contoh: 105"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-semibold font-mono">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Berat Badan (kg)</label>
-                                        <input type="number" step="0.1" min="0" max="150" x-model="formData.weight" placeholder="Contoh: 17.5"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-semibold font-mono">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Lingkar Kepala (cm)</label>
-                                        <input type="number" step="0.1" min="0" max="80" x-model="formData.head_circumference" placeholder="Contoh: 50"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">LiLa (cm)</label>
-                                        <input type="number" step="0.1" min="0" max="50" x-model="formData.arm_circumference" placeholder="Contoh: 15.5"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Golongan Darah</label>
-                                        <select x-model="formData.blood_type"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer font-semibold">
-                                            <option value="">-- Pilih Golongan --</option>
-                                            <option value="A">A</option>
-                                            <option value="B">B</option>
-                                            <option value="AB">AB</option>
-                                            <option value="O">O</option>
-                                            <option value="Belum Tahu">Belum Tahu</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Anak Ke-</label>
-                                        <input type="number" min="1" max="30" x-model="formData.child_order" placeholder="1"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-semibold font-mono">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Jumlah Saudara Kandung</label>
-                                        <input type="number" min="0" max="30" x-model="formData.siblings_count" placeholder="0"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kebutuhan Khusus / Diagnosa Khusus</label>
-                                    <input type="text" x-model="formData.special_needs" placeholder="Contoh: Tidak Ada / Speech Delay / Alergi Dingin"
-                                        class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                </div>
-                            </div>
-
-                            <!-- Card 2: Pola Makan & Kebiasaan Nutrisi -->
-                            <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3.5">
-                                <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-teal-600 dark:text-teal-400">
-                                    <i data-lucide="utensils" class="w-3.5 h-3.5"></i>
-                                    Pola Makan & Kemandirian Sehari-hari
-                                </h4>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Sarapan Pagi</label>
-                                        <select x-model="formData.breakfast_pattern"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
-                                            <option value="Teratur">Teratur</option>
-                                            <option value="Kadang-kadang">Kadang-kadang</option>
-                                            <option value="Jarang">Jarang</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Makan Siang</label>
-                                        <select x-model="formData.lunch_pattern"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
-                                            <option value="Teratur">Teratur</option>
-                                            <option value="Kadang-kadang">Kadang-kadang</option>
-                                            <option value="Jarang">Jarang</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Makan Malam</label>
-                                        <select x-model="formData.dinner_pattern"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
-                                            <option value="Teratur">Teratur</option>
-                                            <option value="Kadang-kadang">Kadang-kadang</option>
-                                            <option value="Jarang">Jarang</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Makanan Kesukaan (Favorit)</label>
-                                        <input type="text" x-model="formData.favorite_food" placeholder="Nasi goreng, telur, sayur bayam, buah pisang..."
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Makanan Dihindari / Tidak Disukai</label>
-                                        <input type="text" x-model="formData.avoided_food" placeholder="Sayur pedas, ikan amis, dll..."
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Riwayat Alergi (Makanan / Obat / Debu)</label>
-                                        <input type="text" x-model="formData.allergy_details" placeholder="Contoh: Alergi udang, telur, debu"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Penanganan / Obat Darurat Alergi</label>
-                                        <input type="text" x-model="formData.allergy_treatment" placeholder="Beri obat sirup cetirizine, balur minyak telon..."
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 border-t border-slate-200/60 dark:border-slate-800/60">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Adab & Cara Makan</label>
-                                        <input type="text" x-model="formData.eating_manner" placeholder="Mandiri dan duduk tertib"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kebiasaan Menggosok Gigi</label>
-                                        <select x-model="formData.brush_teeth"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
-                                            <option value="Mandiri">Mandiri</option>
-                                            <option value="Dibantu orang tua">Dibantu orang tua</option>
-                                            <option value="Belum terbiasa">Belum terbiasa</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Toilet Training (BAK & BAB)</label>
-                                        <select x-model="formData.toilet_training"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer font-semibold">
-                                            <option value="Mandiri (Bisa BAK/BAB sendiri)">Mandiri (Bisa BAK/BAB sendiri)</option>
-                                            <option value="Mengatakan jika ingin tapi dibantu">Mengatakan jika ingin tapi dibantu</option>
-                                            <option value="Masih memakai diapers/popok">Masih memakai diapers/popok</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- TAB 5: TUMBUH KEMBANG & LAINNYA -->
-                        <div x-show="formTab === 'tab5_tumbuhkembang'" class="space-y-4">
-                            <!-- Card 1: Pola Tidur & Gadget -->
-                            <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3.5">
-                                <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-violet-600 dark:text-violet-400">
-                                    <i data-lucide="moon" class="w-3.5 h-3.5"></i>
-                                    Pola Tidur & Durasi Screen Time (Gadget)
-                                </h4>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Screen Time (Gadget) Harian</label>
-                                        <select x-model="formData.screen_time_daily"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
-                                            <option value="Tidak pernah">Tidak pernah</option>
-                                            <option value="Kurang dari 1 jam">Kurang dari 1 jam</option>
-                                            <option value="1 - 2 jam">1 - 2 jam</option>
-                                            <option value="Lebih dari 2 jam">Lebih dari 2 jam</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Jam Tidur Malam</label>
-                                        <input type="text" x-model="formData.bedtime_pattern" placeholder="Pukul 20:30"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Jam Bangun Pagi</label>
-                                        <input type="text" x-model="formData.wake_time_pattern" placeholder="Pukul 05:00"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Card 2: Riwayat Kehamilan & Persalinan -->
-                            <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3.5">
-                                <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-violet-600 dark:text-violet-400">
-                                    <i data-lucide="baby" class="w-3.5 h-3.5"></i>
-                                    Riwayat Kelahiran & Perkembangan Dini
-                                </h4>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Usia Kehamilan</label>
-                                        <select x-model="formData.gestational_age"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
-                                            <option value="Cukup Bulan (Aterm)">Cukup Bulan (Aterm)</option>
-                                            <option value="Prematur">Prematur</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Proses Persalinan</label>
-                                        <select x-model="formData.birth_type"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
-                                            <option value="Normal">Normal</option>
-                                            <option value="Operasi Caesar">Operasi Caesar</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Berat Lahir (gram/kg)</label>
-                                        <input type="text" x-model="formData.birth_weight" placeholder="3200 gram / 3.2 kg"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Panjang Badan Lahir (cm)</label>
-                                        <input type="text" x-model="formData.birth_length" placeholder="50 cm"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Riwayat ASI</label>
-                                        <select x-model="formData.exclusive_breastfeeding"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 cursor-pointer">
-                                            <option value="Ya (ASI Eksklusif 6 Bulan)">Ya (ASI Eksklusif 6 Bulan)</option>
-                                            <option value="ASI + Susu Formula">ASI + Susu Formula</option>
-                                            <option value="Susu Formula Saja">Susu Formula Saja</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Usia Mulai MPASI</label>
-                                        <input type="text" x-model="formData.mpasi_start_age" placeholder="6 Bulan"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                </div>
-
-                                <!-- Milestones -->
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 border-t border-slate-200/60 dark:border-slate-800/60">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Mulai Berjalan (Bulan)</label>
-                                        <input type="text" x-model="formData.walking_age_months" placeholder="Contoh: 12"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Mulai Bicara / Kata (Bulan)</label>
-                                        <input type="text" x-model="formData.talking_age_months" placeholder="Contoh: 14"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tumbuh Gigi Pertama (Bulan)</label>
-                                        <input type="text" x-model="formData.teeth_age_months" placeholder="Contoh: 7"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Card 3: Penjemputan, Keamanan & Akun Ortu -->
-                            <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3.5">
-                                <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-violet-600 dark:text-violet-400">
-                                    <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
-                                    Protokol Penjemputan, Deteksi Dini & Portal Ortu
-                                </h4>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Penjemput Resmi & Hubungan</label>
-                                        <input type="text" x-model="formData.official_pickup_person" placeholder="Ibu Kandung / Pengasuh (Mbak Sri)"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kontak Darurat Selain Ortu (Nama & No HP)</label>
-                                        <input type="text" x-model="formData.emergency_contact" placeholder="Kakek (08xxxxxxxxxx)"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">PIN Akses Portal Wali Murid</label>
-                                        <input type="text" x-model="formData.pin_access" placeholder="Contoh: 1234"
-                                            class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-mono font-bold">
-                                    </div>
-                                    <div class="flex items-center gap-2 pt-6">
-                                        <input type="checkbox" id="form_early_detection" x-model="formData.early_detection_consent" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 dark:border-slate-700 cursor-pointer">
-                                        <label for="form_early_detection" class="text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
-                                            Persetujuan Deteksi Dini & Screening Tumbuh Kembang
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Catatan Tambahan untuk Guru PAUD</label>
-                                    <textarea x-model="formData.notes" rows="2" placeholder="Catatan kebiasaan tidur siang, makanan khusus, atau instruksi perhatian pendampingan..."
-                                        class="w-full p-2.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50"></textarea>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- Modal Footer Navigation Buttons -->
-                    <div class="p-3 sm:p-3.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70 flex justify-between items-center shrink-0">
-                        <div class="flex items-center gap-2">
-                            <button type="button" x-show="formTab !== 'tab1_identitas'" @click="prevStep()"
-                                class="px-3.5 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1 cursor-pointer shadow-2xs transition-colors">
-                                <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
-                                <span>Kembali</span>
-                            </button>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button type="button" @click="formModalOpen = false" class="px-3.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold cursor-pointer shadow-2xs transition-colors">
-                                Batal
-                            </button>
-                            <button type="button" x-show="formTab !== 'tab5_tumbuhkembang'" @click="nextStep()"
-                                class="px-4 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 rounded-lg text-xs font-semibold flex items-center gap-1 cursor-pointer border border-indigo-200 dark:border-indigo-800 shadow-2xs transition-colors">
-                                <span>Selanjutnya</span>
-                                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
-                            </button>
-                            <button type="submit" x-show="formTab === 'tab5_tumbuhkembang' || isEdit" :disabled="saving" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer transition-colors">
-                                <i data-lucide="check" class="w-3.5 h-3.5"></i>
-                                <span x-text="saving ? 'Menyimpan...' : (isEdit ? 'Simpan Perubahan' : 'Tambah Murid')"></span>
-                            </button>
-                        </div>
-                    </div>
-                </form>
-
-            </div>
-        </div>
-    </template>
-
-    <!-- MODAL: IMPOR EXCEL MURID -->
-    <template x-teleport="body">
-        <div x-show="importModalOpen" x-cloak
-            class="fixed inset-0 z-[99999] overflow-y-auto flex items-center justify-center p-2.5 sm:p-4" style="top: 0px !important; left: 0px !important; right: 0px !important; bottom: 0px !important; margin: 0px !important; z-index: 99999 !important; background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);">
-            <div @click.outside="importModalOpen = false"
-                class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full max-h-[88vh] shadow-2xl overflow-hidden flex flex-col animate-card my-auto">
-                
-                <div class="p-3.5 sm:p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-900/70 shrink-0">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2 bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 rounded-xl border border-indigo-200/50 dark:border-indigo-900/50">
-                            <i data-lucide="file-spreadsheet" class="w-4 h-4 sm:w-5 sm:h-5"></i>
-                        </div>
                         <div>
-                            <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-50">Impor Data Murid (Excel)</h3>
-                            <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Unggah file spreadsheet .xlsx/.xls untuk menambahkan murid secara massal.</p>
+                            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Pilih File Excel (.xlsx, .xls, .csv)</label>
+                            <input type="file" name="file" required accept=".xlsx,.xls,.csv"
+                                class="w-full text-xs text-slate-600 dark:text-slate-300 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 dark:file:bg-emerald-950/40 dark:file:text-emerald-400 border border-slate-200 dark:border-slate-800 rounded-lg p-1.5 cursor-pointer">
                         </div>
                     </div>
-                    <button type="button" @click="importModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0">
-                        <i data-lucide="x" class="w-4 h-4"></i>
-                    </button>
-                </div>
 
-                <form action="{{ route('students.import') }}" method="POST" enctype="multipart/form-data" class="p-4 sm:p-5 space-y-4 text-left overflow-y-auto flex-1 min-h-0">
-                    @csrf
-
-                    <!-- Download Template Alert Banner -->
-                    <div class="p-3.5 bg-indigo-50/80 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/60 rounded-xl flex items-center justify-between gap-3 text-xs">
-                        <div class="flex items-center gap-2 text-indigo-900 dark:text-indigo-300">
-                            <i data-lucide="info" class="w-4 h-4 shrink-0 text-indigo-600 dark:text-indigo-400"></i>
-                            <span>Belum memiliki template standar?</span>
-                        </div>
-                        <a href="{{ route('students.download-template') }}"
-                            class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shrink-0 flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer">
-                            <i data-lucide="download" class="w-3.5 h-3.5"></i>
-                            Unduh Template
-                        </a>
-                    </div>
-
-                    <!-- Default Academic Year -->
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Tahun Ajaran Pendaftaran</label>
-                        <select name="default_academic_year_id" class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-xs font-semibold">
-                            @foreach($academicYears as $ay)
-                                <option value="{{ $ay->id }}" {{ $selectedYearId == $ay->id ? 'selected' : '' }}>
-                                    {{ $ay->name }} {{ $ay->is_active ? '(Aktif)' : '' }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <!-- Default Classroom (Optional) -->
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Default Kelompok Belajar (Opsional)</label>
-                        <select name="default_classroom_id" class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-xs">
-                            <option value="">-- Sesuaikan dengan Kolom di File Excel --</option>
-                            @foreach($classrooms as $c)
-                                <option value="{{ $c->id }}">[{{ $c->classLevel?->name ?? $c->sub_unit }}] {{ $c->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <!-- File Input -->
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Pilih File Excel (.xlsx, .xls, .csv) <span class="text-rose-500">*</span></label>
-                        <input type="file" name="file" accept=".xlsx,.xls,.csv" required
-                            class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-indigo-950 dark:file:text-indigo-300 border border-slate-200 dark:border-slate-800 rounded-lg cursor-pointer bg-slate-50/50 dark:bg-slate-900/50">
-                    </div>
-
-                    <!-- Modal Footer Buttons -->
-                    <div class="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2.5 shrink-0">
-                        <button type="button" @click="importModalOpen = false"
-                            class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg transition-colors cursor-pointer">
+                    <!-- Footer -->
+                    <div class="p-4 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
+                        <button type="button" @click="importModalOpen = false" 
+                            class="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-colors cursor-pointer">
                             Batal
                         </button>
-                        <button type="submit"
-                            class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all flex items-center gap-2 cursor-pointer">
+                        <button type="submit" 
+                            class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer">
                             <i data-lucide="upload" class="w-3.5 h-3.5"></i>
-                            Unggah & Impor
+                            <span>Unggah & Impor Murid</span>
                         </button>
                     </div>
                 </form>
             </div>
         </div>
-    </template>
+
+        <!-- MODAL KONFIRMASI HAPUS MURID -->
+        <div x-show="confirmModal.open" x-cloak class="fixed inset-0 z-[9999] flex items-center justify-center p-4" style="display: none; margin-top: 0px !important; z-index: 9999; background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);">
+            <div @click.outside="if(!confirmModal.loading) confirmModal.open = false" 
+                class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col">
+                
+                <div class="p-5 flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 font-bold text-sm flex items-center justify-center shrink-0">
+                        <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-50" x-text="confirmModal.title"></h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed" x-html="confirmModal.message"></p>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
+                    <button type="button" @click="confirmModal.open = false" :disabled="confirmModal.loading"
+                        class="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-colors cursor-pointer disabled:opacity-50">
+                        Batal
+                    </button>
+                    <button type="button" @click="executeConfirmDelete()" :disabled="confirmModal.loading"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50">
+                        <template x-if="confirmModal.loading">
+                            <span class="inline-flex items-center gap-1.5">
+                                <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                </svg>
+                                <span>Menghapus...</span>
+                            </span>
+                        </template>
+                        <template x-if="!confirmModal.loading">
+                            <span class="inline-flex items-center gap-1.5">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                <span>Ya, Hapus Murid</span>
+                            </span>
+                        </template>
+                    </button>
+                </div>
+            </div>
+        </div>
 
     </div>
-
-    <!-- Alpine.js Application Logic for Data Murid -->
-    <script>
-        function handleClassLevelFilterChange(selectElem) {
-            const classroomSelect = document.getElementById('filter_classroom_id');
-            if (classroomSelect) {
-                classroomSelect.value = 'all';
-            }
-            selectElem.form.submit();
-        }
-
-        function studentApp() {
-            const allLevels = Object.freeze(@json($allClassLevels));
-            const allClasses = Object.freeze(@json($allClassrooms));
-
-            return {
-                formModalOpen: false,
-                importModalOpen: false,
-                isEdit: false,
-                saving: false,
-                formTab: 'tab1_identitas',
-                selectedStudent: null,
-                formErrors: {},
-                availableClassLevels: Object.freeze(allLevels),
-                availableClassrooms: Object.freeze(allClasses),
-                formData: {
-                    id: null,
-                    academic_year_id: '{{ $selectedYearId && $selectedYearId !== "all" ? $selectedYearId : ($academicYears->firstWhere("is_active", true)?->id ?? "") }}',
-                    jenjang_id: '{{ $selectedJenjangId }}',
-                    class_level_id: '',
-                    classroom_id: '',
-                    sub_unit: 'TK',
-                    daycare_classroom_id: '',
-                    is_tpq: false,
-                    
-                    // Tab 1: Identitas & Legalitas
-                    nis: '',
-                    nisn: '',
-                    nik: '',
-                    no_kk: '',
-                    no_akta: '',
-                    full_name: '',
-                    nickname: '',
-                    gender: 'L',
-                    birth_place: '',
-                    birth_date: '',
-                    religion: 'Islam',
-                    citizenship: 'WNI',
-                    status: 'aktif',
-                    
-                    // Tab 2: Domisili & Transportasi
-                    address: '',
-                    rt: '',
-                    rw: '',
-                    kelurahan: '',
-                    kecamatan: '',
-                    city: 'Malang',
-                    postal_code: '',
-                    living_with: 'Bersama Orang Tua',
-                    transportation: 'Sepeda Motor',
-                    distance_to_school: '',
-                    travel_time_minutes: '',
-                    surroundings: 'Perumahan',
-                    near_mosque: 'Ya',
-                    external_tpq: 'Tidak',
-                    
-                    // Tab 3: Keluarga & Kontak
-                    parent_phone: '',
-                    father_name: '',
-                    father_title: '',
-                    father_nik: '',
-                    father_birth: '',
-                    father_education: '',
-                    father_job: '',
-                    father_workplace: '',
-                    father_phone: '',
-                    
-                    mother_name: '',
-                    mother_title: '',
-                    mother_nik: '',
-                    mother_birth: '',
-                    mother_education: '',
-                    mother_job: '',
-                    mother_workplace: '',
-                    mother_phone: '',
-                    
-                    has_guardian: false,
-                    guardian_name: '',
-                    guardian_relation: '',
-                    guardian_nik: '',
-                    guardian_education: '',
-                    guardian_job: '',
-                    guardian_phone: '',
-                    
-                    // Tab 4: Fisik & Kebiasaan PAUD
-                    height: '',
-                    weight: '',
-                    head_circumference: '',
-                    arm_circumference: '',
-                    blood_type: '',
-                    child_order: 1,
-                    siblings_count: 0,
-                    special_needs: '',
-                    breakfast_pattern: 'Teratur',
-                    lunch_pattern: 'Teratur',
-                    dinner_pattern: 'Teratur',
-                    favorite_food: '',
-                    avoided_food: '',
-                    allergy_details: '',
-                    allergy_treatment: '',
-                    eating_manner: 'Mandiri dan duduk tertib',
-                    brush_teeth: 'Mandiri',
-                    toilet_training: 'Mandiri (Bisa BAK/BAB sendiri)',
-                    
-                    // Tab 5: Tumbuh Kembang & Tambahan
-                    screen_time_daily: 'Kurang dari 1 jam',
-                    bedtime_pattern: 'Pukul 20:30',
-                    wake_time_pattern: 'Pukul 05:00',
-                    gestational_age: 'Cukup Bulan (Aterm)',
-                    birth_type: 'Normal',
-                    birth_weight: '',
-                    birth_length: '',
-                    exclusive_breastfeeding: 'Ya (ASI Eksklusif 6 Bulan)',
-                    mpasi_start_age: '6 Bulan',
-                    walking_age_months: '',
-                    talking_age_months: '',
-                    teeth_age_months: '',
-                    official_pickup_person: '',
-                    emergency_contact: '',
-                    pin_access: '1234',
-                    early_detection_consent: true,
-                    notes: '',
-                },
-
-                updateAvailableOptions() {
-                    let levels = !this.formData.jenjang_id 
-                        ? allLevels 
-                        : allLevels.filter(lvl => lvl.jenjang_id == this.formData.jenjang_id);
-
-                    let res = allClasses;
-                    if (this.formData.academic_year_id && this.formData.academic_year_id !== 'all') {
-                        res = res.filter(c => !c.academic_year_id || c.academic_year_id == this.formData.academic_year_id);
-                    }
-                    if (this.formData.jenjang_id) {
-                        res = res.filter(c => c.jenjang_id == this.formData.jenjang_id || (c.class_level && c.class_level.jenjang_id == this.formData.jenjang_id));
-                    }
-                    if (this.formData.class_level_id) {
-                        res = res.filter(c => c.class_level_id == this.formData.class_level_id);
-                    }
-                    this.availableClassLevels = Object.freeze(levels);
-                    this.availableClassrooms = Object.freeze(res);
-                },
-
-                onAcademicYearChange() {
-                    this.clearError('academic_year_id');
-                    this.updateAvailableOptions();
-                    this.onClassLevelChange();
-                },
-
-                onJenjangChange() {
-                    this.clearError('jenjang_id');
-                    this.updateAvailableOptions();
-                    const validLevel = this.availableClassLevels.some(l => l.id == this.formData.class_level_id);
-                    if (!validLevel) {
-                        this.formData.class_level_id = this.availableClassLevels.length > 0 ? this.availableClassLevels[0].id : '';
-                    }
-                    this.onClassLevelChange();
-                },
-
-                onClassLevelChange() {
-                    this.updateAvailableOptions();
-                    const validClass = this.availableClassrooms.some(c => c.id == this.formData.classroom_id);
-                    if (!validClass) {
-                        this.formData.classroom_id = this.availableClassrooms.length > 0 ? this.availableClassrooms[0].id : '';
-                    }
-                },
-
-                clearError(key) {
-                    if (this.formErrors && this.formErrors[key]) {
-                        delete this.formErrors[key];
-                    }
-                },
-
-                hasTabError(tab) {
-                    const errs = this.formErrors;
-                    if (!errs || Object.keys(errs).length === 0) return false;
-                    if (tab === 'tab1_identitas') {
-                        return !!(errs.academic_year_id || errs.jenjang_id || errs.class_level_id || errs.classroom_id || errs.full_name || errs.gender || errs.status || errs.nis || errs.nisn || errs.nik || errs.no_kk || errs.no_akta);
-                    }
-                    if (tab === 'tab2_domisili') {
-                        return !!(errs.address || errs.rt || errs.rw || errs.kelurahan || errs.kecamatan || errs.city || errs.postal_code || errs.living_with || errs.transportation || errs.distance_to_school || errs.travel_time_minutes);
-                    }
-                    if (tab === 'tab3_keluarga') {
-                        return !!(errs.parent_phone || errs.father_phone || errs.mother_phone || errs.father_name || errs.mother_name);
-                    }
-                    if (tab === 'tab4_fisik') {
-                        return !!(errs.height || errs.weight || errs.head_circumference || errs.arm_circumference || errs.blood_type || errs.child_order || errs.siblings_count);
-                    }
-                    if (tab === 'tab5_tumbuhkembang') {
-                        return !!(errs.pin_access || errs.notes || errs.official_pickup_person || errs.emergency_contact);
-                    }
-                    return false;
-                },
-
-                goToTab(tab) {
-                    this.formTab = tab;
-                },
-
-                validateStep(step) {
-                    let isValid = true;
-                    if (step === 'tab1_identitas') {
-                        if (!this.formData.academic_year_id) {
-                            this.formErrors.academic_year_id = 'Tahun Ajaran wajib dipilih.';
-                            isValid = false;
-                        }
-                        if (!this.formData.jenjang_id) {
-                            this.formErrors.jenjang_id = 'Jenjang Pendidikan wajib dipilih.';
-                            isValid = false;
-                        }
-                        if (!this.formData.full_name || !this.formData.full_name.trim()) {
-                            this.formErrors.full_name = 'Nama lengkap ananda wajib diisi.';
-                            isValid = false;
-                        }
-                        if (!this.formData.gender) {
-                            this.formErrors.gender = 'Jenis kelamin wajib dipilih.';
-                            isValid = false;
-                        }
-                        if (!this.formData.status) {
-                            this.formErrors.status = 'Status murid wajib dipilih.';
-                            isValid = false;
-                        }
-                    } else if (step === 'tab2_domisili') {
-                        // Optional step, always passes basic validation
-                        isValid = true;
-                    } else if (step === 'tab3_keluarga') {
-                        if (!this.formData.parent_phone || !this.formData.parent_phone.trim()) {
-                            this.formErrors.parent_phone = 'Nomor WhatsApp utama kontak wajib diisi.';
-                            isValid = false;
-                        }
-                    } else if (step === 'tab4_fisik') {
-                        // Optional numeric sanity checks if filled
-                        if (this.formData.height && isNaN(this.formData.height)) {
-                            this.formErrors.height = 'Tinggi badan harus angka.';
-                            isValid = false;
-                        }
-                        if (this.formData.weight && isNaN(this.formData.weight)) {
-                            this.formErrors.weight = 'Berat badan harus angka.';
-                            isValid = false;
-                        }
-                    } else if (step === 'tab5_tumbuhkembang') {
-                        isValid = true;
-                    }
-                    return isValid;
-                },
-
-                validateAll() {
-                    this.formErrors = {};
-
-                    // Step 1 Check
-                    if (!this.formData.academic_year_id) {
-                        this.formErrors.academic_year_id = 'Tahun Ajaran wajib dipilih.';
-                    }
-                    if (!this.formData.jenjang_id) {
-                        this.formErrors.jenjang_id = 'Jenjang Pendidikan wajib dipilih.';
-                    }
-                    if (!this.formData.full_name || !this.formData.full_name.trim()) {
-                        this.formErrors.full_name = 'Nama lengkap ananda wajib diisi.';
-                    }
-                    if (!this.formData.gender) {
-                        this.formErrors.gender = 'Jenis kelamin wajib dipilih.';
-                    }
-                    if (!this.formData.status) {
-                        this.formErrors.status = 'Status murid wajib dipilih.';
-                    }
-                    if (this.hasTabError('tab1_identitas')) {
-                        this.formTab = 'tab1_identitas';
-                        if (typeof window.showToast === 'function') {
-                            window.showToast('Validasi Identitas', 'Lengkapi identitas ananda dan penempatan akademik.', 'warning');
-                        }
-                        return false;
-                    }
-
-                    // Step 3 Check (WA kontak)
-                    if (!this.formData.parent_phone || !this.formData.parent_phone.trim()) {
-                        this.formErrors.parent_phone = 'Nomor WhatsApp utama kontak wajib diisi.';
-                        this.formTab = 'tab3_keluarga';
-                        if (typeof window.showToast === 'function') {
-                            window.showToast('Validasi Kontak', 'Nomor WhatsApp Utama Kontak wajib diisi untuk notifikasi rapor.', 'warning');
-                        }
-                        return false;
-                    }
-
-                    return true;
-                },
-
-                nextStep() {
-                    if (!this.validateStep(this.formTab)) {
-                        const firstError = Object.values(this.formErrors)[0];
-                        if (typeof window.showToast === 'function' && firstError) {
-                            window.showToast('Validasi Diperlukan', firstError, 'warning');
-                        }
-                        return;
-                    }
-
-                    const steps = ['tab1_identitas', 'tab2_domisili', 'tab3_keluarga', 'tab4_fisik', 'tab5_tumbuhkembang'];
-                    const currentIndex = steps.indexOf(this.formTab);
-                    if (currentIndex >= 0 && currentIndex < steps.length - 1) {
-                        this.formTab = steps[currentIndex + 1];
-                    }
-                },
-
-                prevStep() {
-                    const steps = ['tab1_identitas', 'tab2_domisili', 'tab3_keluarga', 'tab4_fisik', 'tab5_tumbuhkembang'];
-                    const currentIndex = steps.indexOf(this.formTab);
-                    if (currentIndex > 0) {
-                        this.formTab = steps[currentIndex - 1];
-                    }
-                },
-
-                copyText(text) {
-                    navigator.clipboard.writeText(text);
-                    if (typeof window.showToast === 'function') {
-                        window.showToast('Sukses!', 'Teks berhasil disalin ke papan klip.', 'success');
-                    }
-                },
-
-                openCreateModal() {
-                    this.isEdit = false;
-                    this.formTab = 'tab1_identitas';
-                    this.formErrors = {};
-                    const defaultJenjangId = '{{ $selectedJenjangId }}' || (allLevels.length > 0 ? allLevels[0].jenjang_id : '');
-                    this.formData = {
-                        id: null,
-                        academic_year_id: '{{ $selectedYearId && $selectedYearId !== "all" ? $selectedYearId : ($academicYears->firstWhere("is_active", true)?->id ?? "") }}',
-                        jenjang_id: defaultJenjangId,
-                        class_level_id: '',
-                        classroom_id: '',
-                        sub_unit: 'TK',
-                        daycare_classroom_id: '',
-                        is_tpq: false,
-                        nis: '',
-                        nisn: '',
-                        nik: '',
-                        no_kk: '',
-                        no_akta: '',
-                        full_name: '',
-                        nickname: '',
-                        gender: 'L',
-                        birth_place: '',
-                        birth_date: '',
-                        religion: 'Islam',
-                        citizenship: 'WNI',
-                        status: 'aktif',
-                        address: '',
-                        rt: '',
-                        rw: '',
-                        kelurahan: '',
-                        kecamatan: '',
-                        city: 'Malang',
-                        postal_code: '',
-                        living_with: 'Bersama Orang Tua',
-                        transportation: 'Sepeda Motor',
-                        distance_to_school: '',
-                        travel_time_minutes: '',
-                        surroundings: 'Perumahan',
-                        near_mosque: 'Ya',
-                        external_tpq: 'Tidak',
-                        parent_phone: '',
-                        father_name: '',
-                        father_title: '',
-                        father_nik: '',
-                        father_birth: '',
-                        father_education: '',
-                        father_job: '',
-                        father_workplace: '',
-                        father_phone: '',
-                        mother_name: '',
-                        mother_title: '',
-                        mother_nik: '',
-                        mother_birth: '',
-                        mother_education: '',
-                        mother_job: '',
-                        mother_workplace: '',
-                        mother_phone: '',
-                        has_guardian: false,
-                        guardian_name: '',
-                        guardian_relation: '',
-                        guardian_nik: '',
-                        guardian_education: '',
-                        guardian_job: '',
-                        guardian_phone: '',
-                        height: '',
-                        weight: '',
-                        head_circumference: '',
-                        arm_circumference: '',
-                        blood_type: '',
-                        child_order: 1,
-                        siblings_count: 0,
-                        special_needs: '',
-                        breakfast_pattern: 'Teratur',
-                        lunch_pattern: 'Teratur',
-                        dinner_pattern: 'Teratur',
-                        favorite_food: '',
-                        avoided_food: '',
-                        allergy_details: '',
-                        allergy_treatment: '',
-                        eating_manner: 'Mandiri dan duduk tertib',
-                        brush_teeth: 'Mandiri',
-                        toilet_training: 'Mandiri (Bisa BAK/BAB sendiri)',
-                        screen_time_daily: 'Kurang dari 1 jam',
-                        bedtime_pattern: 'Pukul 20:30',
-                        wake_time_pattern: 'Pukul 05:00',
-                        gestational_age: 'Cukup Bulan (Aterm)',
-                        birth_type: 'Normal',
-                        birth_weight: '',
-                        birth_length: '',
-                        exclusive_breastfeeding: 'Ya (ASI Eksklusif 6 Bulan)',
-                        mpasi_start_age: '6 Bulan',
-                        walking_age_months: '',
-                        talking_age_months: '',
-                        teeth_age_months: '',
-                        official_pickup_person: '',
-                        emergency_contact: '',
-                        pin_access: '1234',
-                        early_detection_consent: true,
-                        notes: '',
-                    };
-                    this.updateAvailableOptions();
-                    this.onJenjangChange();
-                    this.formModalOpen = true;
-                    this.$nextTick(() => {
-                        if (window.lucide) lucide.createIcons();
-                    });
-                },
-
-                openEditModal(id) {
-                    this.formTab = 'tab1_identitas';
-                    this.formErrors = {};
-                    fetch(`/students/${id}`, {
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        }
-                    })
-                    .then(res => res.json())
-                    .then(res => {
-                        if (res.success) {
-                            const s = res.student;
-                            const fd = s.family_data || {};
-                            const hh = s.health_habits || {};
-                            const dp = s.development_psychology || {};
-
-                            this.isEdit = true;
-                            this.formData = {
-                                id: s.id,
-                                academic_year_id: s.academic_year_id || '',
-                                jenjang_id: s.jenjang_id || (s.classroom ? s.classroom.jenjang_id : (s.class_level ? s.class_level.jenjang_id : '')),
-                                class_level_id: s.class_level_id || (s.classroom ? s.classroom.class_level_id : ''),
-                                classroom_id: s.classroom_id || '',
-                                sub_unit: s.sub_unit || (s.classroom ? s.classroom.sub_unit : 'TK'),
-                                daycare_classroom_id: s.daycare_classroom_id || '',
-                                is_tpq: !!s.is_tpq,
-                                
-                                // Tab 1: Identitas
-                                nis: s.nis || '',
-                                nisn: s.nisn || '',
-                                nik: s.nik || '',
-                                no_kk: s.no_kk || '',
-                                no_akta: s.no_akta || '',
-                                full_name: s.full_name || '',
-                                nickname: s.nickname || '',
-                                gender: s.gender || 'L',
-                                birth_place: s.birth_place || '',
-                                birth_date: s.birth_date ? s.birth_date.substring(0, 10) : '',
-                                religion: s.religion || 'Islam',
-                                citizenship: s.citizenship || 'WNI',
-                                status: s.status || 'aktif',
-                                
-                                // Tab 2: Domisili
-                                address: s.address || '',
-                                rt: s.rt || '',
-                                rw: s.rw || '',
-                                kelurahan: s.kelurahan || '',
-                                kecamatan: s.kecamatan || '',
-                                city: s.city || 'Malang',
-                                postal_code: s.postal_code || '',
-                                living_with: s.living_with || 'Bersama Orang Tua',
-                                transportation: s.transportation || 'Sepeda Motor',
-                                distance_to_school: s.distance_to_school || '',
-                                travel_time_minutes: s.travel_time_minutes || '',
-                                surroundings: hh.surroundings || 'Perumahan',
-                                near_mosque: hh.near_mosque || 'Ya',
-                                external_tpq: hh.external_tpq || 'Tidak',
-                                
-                                // Tab 3: Keluarga & Kontak
-                                parent_phone: s.parent_phone || '',
-                                father_name: s.father_name || fd.father?.name || '',
-                                father_title: s.father_title_suffix || fd.father?.title || '',
-                                father_nik: s.father_nik || fd.father?.nik || '',
-                                father_birth: (s.father_birth_date ? s.father_birth_date.substring(0, 10) : '') || fd.father?.birth || '',
-                                father_education: s.father_education || fd.father?.education || '',
-                                father_job: s.father_job || fd.father?.job || '',
-                                father_workplace: s.father_company || fd.father?.workplace || '',
-                                father_phone: s.father_phone || fd.father?.phone || '',
-                                
-                                mother_name: s.mother_name || fd.mother?.name || '',
-                                mother_title: s.mother_title_suffix || fd.mother?.title || '',
-                                mother_nik: s.mother_nik || fd.mother?.nik || '',
-                                mother_birth: (s.mother_birth_date ? s.mother_birth_date.substring(0, 10) : '') || fd.mother?.birth || '',
-                                mother_education: s.mother_education || fd.mother?.education || '',
-                                mother_job: s.mother_job || fd.mother?.job || '',
-                                mother_workplace: s.mother_company || fd.mother?.workplace || '',
-                                mother_phone: s.mother_phone || fd.mother?.phone || '',
-                                
-                                has_guardian: !!(s.guardian_name || fd.guardian?.name),
-                                guardian_name: s.guardian_name || fd.guardian?.name || '',
-                                guardian_relation: s.guardian_relation || fd.guardian?.relation || '',
-                                guardian_nik: s.guardian_nik || fd.guardian?.nik || '',
-                                guardian_education: s.guardian_education || fd.guardian?.education || '',
-                                guardian_job: s.guardian_job || fd.guardian?.job || '',
-                                guardian_phone: s.guardian_phone || fd.guardian?.phone || '',
-                                
-                                // Tab 4: Fisik & Kebiasaan PAUD
-                                height: s.height || '',
-                                weight: s.weight || '',
-                                head_circumference: s.head_circumference || '',
-                                arm_circumference: s.arm_circumference || '',
-                                blood_type: s.blood_type || '',
-                                child_order: s.child_order || 1,
-                                siblings_count: s.siblings_count || 0,
-                                special_needs: s.special_needs || '',
-                                breakfast_pattern: hh.meals?.breakfast || 'Teratur',
-                                lunch_pattern: hh.meals?.lunch || 'Teratur',
-                                dinner_pattern: hh.meals?.dinner || 'Teratur',
-                                favorite_food: hh.meals?.favorite || '',
-                                avoided_food: hh.meals?.avoided || '',
-                                allergy_details: hh.allergy?.details || '',
-                                allergy_treatment: hh.allergy?.treatment || '',
-                                eating_manner: hh.eating_manner || 'Mandiri dan duduk tertib',
-                                brush_teeth: hh.brush_teeth || 'Mandiri',
-                                toilet_training: hh.toilet_training || 'Mandiri (Bisa BAK/BAB sendiri)',
-                                
-                                // Tab 5: Tumbuh Kembang & Tambahan
-                                screen_time_daily: dp.screen_time_daily || 'Kurang dari 1 jam',
-                                bedtime_pattern: dp.bedtime || 'Pukul 20:30',
-                                wake_time_pattern: dp.wake_time || 'Pukul 05:00',
-                                gestational_age: dp.birth_history?.gestational_age || 'Cukup Bulan (Aterm)',
-                                birth_type: dp.birth_history?.birth_type || 'Normal',
-                                birth_weight: dp.birth_history?.birth_weight || '',
-                                birth_length: dp.birth_history?.birth_length || '',
-                                exclusive_breastfeeding: dp.birth_history?.exclusive_breastfeeding || 'Ya (ASI Eksklusif 6 Bulan)',
-                                mpasi_start_age: dp.birth_history?.mpasi_start_age || '6 Bulan',
-                                walking_age_months: dp.milestones?.walking_age || '',
-                                talking_age_months: dp.milestones?.talking_age || '',
-                                teeth_age_months: dp.milestones?.teeth_age || '',
-                                official_pickup_person: dp.official_pickup_person || '',
-                                emergency_contact: dp.emergency_contact || '',
-                                pin_access: s.pin_access || '1234',
-                                early_detection_consent: dp.early_detection_consent !== false,
-                                notes: s.notes || '',
-                            };
-                            this.updateAvailableOptions();
-                            this.formModalOpen = true;
-                            this.$nextTick(() => {
-                                if (window.lucide) lucide.createIcons();
-                            });
-                        }
-                    })
-                    .catch(err => {
-                        if (typeof window.showToast === 'function') {
-                            window.showToast('Perhatian!', "Gagal mengambil data murid: " + err.message, 'error');
-                        }
-                    });
-                },
-
-                submitForm() {
-                    if (this.saving) return;
-
-                    if (!this.validateAll()) {
-                        return;
-                    }
-
-                    this.saving = true;
-                    const url = this.isEdit ? `/students/${this.formData.id}` : '/students';
-                    const method = this.isEdit ? 'PUT' : 'POST';
-
-                    // Bundle payload including structured JSON objects
-                    const payload = {
-                        ...this.formData,
-                        family_data: {
-                            father: {
-                                name: this.formData.father_name || null,
-                                title: this.formData.father_title || null,
-                                nik: this.formData.father_nik || null,
-                                birth: this.formData.father_birth || null,
-                                education: this.formData.father_education || null,
-                                job: this.formData.father_job || null,
-                                workplace: this.formData.father_workplace || null,
-                                phone: this.formData.father_phone || null,
-                            },
-                            mother: {
-                                name: this.formData.mother_name || null,
-                                title: this.formData.mother_title || null,
-                                nik: this.formData.mother_nik || null,
-                                birth: this.formData.mother_birth || null,
-                                education: this.formData.mother_education || null,
-                                job: this.formData.mother_job || null,
-                                workplace: this.formData.mother_workplace || null,
-                                phone: this.formData.mother_phone || null,
-                            },
-                            guardian: this.formData.has_guardian ? {
-                                name: this.formData.guardian_name || null,
-                                relation: this.formData.guardian_relation || null,
-                                nik: this.formData.guardian_nik || null,
-                                education: this.formData.guardian_education || null,
-                                job: this.formData.guardian_job || null,
-                                phone: this.formData.guardian_phone || null,
-                            } : null,
-                        },
-                        health_habits: {
-                            surroundings: this.formData.surroundings || null,
-                            near_mosque: this.formData.near_mosque || null,
-                            external_tpq: this.formData.external_tpq || null,
-                            meals: {
-                                breakfast: this.formData.breakfast_pattern || null,
-                                lunch: this.formData.lunch_pattern || null,
-                                dinner: this.formData.dinner_pattern || null,
-                                favorite: this.formData.favorite_food || null,
-                                avoided: this.formData.avoided_food || null,
-                            },
-                            allergy: {
-                                details: this.formData.allergy_details || null,
-                                treatment: this.formData.allergy_treatment || null,
-                            },
-                            eating_manner: this.formData.eating_manner || null,
-                            brush_teeth: this.formData.brush_teeth || null,
-                            toilet_training: this.formData.toilet_training || null,
-                        },
-                        development_psychology: {
-                            screen_time_daily: this.formData.screen_time_daily || null,
-                            bedtime: this.formData.bedtime_pattern || null,
-                            wake_time: this.formData.wake_time_pattern || null,
-                            birth_history: {
-                                gestational_age: this.formData.gestational_age || null,
-                                birth_type: this.formData.birth_type || null,
-                                birth_weight: this.formData.birth_weight || null,
-                                birth_length: this.formData.birth_length || null,
-                                exclusive_breastfeeding: this.formData.exclusive_breastfeeding || null,
-                                mpasi_start_age: this.formData.mpasi_start_age || null,
-                            },
-                            milestones: {
-                                walking_age: this.formData.walking_age_months || null,
-                                talking_age: this.formData.talking_age_months || null,
-                                teeth_age: this.formData.teeth_age_months || null,
-                            },
-                            official_pickup_person: this.formData.official_pickup_person || null,
-                            emergency_contact: this.formData.emergency_contact || null,
-                            early_detection_consent: !!this.formData.early_detection_consent,
-                        }
-                    };
-
-                    fetch(url, {
-                        method: method,
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}'
-                        },
-                        body: JSON.stringify(payload)
-                    })
-                    .then(async (res) => {
-                        this.saving = false;
-                        const data = await res.json().catch(() => null);
-                        if (res.ok && data && data.success) {
-                            this.formModalOpen = false;
-                            if (typeof window.setPendingToast === 'function') {
-                                window.setPendingToast(data.message || 'Data murid berhasil disimpan!', 'success');
-                            }
-                            const targetUrl = new URL(window.location.origin + window.location.pathname);
-                            const targetJenjang = this.formData.jenjang_id || '{{ $selectedJenjangId }}';
-                            const targetTapel = this.formData.academic_year_id || '{{ $selectedYearId }}';
-                            targetUrl.searchParams.set('jenjang_id', targetJenjang);
-                            if (targetTapel && targetTapel !== 'all') {
-                                targetUrl.searchParams.set('academic_year_id', targetTapel);
-                            }
-                            window.location.href = targetUrl.toString();
-                        } else {
-                            if (data && data.errors) {
-                                this.formErrors = {};
-                                for (let k in data.errors) {
-                                    this.formErrors[k] = data.errors[k][0];
-                                }
-                                if (data.errors.academic_year_id || data.errors.jenjang_id || data.errors.classroom_id || data.errors.class_level_id || data.errors.full_name || data.errors.nis || data.errors.nisn || data.errors.nik || data.errors.gender || data.errors.status) {
-                                    this.formTab = 'tab1_identitas';
-                                } else if (data.errors.address || data.errors.rt || data.errors.rw || data.errors.city) {
-                                    this.formTab = 'tab2_domisili';
-                                } else if (data.errors.parent_phone || data.errors.father_phone || data.errors.mother_phone) {
-                                    this.formTab = 'tab3_keluarga';
-                                } else if (data.errors.height || data.errors.weight || data.errors.blood_type) {
-                                    this.formTab = 'tab4_fisik';
-                                } else {
-                                    this.formTab = 'tab5_tumbuhkembang';
-                                }
-                            }
-                            let msg = (data && (data.message || (data.errors ? Object.values(data.errors).flat().join('<br>') : null))) || 'Terjadi kesalahan saat menyimpan data murid.';
-                            if (typeof window.showToast === 'function') {
-                                window.showToast('Perhatian!', msg, 'error');
-                            }
-                        }
-                    })
-                    .catch(err => {
-                        this.saving = false;
-                        if (typeof window.showToast === 'function') {
-                            window.showToast('Perhatian!', 'Terjadi kendala koneksi: ' + err.message, 'error');
-                        }
-                    });
-                },
-
-                deleteStudent(id, name) {
-                    const action = () => {
-                        fetch(`/students/${id}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'Accept': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            }
-                        })
-                        .then(res => res.json())
-                        .then(res => {
-                            if (res.success) {
-                                if (typeof window.setPendingToast === 'function') {
-                                    window.setPendingToast(res.message || 'Murid berhasil dihapus!', 'success');
-                                }
-                                const targetUrl = new URL(window.location.origin + window.location.pathname);
-                                targetUrl.searchParams.set('jenjang_id', '{{ $selectedJenjangId }}');
-                                if ('{{ $selectedYearId }}' && '{{ $selectedYearId }}' !== 'all') {
-                                    targetUrl.searchParams.set('academic_year_id', '{{ $selectedYearId }}');
-                                }
-                                window.location.href = targetUrl.toString();
-                            } else {
-                                if (typeof window.showToast === 'function') {
-                                    window.showToast('Perhatian!', res.message || 'Gagal menghapus murid.', 'error');
-                                }
-                            }
-                        })
-                        .catch(err => {
-                            if (typeof window.showToast === 'function') {
-                                window.showToast('Perhatian!', 'Error: ' + err.message, 'error');
-                            }
-                        });
-                    };
-
-                    if (typeof showGlobalConfirmModal === 'function') {
-                        showGlobalConfirmModal(`Apakah Anda yakin ingin menghapus data murid "${name}"?`, action, true);
-                    } else if (confirm(`Apakah Anda yakin ingin menghapus data murid "${name}"?`)) {
-                        action();
-                    }
-                }
-            }
-        }
-    </script>
 </x-admin-layout>
