@@ -520,7 +520,7 @@
                                 <th class="px-2 py-2 text-center text-[10px] uppercase tracking-wider w-12 text-emerald-300">Total</th>
                                 <th class="px-2 py-2 text-center text-[10px] uppercase tracking-wider w-12 text-purple-300 border-r border-slate-800">PDBK</th>
                                 <th class="px-3 py-2 text-left text-[10px] uppercase tracking-wider min-w-[150px] text-slate-200">Wali Kelas</th>
-                                <th class="px-3 py-2 text-left text-[10px] uppercase tracking-wider min-w-[150px] text-slate-200">Guru Pendamping</th>
+                                <th class="px-3 py-2 text-left text-[10px] uppercase tracking-wider min-w-[150px] text-slate-200">Guru Kelas</th>
                                 <th class="px-3 py-2 text-left text-[10px] uppercase tracking-wider min-w-[150px] text-slate-200">GPK (Inklusi)</th>
                                 <th class="px-3 py-2 text-left text-[10px] uppercase tracking-wider min-w-[140px] text-slate-200">GPQ (Al-Qur'an)</th>
                                 <th class="px-3 py-2 text-left text-[10px] uppercase tracking-wider min-w-[190px] text-slate-200">Guru Mapel / Sentra</th>
@@ -596,7 +596,7 @@
                                                 <span class="text-slate-400 italic text-[11px]">-</span>
                                             @endif
                                         </td>
-                                        <!-- Guru Pendamping -->
+                                        <!-- Guru Kelas -->
                                         <td class="px-3 py-2.5">
                                             @if(!empty($cr['class_teacher']) && $cr['class_teacher'] !== '-')
                                                 <span class="text-slate-800 dark:text-slate-200 block">{{ $cr['class_teacher'] }}</span>

@@ -16,6 +16,8 @@ class HomeroomAssignment extends Model
         'class_level_id',
         'classroom_id',
         'employee_id',
+        'role',
+        'subject_name',
         'is_active',
         'notes',
     ];
@@ -47,6 +49,20 @@ class HomeroomAssignment extends Model
     public function teacher(): BelongsTo
     {
         return $this->belongsTo(Employee::class, 'employee_id');
+    }
+
+    public function getRoleLabelAttribute(): string
+    {
+        return match ($this->role) {
+            'wali_kelas' => 'Wali Kelas',
+            'guru_kelas' => 'Guru Kelas',
+            'gpk' => 'GPK (Inklusi)',
+            'gpq' => 'GPQ (Al-Qur\'an)',
+            'guru_mapel' => 'Guru Sentra / Mapel',
+            'koordinator_tingkat' => 'Koordinator Tingkat',
+            'pendamping_tingkat' => 'Pendamping Tingkat',
+            default => 'Wali Kelas',
+        };
     }
 
     public function employee(): BelongsTo

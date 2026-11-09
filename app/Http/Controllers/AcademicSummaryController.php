@@ -378,6 +378,12 @@ class AcademicSummaryController extends Controller
                 continue;
             }
 
+            // Coordinator & Assistants for this level directly from HomeroomAssignment
+            $levelAssignments = $assignments->where('class_level_id', $level->id);
+            $dbCoordinators = $levelAssignments->where('role', 'koordinator_tingkat')->pluck('teacher.name')->filter()->values()->all();
+            $coordinatorName = !empty($dbCoordinators) ? implode(' & ', $dbCoordinators) : null;
+            $assistantsList = $levelAssignments->where('role', 'pendamping_tingkat')->pluck('teacher.name')->filter()->values()->all();
+
             $classroomsData = [];
             $subMale = 0;
             $subFemale = 0;
@@ -402,8 +408,28 @@ class AcademicSummaryController extends Controller
                            ($s->special_needs && !str_contains(strtolower($s->special_needs), 'tidak'));
                 })->count();
 
-                $assigned = $assignments->firstWhere('classroom_id', $cr->id);
-                $teacher = $assigned?->teacher ?? $cr->homeroomTeacher;
+                $crAssignments = $assignments->where('classroom_id', $cr->id);
+
+                // 1. Wali Kelas
+                $assignedHomeroom = $crAssignments->where('role', 'wali_kelas')->first();
+                $homeroomTeacher = $assignedHomeroom?->teacher ?? $cr->homeroomTeacher;
+
+                // 2. Guru Kelas
+                $classTeacher = $crAssignments->where('role', 'guru_kelas')->first()?->teacher?->name ?: '-';
+
+                // 3. GPK (Inklusi)
+                $gpkTeachers = $crAssignments->where('role', 'gpk')->pluck('teacher.name')->filter()->values()->all();
+
+                // 4. GPQ (Al-Qur'an)
+                $gpqTeacher = $crAssignments->where('role', 'gpq')->first()?->teacher?->name ?: '-';
+
+                // 5. Guru Mapel / Sentra
+                $mapelTeachers = $crAssignments->where('role', 'guru_mapel')->map(function ($a) {
+                    return [
+                        'subject' => $a->subject_name ?: 'Sentra',
+                        'teacher' => $a->teacher?->name ?: '-',
+                    ];
+                })->values()->all();
 
                 $jenjangName = $cr->jenjang?->name ?? $cr->classLevel?->jenjang?->name ?? '-';
 
@@ -415,13 +441,13 @@ class AcademicSummaryController extends Controller
                     'class_level_name' => $level->name,
                     'academic_year_name' => $cr->academicYear?->name ?? '-',
                     'capacity' => $cr->capacity ?: 15,
-                    'homeroom_teacher' => $teacher?->name ?: 'Belum Ditugaskan',
-                    'homeroom_teacher_photo' => $teacher?->photo_url ?? ($teacher?->photo ? asset('storage/' . $teacher->photo) : null),
-                    'homeroom_teacher_phone' => $teacher?->phone ?: ($teacher?->niy ?: null),
-                    'class_teacher' => '-',
-                    'gpk_teachers' => [],
-                    'gpq' => '-',
-                    'mapel_teachers' => [],
+                    'homeroom_teacher' => $homeroomTeacher?->name ?: 'Belum Ditugaskan',
+                    'homeroom_teacher_photo' => $homeroomTeacher?->photo_url ?? ($homeroomTeacher?->photo ? asset('storage/' . $homeroomTeacher->photo) : null),
+                    'homeroom_teacher_phone' => $homeroomTeacher?->phone ?: ($homeroomTeacher?->niy ?: null),
+                    'class_teacher' => $classTeacher,
+                    'gpk_teachers' => $gpkTeachers,
+                    'gpq' => $gpqTeacher,
+                    'mapel_teachers' => $mapelTeachers,
                     'male' => $male,
                     'female' => $female,
                     'total' => $total,
@@ -437,8 +463,8 @@ class AcademicSummaryController extends Controller
 
             $levelReports[] = [
                 'level' => $level,
-                'coordinator' => null,
-                'assistants' => [],
+                'coordinator' => $coordinatorName,
+                'assistants' => $assistantsList,
                 'classrooms' => $classroomsData,
                 'subtotal_male' => $subMale,
                 'subtotal_female' => $subFemale,

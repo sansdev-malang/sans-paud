@@ -29,6 +29,7 @@ class HomeroomAssignmentController extends Controller
         $jenjangs = Jenjang::where('is_active', true)->orderBy('order')->get();
         $selectedJenjangId = $request->get('jenjang_id', 'all');
         $selectedClassLevelId = $request->get('class_level_id', 'all');
+        $selectedRole = $request->get('role', 'all');
         $selectedStatus = $request->get('status', 'all');
         $search = $request->get('search');
 
@@ -42,6 +43,10 @@ class HomeroomAssignmentController extends Controller
 
         if ($selectedYearId) {
             $query->where('academic_year_id', $selectedYearId);
+        }
+
+        if ($selectedRole && $selectedRole !== 'all') {
+            $query->where('role', $selectedRole);
         }
 
         if ($selectedJenjangId && $selectedJenjangId !== 'all') {
@@ -81,7 +86,8 @@ class HomeroomAssignmentController extends Controller
                     $lq->where('name', 'like', "%{$search}%");
                 })->orWhereHas('jenjang', function ($jq) use ($search) {
                     $jq->where('name', 'like', "%{$search}%");
-                });
+                })->orWhere('role', 'like', "%{$search}%")
+                  ->orWhere('subject_name', 'like', "%{$search}%");
             });
         }
 
@@ -91,11 +97,22 @@ class HomeroomAssignmentController extends Controller
             $perPageCount = 15;
         }
 
-        $assignments = $query->orderBy('academic_year_id', 'desc')
-            ->orderBy('jenjang_id', 'asc')
-            ->orderBy('class_level_id', 'asc')
-            ->paginate($perPageCount)
-            ->withQueryString();
+        $assignments = $query->orderByRaw("
+            CASE 
+                WHEN role = 'koordinator_tingkat' THEN 1 
+                WHEN role = 'pendamping_tingkat' THEN 2 
+                WHEN role = 'wali_kelas' THEN 3 
+                WHEN role = 'guru_kelas' THEN 4 
+                WHEN role = 'gpk' THEN 5 
+                WHEN role = 'gpq' THEN 6 
+                WHEN role = 'guru_mapel' THEN 7 
+                ELSE 8 
+            END ASC
+        ")
+        ->orderBy('jenjang_id', 'asc')
+        ->orderBy('class_level_id', 'asc')
+        ->paginate($perPageCount)
+        ->withQueryString();
 
         // Master data for dropdowns
         $jenjangs = Jenjang::where('is_active', true)->orderBy('order')->get();
@@ -116,8 +133,19 @@ class HomeroomAssignmentController extends Controller
             ->orderBy('name', 'asc')
             ->get();
 
+        $statsQuery = HomeroomAssignment::query();
+        if ($selectedYearId) {
+            $statsQuery->where('academic_year_id', $selectedYearId);
+        }
+
         $stats = [
-            'total_assignments' => HomeroomAssignment::where('academic_year_id', $selectedYearId)->count(),
+            'total_assignments' => (clone $statsQuery)->count(),
+            'total_homeroom' => (clone $statsQuery)->where('role', 'wali_kelas')->where('is_active', true)->count(),
+            'total_class_teacher' => (clone $statsQuery)->where('role', 'guru_kelas')->where('is_active', true)->count(),
+            'total_gpk' => (clone $statsQuery)->where('role', 'gpk')->where('is_active', true)->count(),
+            'total_gpq' => (clone $statsQuery)->where('role', 'gpq')->where('is_active', true)->count(),
+            'total_mapel' => (clone $statsQuery)->where('role', 'guru_mapel')->where('is_active', true)->count(),
+            'total_teachers' => $teachers->count(),
             'total_classrooms' => Classroom::where('is_active', true)
                 ->when($selectedYearId, fn($q) => $q->where('academic_year_id', $selectedYearId))
                 ->count(),
@@ -125,7 +153,6 @@ class HomeroomAssignmentController extends Controller
                 ->where('is_active', true)
                 ->distinct('classroom_id')
                 ->count('classroom_id'),
-            'total_teachers' => $teachers->count(),
         ];
 
         return view('admin.homeroom-assignments.index', compact(
@@ -135,6 +162,7 @@ class HomeroomAssignmentController extends Controller
             'selectedYearId',
             'selectedJenjangId',
             'selectedClassLevelId',
+            'selectedRole',
             'selectedStatus',
             'jenjangs',
             'classLevels',
@@ -152,27 +180,38 @@ class HomeroomAssignmentController extends Controller
     {
         $validated = $request->validate([
             'academic_year_id' => 'required|exists:academic_years,id',
-            'classroom_id' => 'required|exists:classrooms,id',
+            'jenjang_id' => 'nullable|exists:jenjangs,id',
+            'class_level_id' => 'nullable|exists:class_levels,id',
+            'classroom_id' => 'nullable|exists:classrooms,id',
             'employee_id' => 'required|exists:employees,id',
+            'role' => 'required|string|in:wali_kelas,guru_kelas,gpk,gpq,guru_mapel,koordinator_tingkat,pendamping_tingkat',
+            'subject_name' => 'nullable|string|max:100',
             'is_active' => 'required|boolean',
             'notes' => 'nullable|string|max:500',
         ]);
 
-        // Auto-fetch jenjang_id and class_level_id from classroom to ensure strict relational integrity
-        $classroom = Classroom::findOrFail($validated['classroom_id']);
-        $validated['jenjang_id'] = $classroom->jenjang_id;
-        $validated['class_level_id'] = $classroom->class_level_id;
+        // Auto-fetch jenjang_id and class_level_id from classroom or classLevel
+        if (!empty($validated['classroom_id'])) {
+            $classroom = Classroom::findOrFail($validated['classroom_id']);
+            $validated['jenjang_id'] = $classroom->jenjang_id;
+            $validated['class_level_id'] = $classroom->class_level_id;
+        } elseif (!empty($validated['class_level_id'])) {
+            $level = ClassLevel::findOrFail($validated['class_level_id']);
+            $validated['jenjang_id'] = $level->jenjang_id;
+        }
 
-        // Check if unique assignment exists
+        // Check if unique assignment exists for this rombel/level and teacher
         $existing = HomeroomAssignment::where('academic_year_id', $validated['academic_year_id'])
-            ->where('classroom_id', $validated['classroom_id'])
+            ->when(!empty($validated['classroom_id']), fn($q) => $q->where('classroom_id', $validated['classroom_id']))
             ->where('employee_id', $validated['employee_id'])
             ->first();
 
         if ($existing) {
             $existing->update([
-                'jenjang_id' => $validated['jenjang_id'],
-                'class_level_id' => $validated['class_level_id'],
+                'jenjang_id' => $validated['jenjang_id'] ?? $existing->jenjang_id,
+                'class_level_id' => $validated['class_level_id'] ?? $existing->class_level_id,
+                'role' => $validated['role'],
+                'subject_name' => $validated['subject_name'] ?? null,
                 'is_active' => $validated['is_active'],
                 'notes' => $validated['notes'],
             ]);
@@ -181,16 +220,16 @@ class HomeroomAssignmentController extends Controller
             $assignment = HomeroomAssignment::create($validated);
         }
 
-        // Synchronize classroom's current homeroom teacher if active tapel
+        // Synchronize classroom's current homeroom teacher if active tapel and role is wali_kelas
         $activeTapel = AcademicYear::where('is_active', true)->first();
-        if ($activeTapel && $activeTapel->id == $assignment->academic_year_id && $assignment->is_active) {
-            $classroom->update(['homeroom_teacher_id' => $assignment->employee_id]);
+        if ($assignment->role === 'wali_kelas' && $assignment->classroom_id && $activeTapel && $activeTapel->id == $assignment->academic_year_id && $assignment->is_active) {
+            Classroom::where('id', $assignment->classroom_id)->update(['homeroom_teacher_id' => $assignment->employee_id]);
         }
 
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Penugasan wali kelas berhasil disimpan.',
+                'message' => 'Penugasan guru berhasil disimpan.',
                 'data' => $assignment,
                 'jenjang_id' => $assignment->jenjang_id,
                 'academic_year_id' => $assignment->academic_year_id,
@@ -200,7 +239,8 @@ class HomeroomAssignmentController extends Controller
         return redirect()->route('homeroom-assignments.index', [
             'academic_year_id' => $assignment->academic_year_id,
             'jenjang_id' => $assignment->jenjang_id,
-        ])->with('success', 'Penugasan wali kelas berhasil disimpan.');
+            'role' => $assignment->role,
+        ])->with('success', 'Penugasan guru berhasil disimpan.');
     }
 
     /**
@@ -212,30 +252,43 @@ class HomeroomAssignmentController extends Controller
 
         $validated = $request->validate([
             'academic_year_id' => 'required|exists:academic_years,id',
-            'classroom_id' => 'required|exists:classrooms,id',
+            'jenjang_id' => 'nullable|exists:jenjangs,id',
+            'class_level_id' => 'nullable|exists:class_levels,id',
+            'classroom_id' => 'nullable|exists:classrooms,id',
             'employee_id' => 'required|exists:employees,id',
+            'role' => 'required|string|in:wali_kelas,guru_kelas,gpk,gpq,guru_mapel,koordinator_tingkat,pendamping_tingkat',
+            'subject_name' => 'nullable|string|max:100',
             'is_active' => 'required|boolean',
             'notes' => 'nullable|string|max:500',
         ]);
 
-        $classroom = Classroom::findOrFail($validated['classroom_id']);
-        $validated['jenjang_id'] = $classroom->jenjang_id;
-        $validated['class_level_id'] = $classroom->class_level_id;
+        if (!empty($validated['classroom_id'])) {
+            $classroom = Classroom::findOrFail($validated['classroom_id']);
+            $validated['jenjang_id'] = $classroom->jenjang_id;
+            $validated['class_level_id'] = $classroom->class_level_id;
+        } elseif (!empty($validated['class_level_id'])) {
+            $level = ClassLevel::findOrFail($validated['class_level_id']);
+            $validated['jenjang_id'] = $level->jenjang_id;
+        }
 
         $assignment->update($validated);
 
         // Synchronize classroom's current homeroom teacher if active tapel
         $activeTapel = AcademicYear::where('is_active', true)->first();
-        if ($activeTapel && $activeTapel->id == $assignment->academic_year_id) {
-            if ($assignment->is_active) {
-                $classroom->update(['homeroom_teacher_id' => $assignment->employee_id]);
+        if ($assignment->classroom_id && $activeTapel && $activeTapel->id == $assignment->academic_year_id) {
+            if ($assignment->role === 'wali_kelas' && $assignment->is_active) {
+                Classroom::where('id', $assignment->classroom_id)->update(['homeroom_teacher_id' => $assignment->employee_id]);
+            } else {
+                Classroom::where('id', $assignment->classroom_id)
+                    ->where('homeroom_teacher_id', $assignment->employee_id)
+                    ->update(['homeroom_teacher_id' => null]);
             }
         }
 
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Penugasan wali kelas berhasil diperbarui.',
+                'message' => 'Penugasan guru berhasil diperbarui.',
                 'data' => $assignment,
                 'jenjang_id' => $assignment->jenjang_id,
                 'academic_year_id' => $assignment->academic_year_id,
@@ -245,7 +298,8 @@ class HomeroomAssignmentController extends Controller
         return redirect()->route('homeroom-assignments.index', [
             'academic_year_id' => $assignment->academic_year_id,
             'jenjang_id' => $assignment->jenjang_id,
-        ])->with('success', 'Penugasan wali kelas berhasil diperbarui.');
+            'role' => $assignment->role,
+        ])->with('success', 'Penugasan guru berhasil diperbarui.');
     }
 
     /**

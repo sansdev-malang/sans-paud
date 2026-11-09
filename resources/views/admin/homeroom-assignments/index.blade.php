@@ -4,8 +4,8 @@
         <!-- GREETING / PAGE TITLE -->
         <section class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 w-full text-left">
             <div class="flex flex-col gap-0.5">
-                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Wali Kelas</h2>
-                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Penugasan wali kelas per kelompok belajar tersimpan per tahun ajaran.</p>
+                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Penugasan Guru (Formasi)</h2>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Penugasan wali kelas dan formasi guru per kelompok belajar tersimpan per tahun ajaran.</p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
                 <a href="{{ route('teachers.index') }}"
@@ -16,7 +16,7 @@
                 <button type="button" @click="openCreateModal()"
                     class="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer">
                     <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                    Tugaskan Wali Kelas
+                    Tugaskan Guru / Formasi
                 </button>
             </div>
         </section>
@@ -110,7 +110,19 @@
                         @endforeach
                     </select>
 
-                    <!-- 4. Status Penugasan -->
+                    <!-- 4. Peran Penugasan -->
+                    <select name="role" onchange="this.form.submit()"
+                        class="h-9 px-3 text-xs font-semibold bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
+                        <option value="all" {{ ($selectedRole ?? 'all') === 'all' ? 'selected' : '' }}>Semua Peran</option>
+                        <option value="wali_kelas" {{ ($selectedRole ?? '') === 'wali_kelas' ? 'selected' : '' }}>Wali Kelas</option>
+                        <option value="guru_kelas" {{ ($selectedRole ?? '') === 'guru_kelas' ? 'selected' : '' }}>Guru Kelas</option>
+                        <option value="gpk" {{ ($selectedRole ?? '') === 'gpk' ? 'selected' : '' }}>GPK (Inklusi)</option>
+                        <option value="gpq" {{ ($selectedRole ?? '') === 'gpq' ? 'selected' : '' }}>GPQ (Al-Qur'an)</option>
+                        <option value="guru_mapel" {{ ($selectedRole ?? '') === 'guru_mapel' ? 'selected' : '' }}>Guru Sentra / Mapel</option>
+                        <option value="koordinator_tingkat" {{ ($selectedRole ?? '') === 'koordinator_tingkat' ? 'selected' : '' }}>Koordinator Tingkat</option>
+                    </select>
+
+                    <!-- 5. Status Penugasan -->
                     <select name="status" onchange="this.form.submit()"
                         class="h-9 px-3 text-xs font-semibold bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
                         <option value="all" {{ ($selectedStatus ?? 'all') === 'all' ? 'selected' : '' }}>Semua Status</option>
@@ -118,7 +130,7 @@
                         <option value="inactive" {{ ($selectedStatus ?? '') === 'inactive' || ($selectedStatus ?? '') === '0' ? 'selected' : '' }}>Non-aktif</option>
                     </select>
 
-                    <!-- 5. Jumlah Baris -->
+                    <!-- 6. Jumlah Baris -->
                     <select name="per_page" onchange="this.form.submit()"
                         class="h-9 px-3 text-xs font-semibold bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
                         <option value="10" {{ request('per_page', 15) == 10 ? 'selected' : '' }}>10 Data</option>
@@ -129,7 +141,7 @@
                         <option value="all" {{ request('per_page') == 'all' || request('per_page') == '99999' ? 'selected' : '' }}>Semua</option>
                     </select>
 
-                    @if(request()->filled('search') || (request('jenjang_id') && request('jenjang_id') !== 'all') || (request('class_level_id') && request('class_level_id') !== 'all') || (request('status') && request('status') !== 'all') || (request()->filled('per_page') && request('per_page') != 15))
+                    @if(request()->filled('search') || (request('jenjang_id') && request('jenjang_id') !== 'all') || (request('class_level_id') && request('class_level_id') !== 'all') || (request('role') && request('role') !== 'all') || (request('status') && request('status') !== 'all') || (request()->filled('per_page') && request('per_page') != 15))
                         <a href="{{ route('homeroom-assignments.index', ['academic_year_id' => $selectedYearId]) }}" class="h-9 px-2.5 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 rounded-lg transition-colors" title="Reset Filter">
                             <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
                         </a>
@@ -158,12 +170,12 @@
             </form>
         </section>
 
-        <!-- TABLE LIST WALI KELAS -->
+        <!-- TABLE LIST PENUGASAN GURU (FORMASI) -->
         <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden w-full">
             <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/30">
                 <h3 class="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                     <i data-lucide="user-check" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400"></i>
-                    Daftar Penugasan Wali Kelas
+                    Daftar Penugasan Guru (Formasi)
                 </h3>
                 <span class="text-[11px] text-slate-500 dark:text-slate-400">
                     Menampilkan <span class="font-semibold text-slate-700 dark:text-slate-300">{{ $assignments->count() }}</span> dari <span class="font-semibold text-slate-700 dark:text-slate-300">{{ $assignments->total() }}</span> data
@@ -176,10 +188,11 @@
                             <th class="px-4 py-3 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Tahun Ajaran</th>
                             <th class="px-4 py-3 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Jenjang</th>
                             <th class="px-4 py-3 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Kelas</th>
-                            <th class="px-4 py-3 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Kelompok</th>
-                            <th class="px-4 py-3 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[200px]">Wali Kelas</th>
-                            <th class="px-4 py-3 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-28">Status</th>
-                            <th class="px-4 py-3 text-right text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-24">Aksi</th>
+                            <th class="px-4 py-3 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Kelompok Belajar</th>
+                            <th class="px-4 py-3 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-36">Peran Guru</th>
+                            <th class="px-4 py-3 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[200px]">Guru Ditugaskan</th>
+                            <th class="px-4 py-3 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-24">Status</th>
+                            <th class="px-4 py-3 text-right text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-20">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
@@ -215,27 +228,53 @@
                                     </span>
                                 </td>
 
-                                <!-- 4. Kelompok (sebelumnya Rombel) -->
+                                <!-- 4. Kelompok Belajar -->
                                 <td class="px-4 py-3 whitespace-nowrap">
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/40 font-bold text-xs">
-                                            <i data-lucide="shapes" class="w-3.5 h-3.5"></i>
-                                        </div>
-                                        <div>
-                                            <p class="font-bold text-slate-900 dark:text-slate-100 text-xs">
-                                                {{ $a->classroom?->name ?? '-' }}
-                                            </p>
-                                            @if($a->classroom)
+                                    @if($a->classroom)
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/40 font-bold text-xs">
+                                                <i data-lucide="shapes" class="w-3.5 h-3.5"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-bold text-slate-900 dark:text-slate-100 text-xs">
+                                                    {{ $a->classroom->name }}
+                                                </p>
                                                 <p class="text-[10.5px] text-slate-500 dark:text-slate-400 flex items-center gap-1 font-medium mt-0.5">
                                                     <i data-lucide="users" class="w-3 h-3 text-slate-400"></i>
                                                     <span>{{ $a->classroom->active_students_count }} Murid</span>
                                                 </p>
-                                            @endif
+                                            </div>
                                         </div>
+                                    @elseif($a->classLevel)
+                                        <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                                            <i data-lucide="layers" class="w-3 h-3 text-slate-400"></i>
+                                            Tingkat {{ $a->classLevel->name }} (Seluruh Kelompok)
+                                        </span>
+                                    @else
+                                        <span class="text-slate-400 italic text-xs">-</span>
+                                    @endif
+                                </td>
+
+                                <!-- 5. Peran Guru -->
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <div class="flex flex-col gap-0.5">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold w-fit
+                                            @if($a->role === 'wali_kelas') bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800
+                                            @elseif($a->role === 'guru_kelas') bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800
+                                            @elseif($a->role === 'gpk') bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400 border border-purple-200 dark:border-purple-800
+                                            @elseif($a->role === 'gpq') bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-800
+                                            @elseif($a->role === 'guru_mapel') bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-400 border border-teal-200 dark:border-teal-800
+                                            @else bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-400 border border-sky-200 dark:border-sky-800
+                                            @endif">
+                                            {{ $a->role_label }}
+                                        </span>
+                                        @if($a->role === 'guru_mapel' && $a->subject_name)
+                                            <span class="text-[10.5px] text-slate-500 dark:text-slate-400 font-medium">{{ $a->subject_name }}</span>
+                                        @endif
                                     </div>
                                 </td>
 
-                                <!-- 5. Wali Kelas -->
+                                <!-- 6. Guru Ditugaskan -->
                                 <td class="px-4 py-3">
                                     <div class="flex items-center gap-2.5 min-w-[200px]">
                                         @if($a->teacher?->photo)
@@ -276,7 +315,7 @@
                                     </div>
                                 </td>
 
-                                <!-- 6. Status (Interactive Toggle) -->
+                                <!-- 7. Status (Interactive Toggle) -->
                                 <td class="px-4 py-3 text-center whitespace-nowrap">
                                     <form action="{{ route('homeroom-assignments.toggle-status', $a->id) }}" method="POST" class="inline">
                                         @csrf
@@ -296,7 +335,7 @@
                                     </form>
                                 </td>
 
-                                <!-- 7. Aksi -->
+                                <!-- 8. Aksi -->
                                 <td class="px-4 py-3 text-right whitespace-nowrap">
                                     <div class="flex items-center justify-end gap-1">
                                         <button type="button" @click="openEditModal({{ $a->id }})"
@@ -314,7 +353,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-6 py-12 text-center text-slate-400">
+                                <td colspan="8" class="px-6 py-12 text-center text-slate-400">
                                     <div class="flex flex-col items-center justify-center gap-2">
                                         <div class="p-3 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400">
                                             <i data-lucide="user-x" class="w-6 h-6"></i>
@@ -347,8 +386,8 @@
                     <form @submit.prevent="submitForm">
                         <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm z-10">
                             <div>
-                                <h3 class="text-base font-bold text-slate-900 dark:text-slate-50" x-text="isEdit ? 'Edit Penugasan Wali Kelas' : 'Tugaskan Wali Kelas Baru'"></h3>
-                                <p class="text-xs text-slate-400 mt-0.5">Pilih tahun ajaran, jenjang, kelas, kelompok, dan guru yang ditugaskan.</p>
+                                <h3 class="text-base font-bold text-slate-900 dark:text-slate-50" x-text="isEdit ? 'Edit Penugasan Guru (Formasi)' : 'Tugaskan Guru / Formasi Baru'"></h3>
+                                <p class="text-xs text-slate-400 mt-0.5">Pilih peran, tahun ajaran, jenjang, kelas, kelompok, dan guru yang ditugaskan.</p>
                             </div>
                             <button type="button" @click="modalOpen = false" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                                 <i data-lucide="x" class="w-5 h-5"></i>
@@ -356,7 +395,29 @@
                         </div>
 
                         <div class="p-6 space-y-4 text-xs">
-                            <!-- 1. Tahun Ajaran -->
+                            <!-- 1. Peran Penugasan Guru -->
+                            <div>
+                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Peran Penugasan Guru <span class="text-rose-500">*</span></label>
+                                <select x-model="formData.role" required
+                                    class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-bold">
+                                    <option value="wali_kelas">Wali Kelas</option>
+                                    <option value="guru_kelas">Guru Kelas</option>
+                                    <option value="gpk">GPK (Guru Pendamping Khusus Inklusi)</option>
+                                    <option value="gpq">GPQ (Guru Pembimbing Al-Qur'an)</option>
+                                    <option value="guru_mapel">Guru Sentra / Mapel</option>
+                                    <option value="koordinator_tingkat">Koordinator Tingkat</option>
+                                    <option value="pendamping_tingkat">Pendamping Tingkat</option>
+                                </select>
+                            </div>
+
+                            <!-- Input Khusus jika Guru Sentra / Mapel -->
+                            <div x-show="formData.role === 'guru_mapel'">
+                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Sentra / Bidang Mapel <span class="text-rose-500">*</span></label>
+                                <input type="text" x-model="formData.subject_name" placeholder="Misal: Sentra Seni, Sentra Balok, Sentra Imtaq..."
+                                    class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                            </div>
+
+                            <!-- 2. Tahun Ajaran -->
                             <div>
                                 <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tahun Ajaran <span class="text-rose-500">*</span></label>
                                 <select x-model="formData.academic_year_id" @change="onAcademicYearChange()" required
@@ -369,7 +430,7 @@
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <!-- 2. Jenjang -->
+                                <!-- 3. Jenjang -->
                                 <div>
                                     <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Jenjang <span class="text-rose-500">*</span></label>
                                     <select x-model="formData.jenjang_id" @change="onJenjangChange()" required
@@ -381,7 +442,7 @@
                                     </select>
                                 </div>
 
-                                <!-- 3. Kelas -->
+                                <!-- 4. Kelas -->
                                 <div>
                                     <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kelas <span class="text-rose-500">*</span></label>
                                     <select x-model="formData.class_level_id" @change="onClassLevelChange()" required
@@ -394,10 +455,10 @@
                                 </div>
                             </div>
 
-                            <!-- 4. Kelompok Belajar -->
-                            <div>
-                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kelompok Belajar <span class="text-rose-500">*</span></label>
-                                <select x-model="formData.classroom_id" required
+                            <!-- 5. Kelompok Belajar (Hidden jika Koordinator / Pendamping Tingkat) -->
+                            <div x-show="formData.role !== 'koordinator_tingkat' && formData.role !== 'pendamping_tingkat'">
+                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kelompok Belajar <span class="text-rose-500" x-show="formData.role !== 'koordinator_tingkat' && formData.role !== 'pendamping_tingkat'">*</span></label>
+                                <select x-model="formData.classroom_id" :required="formData.role !== 'koordinator_tingkat' && formData.role !== 'pendamping_tingkat'"
                                     class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-bold">
                                     <option value="">-- Pilih Kelompok Belajar --</option>
                                     <template x-for="c in filteredClassrooms" :key="c.id">
@@ -406,11 +467,11 @@
                                 </select>
                             </div>
 
-                            <!-- 5. Wali Kelas (Pilihan dari Table Data Guru) -->
+                            <!-- 6. Guru Ditugaskan -->
                             <div>
-                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Wali Kelas (Guru) <span class="text-rose-500">*</span></label>
+                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Guru Ditugaskan <span class="text-rose-500">*</span></label>
                                 <select x-model="formData.employee_id" required
-                                    class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
+                                    class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 font-semibold">
                                     <option value="">-- Pilih Guru --</option>
                                     @foreach($teachers as $t)
                                         <option value="{{ $t->id }}">{{ $t->name }} {{ $t->position ? '(' . $t->position . ')' : '' }}</option>
@@ -441,7 +502,7 @@
                                 Batal
                             </button>
                             <button type="submit" :disabled="saving" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-all shadow-xs flex items-center gap-1.5">
-                                <span x-text="saving ? 'Menyimpan...' : (isEdit ? 'Simpan Perubahan' : 'Tugaskan Wali Kelas')"></span>
+                                <span x-text="saving ? 'Menyimpan...' : (isEdit ? 'Simpan Perubahan' : 'Tugaskan Guru')"></span>
                             </button>
                         </div>
                     </form>
@@ -473,6 +534,8 @@
                     class_level_id: '',
                     classroom_id: '',
                     employee_id: '',
+                    role: 'wali_kelas',
+                    subject_name: '',
                     is_active: true,
                     notes: '',
                 },
@@ -527,6 +590,8 @@
                         class_level_id: '',
                         classroom_id: '',
                         employee_id: '',
+                        role: '{{ ($selectedRole && $selectedRole !== "all") ? $selectedRole : "wali_kelas" }}',
+                        subject_name: '',
                         is_active: true,
                         notes: '',
                     };
@@ -543,8 +608,10 @@
                         academic_year_id: assignment.academic_year_id,
                         jenjang_id: assignment.jenjang_id || (assignment.classroom ? assignment.classroom.jenjang_id : ''),
                         class_level_id: assignment.class_level_id || (assignment.classroom ? assignment.classroom.class_level_id : ''),
-                        classroom_id: assignment.classroom_id,
+                        classroom_id: assignment.classroom_id || '',
                         employee_id: assignment.employee_id,
+                        role: assignment.role || 'wali_kelas',
+                        subject_name: assignment.subject_name || '',
                         is_active: !!assignment.is_active,
                         notes: assignment.notes || '',
                     };
