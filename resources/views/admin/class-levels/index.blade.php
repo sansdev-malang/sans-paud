@@ -233,8 +233,8 @@
                 <form @submit.prevent="submitForm">
                     <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm z-10">
                         <div>
-                            <h3 class="text-base font-bold text-slate-900 dark:text-slate-50" x-text="isEdit ? 'Edit Kelas' : 'Tambah Kelas Baru'"></h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Konfigurasi nama kelas dan relasi jenjang pendidikan.</p>
+                            <h3 class="text-base font-bold text-slate-900 dark:text-slate-50" x-text="isEdit ? 'Edit Tingkat Kelas' : 'Tambah Tingkat Kelas Baru'"></h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Konfigurasi nama tingkat kelas dan relasi jenjang pendidikan.</p>
                         </div>
                         <button type="button" @click="modalOpen = false" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                             <i data-lucide="x" class="w-5 h-5"></i>
@@ -254,7 +254,7 @@
                         </div>
 
                         <div>
-                            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Kelas <span class="text-rose-500">*</span></label>
+                            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Tingkat Kelas <span class="text-rose-500">*</span></label>
                             <input type="text" x-model="formData.name" required placeholder="Contoh: KB-A / KB-B / TK-A / TK-B / TPA 1 / TPQ"
                                 class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
                         </div>
@@ -281,7 +281,7 @@
                         <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50 flex items-center justify-between">
                             <div>
                                 <p class="font-semibold text-slate-800 dark:text-slate-200">Status Aktif</p>
-                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Aktifkan kelas ini agar tersedia saat pembuatan kelompok.</p>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Aktifkan tingkat kelas ini agar tersedia saat pembuatan kelompok belajar.</p>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" x-model="formData.is_active" class="sr-only peer">
@@ -295,7 +295,7 @@
                             Batal
                         </button>
                         <button type="submit" :disabled="saving" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-all shadow-xs flex items-center gap-1.5">
-                            <span x-text="saving ? 'Menyimpan...' : (isEdit ? 'Simpan Perubahan' : 'Tambah Kelas')"></span>
+                            <span x-text="saving ? 'Menyimpan...' : (isEdit ? 'Simpan Perubahan' : 'Tambah Tingkat Kelas')"></span>
                         </button>
                     </div>
                 </form>

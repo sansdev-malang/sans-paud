@@ -44,7 +44,11 @@
                     'classroom-journals.index' => 'Jurnal Kelas',
                     'guest-books.index' => 'Buku Tamu',
                     'teacher-documents.index' => 'Berkas Guru',
+                    'academic-years.index' => 'Tahun Ajaran & Semester',
+                    'jenjangs.index' => 'Jenjang Pendidikan',
+                    'class-levels.index' => 'Tingkat Kelas',
                     'classrooms.index' => 'Kelompok Belajar',
+                    'academic-summary.index' => 'Rekapitulasi Rombel',
                     'spmb.candidates.index' => 'SPMB',
                     'rekap-rapor.index' => 'Data Rapor',
                 ];
