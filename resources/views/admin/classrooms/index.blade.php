@@ -95,24 +95,18 @@
             </div>
         </section>
 
-        <!-- FILTER JENJANG TABS (BERSIH & MINIMALIS TANPA EMOJI) -->
+        <!-- FILTER JENJANG TABS (BERSIH & KONSISTEN) -->
         <div class="flex flex-wrap items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
             <button type="button" @click="setJenjangTab(0)"
                 :class="activeJenjangId == 0 ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'"
                 class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5">
                 <span>Semua Jenjang</span>
-                <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold"
-                    :class="activeJenjangId == 0 ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'"
-                    x-text="allClassroomsList.length"></span>
             </button>
             @foreach($jenjangs as $j)
                 <button type="button" @click="setJenjangTab({{ $j->id }})"
                     :class="activeJenjangId == {{ $j->id }} ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'"
                     class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5">
                     <span>{{ $j->name }}</span>
-                    <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold"
-                        :class="activeJenjangId == {{ $j->id }} ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'"
-                        x-text="countsPerJenjang[{{ $j->id }}] || 0"></span>
                 </button>
             @endforeach
         </div>
