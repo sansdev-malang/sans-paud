@@ -138,7 +138,7 @@
                                 <optgroup label="{{ $unit }}">
                                     @foreach($classes as $c)
                                         <option value="{{ $c->id }}" {{ $selectedClassroomId == $c->id ? 'selected' : '' }}>
-                                            {{ $c->name }} ({{ $c->students_count }} Murid)
+                                            {{ $c->name }} ({{ $c->active_students_count }} Murid)
                                         </option>
                                     @endforeach
                                 </optgroup>

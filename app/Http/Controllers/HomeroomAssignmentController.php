@@ -36,11 +36,7 @@ class HomeroomAssignmentController extends Controller
             'academicYear',
             'jenjang',
             'classLevel',
-            'classroom' => function ($cq) {
-                $cq->withCount(['students' => function ($sq) {
-                    $sq->where('status', 'aktif');
-                }]);
-            },
+            'classroom',
             'teacher.user'
         ]);
 

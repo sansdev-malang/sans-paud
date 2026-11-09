@@ -37,17 +37,27 @@ class ClassLevelController extends Controller
             ->orderBy('order', 'asc')
             ->get();
 
-        // Calculate student counts per class level via classrooms
+        // Calculate student counts per class level via classrooms (primary, daycare, tpq)
         foreach ($classLevels as $lvl) {
             $classLevelId = $lvl->id;
-            $lvl->active_students_count = Student::whereHas('classroom', function ($q) use ($classLevelId, $activeYearId) {
-                $q->where('class_level_id', $classLevelId);
-                if ($activeYearId) {
-                    $q->where('academic_year_id', $activeYearId);
-                }
-            })->where('status', 'aktif')
-            ->when($activeYearId, fn($q) => $q->where('academic_year_id', $activeYearId))
-            ->count();
+            $lvl->active_students_count = Student::where('status', 'aktif')
+                ->when($activeYearId, fn($q) => $q->where('academic_year_id', $activeYearId))
+                ->where(function ($sq) use ($classLevelId, $activeYearId) {
+                    $sq->where('class_level_id', $classLevelId)
+                      ->orWhereHas('classroom', function ($q) use ($classLevelId, $activeYearId) {
+                          $q->where('class_level_id', $classLevelId);
+                          if ($activeYearId) $q->where('academic_year_id', $activeYearId);
+                      })
+                      ->orWhereHas('daycareClassroom', function ($q) use ($classLevelId, $activeYearId) {
+                          $q->where('class_level_id', $classLevelId);
+                          if ($activeYearId) $q->where('academic_year_id', $activeYearId);
+                      })
+                      ->orWhereHas('tpqClassroom', function ($q) use ($classLevelId, $activeYearId) {
+                          $q->where('class_level_id', $classLevelId);
+                          if ($activeYearId) $q->where('academic_year_id', $activeYearId);
+                      });
+                })
+                ->count();
         }
 
         $totalLevels = $classLevels->count();

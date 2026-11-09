@@ -148,7 +148,7 @@
                                 class="w-full pl-3 pr-8 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors cursor-pointer">
                                 @foreach($classrooms as $c)
                                     <option value="{{ $c->id }}" {{ $selectedClassroomId == $c->id ? 'selected' : '' }}>
-                                        {{ $c->name }} ({{ $c->students_count ?? $c->active_students_count }} Murid)
+                                        {{ $c->name }} ({{ $c->active_students_count }} Murid)
                                     </option>
                                 @endforeach
                             </select>
@@ -440,7 +440,7 @@
                                 class="w-full pl-3 pr-8 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors cursor-pointer">
                                 @foreach($classrooms as $c)
                                     <option value="{{ $c->id }}" {{ $selectedClassroomId == $c->id ? 'selected' : '' }}>
-                                        {{ $c->name }} ({{ $c->students_count ?? $c->active_students_count }} Murid)
+                                        {{ $c->name }} ({{ $c->active_students_count }} Murid)
                                     </option>
                                 @endforeach
                             </select>
@@ -740,7 +740,7 @@
                                 class="w-full pl-3 pr-8 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors cursor-pointer">
                                 @foreach($classrooms as $c)
                                     <option value="{{ $c->id }}" {{ $selectedClassroomId == $c->id ? 'selected' : '' }}>
-                                        {{ $c->name }} ({{ $c->students_count ?? $c->active_students_count }} Murid)
+                                        {{ $c->name }} ({{ $c->active_students_count }} Murid)
                                     </option>
                                 @endforeach
                             </select>
@@ -1034,7 +1034,7 @@
                             class="w-full pl-3 pr-8 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors cursor-pointer">
                             @foreach($classrooms as $c)
                                 <option value="{{ $c->id }}" {{ $selectedClassroomId == $c->id ? 'selected' : '' }}>
-                                    {{ $c->name }} ({{ $c->students_count ?? $c->active_students_count }} Murid)
+                                    {{ $c->name }} ({{ $c->active_students_count }} Murid)
                                 </option>
                             @endforeach
                         </select>

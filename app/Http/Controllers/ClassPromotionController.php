@@ -87,8 +87,7 @@ class ClassPromotionController extends Controller
             return response()->json(['success' => false, 'message' => 'Kelompok tidak ditemukan.', 'students' => []]);
         }
 
-        $students = Student::where('classroom_id', $classroomId)
-            ->where('status', 'aktif')
+        $students = $classroom->enrolledStudentsQuery()
             ->orderBy('full_name', 'asc')
             ->get();
 

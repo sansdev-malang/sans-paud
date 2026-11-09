@@ -37,12 +37,6 @@ class StudentArchiveController extends Controller
         }
 
         $classrooms = $classroomsQuery
-            ->withCount(['students' => function ($q) use ($selectedYearId) {
-                $q->where('status', 'aktif');
-                if ($selectedYearId && $selectedYearId !== 'all') {
-                    $q->where('academic_year_id', $selectedYearId);
-                }
-            }])
             ->orderBy('name', 'asc')
             ->get();
 
@@ -68,7 +62,11 @@ class StudentArchiveController extends Controller
             ]);
 
         if ($selectedClassroomId && $selectedClassroomId !== 'all') {
-            $query->where('classroom_id', $selectedClassroomId);
+            $query->where(function ($q) use ($selectedClassroomId) {
+                $q->where('classroom_id', $selectedClassroomId)
+                  ->orWhere('daycare_classroom_id', $selectedClassroomId)
+                  ->orWhere('tpq_classroom_id', $selectedClassroomId);
+            });
         }
 
         if ($selectedYearId && $selectedYearId !== 'all') {
@@ -221,7 +219,11 @@ class StudentArchiveController extends Controller
             ->with(['classroom', 'academicYear', 'spmbCandidate', 'uploadedDocuments']);
 
         if ($classroomId && $classroomId !== 'all') {
-            $query->where('classroom_id', $classroomId);
+            $query->where(function ($q) use ($classroomId) {
+                $q->where('classroom_id', $classroomId)
+                  ->orWhere('daycare_classroom_id', $classroomId)
+                  ->orWhere('tpq_classroom_id', $classroomId);
+            });
         }
         if ($academicYearId && $academicYearId !== 'all') {
             $query->where('academic_year_id', $academicYearId);
@@ -335,7 +337,11 @@ class StudentArchiveController extends Controller
             ->with(['classroom', 'academicYear', 'spmbCandidate', 'uploadedDocuments']);
 
         if ($classroomId && $classroomId !== 'all') {
-            $query->where('classroom_id', $classroomId);
+            $query->where(function ($q) use ($classroomId) {
+                $q->where('classroom_id', $classroomId)
+                  ->orWhere('daycare_classroom_id', $classroomId)
+                  ->orWhere('tpq_classroom_id', $classroomId);
+            });
         }
         if ($academicYearId && $academicYearId !== 'all') {
             $query->where('academic_year_id', $academicYearId);

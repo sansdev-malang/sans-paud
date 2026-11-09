@@ -96,9 +96,7 @@ class RaporSummaryController extends Controller
         $attendances = collect();
 
         if ($selectedClassroom && $selectedYear) {
-            $students = Student::where('classroom_id', $selectedClassroom->id)
-                ->where('status', 'aktif')
-                ->where('academic_year_id', $selectedYear->id)
+            $students = $selectedClassroom->enrolledStudentsQuery($selectedYear->id)
                 ->orderBy('full_name')
                 ->get();
 
@@ -109,10 +107,17 @@ class RaporSummaryController extends Controller
                 config(['database.connections.sans_rapor' => $baseConfig]);
                 DB::purge('sans_rapor');
                 
+                $studentIds = $students->pluck('id')->filter()->values()->toArray();
+
                 $narratives = DB::connection('sans_rapor')
                     ->table('paud_narratives')
-                    ->where('classroom_id', $selectedClassroom->id)
                     ->where('academic_year_id', $selectedYear->id)
+                    ->where(function($q) use ($selectedClassroom, $studentIds) {
+                        $q->where('classroom_id', $selectedClassroom->id);
+                        if (!empty($studentIds)) {
+                            $q->orWhereIn('student_id', $studentIds);
+                        }
+                    })
                     ->where(function($q) use ($selectedSemester) {
                         $q->where('semester', $selectedSemester);
                         if ($selectedSemester === 'PAS-1') $q->orWhere('semester', 'ganjil');
@@ -126,8 +131,13 @@ class RaporSummaryController extends Controller
                 $attendances = DB::connection('sans_rapor')
                     ->table('student_attendances')
                     ->where('unit', 'paud')
-                    ->where('classroom_id', $selectedClassroom->id)
                     ->where('academic_year_id', $selectedYear->id)
+                    ->where(function($q) use ($selectedClassroom, $studentIds) {
+                        $q->where('classroom_id', $selectedClassroom->id);
+                        if (!empty($studentIds)) {
+                            $q->orWhereIn('student_id', $studentIds);
+                        }
+                    })
                     ->where(function($q) use ($selectedSemester) {
                         $q->where('semester', $selectedSemester);
                         if ($selectedSemester === 'PAS-1') $q->orWhere('semester', 'ganjil');

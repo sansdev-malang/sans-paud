@@ -51,12 +51,6 @@ class ClassroomJournalController extends Controller
         }
 
         $classrooms = Classroom::with(['homeroomTeacher', 'classLevel'])
-            ->withCount(['students' => function ($q) use ($selectedAcademicYearId) {
-                $q->where('status', 'aktif');
-                if ($selectedAcademicYearId) {
-                    $q->where('academic_year_id', $selectedAcademicYearId);
-                }
-            }])
             ->where('is_active', true)
             ->when($selectedAcademicYearId, fn($q) => $q->where('academic_year_id', $selectedAcademicYearId))
             ->when(!$isAdminUser, fn($q) => $q->whereIn('id', $assignedClassroomIds))

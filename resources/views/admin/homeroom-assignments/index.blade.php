@@ -225,10 +225,10 @@
                                             <p class="font-bold text-slate-900 dark:text-slate-100 text-xs">
                                                 {{ $a->classroom?->name ?? '-' }}
                                             </p>
-                                            @if(isset($a->classroom->students_count))
+                                            @if($a->classroom)
                                                 <p class="text-[10.5px] text-slate-500 dark:text-slate-400 flex items-center gap-1 font-medium mt-0.5">
                                                     <i data-lucide="users" class="w-3 h-3 text-slate-400"></i>
-                                                    <span>{{ $a->classroom->students_count }} Murid</span>
+                                                    <span>{{ $a->classroom->active_students_count }} Murid</span>
                                                 </p>
                                             @endif
                                         </div>

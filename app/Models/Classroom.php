@@ -75,10 +75,38 @@ class Classroom extends Model
     }
 
     /**
-     * Get the active students count.
+     * Get query for all active students enrolled in this classroom (supports primary, daycare, tpq).
+     */
+    public function enrolledStudentsQuery($academicYearId = null)
+    {
+        $sub = strtoupper((string) ($this->sub_unit ?: ($this->jenjang?->code ?? '')));
+        $query = Student::where('status', 'aktif');
+
+        $yearId = $academicYearId ?: $this->academic_year_id;
+        if ($yearId && $yearId !== 'all') {
+            $query->where('academic_year_id', $yearId);
+        }
+
+        if ($sub === 'DAYCARE' || $sub === 'TPA' || str_contains($sub, 'DAYCARE') || str_contains($sub, 'TPA')) {
+            return $query->where(function ($q) {
+                $q->where('classroom_id', $this->id)
+                  ->orWhere('daycare_classroom_id', $this->id);
+            });
+        } elseif ($sub === 'TPQ' || str_contains($sub, 'TPQ')) {
+            return $query->where(function ($q) {
+                $q->where('classroom_id', $this->id)
+                  ->orWhere('tpq_classroom_id', $this->id);
+            });
+        }
+
+        return $query->where('classroom_id', $this->id);
+    }
+
+    /**
+     * Get the active students count (supports Daycare & TPQ multi-classroom enrollment).
      */
     public function getActiveStudentsCountAttribute(): int
     {
-        return $this->students()->where('status', 'aktif')->count();
+        return $this->enrolledStudentsQuery()->count();
     }
 }

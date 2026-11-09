@@ -166,7 +166,7 @@ class AcademicYearController extends Controller
         if ($classroomsCount > 0 || $studentsCount > 0) {
             return response()->json([
                 'success' => false,
-                'message' => "Tahun Ajaran tidak dapat dihapus karena masih terhubung dengan {$classroomsCount} rombel dan {$studentsCount} siswa.",
+                'message' => "Tahun Ajaran tidak dapat dihapus karena masih terhubung dengan {$classroomsCount} rombel dan {$studentsCount} murid.",
             ], 422);
         }
 

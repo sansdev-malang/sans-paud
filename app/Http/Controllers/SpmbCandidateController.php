@@ -332,18 +332,16 @@ class SpmbCandidateController extends Controller
 
         // Get active classrooms for matched academic year (with count of active students)
         $classrooms = Classroom::with(['classLevel', 'jenjang', 'homeroomTeacher'])
-            ->withCount(['students as active_students_count' => function ($q) use ($matchedYear) {
-                $q->where('status', 'aktif');
-                if ($matchedYear) {
-                    $q->where('academic_year_id', $matchedYear->id);
-                }
-            }])
             ->where('is_active', true)
             ->when($matchedYear?->id, fn($q) => $q->where('academic_year_id', $matchedYear->id))
             ->orderBy('jenjang_id')
             ->orderBy('class_level_id')
             ->orderBy('name')
             ->get();
+
+        $classrooms->each(function ($cls) {
+            $cls->active_students_count = $cls->active_students_count;
+        });
 
         $jenjangs = \App\Models\Jenjang::where('is_active', true)->orderBy('order')->get();
         $classLevels = \App\Models\ClassLevel::orderBy('jenjang_id')->orderBy('order')->get();
@@ -355,12 +353,20 @@ class SpmbCandidateController extends Controller
                   ->orWhereHas('jenjang', fn($jq) => $jq->where('code', 'DAYCARE')->orWhere('code', 'TPA'));
             })->orderBy('name')->get();
 
+        $daycareClassrooms->each(function ($cls) {
+            $cls->active_students_count = $cls->active_students_count;
+        });
+
         $tpqClassrooms = Classroom::where('is_active', true)
             ->when($matchedYear?->id, fn($q) => $q->where('academic_year_id', $matchedYear->id))
             ->where(function($q) {
                 $q->where('sub_unit', 'TPQ')
                   ->orWhereHas('jenjang', fn($jq) => $jq->where('code', 'TPQ'));
             })->orderBy('name')->get();
+
+        $tpqClassrooms->each(function ($cls) {
+            $cls->active_students_count = $cls->active_students_count;
+        });
 
         // Generate suggested NIS
         $yearDigits = $matchedYear ? substr(explode('/', $matchedYear->name)[0] ?? '2027', -2) : date('y');
