@@ -4,12 +4,7 @@
         <!-- HEADER / PAGE TITLE -->
         <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3">
             <div class="flex flex-col gap-0.5">
-                <div class="flex items-center gap-2">
-                    <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50 font-nasalization">Log Sistem</h2>
-                    <span class="text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
-                        {{ $selectedFileName }}
-                    </span>
-                </div>
+                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50 font-nasalization">Log Sistem</h2>
                 <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium">
                     Pantau rekaman error, peringatan, dan status runtime sistem Laravel secara real-time.
                 </p>
@@ -168,26 +163,37 @@
                     </div>
                 </div>
 
-                <!-- Right: Search Input -->
-                <div class="relative w-full lg:w-72">
+                <!-- Right: Search Input (Live Search) -->
+                <div x-data="liveSearchBox('system-logs-container', '{{ $searchKeyword }}')" class="relative w-full lg:w-72">
                     <input type="hidden" name="level" value="{{ $filterLevel }}">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                        <i data-lucide="search" class="w-4 h-4"></i>
-                    </div>
-                    <input type="text" name="search" value="{{ $searchKeyword }}" placeholder="Cari pesan error / stack trace..."
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <svg x-show="isSearching" x-cloak class="animate-spin w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                        </svg>
+                        <svg x-show="!isSearching" class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.3-4.3"></path>
+                        </svg>
+                    </span>
+
+                    <input type="text" name="search" x-model="searchVal" @input="onInput()" @keydown.enter.prevent="performSearch()" placeholder="Cari pesan error / stack trace..."
                         class="w-full text-xs pl-9 pr-8 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-colors">
-                    @if($searchKeyword !== '')
-                        <a href="{{ route('system-logs.index', request()->except('search', 'page')) }}"
-                            class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-                            <i data-lucide="x" class="w-3.5 h-3.5"></i>
-                        </a>
-                    @endif
+
+                    <button type="button" x-show="searchVal && searchVal.trim() !== ''" @click="clear()"
+                        class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer bg-transparent border-0"
+                        title="Bersihkan pencarian">
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 6 6 18"></path>
+                            <path d="m6 6 12 12"></path>
+                        </svg>
+                    </button>
                 </div>
             </form>
         </section>
 
         <!-- LOG ENTRIES LIST -->
-        <section class="space-y-3">
+        <section id="system-logs-container" class="space-y-3">
             @if($paginatedEntries->count() > 0)
                 @foreach($paginatedEntries as $index => $entry)
                     @php

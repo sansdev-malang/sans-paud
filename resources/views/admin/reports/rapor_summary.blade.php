@@ -162,12 +162,21 @@
 
                 <!-- Search Input -->
                 <div class="relative w-full sm:w-60 md:w-64">
-                    <i data-lucide="search" class="absolute top-1/2 left-3 w-3.5 h-3.5 -translate-y-1/2 text-slate-400"></i>
+                    <span class="absolute top-1/2 left-3 -translate-y-1/2 pointer-events-none text-slate-400">
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.3-4.3"></path>
+                        </svg>
+                    </span>
                     <input x-model="searchQuery" type="text" placeholder="Cari murid atau NIS..."
                         class="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-1.5 pr-7 pl-8 text-xs font-medium text-slate-900 dark:text-slate-100 shadow-2xs focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                    <button v-if="searchQuery" @click="searchQuery = ''" x-show="searchQuery" type="button"
-                        class="absolute top-1/2 right-2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
-                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                    <button @click="searchQuery = ''" x-show="searchQuery && searchQuery.trim() !== ''" type="button"
+                        class="absolute top-1/2 right-2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer bg-transparent border-0"
+                        title="Bersihkan pencarian">
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 6 6 18"></path>
+                            <path d="m6 6 12 12"></path>
+                        </svg>
                     </button>
                 </div>
             </div>

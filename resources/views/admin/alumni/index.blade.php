@@ -114,14 +114,31 @@
             <form method="GET" action="{{ route('alumni.index') }}" class="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
                 <input type="hidden" name="sub_unit" value="{{ $selectedSubUnit }}">
 
-                <!-- Search Box -->
-                <div class="relative w-full md:max-w-md">
+                <!-- Search Box (Live Search) -->
+                <div x-data="liveSearchBox('alumni-table-container', '{{ request('search') }}')" class="relative w-full md:max-w-md">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <i data-lucide="search" class="w-4 h-4 text-slate-400 dark:text-slate-500"></i>
+                        <svg x-show="isSearching" x-cloak class="animate-spin w-4 h-4 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                        </svg>
+                        <svg x-show="!isSearching" class="w-4 h-4 text-slate-400 dark:text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.3-4.3"></path>
+                        </svg>
                     </span>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama alumni, NIS, No. Ortu, sekolah lanjutan..."
+
+                    <input type="text" name="search" x-model="searchVal" @input="onInput()" @keydown.enter.prevent="performSearch()" placeholder="Cari nama alumni, NIS, No. Ortu, sekolah lanjutan..."
                         style="padding-left: 2.25rem;"
-                        class="w-full h-9 pr-4 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-slate-900 dark:text-slate-50 placeholder-slate-400 dark:placeholder-slate-500 transition-all shadow-inner">
+                        class="w-full h-9 pr-8 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-slate-900 dark:text-slate-50 placeholder-slate-400 dark:placeholder-slate-500 transition-all shadow-inner">
+
+                    <button type="button" x-show="searchVal && searchVal.trim() !== ''" @click="clear()"
+                        class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer bg-transparent border-0"
+                        title="Bersihkan pencarian">
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 6 6 18"></path>
+                            <path d="m6 6 12 12"></path>
+                        </svg>
+                    </button>
                 </div>
 
                 <!-- Filter Select Toolbar -->
@@ -157,7 +174,7 @@
         </section>
 
         <!-- TABLE LIST ALUMNI -->
-        <section class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden transition-all w-full">
+        <section id="alumni-table-container" class="animate-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden transition-all w-full">
             <div class="overflow-x-auto">
                 <table class="w-full text-xs border-collapse">
                     <thead>

@@ -15,12 +15,7 @@
         <!-- HEADER SECTION -->
         <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 w-full text-left">
             <div class="flex flex-col gap-0.5">
-                <div class="flex items-center gap-2">
-                    <span class="inline-flex items-center justify-center p-1.5 rounded-lg bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800">
-                        <i data-lucide="activity" class="w-5 h-5"></i>
-                    </span>
-                    <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">DDTK & SDIDTK</h2>
-                </div>
+                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">DDTK & SDIDTK</h2>
                 <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">
                     Deteksi Dini Tumbuh Kembang (DDTK) antropometri fisik dan skrining stimulasi, deteksi & intervensi (SDIDTK) kesehatan anak PAUD.
                 </p>

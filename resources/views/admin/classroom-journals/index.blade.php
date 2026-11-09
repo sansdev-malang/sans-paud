@@ -6,12 +6,7 @@
         <!-- ========================================================================= -->
         <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2.5 w-full text-left">
             <div class="flex flex-col gap-0.5">
-                <div class="flex items-center gap-2">
-                    <span class="inline-flex items-center justify-center p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
-                        <i data-lucide="book-open" class="w-4 h-4 sm:w-5 sm:h-5"></i>
-                    </span>
-                    <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Jurnal Kelas</h2>
-                </div>
+                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Jurnal Kelas</h2>
                 <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">
                     Buku agenda harian guru, catatan aktivitas bermain & belajar, dan laporan kondisi kelas PAUD.
                 </p>
