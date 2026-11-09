@@ -4,19 +4,19 @@
         <!-- GREETING / PAGE TITLE -->
         <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3 w-full text-left">
             <div class="flex flex-col gap-0.5">
-                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Kelas</h2>
-                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Kelola master tingkat/kelas (KB-A, KB-B, TK-A, TK-B, TPA 1, TPQ) berbasis jenjang pendidikan.</p>
+                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Tingkat Kelas</h2>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Kelola master tingkat kelas (KB-A, KB-B, TK-A, TK-B, TPA 1, TPQ) berbasis jenjang pendidikan.</p>
             </div>
             <div class="flex flex-wrap items-center gap-3 shrink-0">
                 <a href="{{ route('classrooms.index') }}"
                     class="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-all duration-100 cursor-pointer">
                     <i data-lucide="shapes" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400"></i>
-                    Rombel / Kelompok
+                    Kelompok Belajar / Rombel
                 </a>
                 <button type="button" @click="openCreateModal()"
                     class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all duration-100 cursor-pointer">
                     <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                    Tambah Kelas
+                    Tambah Tingkat Kelas
                 </button>
             </div>
         </section>
@@ -90,82 +90,100 @@
 
         <!-- FILTER JENJANG TABS -->
         <div class="flex flex-wrap items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+            <button type="button" @click="setJenjangTab(0)"
+                :class="activeJenjangId == 0 ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'"
+                class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5">
+                <span>Semua Jenjang</span>
+            </button>
             @foreach($jenjangs as $j)
                 <button type="button" @click="setJenjangTab({{ $j->id }})"
                     :class="activeJenjangId == {{ $j->id }} ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'"
                     class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5">
-                    @if($j->code === 'KB' || $j->code === 'PG')
-                        <span>🧸</span>
-                    @elseif($j->code === 'TK')
-                        <span>🎒</span>
-                    @elseif($j->code === 'DAYCARE' || $j->code === 'TPA')
-                        <span>👶</span>
-                    @elseif($j->code === 'TPQ')
-                        <span>📖</span>
-                    @endif
                     <span>{{ $j->name }}</span>
                 </button>
             @endforeach
         </div>
 
-        <!-- TABLE DAFTAR KELAS -->
-        <!-- Kolom: jenjang, kelas, status, aksi -->
-        <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden transition-all w-full">
-            <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                    <i data-lucide="layers" class="w-4 h-4 text-indigo-600"></i>
-                    Daftar Kelas
-                </h3>
+        <!-- TABLE DAFTAR TINGKAT KELAS -->
+        <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden w-full">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                        <i data-lucide="list-ordered" class="w-4 h-4 text-indigo-600"></i>
+                        Daftar Tingkat Kelas
+                    </h3>
+                </div>
+
+                <!-- Filter Tahun Ajaran (TA) -->
+                <form method="GET" action="{{ route('class-levels.index') }}" class="flex items-center gap-2">
+                    <input type="hidden" name="jenjang_id" :value="activeJenjangId">
+                    <label class="text-xs text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">Filter TA:</label>
+                    <select name="academic_year_id" onchange="this.form.submit()"
+                        class="h-9 px-3 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-xs">
+                        @foreach($academicYears as $ay)
+                            <option value="{{ $ay->id }}" {{ $selectedYearId == $ay->id ? 'selected' : '' }}>
+                                TA {{ $ay->name }} {{ $ay->is_active ? '(Aktif)' : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                </form>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-xs border-collapse">
                     <thead>
                         <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-900/50">
-                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-56">Jenjang</th>
-                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Kelas</th>
-                            <th class="px-5 py-3.5 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-36">Status</th>
-                            <th class="px-5 py-3.5 text-right text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28">Aksi</th>
+                            <th class="px-5 py-3.5 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-16">Urutan</th>
+                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Nama Tingkat Kelas</th>
+                            <th class="px-5 py-3.5 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Rombel Terdaftar</th>
+                            <th class="px-5 py-3.5 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap w-28">Murid Aktif</th>
+                            <th class="px-5 py-3.5 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28">Status</th>
+                            <th class="px-5 py-3.5 text-right text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-24">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
                         @forelse($classLevels as $lvl)
-                            <tr x-show="activeJenjangId == {{ $lvl->jenjang_id ?: '0' }}" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors group">
-                                <!-- 1. Jenjang (Relasi dari Table Jenjang) -->
+                            <tr x-show="activeJenjangId == 0 || activeJenjangId == {{ $lvl->jenjang_id ?: '0' }}" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors group">
+                                <!-- 1. Urutan -->
+                                <td class="px-5 py-3.5 text-center">
+                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 font-mono font-bold text-slate-700 dark:text-slate-300 text-xs">
+                                        {{ $lvl->order }}
+                                    </span>
+                                </td>
+
+                                <!-- 2. Nama Tingkat Kelas -->
                                 <td class="px-5 py-3.5">
-                                    @if($lvl->jenjang)
-                                        @php
-                                            $jCode = $lvl->jenjang->code;
-                                            $emoji = ($jCode === 'KB' || $jCode === 'PG') ? '🧸' : (($jCode === 'TK') ? '🎒' : (($jCode === 'DAYCARE' || $jCode === 'TPA') ? '👶' : (($jCode === 'TPQ') ? '📖' : '🎓')));
-                                        @endphp
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400 border border-indigo-200/80 dark:border-indigo-800/60 whitespace-nowrap">
-                                            <span>{{ $emoji }}</span>
-                                            <span>{{ $lvl->jenjang->name }}</span>
-                                        </span>
-                                    @else
-                                        <span class="text-slate-400 italic text-xs">-</span>
+                                    <span class="font-bold text-slate-900 dark:text-slate-100 text-xs">
+                                        {{ $lvl->name }}
+                                    </span>
+                                    @if($lvl->description)
+                                        <p class="text-[11px] text-slate-400 mt-0.5">{{ $lvl->description }}</p>
+                                    @elseif($lvl->code)
+                                        <p class="text-[10.5px] text-slate-400 font-mono mt-0.5">Kode: {{ $lvl->code }}</p>
                                     @endif
                                 </td>
 
-                                <!-- 2. Kelas -->
+                                <!-- 3. Rombel Terdaftar -->
                                 <td class="px-5 py-3.5">
-                                    <div class="flex items-center gap-2.5">
-                                        <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0 border border-indigo-100 dark:border-indigo-900/40">
-                                            <i data-lucide="layers" class="w-4 h-4"></i>
-                                        </div>
-                                        <div>
-                                            <span class="font-bold text-slate-900 dark:text-slate-100 text-xs">
-                                                {{ $lvl->name }}
-                                            </span>
-                                            @if($lvl->description)
-                                                <p class="text-[11px] text-slate-400 mt-0.5">{{ $lvl->description }}</p>
-                                            @elseif($lvl->code)
-                                                <p class="text-[10.5px] text-slate-400 font-mono mt-0.5">Kode: {{ $lvl->code }}</p>
-                                            @endif
-                                        </div>
+                                    <div class="flex flex-wrap gap-1.5">
+                                        @forelse($lvl->classrooms as $rombel)
+                                            <a href="{{ route('classrooms.index', ['academic_year_id' => $selectedYearId, 'class_level_id' => $lvl->id]) }}"
+                                                class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/60 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/50 transition-colors"
+                                                title="Lihat Rombel {{ $rombel->name }}">
+                                                {{ $rombel->name }}
+                                            </a>
+                                        @empty
+                                            <span class="text-slate-400 italic text-[11px]">Belum ada rombel di TA ini</span>
+                                        @endforelse
                                     </div>
                                 </td>
 
-                                <!-- 3. Status -->
+                                <!-- 4. Murid Aktif -->
+                                <td class="px-5 py-3.5 text-center">
+                                    <span class="font-bold text-indigo-600 dark:text-indigo-400 font-mono text-sm">{{ $lvl->active_students_count }}</span>
+                                    <span class="text-slate-400 text-[10px] block">murid</span>
+                                </td>
+
+                                <!-- 5. Status -->
                                 <td class="px-5 py-3.5 text-center">
                                     @if($lvl->is_active)
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
@@ -180,17 +198,17 @@
                                     @endif
                                 </td>
 
-                                <!-- 4. Aksi -->
+                                <!-- 6. Aksi -->
                                 <td class="px-5 py-3.5 text-right">
                                     <div class="flex items-center justify-end gap-1">
                                         <button type="button" @click="openEditModal({{ $lvl->id }})"
                                             class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 rounded-lg transition-colors cursor-pointer"
-                                            title="Edit Kelas">
+                                            title="Edit Tingkat Kelas">
                                             <i data-lucide="edit-2" class="w-4 h-4"></i>
                                         </button>
                                         <button type="button" @click="deleteLevel({{ $lvl->id }}, '{{ $lvl->name }}')"
                                             class="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg transition-colors cursor-pointer"
-                                            title="Hapus Kelas">
+                                            title="Hapus Tingkat Kelas">
                                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                                         </button>
                                     </div>
@@ -198,8 +216,8 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="px-6 py-12 text-center text-slate-400">
-                                    Belum ada data Kelas.
+                                <td colspan="6" class="px-6 py-12 text-center text-slate-400">
+                                    Belum ada data Tingkat Kelas.
                                 </td>
                             </tr>
                         @endforelse
@@ -291,7 +309,7 @@
     <script>
         function classLevelApp() {
             const urlParams = new URLSearchParams(window.location.search);
-            const initialJenjangId = urlParams.get('jenjang_id') || '{{ $jenjangs->first()?->id ?? 1 }}';
+            const initialJenjangId = urlParams.has('jenjang_id') ? urlParams.get('jenjang_id') : '0';
 
             return {
                 modalOpen: false,
@@ -319,7 +337,7 @@
                     this.isEdit = false;
                     this.formData = {
                         id: null,
-                        jenjang_id: this.activeJenjangId || '',
+                        jenjang_id: (this.activeJenjangId && this.activeJenjangId !== '0' && this.activeJenjangId !== 0) ? this.activeJenjangId : '{{ $jenjangs->first()?->id ?? '' }}',
                         name: '',
                         code: '',
                         order: 1,
