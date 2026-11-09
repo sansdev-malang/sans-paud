@@ -75,31 +75,9 @@
                             <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors group">
                                 <!-- 1. Jenjang -->
                                 <td class="px-5 py-3.5">
-                                    <div class="flex items-center gap-2.5">
-                                        <div class="w-8 h-8 rounded-lg {{ $j->is_active ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500' }} flex items-center justify-center font-bold text-xs shrink-0">
-                                            @if($j->code === 'KB' || $j->code === 'PG')
-                                                <span>🧸</span>
-                                            @elseif($j->code === 'TK')
-                                                <span>🎒</span>
-                                            @elseif($j->code === 'DAYCARE' || $j->code === 'TPA')
-                                                <span>👶</span>
-                                            @elseif($j->code === 'TPQ')
-                                                <span>📖</span>
-                                            @else
-                                                <i data-lucide="graduation-cap" class="w-4 h-4"></i>
-                                            @endif
-                                        </div>
-                                        <div>
-                                            <span class="font-bold text-slate-900 dark:text-slate-100 text-xs">
-                                                {{ $j->name }}
-                                            </span>
-                                            @if($j->code)
-                                                <span class="ml-1.5 px-1.5 py-0.2 rounded text-[10px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                                                    {{ $j->code }}
-                                                </span>
-                                            @endif
-                                        </div>
-                                    </div>
+                                    <span class="font-bold text-slate-900 dark:text-slate-100 text-xs">
+                                        {{ $j->name }}
+                                    </span>
                                 </td>
 
                                 <!-- 2. Keterangan -->
