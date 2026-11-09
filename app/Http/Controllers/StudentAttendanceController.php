@@ -766,7 +766,14 @@ class StudentAttendanceController extends Controller
             $sheet->getStyle("A7:B{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("E7:{$lastColLetter}{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-            foreach (['A', 'B', 'C', 'D'] as $col) {
+            // Merge title cells
+            $sheet->mergeCells("A1:{$lastColLetter}1");
+            $sheet->mergeCells("A2:{$lastColLetter}2");
+            $sheet->mergeCells("A3:{$lastColLetter}3");
+            $sheet->mergeCells("A4:{$lastColLetter}4");
+
+            $sheet->getColumnDimension('A')->setAutoSize(false)->setWidth(6);
+            foreach (['B', 'C', 'D'] as $col) {
                 $sheet->getColumnDimension($col)->setAutoSize(true);
             }
             for ($d = 1; $d <= $daysInMonth; $d++) {
@@ -794,6 +801,11 @@ class StudentAttendanceController extends Controller
                 $subTitle .= " | Rombel: {$classroom->name} ({$classroom->sub_unit})";
             }
             $sheet->setCellValue('A3', $subTitle);
+
+            // Merge title cells across columns A to G
+            $sheet->mergeCells('A1:G1');
+            $sheet->mergeCells('A2:G2');
+            $sheet->mergeCells('A3:G3');
 
             $sheet->getStyle('A1:A2')->getFont()->setBold(true)->setSize(12);
             $sheet->getStyle('A3')->getFont()->setItalic(true)->setSize(9)->getColor()->setARGB('FF475569');
@@ -868,7 +880,8 @@ class StudentAttendanceController extends Controller
                 'font' => ['bold' => true],
             ]);
 
-            foreach (range(1, 7) as $colIndex) {
+            $sheet->getColumnDimension('A')->setAutoSize(false)->setWidth(6);
+            foreach (range(2, 7) as $colIndex) {
                 $colLetter = Coordinate::stringFromColumnIndex($colIndex);
                 $sheet->getColumnDimension($colLetter)->setAutoSize(true);
             }
