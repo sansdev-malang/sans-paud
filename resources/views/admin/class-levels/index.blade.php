@@ -5,7 +5,7 @@
         <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3 w-full text-left">
             <div class="flex flex-col gap-0.5">
                 <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Tingkat Kelas</h2>
-                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Kelola master tingkat kelas (KB-A, KB-B, TK-A, TK-B, TPA 1, TPQ) berbasis jenjang pendidikan.</p>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Kelola master tingkat kelas (KB-A, KB-B, TK-A, TK-B, TPA, TPQ) berbasis jenjang pendidikan.</p>
             </div>
             <div class="flex flex-wrap items-center gap-3 shrink-0">
                 <a href="{{ route('classrooms.index') }}"
@@ -255,7 +255,7 @@
 
                         <div>
                             <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Tingkat Kelas <span class="text-rose-500">*</span></label>
-                            <input type="text" x-model="formData.name" required placeholder="Contoh: KB-A / KB-B / TK-A / TK-B / TPA 1 / TPQ"
+                            <input type="text" x-model="formData.name" required placeholder="Contoh: KB-A / KB-B / TK-A / TK-B / TPA / TPQ"
                                 class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
                         </div>
 
