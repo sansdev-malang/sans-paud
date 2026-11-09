@@ -102,10 +102,10 @@ class StudentDdtkController extends Controller
             $students = $studentsQuery->orderBy('full_name', 'asc')->get();
         }
 
-        // Existing records for the selected classroom and period
+        // Existing records for the selected classroom and period (cross-classroom synced by student_id)
         $existingRecords = collect();
         if ($selectedClassroom && $students->isNotEmpty()) {
-            $existingRecords = StudentDdtkRecord::where('classroom_id', $selectedClassroom->id)
+            $existingRecords = StudentDdtkRecord::whereIn('student_id', $students->pluck('id'))
                 ->where('period', $selectedPeriod)
                 ->get()
                 ->keyBy('student_id');
@@ -159,8 +159,8 @@ class StudentDdtkController extends Controller
         // Historical Records for Growth Charts (Tab 4)
         $chartHistory = [];
         $distinctPeriods = [];
-        if ($selectedClassroom) {
-            $allHistory = StudentDdtkRecord::where('classroom_id', $selectedClassroom->id)
+        if ($selectedClassroom && $students->isNotEmpty()) {
+            $allHistory = StudentDdtkRecord::whereIn('student_id', $students->pluck('id'))
                 ->orderBy('period', 'asc')
                 ->get();
 
@@ -403,7 +403,7 @@ class StudentDdtkController extends Controller
         }
         $students = $studentsQuery->orderBy('full_name', 'asc')->get();
 
-        $records = StudentDdtkRecord::where('classroom_id', $classroom->id)
+        $records = StudentDdtkRecord::whereIn('student_id', $students->pluck('id'))
             ->where('period', $period)
             ->get()
             ->keyBy('student_id');
@@ -576,7 +576,7 @@ class StudentDdtkController extends Controller
         }
         $students = $studentsQuery->orderBy('full_name', 'asc')->get();
 
-        $records = StudentDdtkRecord::where('classroom_id', $classroom->id)
+        $records = StudentDdtkRecord::whereIn('student_id', $students->pluck('id'))
             ->where('period', $period)
             ->get()
             ->keyBy('student_id');
