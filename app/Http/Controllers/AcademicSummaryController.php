@@ -11,6 +11,7 @@ use App\Models\Student;
 use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -41,6 +42,7 @@ class AcademicSummaryController extends Controller
         $search = $request->get('search');
 
         $reportData = $this->calculateReportData($selectedYearId, $selectedJenjangId, $selectedClassLevelId, $search);
+        $rosterData = $this->calculateTeacherRosterData($selectedYearId);
 
         $classLevels = ClassLevel::with('jenjang')
             ->when($selectedJenjangId && $selectedJenjangId != 0, function ($q) use ($selectedJenjangId) {
@@ -50,7 +52,7 @@ class AcademicSummaryController extends Controller
             ->orderBy('order')
             ->get();
 
-        return view('admin.academic-summary.index', array_merge($reportData, [
+        return view('admin.academic-summary.index', array_merge($reportData, $rosterData, [
             'academicYears' => $academicYears,
             'activeAcademicYear' => $activeAcademicYear,
             'selectedYearId' => $selectedYearId,
@@ -494,6 +496,117 @@ class AcademicSummaryController extends Controller
             'malePercent' => $malePercent,
             'femalePercent' => $femalePercent,
             'pdbkPercent' => $pdbkPercent,
+        ];
+    }
+
+    /**
+     * Calculate teacher roster, assignments, and support educator distribution for Tab 2.
+     */
+    private function calculateTeacherRosterData($academicYearId): array
+    {
+        $employees = Employee::with(['employeeType', 'user'])
+            ->where(function ($q) {
+                $q->whereNull('status')
+                  ->orWhere('status', 'Active')
+                  ->orWhere('status', 'active')
+                  ->orWhere('status', 'Aktif')
+                  ->orWhere('status', 'aktif');
+            })
+            ->orderBy('name', 'asc')
+            ->get();
+
+        $assignments = HomeroomAssignment::where('academic_year_id', $academicYearId)
+            ->where('is_active', true)
+            ->with(['classroom.classLevel', 'classroom.jenjang'])
+            ->get()
+            ->keyBy('employee_id');
+
+        $classrooms = Classroom::where('academic_year_id', $academicYearId)
+            ->whereNotNull('homeroom_teacher_id')
+            ->with(['classLevel', 'jenjang'])
+            ->get()
+            ->keyBy('homeroom_teacher_id');
+
+        $studentsPerClassroom = Student::where('academic_year_id', $academicYearId)
+            ->where(function ($q) {
+                $q->whereNull('status')->orWhere('status', 'Aktif')->orWhere('status', 'aktif');
+            })
+            ->select('classroom_id', DB::raw('count(*) as total'))
+            ->groupBy('classroom_id')
+            ->pluck('total', 'classroom_id');
+
+        $roster = [];
+        $totalTeachers = 0;
+        $totalHomeroom = 0;
+        $totalSupport = 0;
+        $totalStaff = 0;
+
+        foreach ($employees as $emp) {
+            $isTeacher = ($emp->employeeType && ($emp->employeeType->code === 'teacher' || str_contains(strtolower($emp->employeeType->name), 'guru')));
+            $isManagement = ($emp->employeeType && (str_contains(strtolower($emp->employeeType->name), 'manajemen') || $emp->position === 'Kepala Sekolah'));
+
+            $assignedClassroom = null;
+            if ($assignments->has($emp->id)) {
+                $assignedClassroom = $assignments->get($emp->id)->classroom;
+            } elseif ($classrooms->has($emp->id)) {
+                $assignedClassroom = $classrooms->get($emp->id);
+            }
+
+            if ($isTeacher) {
+                $totalTeachers++;
+                if ($assignedClassroom) {
+                    $totalHomeroom++;
+                    $roleLabel = 'Wali Kelas ' . $assignedClassroom->name;
+                    $roleBadge = 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800';
+                    $roleType = 'homeroom';
+                } else {
+                    $totalSupport++;
+                    $roleLabel = 'Guru Pendamping / Sentra / GPK';
+                    $roleBadge = 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800';
+                    $roleType = 'support';
+                }
+            } else {
+                $totalStaff++;
+                $roleLabel = $emp->position ?: ($isManagement ? 'Manajemen PAUD' : ($emp->employeeType?->name ?? 'Tenaga Kependidikan'));
+                $roleBadge = 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700';
+                $roleType = 'staff';
+            }
+
+            $studentCount = $assignedClassroom ? ($studentsPerClassroom->get($assignedClassroom->id) ?? 0) : null;
+
+            $roster[] = [
+                'id' => $emp->id,
+                'name' => $emp->name,
+                'raw_name' => $emp->raw_name,
+                'niy' => $emp->niy ?: ($emp->nuptk ?: '-'),
+                'gender' => $emp->gender ?: '-',
+                'photo_url' => $emp->photo_url,
+                'phone' => $emp->phone,
+                'employee_type' => $emp->employeeType?->name ?? ($isTeacher ? 'Guru' : 'Staf'),
+                'position' => $emp->position ?: '-',
+                'last_education' => $emp->last_education ? ($emp->last_education . ($emp->major ? ' ' . $emp->major : '')) : '-',
+                'employment_status' => $emp->employment_status ?: '-',
+                'is_teacher' => $isTeacher,
+                'role_type' => $roleType,
+                'role_label' => $roleLabel,
+                'role_badge' => $roleBadge,
+                'assigned_classroom' => $assignedClassroom ? [
+                    'id' => $assignedClassroom->id,
+                    'name' => $assignedClassroom->name,
+                    'jenjang_name' => $assignedClassroom->jenjang?->name ?? '-',
+                    'class_level_name' => $assignedClassroom->classLevel?->name ?? '-',
+                    'student_count' => $studentCount,
+                    'capacity' => $assignedClassroom->capacity ?: 15,
+                ] : null,
+            ];
+        }
+
+        return [
+            'teacherRoster' => $roster,
+            'totalTeachers' => $totalTeachers,
+            'totalHomeroom' => $totalHomeroom,
+            'totalSupport' => $totalSupport,
+            'totalStaff' => $totalStaff,
         ];
     }
 }

@@ -1,5 +1,5 @@
 <x-admin-layout>
-    <div class="p-4 sm:p-5 lg:p-6 space-y-4 lg:space-y-5" x-data="{ exportDropdownOpen: false, activeReportTab: 'rekap', activeJenjangFilter: {{ $selectedJenjangId ?: 0 }} }">
+    <div class="p-4 sm:p-5 lg:p-6 space-y-4 lg:space-y-5" x-data="{ exportDropdownOpen: false, activeReportTab: 'rekap', activeJenjangFilter: {{ $selectedJenjangId ?: 0 }}, teacherRoleFilter: 'all', teacherSearch: '' }">
         
         <!-- GREETING / PAGE TITLE -->
         <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3 w-full text-left">
@@ -94,12 +94,12 @@
                 <span>Rekapitulasi Distribusi Murid & Kelompok</span>
             </button>
 
-            <!-- TAB 2 -->
-            <button type="button" @click="activeReportTab = 'sheet_report'"
-                :class="activeReportTab === 'sheet_report' ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 border-transparent'"
+            <!-- TAB 2 (Formasi Pendidik) -->
+            <button type="button" @click="activeReportTab = 'roster'"
+                :class="activeReportTab === 'roster' ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 border-transparent'"
                 class="px-3.5 py-1.5 rounded-lg border transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer">
-                <i data-lucide="table-2" class="w-3.5 h-3.5" :class="activeReportTab === 'sheet_report' ? 'text-indigo-600 dark:text-indigo-400' : ''"></i>
-                <span>Data Murid & Formasi Pendidik</span>
+                <i data-lucide="users-2" class="w-3.5 h-3.5" :class="activeReportTab === 'roster' ? 'text-indigo-600 dark:text-indigo-400' : ''"></i>
+                <span>Formasi & Penugasan Pendidik</span>
             </button>
         </div>
 
@@ -464,123 +464,271 @@
         </div>
 
         <!-- ========================================================================= -->
-        <!-- TAB 2: DATA MURID & FORMASI PENDIDIK -->
+        <!-- TAB 2: FORMASI & PENUGASAN PENDIDIK PAUD -->
         <!-- ========================================================================= -->
-        <div x-show="activeReportTab === 'sheet_report'" class="space-y-4 lg:space-y-5" style="display: none;">
-            <!-- FILTER JENJANG TABS UNTUK TAB 2 -->
-            <div class="flex flex-wrap items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
-                <button type="button" @click="activeJenjangFilter = 0"
-                    :class="activeJenjangFilter == 0 ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'"
-                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5">
-                    <span>Semua Jenjang</span>
-                </button>
-                @foreach($jenjangs as $j)
-                    <button type="button" @click="activeJenjangFilter = {{ $j->id }}"
-                        :class="activeJenjangFilter == {{ $j->id }} ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'"
-                        class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5">
-                        <span>{{ $j->name }}</span>
-                    </button>
-                @endforeach
+        <div x-show="activeReportTab === 'roster'" class="space-y-4 lg:space-y-5" style="display: none;">
+            <!-- 4 SUMMARY CARDS FOR TEACHERS & STAFF -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 lg:gap-3.5">
+                <!-- 1. Total Pendidik (Guru) -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-100 dark:border-indigo-900/40">
+                        <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Total Guru</p>
+                        <div class="flex items-baseline gap-1.5 mt-0.5">
+                            <h3 class="text-xl font-bold tracking-tight text-indigo-600 dark:text-indigo-400 font-mono">{{ $totalTeachers }}</h3>
+                            <span class="text-[10px] text-slate-400 font-medium truncate">Pendidik</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Wali Kelas Bertugas -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/40">
+                        <i data-lucide="user-check" class="w-5 h-5"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Wali Kelas</p>
+                        <div class="flex items-baseline gap-1.5 mt-0.5">
+                            <h3 class="text-xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400 font-mono">{{ $totalHomeroom }}</h3>
+                            <span class="text-[10px] text-slate-400 font-medium truncate">Kelompok</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Guru Pendamping / Sentra -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-100 dark:border-amber-900/40">
+                        <i data-lucide="users-2" class="w-5 h-5"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Pendamping / Sentra</p>
+                        <div class="flex items-baseline gap-1.5 mt-0.5">
+                            <h3 class="text-xl font-bold tracking-tight text-amber-600 dark:text-amber-400 font-mono">{{ $totalSupport }}</h3>
+                            <span class="text-[10px] text-slate-400 font-medium truncate">Pendidik</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Tenaga Kependidikan / Staf -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3 transition-colors">
+                    <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
+                        <i data-lucide="briefcase" class="w-5 h-5"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Staf & Manajemen</p>
+                        <div class="flex items-baseline gap-1.5 mt-0.5">
+                            <h3 class="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-200 font-mono">{{ $totalStaff }}</h3>
+                            <span class="text-[10px] text-slate-400 font-medium truncate">Pegawai</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- SHEET REPORT TABLE -->
+            <!-- EXPLANATORY BANNER TENTANG FORMASI PAUD -->
+            <div class="bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/40 rounded-xl p-3.5 sm:p-4 text-xs text-slate-700 dark:text-slate-300 flex items-start gap-3 shadow-xs">
+                <div class="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5">
+                    <i data-lucide="info" class="w-4 h-4"></i>
+                </div>
+                <div class="space-y-1">
+                    <h4 class="font-bold text-indigo-900 dark:text-indigo-200">
+                        Struktur & Formasi Pendidik PAUD Terpadu Anak Saleh
+                    </h4>
+                    <p class="text-slate-600 dark:text-slate-400 leading-relaxed text-[11.5px]">
+                        Pembelajaran anak usia dini mengadopsi pendekatan sentra dan pendampingan intensif. Sebanyak <strong class="text-indigo-700 dark:text-indigo-300 font-semibold">{{ $totalHomeroom }} Guru</strong> memimpin kelompok belajar sebagai Wali Kelas (penanggung jawab administrasi rapor dan komunikasi orang tua). Sebanyak <strong class="text-amber-700 dark:text-amber-300 font-semibold">{{ $totalSupport }} Guru</strong> lainnya bertindak sebagai Guru Pendamping (*Team Teaching* di kelas), Guru Pendamping Khusus (GPK bagi murid inklusi), Guru Pengasuh Daycare/TPA, dan Guru Al-Qur'an/TPQ.
+                    </p>
+                </div>
+            </div>
+
+            <!-- SEARCH & FILTER TOOLBAR FOR ROSTER -->
+            <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 sm:p-4 shadow-xs w-full">
+                <div class="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+                    <!-- Search Box -->
+                    <div class="relative w-full md:max-w-md">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <i data-lucide="search" class="w-4 h-4 text-slate-400 dark:text-slate-500"></i>
+                        </span>
+                        <input type="text" x-model="teacherSearch" placeholder="Cari nama guru, NIY, jabatan, atau kelompok..."
+                            style="padding-left: 2.25rem;"
+                            class="w-full h-9 pr-4 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50 placeholder-slate-400 dark:placeholder-slate-500 transition-all shadow-inner">
+                    </div>
+
+                    <!-- Role Filter Tabs -->
+                    <div class="flex flex-wrap items-center gap-1.5">
+                        <button type="button" @click="teacherRoleFilter = 'all'"
+                            :class="teacherRoleFilter === 'all' ? 'bg-indigo-600 text-white font-bold shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-800'"
+                            class="px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer">
+                            Semua ({{ count($teacherRoster) }})
+                        </button>
+                        <button type="button" @click="teacherRoleFilter = 'homeroom'"
+                            :class="teacherRoleFilter === 'homeroom' ? 'bg-indigo-600 text-white font-bold shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-800'"
+                            class="px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer">
+                            Wali Kelas ({{ $totalHomeroom }})
+                        </button>
+                        <button type="button" @click="teacherRoleFilter = 'support'"
+                            :class="teacherRoleFilter === 'support' ? 'bg-indigo-600 text-white font-bold shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-800'"
+                            class="px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer">
+                            Pendamping / Sentra ({{ $totalSupport }})
+                        </button>
+                        <button type="button" @click="teacherRoleFilter = 'staff'"
+                            :class="teacherRoleFilter === 'staff' ? 'bg-indigo-600 text-white font-bold shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-800'"
+                            class="px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer">
+                            Staf & Manajemen ({{ $totalStaff }})
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ROSTER TABLE -->
             <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden w-full">
                 <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-900/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                     <div class="flex items-center gap-2">
                         <i data-lucide="users-2" class="w-4 h-4 text-indigo-600 dark:text-indigo-400"></i>
                         <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
-                            Matriks Data Murid & Formasi Pendidik PAUD Terpadu Anak Saleh
+                            Daftar Pendidik & Penugasan TA {{ $selectedYear ? $selectedYear->name : '-' }}
                         </h3>
                     </div>
                     <span class="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
-                        TA {{ $selectedYear ? $selectedYear->name : '-' }}
+                        Total {{ count($teacherRoster) }} Personil
                     </span>
                 </div>
 
                 <div class="overflow-x-auto relative">
                     <table class="w-full text-xs border-collapse">
                         <thead>
-                            <tr class="bg-slate-900 text-white font-bold border-b border-slate-800">
-                                <th rowspan="2" class="px-2.5 py-3 text-center text-[10px] uppercase tracking-wider w-12 sticky left-0 z-30 bg-slate-900 border-r border-slate-800">No</th>
-                                <th rowspan="2" class="px-3.5 py-3 text-left text-[10px] uppercase tracking-wider min-w-[150px] sticky left-12 z-30 bg-slate-900 border-r border-slate-700 shadow-[2px_0_6px_-2px_rgba(0,0,0,0.35)]">Nama Kelompok</th>
-                                <th colspan="4" class="px-3 py-1.5 text-center text-[10px] uppercase tracking-wider bg-slate-800 text-slate-200 border-r border-slate-700">
-                                    Data Peserta Didik
-                                </th>
-                                <th colspan="3" class="px-3 py-1.5 text-center text-[10px] uppercase tracking-wider bg-slate-800 text-slate-200">
-                                    Kapasitas & Pendidik
-                                </th>
-                            </tr>
-                            <tr class="bg-slate-900 text-white font-bold border-b border-slate-800">
-                                <th class="px-2 py-2 text-center text-[10px] uppercase tracking-wider w-12 text-blue-300">L</th>
-                                <th class="px-2 py-2 text-center text-[10px] uppercase tracking-wider w-12 text-pink-300">P</th>
-                                <th class="px-2 py-2 text-center text-[10px] uppercase tracking-wider w-16 text-emerald-300">Total</th>
-                                <th class="px-2 py-2 text-center text-[10px] uppercase tracking-wider w-16 text-purple-300 border-r border-slate-800">Inklusi</th>
-                                <th class="px-3 py-2 text-center text-[10px] uppercase tracking-wider w-36 text-slate-200">Daya Tampung</th>
-                                <th class="px-3 py-2 text-left text-[10px] uppercase tracking-wider min-w-[200px] text-slate-200">Wali Kelas</th>
-                                <th class="px-3 py-2 text-left text-[10px] uppercase tracking-wider min-w-[140px] text-slate-200">Kontak</th>
+                            <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-900/50">
+                                <th class="px-3 py-3 text-center text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-12">No</th>
+                                <th class="px-4 py-3 text-left text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[220px]">Nama Pendidik</th>
+                                <th class="px-3 py-3 text-center text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28">NIY / NIP</th>
+                                <th class="px-4 py-3 text-left text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[260px]">Penugasan & Peran (TA {{ $selectedYear ? $selectedYear->name : '-' }})</th>
+                                <th class="px-3 py-3 text-left text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[150px]">Pendidikan Terakhir</th>
+                                <th class="px-3 py-3 text-center text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-32">Kontak</th>
+                                <th class="px-3 py-3 text-center text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-20">Aksi</th>
                             </tr>
                         </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
+                            @foreach($teacherRoster as $index => $t)
+                                @php
+                                    $searchString = strtolower($t['name'] . ' ' . $t['niy'] . ' ' . $t['role_label'] . ' ' . ($t['assigned_classroom']['name'] ?? '') . ' ' . ($t['position'] ?? ''));
+                                @endphp
+                                <tr x-show="(teacherRoleFilter === 'all' || teacherRoleFilter === '{{ $t['role_type'] }}') && (teacherSearch === '' || '{{ $searchString }}'.includes(teacherSearch.toLowerCase()))"
+                                    class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
+                                    
+                                    <!-- No -->
+                                    <td class="px-3 py-3 text-center text-slate-400 font-mono text-[11px]">
+                                        {{ $index + 1 }}
+                                    </td>
 
-                        @php $sheetRowCounter = 1; @endphp
-                        @foreach($levelReports as $lvl)
-                            <tbody x-show="activeJenjangFilter == 0 || activeJenjangFilter == {{ $lvl['level']->jenjang_id ?: '0' }}" class="divide-y divide-slate-100 dark:divide-slate-800/80">
-                                <!-- Level Subhead -->
-                                <tr class="bg-slate-100/80 dark:bg-slate-800/60 font-bold border-t border-slate-200 dark:border-slate-700">
-                                    <td colspan="9" class="px-3.5 py-2 text-slate-800 dark:text-slate-200">
-                                        <div class="flex items-center justify-between text-xs">
-                                            <span>{{ $lvl['level']->name }} ({{ $lvl['level']->jenjang?->name ?? 'PAUD' }})</span>
-                                            <span class="font-mono text-[11px] text-indigo-600 dark:text-indigo-400">{{ count($lvl['classrooms']) }} Kelompok &bull; {{ $lvl['subtotal_students'] }} Murid</span>
+                                    <!-- Nama Pendidik & Avatar -->
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center gap-3">
+                                            @if(!empty($t['photo_url']))
+                                                <img src="{{ $t['photo_url'] }}" alt="{{ $t['name'] }}"
+                                                    class="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700 shadow-xs">
+                                            @else
+                                                @php
+                                                    $nameParts = explode(' ', trim($t['name']));
+                                                    $initials = strtoupper(substr($nameParts[0], 0, 1) . (isset($nameParts[1]) ? substr($nameParts[1], 0, 1) : ''));
+                                                @endphp
+                                                <div class="w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs flex items-center justify-center shrink-0 border border-indigo-100 dark:border-indigo-900/50">
+                                                    {{ $initials }}
+                                                </div>
+                                            @endif
+                                            <div class="min-w-0">
+                                                <span class="font-bold text-slate-900 dark:text-slate-100 text-xs block truncate">
+                                                    {{ $t['name'] }}
+                                                </span>
+                                                <span class="text-[10px] text-slate-400 dark:text-slate-500 block truncate">
+                                                    {{ $t['employee_type'] }} &bull; {{ $t['gender'] === 'L' ? 'Laki-laki' : ($t['gender'] === 'P' ? 'Perempuan' : '-') }}
+                                                </span>
+                                            </div>
                                         </div>
                                     </td>
-                                </tr>
 
-                                @forelse($lvl['classrooms'] as $cr)
-                                    @php
-                                        $pct = min(100, round(($cr['total'] / ($cr['capacity'] ?: 15)) * 100));
-                                    @endphp
-                                    <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                                        <td class="px-2.5 py-2.5 text-center text-slate-400 font-mono text-[11px] sticky left-0 z-10 bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800">
-                                            {{ $sheetRowCounter++ }}
-                                        </td>
-                                        <td class="px-3.5 py-2.5 font-bold text-slate-900 dark:text-slate-100 text-xs whitespace-nowrap sticky left-12 z-10 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-[2px_0_6px_-2px_rgba(0,0,0,0.06)]">
-                                            {{ $cr['name'] }}
-                                        </td>
-                                        <td class="px-2 py-2 text-center font-mono text-blue-600 font-semibold">
-                                            {{ $cr['male'] }}
-                                        </td>
-                                        <td class="px-2 py-2 text-center font-mono text-pink-600 font-semibold">
-                                            {{ $cr['female'] }}
-                                        </td>
-                                        <td class="px-2 py-2 text-center font-mono font-bold text-slate-900 dark:text-slate-100 bg-slate-50/40">
-                                            {{ $cr['total'] }}
-                                        </td>
-                                        <td class="px-2 py-2 text-center font-mono {{ $cr['pdbk'] > 0 ? 'text-purple-600 font-bold' : 'text-slate-400' }} border-r border-slate-200 dark:border-slate-800">
-                                            {{ $cr['pdbk'] > 0 ? $cr['pdbk'] : '-' }}
-                                        </td>
-                                        <td class="px-3 py-2 text-center">
-                                            <div class="inline-flex items-center gap-1.5 font-mono text-[11px]">
-                                                <span class="font-bold {{ $cr['total'] > $cr['capacity'] ? 'text-rose-600' : 'text-slate-800 dark:text-slate-200' }}">{{ $cr['total'] }}</span>
-                                                <span class="text-slate-400">/</span>
-                                                <span class="text-slate-500">{{ $cr['capacity'] }}</span>
-                                                <span class="text-[10px] text-slate-400">({{ $pct }}%)</span>
+                                    <!-- NIY / NIP -->
+                                    <td class="px-3 py-3 text-center font-mono text-slate-600 dark:text-slate-400 text-[11px]">
+                                        {{ $t['niy'] }}
+                                    </td>
+
+                                    <!-- Penugasan & Peran -->
+                                    <td class="px-4 py-3">
+                                        @if($t['role_type'] === 'homeroom' && $t['assigned_classroom'])
+                                            <div class="flex flex-col gap-0.5">
+                                                <div class="flex items-center gap-1.5 flex-wrap">
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60">
+                                                        Wali Kelas
+                                                    </span>
+                                                    <a href="{{ route('classrooms.index', ['academic_year_id' => $selectedYearId]) }}"
+                                                        class="font-bold text-slate-800 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                                                        Kelompok {{ $t['assigned_classroom']['name'] }}
+                                                    </a>
+                                                </div>
+                                                <span class="text-[10px] text-slate-400">
+                                                    {{ $t['assigned_classroom']['jenjang_name'] }} &bull; {{ $t['assigned_classroom']['class_level_name'] }} ({{ $t['assigned_classroom']['student_count'] }} Murid)
+                                                </span>
                                             </div>
-                                        </td>
-                                        <td class="px-3 py-2 whitespace-nowrap">
-                                            <span class="font-semibold text-slate-800 dark:text-slate-200">{{ $cr['homeroom_teacher'] }}</span>
-                                        </td>
-                                        <td class="px-3 py-2 text-slate-500 font-mono text-[11px] whitespace-nowrap">
-                                            {{ $cr['homeroom_teacher_phone'] ?: '-' }}
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="9" class="px-4 py-3 text-center text-slate-400 italic text-[11px]">
-                                            Tidak ada kelompok belajar pada tingkat ini.
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        @endforeach
+                                        @elseif($t['role_type'] === 'support')
+                                            <div class="flex flex-col gap-0.5">
+                                                <div class="flex items-center gap-1.5">
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/60">
+                                                        Pendamping / Sentra / GPK
+                                                    </span>
+                                                </div>
+                                                <span class="text-[10px] text-slate-400">
+                                                    Tim Co-Teacher Sentra & Pendampingan Tumbuh Kembang
+                                                </span>
+                                            </div>
+                                        @else
+                                            <div class="flex flex-col gap-0.5">
+                                                <div class="flex items-center gap-1.5">
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                                        {{ $t['position'] ?: $t['employee_type'] }}
+                                                    </span>
+                                                </div>
+                                                <span class="text-[10px] text-slate-400">
+                                                    Tenaga Kependidikan & Pendukung PAUD
+                                                </span>
+                                            </div>
+                                        @endif
+                                    </td>
+
+                                    <!-- Pendidikan Terakhir -->
+                                    <td class="px-3 py-3 text-slate-600 dark:text-slate-400 text-[11px]">
+                                        {{ $t['last_education'] }}
+                                    </td>
+
+                                    <!-- Kontak -->
+                                    <td class="px-3 py-3 text-center">
+                                        @if(!empty($t['phone']))
+                                            @php
+                                                $waNum = preg_replace('/[^0-9]/', '', $t['phone']);
+                                                if (str_starts_with($waNum, '0')) {
+                                                    $waNum = '62' . substr($waNum, 1);
+                                                }
+                                            @endphp
+                                            <a href="https://wa.me/{{ $waNum }}" target="_blank"
+                                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800 transition-colors"
+                                                title="Hubungi via WhatsApp">
+                                                <i data-lucide="message-circle" class="w-3 h-3 text-emerald-600"></i>
+                                                <span class="font-mono text-[10.5px]">{{ $t['phone'] }}</span>
+                                            </a>
+                                        @else
+                                            <span class="text-slate-400 text-[10.5px]">-</span>
+                                        @endif
+                                    </td>
+
+                                    <!-- Aksi / Detail Guru -->
+                                    <td class="px-3 py-3 text-center">
+                                        <a href="{{ route('teachers.show', $t['id']) }}"
+                                            class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                            title="Lihat Profil Guru">
+                                            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
                     </table>
                 </div>
             </section>
