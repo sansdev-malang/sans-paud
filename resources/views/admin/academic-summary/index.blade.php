@@ -1,5 +1,5 @@
 <x-admin-layout>
-    <div class="p-4 sm:p-5 lg:p-6 space-y-4 lg:space-y-5" x-data="{ exportDropdownOpen: false, activeReportTab: 'rekap', activeJenjangFilter: {{ $selectedJenjangId ?: 0 }}, selectedLevelFilter: 'all' }">
+    <div class="p-4 sm:p-5 lg:p-6 space-y-4 lg:space-y-5" x-data="{ exportDropdownOpen: false, activeReportTab: 'rekap', activeJenjangFilter: {{ $selectedJenjangId ?: 0 }} }">
         
         <!-- GREETING / PAGE TITLE -->
         <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-3 w-full text-left">
@@ -468,26 +468,20 @@
         <!-- ========================================================================= -->
         <div x-show="activeReportTab === 'sheet_report'" class="space-y-4 lg:space-y-5" style="display: none;">
             
-            <!-- FILTER TINGKAT CEPAT & INFO BAR -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:px-4 sm:py-3 shadow-xs">
-                <div class="flex flex-wrap items-center gap-1.5 text-xs">
-                    <span class="text-slate-500 dark:text-slate-400 font-semibold mr-1">Tingkat Kelas:</span>
-                    <button type="button" @click="selectedLevelFilter = 'all'"
-                        :class="selectedLevelFilter === 'all' ? 'bg-indigo-600 text-white font-bold shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-800'"
-                        class="px-3 py-1.5 rounded-lg transition-all cursor-pointer">
-                        Semua Tingkat
+            <!-- FILTER JENJANG TABS (BERSIH & KONSISTEN) -->
+            <div class="flex flex-wrap items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+                <button type="button" @click="activeJenjangFilter = 0"
+                    :class="activeJenjangFilter == 0 ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'"
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5">
+                    <span>Semua Jenjang</span>
+                </button>
+                @foreach($jenjangs as $j)
+                    <button type="button" @click="activeJenjangFilter = {{ $j->id }}"
+                        :class="activeJenjangFilter == {{ $j->id }} ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'"
+                        class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5">
+                        <span>{{ $j->name }}</span>
                     </button>
-                    @foreach($levelReports as $lvl)
-                        <button type="button" @click="selectedLevelFilter = '{{ $lvl['level']->id }}'"
-                            :class="selectedLevelFilter === '{{ $lvl['level']->id }}' ? 'bg-indigo-600 text-white font-bold shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-800'"
-                            class="px-3 py-1.5 rounded-lg transition-all cursor-pointer">
-                            {{ $lvl['level']->name }}
-                        </button>
-                    @endforeach
-                </div>
-                <div class="text-[11px] text-slate-400 dark:text-slate-500 font-mono hidden md:block">
-                    ↔ Geser tabel ke samping (Nama Kelompok tetap terkunci di kiri)
-                </div>
+                @endforeach
             </div>
 
             <!-- SHEET REPORT TABLE (RESPONSIF DENGAN STICKY KOLOM & BEBAS BADGE MENUMPUK) -->
@@ -535,7 +529,7 @@
 
                         @php $sheetRowCounter = 1; @endphp
                         @foreach($levelReports as $lvl)
-                            <tbody x-show="selectedLevelFilter === 'all' || selectedLevelFilter === '{{ $lvl['level']->id }}'" class="divide-y divide-slate-100 dark:divide-slate-800/80">
+                            <tbody x-show="activeJenjangFilter == 0 || activeJenjangFilter == {{ $lvl['level']->jenjang_id ?: '0' }}" class="divide-y divide-slate-100 dark:divide-slate-800/80">
                                 <!-- LEVEL SECTION WITH COORDINATOR HEADER -->
                                 <tr class="bg-slate-100/90 dark:bg-slate-800/60 border-t-2 border-b border-slate-200 dark:border-slate-700/80">
                                     <td colspan="11" class="px-3.5 py-2">
@@ -672,8 +666,8 @@
                             </tbody>
                         @endforeach
 
-                        <!-- GRAND TOTAL FOOTER (Hanya tampil saat mode Semua Tingkat) -->
-                        <tbody x-show="selectedLevelFilter === 'all'">
+                        <!-- GRAND TOTAL FOOTER (Hanya tampil saat mode Semua Jenjang) -->
+                        <tbody x-show="activeJenjangFilter == 0">
                             <tr class="bg-slate-900 text-white font-bold border-t-2 border-indigo-500 shadow-inner">
                                 <td colspan="2" class="px-4 py-3.5 text-right uppercase tracking-wider text-xs font-bold text-slate-200 sticky left-0 z-10 bg-slate-900 border-r border-slate-800">
                                     JUMLAH MURID KESELURUHAN:
