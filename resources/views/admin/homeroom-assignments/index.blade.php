@@ -5,7 +5,7 @@
         <section class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 w-full text-left">
             <div class="flex flex-col gap-0.5">
                 <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Wali Kelas</h2>
-                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Penugasan wali kelas / pendidik per kelompok belajar tersimpan per tahun ajaran.</p>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Penugasan wali kelas per kelompok belajar tersimpan per tahun ajaran.</p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
                 <a href="{{ route('teachers.index') }}"
@@ -66,7 +66,7 @@
                         <h3 class="text-xl font-bold tracking-tight text-amber-600 dark:text-amber-400 font-mono">
                             {{ number_format($stats['total_teachers'] ?? $teachers->count()) }}
                         </h3>
-                        <span class="text-[10px] text-slate-400 font-medium truncate">Pendidik</span>
+                        <span class="text-[10px] text-slate-400 font-medium truncate">Guru</span>
                     </div>
                 </div>
             </div>
@@ -408,10 +408,10 @@
 
                             <!-- 5. Wali Kelas (Pilihan dari Table Data Guru) -->
                             <div>
-                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Wali Kelas (Pendidik / Guru) <span class="text-rose-500">*</span></label>
+                                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Wali Kelas (Guru) <span class="text-rose-500">*</span></label>
                                 <select x-model="formData.employee_id" required
                                     class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-900 dark:text-slate-50">
-                                    <option value="">-- Pilih Guru / Pendidik --</option>
+                                    <option value="">-- Pilih Guru --</option>
                                     @foreach($teachers as $t)
                                         <option value="{{ $t->id }}">{{ $t->name }} {{ $t->position ? '(' . $t->position . ')' : '' }}</option>
                                     @endforeach

@@ -6,6 +6,7 @@ use App\Models\AcademicYear;
 use App\Models\ClassLevel;
 use App\Models\Classroom;
 use App\Models\Employee;
+use App\Models\EmployeeType;
 use App\Models\Jenjang;
 use App\Models\Student;
 use Illuminate\Http\JsonResponse;
@@ -97,7 +98,11 @@ class ClassroomController extends Controller
 
         $jenjangs = Jenjang::orderBy('order', 'asc')->get();
         $classLevels = ClassLevel::with('jenjang')->whereNotNull('jenjang_id')->where('is_active', true)->orderBy('order')->get();
-        $teachers = Employee::whereIn('status', ['Active', 'aktif', 'active', 'Aktif'])->orderBy('name')->get();
+        $teacherTypeId = EmployeeType::where('code', 'teacher')->value('id');
+        $teachers = Employee::whereIn('status', ['Active', 'aktif', 'active', 'Aktif'])
+            ->when($teacherTypeId, fn($q) => $q->where('employee_type_id', $teacherTypeId))
+            ->orderBy('name')
+            ->get();
 
         return view('admin.classrooms.index', compact(
             'classrooms',

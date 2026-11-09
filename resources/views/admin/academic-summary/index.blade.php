@@ -94,12 +94,12 @@
                 <span>Rekapitulasi Distribusi Murid & Kelompok</span>
             </button>
 
-            <!-- TAB 2 (Data Murid & Formasi Pendidik) -->
+            <!-- TAB 2 (Data Murid & Formasi Guru) -->
             <button type="button" @click="activeReportTab = 'sheet_report'"
                 :class="activeReportTab === 'sheet_report' ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 border-transparent'"
                 class="px-3.5 py-1.5 rounded-lg border transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer">
                 <i data-lucide="table-2" class="w-3.5 h-3.5" :class="activeReportTab === 'sheet_report' ? 'text-indigo-600 dark:text-indigo-400' : ''"></i>
-                <span>Data Murid & Formasi Pendidik</span>
+                <span>Data Murid & Formasi Guru</span>
             </button>
         </div>
 
@@ -464,7 +464,7 @@
         </div>
 
         <!-- ========================================================================= -->
-        <!-- TAB 2: MATRIKS PENDIDIK & KELOMPOK (STRUKTUR LENGKAP SHEET 2 / REPORT TU) -->
+        <!-- TAB 2: MATRIKS GURU & KELOMPOK (STRUKTUR LENGKAP SHEET 2 / REPORT TU) -->
         <!-- ========================================================================= -->
         <div x-show="activeReportTab === 'sheet_report'" class="space-y-4 lg:space-y-5" style="display: none;">
             
@@ -491,7 +491,7 @@
                     <div class="flex items-center gap-2">
                         <i data-lucide="users-2" class="w-4 h-4 text-indigo-600 dark:text-indigo-400"></i>
                         <h2 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
-                            Data Murid & Formasi Pendidik {{ function_exists('setting') ? setting('unit_name', 'PAUD Terpadu Anak Saleh') : 'PAUD Terpadu Anak Saleh' }}
+                            Data Murid & Formasi Guru {{ function_exists('setting') ? setting('unit_name', 'PAUD Terpadu Anak Saleh') : 'PAUD Terpadu Anak Saleh' }}
                         </h2>
                     </div>
                     <span class="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
@@ -510,7 +510,7 @@
                                     Data Murid
                                 </th>
                                 <th colspan="5" class="px-3 py-1.5 text-center text-[10px] uppercase tracking-wider bg-slate-800 text-slate-200">
-                                    Formasi Guru & Tenaga Pendidik
+                                    Formasi Guru
                                 </th>
                             </tr>
                             <!-- ROW 2: SUBHEADER DETAIL -->

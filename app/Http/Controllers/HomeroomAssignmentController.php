@@ -107,22 +107,14 @@ class HomeroomAssignmentController extends Controller
             ? $classLevels->where('jenjang_id', $selectedJenjangId)
             : $classLevels;
 
-        // Teachers (Employees with teacher type or active status)
+        // Teachers strictly with teacher type (Guru)
         $teacherTypeId = EmployeeType::where('code', 'teacher')->value('id');
-        $teachers = Employee::where('status', 'Active')
+        $teachers = Employee::whereIn('status', ['Active', 'aktif', 'active', 'Aktif'])
             ->when($teacherTypeId, function ($q) use ($teacherTypeId) {
-                $q->where(function ($sq) use ($teacherTypeId) {
-                    $sq->where('employee_type_id', $teacherTypeId)
-                       ->orWhere('position', 'like', '%guru%')
-                       ->orWhere('position', 'like', '%wali%');
-                });
+                $q->where('employee_type_id', $teacherTypeId);
             })
             ->orderBy('name', 'asc')
             ->get();
-
-        if ($teachers->isEmpty()) {
-            $teachers = Employee::where('status', 'Active')->orderBy('name', 'asc')->get();
-        }
 
         $stats = [
             'total_assignments' => HomeroomAssignment::where('academic_year_id', $selectedYearId)->count(),
