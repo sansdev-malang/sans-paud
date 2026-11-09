@@ -7,17 +7,17 @@
                 <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">
                     Rekapitulasi Rombel
                 </h2>
-                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Laporan komprehensif distribusi peserta didik, rasio gender, inklusi (PDBK), dan penugasan wali kelas {{ function_exists('setting') ? setting('unit_name', 'PAUD Terpadu Anak Saleh') : 'PAUD Terpadu Anak Saleh' }}.</p>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Laporan komprehensif distribusi peserta didik, rasio gender, PDBK, dan penugasan wali kelas {{ function_exists('setting') ? setting('unit_name', 'PAUD Terpadu Anak Saleh') : 'PAUD Terpadu Anak Saleh' }}.</p>
             </div>
 
             <!-- ACTION CONTROLS & FILTER -->
-            <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <div class="flex items-center gap-2 shrink-0">
                 <!-- Filter Tahun Ajaran -->
-                <form action="{{ route('academic-summary.index') }}" method="GET" class="flex items-center">
+                <form action="{{ route('academic-summary.index') }}" method="GET" class="m-0 p-0 flex items-center">
                     <input type="hidden" name="jenjang_id" :value="activeJenjangFilter">
-                    <div class="relative">
+                    <div class="relative flex items-center">
                         <select name="academic_year_id" onchange="this.form.submit()"
-                            class="h-8.5 pl-8 pr-8 text-xs font-semibold rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-xs cursor-pointer appearance-none transition-colors">
+                            class="h-9 pl-8 pr-8 text-xs font-semibold rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-xs cursor-pointer appearance-none transition-colors">
                             @foreach($academicYears as $ay)
                                 <option value="{{ $ay->id }}" {{ $selectedYearId == $ay->id ? 'selected' : '' }}>
                                     TA {{ $ay->name }} {{ $ay->is_active ? '(Aktif)' : '' }}
@@ -30,9 +30,9 @@
                 </form>
 
                 <!-- DROPDOWN EKSPOR & CETAK -->
-                <div class="relative" @click.outside="exportDropdownOpen = false">
+                <div class="relative flex items-center" @click.outside="exportDropdownOpen = false">
                     <button type="button" @click="exportDropdownOpen = !exportDropdownOpen"
-                        class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-all cursor-pointer">
+                        class="h-9 inline-flex items-center justify-center gap-1.5 px-3.5 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-all cursor-pointer">
                         <i data-lucide="download" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400"></i>
                         <span>Ekspor & Cetak</span>
                         <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': exportDropdownOpen }"></i>
@@ -46,7 +46,7 @@
                         x-transition:leave-start="transform opacity-100 scale-100"
                         x-transition:leave-end="transform opacity-0 scale-95"
                         x-cloak
-                        class="absolute right-0 mt-1.5 w-60 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-1.5 z-50 divide-y divide-slate-100 dark:divide-slate-800/60">
+                        class="absolute right-0 top-full mt-1.5 w-60 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-1.5 z-50 divide-y divide-slate-100 dark:divide-slate-800/60">
                         
                         <div class="px-3 py-1.5 bg-slate-50/50 dark:bg-slate-800/30">
                             <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Pilihan Format Dokumen</p>
