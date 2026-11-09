@@ -178,6 +178,12 @@ class StudentController extends Controller
                 $q->where('class_level_id', $selectedClassLevelId)
                   ->orWhereHas('classroom', function ($sq) use ($selectedClassLevelId) {
                       $sq->where('class_level_id', $selectedClassLevelId);
+                  })
+                  ->orWhereHas('daycareClassroom', function ($sq) use ($selectedClassLevelId) {
+                      $sq->where('class_level_id', $selectedClassLevelId);
+                  })
+                  ->orWhereHas('tpqClassroom', function ($sq) use ($selectedClassLevelId) {
+                      $sq->where('class_level_id', $selectedClassLevelId);
                   });
             });
         }
@@ -228,6 +234,12 @@ class StudentController extends Controller
             $statsAgg->where(function ($q) use ($selectedClassLevelId) {
                 $q->where('class_level_id', $selectedClassLevelId)
                   ->orWhereHas('classroom', function ($sq) use ($selectedClassLevelId) {
+                      $sq->where('class_level_id', $selectedClassLevelId);
+                  })
+                  ->orWhereHas('daycareClassroom', function ($sq) use ($selectedClassLevelId) {
+                      $sq->where('class_level_id', $selectedClassLevelId);
+                  })
+                  ->orWhereHas('tpqClassroom', function ($sq) use ($selectedClassLevelId) {
                       $sq->where('class_level_id', $selectedClassLevelId);
                   });
             });
@@ -1471,6 +1483,12 @@ class StudentController extends Controller
                 $query->where(function ($q) use ($classLevelId) {
                     $q->where('class_level_id', $classLevelId)
                       ->orWhereHas('classroom', function ($sq) use ($classLevelId) {
+                          $sq->where('class_level_id', $classLevelId);
+                      })
+                      ->orWhereHas('daycareClassroom', function ($sq) use ($classLevelId) {
+                          $sq->where('class_level_id', $classLevelId);
+                      })
+                      ->orWhereHas('tpqClassroom', function ($sq) use ($classLevelId) {
                           $sq->where('class_level_id', $classLevelId);
                       });
                 });
