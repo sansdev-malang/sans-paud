@@ -39,6 +39,59 @@ class User extends Authenticatable
     }
 
     /**
+     * Get a descriptive, human-friendly role name for display in UI and profile cards.
+     */
+    public function getRoleDisplayName(): string
+    {
+        if ($this->hasRole('super_admin') || $this->role === 'superadmin') {
+            return 'Super Admin';
+        }
+        if ($this->hasRole('admin_paud') || $this->role === 'admin') {
+            return 'Admin PAUD';
+        }
+        if ($this->hasRole('admin_sd')) {
+            return 'Admin SD';
+        }
+        if ($this->hasRole('admin_smp')) {
+            return 'Admin SMP';
+        }
+        if ($this->hasRole('kepala_sekolah')) {
+            return 'Kepala Sekolah';
+        }
+        if ($this->hasRole('waka')) {
+            return 'Wakil Kepala Sekolah';
+        }
+
+        if ($this->employee_id) {
+            return \Illuminate\Support\Facades\Cache::remember('user_role_display_' . $this->id, 60, function () {
+                $assignments = \App\Models\HomeroomAssignment::where('employee_id', $this->employee_id)
+                    ->where('is_active', true)
+                    ->with('classroom')
+                    ->get();
+
+                if ($assignments->isNotEmpty()) {
+                    $classNames = $assignments->pluck('classroom.name')->filter()->unique()->implode(', ');
+                    return 'Wali Kelompok ' . ($classNames ?: '');
+                }
+
+                $cls = \App\Models\Classroom::where('homeroom_teacher_id', $this->employee_id)->first();
+                if ($cls) {
+                    return 'Wali Kelompok ' . $cls->name;
+                }
+
+                $emp = $this->employee;
+                if ($emp && $emp->position) {
+                    return $emp->position;
+                }
+
+                return $this->isTeacher() ? 'Pendidik / Guru' : 'Pegawai';
+            });
+        }
+
+        return ucwords(str_replace('_', ' ', $this->role ?? 'User'));
+    }
+
+    /**
      * Check if user has an admin-level role.
      */
     public function isAdmin(): bool
