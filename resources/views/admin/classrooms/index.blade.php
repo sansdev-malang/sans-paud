@@ -202,13 +202,6 @@
                                     <span class="font-bold text-slate-900 dark:text-slate-100 text-xs tracking-tight">
                                         {{ $c->name }}
                                     </span>
-                                    <div class="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1.5">
-                                        <span>Tingkat: {{ $c->classLevel?->name ?? '-' }}</span>
-                                        @if($c->code)
-                                            <span>&bull;</span>
-                                            <span class="font-mono text-[10px]">{{ $c->code }}</span>
-                                        @endif
-                                    </div>
                                 </td>
 
                                 <!-- 3. Tahun Ajaran -->
