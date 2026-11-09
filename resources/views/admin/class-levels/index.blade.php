@@ -144,10 +144,8 @@
                         @forelse($classLevels as $lvl)
                             <tr x-show="activeJenjangId == 0 || activeJenjangId == {{ $lvl->jenjang_id ?: '0' }}" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors group">
                                 <!-- 1. Urutan -->
-                                <td class="px-5 py-3.5 text-center">
-                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 font-mono font-bold text-slate-700 dark:text-slate-300 text-xs">
-                                        {{ $lvl->order }}
-                                    </span>
+                                <td class="px-5 py-3.5 text-center text-slate-500 dark:text-slate-400 font-medium font-mono text-xs">
+                                    {{ $lvl->order }}
                                 </td>
 
                                 <!-- 2. Nama Tingkat Kelas -->
@@ -163,35 +161,33 @@
                                 </td>
 
                                 <!-- 3. Rombel Terdaftar -->
-                                <td class="px-5 py-3.5">
-                                    <div class="flex flex-wrap gap-1.5">
-                                        @forelse($lvl->classrooms as $rombel)
-                                            <a href="{{ route('classrooms.index', ['academic_year_id' => $selectedYearId, 'class_level_id' => $lvl->id]) }}"
-                                                class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/60 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/50 transition-colors"
-                                                title="Lihat Rombel {{ $rombel->name }}">
-                                                {{ $rombel->name }}
-                                            </a>
-                                        @empty
-                                            <span class="text-slate-400 italic text-[11px]">Belum ada rombel di TA ini</span>
-                                        @endforelse
-                                    </div>
+                                <td class="px-5 py-3.5 text-slate-700 dark:text-slate-300">
+                                    @forelse($lvl->classrooms as $rombel)
+                                        <a href="{{ route('classrooms.index', ['academic_year_id' => $selectedYearId, 'class_level_id' => $lvl->id]) }}"
+                                            class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:underline font-medium transition-colors"
+                                            title="Lihat Rombel {{ $rombel->name }}">
+                                            {{ $rombel->name }}
+                                        </a>{{ !$loop->last ? ', ' : '' }}
+                                    @empty
+                                        <span class="text-slate-400 italic text-[11px]">-</span>
+                                    @endforelse
                                 </td>
 
                                 <!-- 4. Murid Aktif -->
-                                <td class="px-5 py-3.5 text-center">
-                                    <span class="font-bold text-indigo-600 dark:text-indigo-400 font-mono text-sm">{{ $lvl->active_students_count }}</span>
-                                    <span class="text-slate-400 text-[10px] block">murid</span>
+                                <td class="px-5 py-3.5 text-center whitespace-nowrap">
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200 font-mono text-xs">{{ $lvl->active_students_count }}</span>
+                                    <span class="text-slate-400 text-[11px] ml-0.5">murid</span>
                                 </td>
 
                                 <!-- 5. Status -->
-                                <td class="px-5 py-3.5 text-center">
+                                <td class="px-5 py-3.5 text-center whitespace-nowrap">
                                     @if($lvl->is_active)
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                        <span class="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                             Aktif
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
+                                        <span class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-400 dark:text-slate-500">
                                             <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
                                             Non-aktif
                                         </span>
