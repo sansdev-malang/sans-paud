@@ -21,6 +21,10 @@
                 clearSearch() {
                     this.searchQuery = '';
                     this.executeLiveSearch();
+                    this.$nextTick(() => {
+                        const input = document.getElementById('student-search-input');
+                        if (input) input.focus();
+                    });
                 },
 
                 executeLiveSearch() {
@@ -66,7 +70,9 @@
                         window.history.replaceState({}, '', url);
 
                         this.$nextTick(() => {
-                            if (window.lucide) lucide.createIcons();
+                            if (window.lucide && currentTable) {
+                                lucide.createIcons({ root: currentTable });
+                            }
                         });
                     })
                     .catch(err => {
@@ -341,25 +347,29 @@
             <form id="filter-form" method="GET" action="{{ route('students.index') }}" @submit.prevent="executeLiveSearch()" class="flex items-center justify-between gap-3 w-full overflow-x-auto whitespace-nowrap py-0.5">
                 <!-- SISI KIRI: Live Search Box -->
                 <div class="relative w-52 sm:w-64 shrink-0">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-400">
-                        <template x-if="isSearching">
-                            <svg class="animate-spin h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                            </svg>
-                        </template>
-                        <template x-if="!isSearching">
-                            <i data-lucide="search" class="w-3.5 h-3.5"></i>
-                        </template>
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none">
+                        <!-- Loading spinner during search -->
+                        <svg x-show="isSearching" x-cloak class="animate-spin w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                        </svg>
+                        <!-- Magnifier glass when idle -->
+                        <svg x-show="!isSearching" class="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.3-4.3"></path>
+                        </svg>
                     </span>
 
-                    <input type="text" name="search" x-model="searchQuery" @input="liveSearch()" placeholder="Cari nama, NIS, NIK, Ortu..."
+                    <input type="text" id="student-search-input" name="search" x-model="searchQuery" @input="liveSearch()" placeholder="Cari nama, NIS, NIK, Ortu..."
                         class="w-full h-8 pl-8 pr-7 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900 dark:text-slate-50 placeholder-slate-400 transition-colors">
 
                     <button type="button" x-show="searchQuery && searchQuery.trim() !== ''" @click="clearSearch()"
                         class="absolute inset-y-0 right-0 flex items-center pr-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer bg-transparent border-0"
                         title="Bersihkan pencarian">
-                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 6 6 18"></path>
+                            <path d="m6 6 12 12"></path>
+                        </svg>
                     </button>
                 </div>
 
