@@ -6,6 +6,74 @@
                 importModalOpen: false,
                 exportDropdownOpen: false,
                 downloadingTemplate: false,
+                searchQuery: '{{ addslashes(request('search', '')) }}',
+                isSearching: false,
+                searchTimer: null,
+
+                liveSearch() {
+                    clearTimeout(this.searchTimer);
+                    this.isSearching = true;
+                    this.searchTimer = setTimeout(() => {
+                        this.executeLiveSearch();
+                    }, 350);
+                },
+
+                clearSearch() {
+                    this.searchQuery = '';
+                    this.executeLiveSearch();
+                },
+
+                executeLiveSearch() {
+                    const form = document.getElementById('filter-form');
+                    if (!form) return;
+
+                    const formData = new FormData(form);
+                    formData.set('search', this.searchQuery);
+                    const params = new URLSearchParams(formData);
+
+                    // Clean empty params
+                    for (const [key, value] of [...params.entries()]) {
+                        if (!value && value !== '0') params.delete(key);
+                    }
+
+                    const actionUrl = form.getAttribute('action') || window.location.pathname;
+                    const url = `${actionUrl}?${params.toString()}`;
+                    this.isSearching = true;
+
+                    fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(res => res.text())
+                    .then(html => {
+                        this.isSearching = false;
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+
+                        const newTable = doc.getElementById('student-table-container');
+                        const currentTable = document.getElementById('student-table-container');
+                        if (newTable && currentTable) {
+                            currentTable.innerHTML = newTable.innerHTML;
+                        }
+
+                        const newStats = doc.getElementById('stats-kpi-container');
+                        const currentStats = document.getElementById('stats-kpi-container');
+                        if (newStats && currentStats) {
+                            currentStats.innerHTML = newStats.innerHTML;
+                        }
+
+                        window.history.replaceState({}, '', url);
+
+                        this.$nextTick(() => {
+                            if (window.lucide) lucide.createIcons();
+                        });
+                    })
+                    .catch(err => {
+                        this.isSearching = false;
+                        console.error('Live search error:', err);
+                    });
+                },
 
                 downloadTemplate() {
                     this.downloadingTemplate = true;
@@ -176,7 +244,7 @@
         @endif
 
         <!-- STATS CARDS GRID -->
-        <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3 lg:gap-3.5">
+        <section id="stats-kpi-container" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3 lg:gap-3.5">
             <!-- Stat Card 1: Total Murid Aktif -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-xs flex flex-col justify-between">
                 <div class="flex justify-between items-start">
@@ -268,104 +336,121 @@
             </div>
         </section>
 
-        <!-- SEARCH & FILTERS (SEJAJAR SATU BARIS RAPI) -->
+        <!-- SEARCH & FILTERS (SEARCH DI KIRI, FILTER DI KANAN, SATU BARIS RAPI) -->
         <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 sm:p-3 shadow-xs w-full">
-            <form method="GET" action="{{ route('students.index') }}" class="flex items-center gap-1.5 sm:gap-2 w-full overflow-x-auto whitespace-nowrap py-0.5">
-                <!-- Search Box -->
-                <div class="relative w-44 sm:w-52 shrink-0">
+            <form id="filter-form" method="GET" action="{{ route('students.index') }}" @submit.prevent="executeLiveSearch()" class="flex items-center justify-between gap-3 w-full overflow-x-auto whitespace-nowrap py-0.5">
+                <!-- SISI KIRI: Live Search Box -->
+                <div class="relative w-52 sm:w-64 shrink-0">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-400">
-                        <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                        <template x-if="isSearching">
+                            <svg class="animate-spin h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                            </svg>
+                        </template>
+                        <template x-if="!isSearching">
+                            <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                        </template>
                     </span>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama, NIS, NIK..."
-                        class="w-full h-8 pl-8 pr-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900 dark:text-slate-50 placeholder-slate-400">
+
+                    <input type="text" name="search" x-model="searchQuery" @input="liveSearch()" placeholder="Cari nama, NIS, NIK, Ortu..."
+                        class="w-full h-8 pl-8 pr-7 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900 dark:text-slate-50 placeholder-slate-400 transition-colors">
+
+                    <button type="button" x-show="searchQuery && searchQuery.trim() !== ''" @click="clearSearch()"
+                        class="absolute inset-y-0 right-0 flex items-center pr-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer bg-transparent border-0"
+                        title="Bersihkan pencarian">
+                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                    </button>
                 </div>
 
-                <!-- Filter Tahun Ajaran -->
-                <select name="academic_year_id" onchange="this.form.submit()"
-                    class="h-8 px-2 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-xs shrink-0">
-                    <option value="all" {{ ($selectedYearId ?? '') === 'all' ? 'selected' : '' }}>Semua TA</option>
-                    @foreach($academicYears as $year)
-                        <option value="{{ $year->id }}" {{ ($selectedYearId ?? '') == $year->id ? 'selected' : '' }}>
-                            TA {{ $year->name }} {{ $year->is_active ? '★' : '' }}
-                        </option>
-                    @endforeach
-                </select>
+                <!-- SISI KANAN: Filter Selects Toolbar -->
+                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                    <!-- Filter Tahun Ajaran -->
+                    <select name="academic_year_id" @change="executeLiveSearch()"
+                        class="h-8 px-2 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-xs">
+                        <option value="all" {{ ($selectedYearId ?? '') === 'all' ? 'selected' : '' }}>Semua TA</option>
+                        @foreach($academicYears as $year)
+                            <option value="{{ $year->id }}" {{ ($selectedYearId ?? '') == $year->id ? 'selected' : '' }}>
+                                TA {{ $year->name }} {{ $year->is_active ? '★' : '' }}
+                            </option>
+                        @endforeach
+                    </select>
 
-                <!-- Filter Jenjang -->
-                <select name="jenjang_id" onchange="this.form.submit()"
-                    class="h-8 px-2 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-xs shrink-0">
-                    <option value="all" {{ ($selectedJenjangId ?? 'all') === 'all' ? 'selected' : '' }}>Semua Jenjang</option>
-                    @foreach($jenjangs as $j)
-                        <option value="{{ $j->id }}" {{ ($selectedJenjangId ?? '') == $j->id ? 'selected' : '' }}>
-                            {{ $j->name }}
-                        </option>
-                    @endforeach
-                </select>
+                    <!-- Filter Jenjang -->
+                    <select name="jenjang_id" @change="executeLiveSearch()"
+                        class="h-8 px-2 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-xs">
+                        <option value="all" {{ ($selectedJenjangId ?? 'all') === 'all' ? 'selected' : '' }}>Semua Jenjang</option>
+                        @foreach($jenjangs as $j)
+                            <option value="{{ $j->id }}" {{ ($selectedJenjangId ?? '') == $j->id ? 'selected' : '' }}>
+                                {{ $j->name }}
+                            </option>
+                        @endforeach
+                    </select>
 
-                <!-- Filter Tingkat Kelas -->
-                <select name="class_level_id" onchange="this.form.submit()"
-                    class="h-8 px-2 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-xs shrink-0">
-                    <option value="all">Semua Tingkat</option>
-                    @foreach($classLevels as $lvl)
-                        <option value="{{ $lvl->id }}" {{ request('class_level_id') == $lvl->id ? 'selected' : '' }}>
-                            {{ $lvl->name }}
-                        </option>
-                    @endforeach
-                </select>
+                    <!-- Filter Tingkat Kelas -->
+                    <select name="class_level_id" @change="executeLiveSearch()"
+                        class="h-8 px-2 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-xs">
+                        <option value="all">Semua Tingkat</option>
+                        @foreach($classLevels as $lvl)
+                            <option value="{{ $lvl->id }}" {{ request('class_level_id') == $lvl->id ? 'selected' : '' }}>
+                                {{ $lvl->name }}
+                            </option>
+                        @endforeach
+                    </select>
 
-                <!-- Filter Kelompok Belajar -->
-                <select name="classroom_id" onchange="this.form.submit()"
-                    class="h-8 px-2 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-xs max-w-[130px] truncate shrink-0">
-                    <option value="all">Semua Kelompok</option>
-                    @foreach($classrooms as $rombel)
-                        <option value="{{ $rombel->id }}" {{ request('classroom_id') == $rombel->id ? 'selected' : '' }}>
-                            {{ $rombel->name }}
-                        </option>
-                    @endforeach
-                </select>
+                    <!-- Filter Kelompok Belajar -->
+                    <select name="classroom_id" @change="executeLiveSearch()"
+                        class="h-8 px-2 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-xs max-w-[130px] truncate">
+                        <option value="all">Semua Kelompok</option>
+                        @foreach($classrooms as $rombel)
+                            <option value="{{ $rombel->id }}" {{ request('classroom_id') == $rombel->id ? 'selected' : '' }}>
+                                {{ $rombel->name }}
+                            </option>
+                        @endforeach
+                    </select>
 
-                <!-- Filter Tipe Murid (Reguler / Inklusi PDBK) -->
-                <select name="student_type" onchange="this.form.submit()"
-                    class="h-8 px-2 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-xs shrink-0">
-                    <option value="">Semua Tipe</option>
-                    <option value="REGULER" {{ ($selectedStudentType ?? request('student_type')) == 'REGULER' ? 'selected' : '' }}>Reguler</option>
-                    <option value="PDBK" {{ ($selectedStudentType ?? request('student_type')) == 'PDBK' ? 'selected' : '' }}>PDBK (Inklusi)</option>
-                </select>
+                    <!-- Filter Tipe Murid (Reguler / Inklusi PDBK) -->
+                    <select name="student_type" @change="executeLiveSearch()"
+                        class="h-8 px-2 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-xs">
+                        <option value="">Semua Tipe</option>
+                        <option value="REGULER" {{ ($selectedStudentType ?? request('student_type')) == 'REGULER' ? 'selected' : '' }}>Reguler</option>
+                        <option value="PDBK" {{ ($selectedStudentType ?? request('student_type')) == 'PDBK' ? 'selected' : '' }}>PDBK (Inklusi)</option>
+                    </select>
 
-                <!-- Filter Status -->
-                <select name="status" onchange="this.form.submit()"
-                    class="h-8 px-2 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-xs shrink-0">
-                    <option value="all">Semua Status</option>
-                    <option value="aktif" {{ request('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>
-                    <option value="lulus" {{ request('status') == 'lulus' ? 'selected' : '' }}>Lulus</option>
-                    <option value="mutasi" {{ request('status') == 'mutasi' ? 'selected' : '' }}>Mutasi</option>
-                    <option value="keluar" {{ request('status') == 'keluar' ? 'selected' : '' }}>Keluar</option>
-                    <option value="nonaktif" {{ request('status') == 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
-                </select>
+                    <!-- Filter Status -->
+                    <select name="status" @change="executeLiveSearch()"
+                        class="h-8 px-2 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-xs">
+                        <option value="all">Semua Status</option>
+                        <option value="aktif" {{ request('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>
+                        <option value="lulus" {{ request('status') == 'lulus' ? 'selected' : '' }}>Lulus</option>
+                        <option value="mutasi" {{ request('status') == 'mutasi' ? 'selected' : '' }}>Mutasi</option>
+                        <option value="keluar" {{ request('status') == 'keluar' ? 'selected' : '' }}>Keluar</option>
+                        <option value="nonaktif" {{ request('status') == 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
+                    </select>
 
-                <!-- Filter Jumlah Baris (Per Page) -->
-                <select name="per_page" onchange="this.form.submit()"
-                    class="h-8 px-2 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-xs shrink-0"
-                    title="Tampilkan jumlah baris per halaman">
-                    <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15 baris</option>
-                    <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25 baris</option>
-                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 baris</option>
-                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100 baris</option>
-                    <option value="all" {{ request('per_page') === 'all' ? 'selected' : '' }}>Semua Baris</option>
-                </select>
+                    <!-- Filter Jumlah Baris (Per Page) -->
+                    <select name="per_page" @change="executeLiveSearch()"
+                        class="h-8 px-2 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-xs"
+                        title="Tampilkan jumlah baris per halaman">
+                        <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15 baris</option>
+                        <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25 baris</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 baris</option>
+                        <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100 baris</option>
+                        <option value="all" {{ request('per_page') === 'all' ? 'selected' : '' }}>Semua</option>
+                    </select>
 
-                @if(request()->hasAny(['search', 'academic_year_id', 'jenjang_id', 'class_level_id', 'classroom_id', 'student_type', 'status', 'gender']) || (request('per_page') && request('per_page') != 15))
+                    <!-- Reset Button -->
                     <a href="{{ route('students.index') }}" 
                         class="h-8 px-2.5 inline-flex items-center justify-center text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors shrink-0"
                         title="Reset Filter">
                         <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
                     </a>
-                @endif
+                </div>
             </form>
         </section>
 
         <!-- TABLE LIST MURID -->
-        <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden w-full">
+        <section id="student-table-container" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden w-full">
             <div class="overflow-x-auto">
                 <table class="w-full text-xs border-collapse">
                     <thead>
@@ -380,7 +465,7 @@
                             <th class="px-3 py-2.5 sm:px-4 sm:py-3 text-right text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-24 sm:w-28 whitespace-nowrap">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
+                    <tbody :class="{ 'opacity-50 transition-opacity duration-150': isSearching }" class="divide-y divide-slate-100 dark:divide-slate-800/80">
                         @forelse($students as $index => $s)
                             @php
                                 $isPdbk = ($s->special_needs && (in_array($s->special_needs, ['02) Ya', 'Ya']) || !str_contains(strtolower($s->special_needs), 'tidak'))) || !empty($s->special_needs_detail);
