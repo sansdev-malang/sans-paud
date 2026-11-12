@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jurnal Pembelajaran Kelas - {{ $classroom->name }} - {{ $monthName }} {{ $year }}</title>
+    <title>Jurnal Pembelajaran Kelas - {{ $classroom ? $classroom->name : 'Semua Rombel' }} - {{ $monthName }} {{ $year }}</title>
     <style>
         @page {
             size: A4 portrait;
@@ -142,8 +142,8 @@
     <!-- META INFORMATION -->
     <div class="meta-info">
         <div>
-            <p><span class="label">Rombel / Kelompok</span>: <strong>{{ $classroom->name }}</strong> ({{ $classroom->sub_unit }})</p>
-            <p><span class="label">Wali Kelas</span>: {{ $classroom->homeroomTeacher?->name ?? 'Belum Ditugaskan' }}</p>
+            <p><span class="label">Rombel / Kelompok</span>: <strong>{{ $classroom ? $classroom->name . ' (' . $classroom->sub_unit . ')' : 'Semua Rombel / Kelas' }}</strong></p>
+            <p><span class="label">Wali Kelas</span>: {{ $classroom ? ($classroom->homeroomTeacher?->name ?? 'Belum Ditugaskan') : 'Semua Wali Kelas' }}</p>
         </div>
         <div style="text-align: right;">
             <p><span class="label" style="text-align: left;">Tahun Ajaran</span>: <strong>{{ $taName ?? '-' }}</strong></p>
@@ -157,6 +157,9 @@
         <thead>
             <tr>
                 <th style="width: 26px;">No</th>
+                @if(!$classroom)
+                    <th style="width: 65px;">Rombel</th>
+                @endif
                 <th style="width: 85px;">Hari, Tanggal</th>
                 <th style="width: 75px;">Waktu KBM</th>
                 <th style="width: 100px;">Guru Pendidik</th>
@@ -168,6 +171,9 @@
             @forelse($journals as $j)
                 <tr>
                     <td class="center">{{ $loop->iteration }}</td>
+                    @if(!$classroom)
+                        <td class="center" style="font-weight: bold;">{{ $j->classroom?->name ?? '-' }}</td>
+                    @endif
                     <td class="center font-mono">
                         {{ \Carbon\Carbon::parse($j->date)->translatedFormat('l, d/m/Y') }}
                     </td>
@@ -175,7 +181,7 @@
                         {{ $j->formatted_time }}
                     </td>
                     <td>
-                        {{ $j->teacher?->name ?? ($classroom->homeroomTeacher?->name ?? '-') }}
+                        {{ $j->teacher?->name ?? ($j->classroom?->homeroomTeacher?->name ?? ($classroom?->homeroomTeacher?->name ?? '-')) }}
                     </td>
                     <td>
                         {{ $j->topic ?: '-' }}
@@ -194,7 +200,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" class="center" style="padding: 20px; color: #64748b;">
+                    <td colspan="{{ $classroom ? 6 : 7 }}" class="center" style="padding: 20px; color: #64748b;">
                         Belum ada catatan jurnal kelas pada bulan {{ $monthName }} {{ $year }}.
                     </td>
                 </tr>

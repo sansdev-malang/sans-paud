@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Jurnal Kelas - {{ $classroom->name }} - {{ $monthName }} {{ $year }}</title>
+    <title>Jurnal Kelas - {{ $classroom ? $classroom->name : 'Semua Rombel' }} - {{ $monthName }} {{ $year }}</title>
     <style>
         @page {
             size: A4 portrait;
@@ -146,8 +146,8 @@
     <table class="meta-table">
         <tr>
             <td style="width: 55%;">
-                <span class="label">Rombel / Kelompok</span>: <strong>{{ $classroom->name }}</strong> ({{ $classroom->sub_unit }})<br>
-                <span class="label">Wali Kelas</span>: {{ $classroom->homeroomTeacher?->name ?? 'Belum Ditugaskan' }}
+                <span class="label">Rombel / Kelompok</span>: <strong>{{ $classroom ? $classroom->name . ' (' . $classroom->sub_unit . ')' : 'Semua Rombel / Kelas' }}</strong><br>
+                <span class="label">Wali Kelas</span>: {{ $classroom ? ($classroom->homeroomTeacher?->name ?? 'Belum Ditugaskan') : 'Semua Wali Kelas' }}
             </td>
             <td style="width: 45%; text-align: right;">
                 <span class="label" style="text-align: left;">Tahun Ajaran</span>: <strong>{{ $taName }}</strong><br>
@@ -161,6 +161,9 @@
         <thead>
             <tr>
                 <th style="width: 24px;">No</th>
+                @if(!$classroom)
+                    <th style="width: 55px;">Rombel</th>
+                @endif
                 <th style="width: 75px;">Hari, Tanggal</th>
                 <th style="width: 65px;">Waktu</th>
                 <th style="width: 95px;">Guru Pendidik</th>
@@ -172,6 +175,9 @@
             @forelse($journals as $j)
                 <tr>
                     <td class="center">{{ $loop->iteration }}</td>
+                    @if(!$classroom)
+                        <td class="center" style="font-weight: bold;">{{ $j->classroom?->name ?? '-' }}</td>
+                    @endif
                     <td class="center font-mono">
                         {{ \Carbon\Carbon::parse($j->date)->translatedFormat('l, d/m/Y') }}
                     </td>
@@ -179,7 +185,7 @@
                         {{ $j->formatted_time }}
                     </td>
                     <td>
-                        {{ $j->teacher?->name ?? ($classroom->homeroomTeacher?->name ?? '-') }}
+                        {{ $j->teacher?->name ?? ($j->classroom?->homeroomTeacher?->name ?? ($classroom?->homeroomTeacher?->name ?? '-')) }}
                     </td>
                     <td>
                         {{ $j->topic ?: '-' }}
@@ -198,7 +204,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" class="center" style="padding: 15px; color: #64748b;">
+                    <td colspan="{{ $classroom ? 6 : 7 }}" class="center" style="padding: 15px; color: #64748b;">
                         Belum ada catatan jurnal kelas pada bulan {{ $monthName }} {{ $year }}.
                     </td>
                 </tr>

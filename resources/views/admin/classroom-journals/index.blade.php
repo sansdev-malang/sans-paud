@@ -1,5 +1,5 @@
 <x-admin-layout>
-    <div class="p-3.5 sm:p-5 lg:p-6 space-y-3.5 sm:space-y-4" x-data="journalApp()">
+    <div class="p-3.5 sm:p-5 lg:p-6 space-y-3.5 sm:space-y-4" x-data="journalApp()" @scroll.window="hideJournalTooltip()">
 
         <!-- ========================================================================= -->
         <!-- HEADER SECTION                                                           -->
@@ -81,6 +81,9 @@
                         </label>
                         <select name="classroom_id" id="classroom_id" onchange="document.getElementById('journalFilterForm').submit()"
                             class="w-full pl-2.5 pr-8 py-1.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors cursor-pointer">
+                            <option value="all" {{ ($selectedClassroomId === 'all' || empty($selectedClassroomId)) ? 'selected' : '' }}>
+                                Semua Kelas (Semua Rombel)
+                            </option>
                             @php
                                 $groupedClasses = $classrooms->groupBy('sub_unit');
                             @endphp
@@ -133,14 +136,6 @@
                         class="inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer shadow-2xs">
                         <i data-lucide="filter" class="w-3.5 h-3.5"></i>
                         <span>Filter</span>
-                    </button>
-
-                    <!-- Import Excel -->
-                    <button type="button" @click="openImportModal()"
-                        class="inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer"
-                        title="Import rekap data agenda kegiatan jurnal kelas dari berkas Excel">
-                        <i data-lucide="file-up" class="w-3.5 h-3.5"></i>
-                        <span>Import Excel</span>
                     </button>
 
                     <!-- Ekspor Excel dengan Sinkronisasi Token Otomatis -->
@@ -254,6 +249,7 @@
                         <thead>
                             <tr class="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 font-bold uppercase text-[10.5px] tracking-wider">
                                 <th class="py-2.5 px-3 text-center w-10">No</th>
+                                <th class="py-2.5 px-3 w-28 text-center">Rombel</th>
                                 <th class="py-2.5 px-3 w-40">Hari & Tanggal</th>
                                 <th class="py-2.5 px-3 w-28 text-center">Waktu KBM</th>
                                 <th class="py-2.5 px-3 w-44">Guru Pendidik</th>
@@ -268,11 +264,28 @@
                             @foreach($journals as $j)
                                 @php
                                     $att = $j->attendance_summary;
+                                    $journalTooltipData = [
+                                        'classroom_name' => $j->classroom?->name ?? 'Kelas',
+                                        'date_display' => \Carbon\Carbon::parse($j->date)->translatedFormat('l, d F Y'),
+                                        'time' => $j->formatted_time,
+                                        'teacher_name' => $j->teacher?->name ?? ($j->classroom?->homeroomTeacher?->name ?? '-'),
+                                        'topic' => $j->topic ?? '',
+                                        'class_condition' => $j->class_condition ?? '',
+                                        'attendance' => $att,
+                                        'has_photo' => !empty($j->attachment_photo),
+                                    ];
                                 @endphp
                                 <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
                                     <!-- No -->
                                     <td class="py-3 px-3 text-center font-mono text-slate-400 font-medium">
                                         {{ $loop->iteration }}
+                                    </td>
+
+                                    <!-- Rombel -->
+                                    <td class="py-3 px-3 text-center whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200/70 dark:border-indigo-800/70">
+                                            {{ $j->classroom?->name ?? '-' }}
+                                        </span>
                                     </td>
 
                                     <!-- Tanggal -->
@@ -294,8 +307,8 @@
                                     <td class="py-3 px-3 text-slate-700 dark:text-slate-300">
                                         <div class="flex items-center gap-1.5 font-medium">
                                             <i data-lucide="user-check" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
-                                            <span class="truncate max-w-[150px]" title="{{ $j->teacher?->name ?? ($selectedClassroom->homeroomTeacher?->name ?? '-') }}">
-                                                {{ $j->teacher?->name ?? ($selectedClassroom->homeroomTeacher?->name ?? '-') }}
+                                            <span class="truncate max-w-[150px]">
+                                                {{ $j->teacher?->name ?? ($j->classroom?->homeroomTeacher?->name ?? '-') }}
                                             </span>
                                         </div>
                                     </td>
@@ -303,7 +316,7 @@
                                     <!-- Topik / Tema Pembelajaran -->
                                     <td class="py-3 px-3">
                                         @if($j->topic)
-                                            <span class="inline-block px-2 py-0.5 rounded text-[10.5px] font-bold bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border border-purple-200 dark:border-purple-800 truncate max-w-[200px]" title="{{ $j->topic }}">
+                                            <span class="inline-block px-2 py-0.5 rounded text-[10.5px] font-bold bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border border-purple-200 dark:border-purple-800 truncate max-w-[200px]">
                                                 {{ $j->topic }}
                                             </span>
                                         @else
@@ -311,9 +324,12 @@
                                         @endif
                                     </td>
 
-                                    <!-- Uraian Kegiatan & Kondisi Kelas -->
-                                    <td class="py-3 px-4 text-slate-700 dark:text-slate-300">
-                                        <div class="line-clamp-2 hover:line-clamp-none transition-all text-xs leading-relaxed" title="{{ $j->class_condition }}">
+                                    <!-- Uraian Kegiatan & Kondisi Kelas (Custom Tooltip) -->
+                                    <td class="py-3 px-4 text-slate-700 dark:text-slate-300 cursor-pointer group/cell"
+                                        @mouseenter="showJournalTooltip($event, @js($journalTooltipData))"
+                                        @mouseleave="hideJournalTooltip()"
+                                        @click.stop="toggleJournalTooltip($event, @js($journalTooltipData))">
+                                        <div class="line-clamp-2 text-xs leading-relaxed group-hover/cell:text-indigo-600 dark:group-hover/cell:text-indigo-400 transition-colors">
                                             {{ $j->class_condition }}
                                         </div>
                                     </td>
@@ -380,6 +396,11 @@
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-100 dark:border-slate-800">
                             <!-- Date & Time & Teacher -->
                             <div class="flex flex-wrap items-center gap-2">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-indigo-100/70 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-200 font-extrabold text-xs border border-indigo-200 dark:border-indigo-800">
+                                    <i data-lucide="school" class="w-3.5 h-3.5"></i>
+                                    <span>{{ $j->classroom?->name ?? 'Kelas' }}</span>
+                                </span>
+
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-bold text-xs border border-indigo-200/80 dark:border-indigo-800/60">
                                     <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
                                     <span>{{ \Carbon\Carbon::parse($j->date)->translatedFormat('l, d F Y') }}</span>
@@ -390,12 +411,10 @@
                                     <span>{{ $j->formatted_time }}</span>
                                 </span>
 
-                                @if($j->teacher)
-                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 text-xs">
-                                        <i data-lucide="user-check" class="w-3.5 h-3.5 text-slate-400"></i>
-                                        <span>Guru: <strong>{{ $j->teacher->name }}</strong></span>
-                                    </span>
-                                @endif
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 text-xs">
+                                    <i data-lucide="user-check" class="w-3.5 h-3.5 text-slate-400"></i>
+                                    <span>Guru: <strong>{{ $j->teacher?->name ?? ($j->classroom?->homeroomTeacher?->name ?? '-') }}</strong></span>
+                                </span>
                             </div>
 
                             <!-- Actions (Edit & Delete) -->
@@ -761,6 +780,89 @@
             </div>
         </template>
 
+        <!-- ========================================================================= -->
+        <!-- FLOATING RICH TOOLTIP CARD (GAYA DATA KEHADIRAN)                          -->
+        <!-- ========================================================================= -->
+        <div 
+            x-show="journalTooltip.show && journalTooltip.data"
+            x-cloak
+            :style="`position: fixed; left: ${journalTooltip.x}px; top: ${journalTooltip.y}px; transform: translate(-50%, ${journalTooltip.placement === 'bottom' ? '0%' : '-100%'}); z-index: 99999;`"
+            class="pointer-events-none w-[340px] max-w-[calc(100vw-24px)] bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl p-3.5 text-left text-xs select-none backdrop-blur-sm"
+        >
+            <!-- Pointer Arrow -->
+            <div 
+                class="absolute w-2.5 h-2.5 rotate-45 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 transition-all duration-75"
+                :class="journalTooltip.placement === 'bottom' 
+                    ? '-top-1.5 border-t border-l' 
+                    : '-bottom-1.5 border-b border-r'"
+                :style="`left: calc(50% + ${journalTooltip.arrowOffset || 0}px); transform: translateX(-50%) rotate(45deg);`"
+            ></div>
+
+            <!-- Header: Rombel & Tanggal -->
+            <div class="border-b border-slate-100 dark:border-slate-800 pb-2 mb-2.5">
+                <div class="flex items-center justify-between gap-2 mb-1">
+                    <span class="inline-flex items-center gap-1 font-bold text-[12px] text-indigo-700 dark:text-indigo-300">
+                        <i data-lucide="school" class="w-3.5 h-3.5"></i>
+                        <span x-text="journalTooltip.data?.classroom_name"></span>
+                    </span>
+                    <span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 shrink-0" x-text="journalTooltip.data?.time"></span>
+                </div>
+                <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                    <div class="flex items-center gap-1.5 truncate">
+                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <span class="truncate" x-text="journalTooltip.data?.date_display"></span>
+                    </div>
+                    <div class="flex items-center gap-1 text-[10px] text-slate-600 dark:text-slate-300 truncate max-w-[140px]">
+                        <i data-lucide="user-check" class="w-3 h-3 text-slate-400 shrink-0"></i>
+                        <span class="truncate" x-text="journalTooltip.data?.teacher_name"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Topik (jika ada) -->
+            <template x-if="journalTooltip.data?.topic">
+                <div class="mb-2">
+                    <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border border-purple-200 dark:border-purple-800 line-clamp-1">
+                        <span>Topik:</span>
+                        <span x-text="journalTooltip.data?.topic"></span>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Uraian & Kondisi Kelas (Scrollable jika sangat panjang) -->
+            <div class="mb-2.5 max-h-[180px] overflow-y-auto pr-1">
+                <div class="text-[11.5px] text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line bg-slate-50/70 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800"
+                    x-text="journalTooltip.data?.class_condition">
+                </div>
+            </div>
+
+            <!-- Footer: Presensi Murid -->
+            <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-slate-800 text-[10px]">
+                <div class="flex items-center gap-1">
+                    <span class="text-slate-400 font-medium">Presensi:</span>
+                    <template x-if="journalTooltip.data?.attendance">
+                        <div class="inline-flex items-center gap-1 font-mono font-bold">
+                            <span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300" x-text="'H:' + journalTooltip.data.attendance.h"></span>
+                            <span class="px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300" x-text="'S:' + journalTooltip.data.attendance.s"></span>
+                            <span class="px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300" x-text="'I:' + journalTooltip.data.attendance.i"></span>
+                            <span class="px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300" x-text="'A:' + journalTooltip.data.attendance.a"></span>
+                        </div>
+                    </template>
+                    <template x-if="!journalTooltip.data?.attendance">
+                        <span class="text-slate-400 italic">N/A</span>
+                    </template>
+                </div>
+                <template x-if="journalTooltip.data?.has_photo">
+                    <span class="inline-flex items-center gap-1 text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold">
+                        <i data-lucide="image" class="w-3 h-3"></i>
+                        <span>Ada Foto</span>
+                    </span>
+                </template>
+            </div>
+        </div>
+
     </div>
 
     <!-- ALPINE.JS LOGIC -->
@@ -776,7 +878,7 @@
                 formAction: "{{ route('classroom-journals.store') }}",
                 formData: {
                     id: null,
-                    classroom_id: "{{ $selectedClassroomId }}",
+                    classroom_id: "{{ ($selectedClassroomId && $selectedClassroomId !== 'all') ? $selectedClassroomId : ($classrooms->first()?->id ?? '') }}",
                     academic_year_id: "{{ $selectedAcademicYearId }}",
                     teacher_id: "",
                     date: "{{ \Carbon\Carbon::now()->format('Y-m-d') }}",
@@ -786,12 +888,86 @@
                     class_condition: "",
                 },
 
+                journalTooltip: {
+                    show: false,
+                    x: 0,
+                    y: 0,
+                    placement: 'top',
+                    arrowOffset: 0,
+                    activeKey: '',
+                    data: null,
+                },
+                journalTooltipTimer: null,
+
+                showJournalTooltip(e, data) {
+                    if (!data) return;
+                    if (this.journalTooltipTimer) clearTimeout(this.journalTooltipTimer);
+                    const targetRect = e.currentTarget.getBoundingClientRect();
+                    this.journalTooltipTimer = setTimeout(() => {
+                        this.renderJournalTooltip(targetRect, data);
+                    }, 75);
+                },
+
+                showJournalTooltipInstant(e, data) {
+                    if (!data) return;
+                    if (this.journalTooltipTimer) clearTimeout(this.journalTooltipTimer);
+                    const targetRect = e.currentTarget.getBoundingClientRect();
+                    this.renderJournalTooltip(targetRect, data);
+                },
+
+                renderJournalTooltip(targetRect, data) {
+                    this.journalTooltip.data = data;
+                    const tooltipWidth = 340;
+                    const tooltipHeight = 220;
+                    const padding = 12;
+
+                    const rawX = targetRect.left + (targetRect.width / 2);
+                    const minX = (tooltipWidth / 2) + padding;
+                    const maxX = window.innerWidth - (tooltipWidth / 2) - padding;
+
+                    const clampedX = Math.max(minX, Math.min(rawX, maxX));
+                    this.journalTooltip.x = clampedX;
+
+                    const rawArrowOffset = rawX - clampedX;
+                    const maxArrowOffset = (tooltipWidth / 2) - 24;
+                    this.journalTooltip.arrowOffset = Math.max(-maxArrowOffset, Math.min(maxArrowOffset, rawArrowOffset));
+
+                    if (targetRect.top < tooltipHeight + 20) {
+                        this.journalTooltip.y = targetRect.bottom + 8;
+                        this.journalTooltip.placement = 'bottom';
+                    } else {
+                        this.journalTooltip.y = targetRect.top - 8;
+                        this.journalTooltip.placement = 'top';
+                    }
+
+                    this.journalTooltip.show = true;
+                    this.$nextTick(() => {
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    });
+                },
+
+                hideJournalTooltip() {
+                    if (this.journalTooltipTimer) clearTimeout(this.journalTooltipTimer);
+                    this.journalTooltip.show = false;
+                    this.journalTooltip.activeKey = '';
+                },
+
+                toggleJournalTooltip(e, data) {
+                    const key = (data?.classroom_name || '') + '_' + (data?.date_display || '') + '_' + (data?.time || '');
+                    if (this.journalTooltip.show && this.journalTooltip.activeKey === key) {
+                        this.hideJournalTooltip();
+                    } else {
+                        this.showJournalTooltipInstant(e, data);
+                        this.journalTooltip.activeKey = key;
+                    }
+                },
+
                 openCreateModal() {
                     this.isEdit = false;
                     this.formAction = "{{ route('classroom-journals.store') }}";
                     this.formData = {
                         id: null,
-                        classroom_id: "{{ $selectedClassroomId }}",
+                        classroom_id: "{{ ($selectedClassroomId && $selectedClassroomId !== 'all') ? $selectedClassroomId : ($classrooms->first()?->id ?? '') }}",
                         academic_year_id: "{{ $selectedAcademicYearId }}",
                         teacher_id: "",
                         date: "{{ \Carbon\Carbon::now()->format('Y-m-d') }}",

@@ -61,20 +61,18 @@ class ClassroomJournalController extends Controller
             ->orderBy('name', 'asc')
             ->get();
 
-        // Default Classroom
-        $defaultClassroomId = null;
-        if ($user && $user->employee_id && !empty($assignedClassroomIds)) {
-            $assignedClass = $classrooms->firstWhere('id', $assignedClassroomIds[0]);
-            if ($assignedClass) {
-                $defaultClassroomId = $assignedClass->id;
+        // Default Classroom: User request "saat pertama diakses filter yang terpilih itu 'Semua Kelas' jadi admin bisa langsung melihat semua datanya"
+        $selectedClassroomId = $request->get('classroom_id');
+        if ($selectedClassroomId === null) {
+            if ($isAdminUser || empty($assignedClassroomIds) || count($assignedClassroomIds) > 1) {
+                $selectedClassroomId = 'all';
+            } else {
+                $selectedClassroomId = $assignedClassroomIds[0] ?? 'all';
             }
         }
-        if (!$defaultClassroomId && $classrooms->isNotEmpty()) {
-            $defaultClassroomId = $classrooms->first()->id;
-        }
 
-        $selectedClassroomId = $request->get('classroom_id', $defaultClassroomId);
-        $selectedClassroom = $classrooms->firstWhere('id', $selectedClassroomId);
+        $isAllClassrooms = ($selectedClassroomId === 'all' || empty($selectedClassroomId));
+        $selectedClassroom = $isAllClassrooms ? null : $classrooms->firstWhere('id', $selectedClassroomId);
 
         // Filter Month & Calculate Calendar Year based on Academic Year
         $selectedMonth = (int) $request->get('month', Carbon::now()->month);
@@ -91,25 +89,26 @@ class ClassroomJournalController extends Controller
             ->get();
 
         // Fetch Journals
-        $journals = collect();
-        if ($selectedClassroom) {
-            $journals = ClassroomJournal::with(['teacher', 'classroom', 'recordedBy'])
-                ->where('classroom_id', $selectedClassroom->id)
-                ->where(function($q) use ($selectedAcademicYearId, $selectedYear, $selectedMonth) {
-                    $q->where(function($q1) use ($selectedAcademicYearId, $selectedMonth) {
-                        if ($selectedAcademicYearId) {
-                            $q1->where('academic_year_id', $selectedAcademicYearId)
-                               ->whereMonth('date', $selectedMonth);
-                        }
-                    })->orWhere(function($q2) use ($selectedYear, $selectedMonth) {
-                        $q2->whereYear('date', $selectedYear)
+        $journals = ClassroomJournal::with(['teacher', 'classroom', 'recordedBy'])
+            ->when(!$isAllClassrooms && $selectedClassroom, function($q) use ($selectedClassroom) {
+                $q->where('classroom_id', $selectedClassroom->id);
+            }, function($q) use ($classrooms) {
+                $q->whereIn('classroom_id', $classrooms->pluck('id'));
+            })
+            ->where(function($q) use ($selectedAcademicYearId, $selectedYear, $selectedMonth) {
+                $q->where(function($q1) use ($selectedAcademicYearId, $selectedMonth) {
+                    if ($selectedAcademicYearId) {
+                        $q1->where('academic_year_id', $selectedAcademicYearId)
                            ->whereMonth('date', $selectedMonth);
-                    });
-                })
-                ->orderBy('date', 'desc')
-                ->orderBy('start_time', 'desc')
-                ->get();
-        }
+                    }
+                })->orWhere(function($q2) use ($selectedYear, $selectedMonth) {
+                    $q2->whereYear('date', $selectedYear)
+                       ->whereMonth('date', $selectedMonth);
+                });
+            })
+            ->orderBy('date', 'desc')
+            ->orderBy('start_time', 'desc')
+            ->get();
 
         // Summary Stats
         $totalEntries = $journals->count();
@@ -140,6 +139,7 @@ class ClassroomJournalController extends Controller
             'selectedAcademicYearId',
             'selectedClassroom',
             'selectedClassroomId',
+            'isAllClassrooms',
             'selectedMonth',
             'selectedYear',
             'teachers',
@@ -391,6 +391,9 @@ class ClassroomJournalController extends Controller
      */
     public function importExcel(Request $request)
     {
+        @ini_set('max_execution_time', 300);
+        @set_time_limit(300);
+
         $request->validate([
             'file' => 'required|file|mimes:xlsx,xls,csv|max:15360',
             'default_classroom_id' => 'nullable|exists:classrooms,id',
@@ -417,6 +420,17 @@ class ClassroomJournalController extends Controller
             $academicYears = AcademicYear::all();
             $activeAcademicYear = $academicYears->firstWhere('is_active', true) ?? $academicYears->first();
             $defaultClassroom = $request->default_classroom_id ? $classrooms->firstWhere('id', $request->default_classroom_id) : null;
+
+            // Preload existing journals to memory for high-performance duplicate detection (prevents timeout)
+            $existingJournals = ClassroomJournal::whereIn('classroom_id', $classrooms->pluck('id'))->get();
+            $existingByKey = [];
+            foreach ($existingJournals as $ej) {
+                $timeKey = substr($ej->start_time ?? '', 0, 5);
+                $k1 = $ej->classroom_id . '_' . $ej->date . '_' . $timeKey;
+                $existingByKey[$k1] = $ej;
+                $k2 = $ej->classroom_id . '_' . $ej->date . '_' . md5(trim($ej->class_condition));
+                $existingByKey[$k2] = $ej;
+            }
 
             // Step 1: Detect Header Row and Column Mapping
             $headerRowIndex = 1;
@@ -530,102 +544,106 @@ class ClassroomJournalController extends Controller
             $errors = [];
             $targetClassroomIds = [];
 
-            $startDataRow = $headerRowIndex + 1;
+            // Wrap in database transaction for speed & consistency
+            \Illuminate\Support\Facades\DB::transaction(function() use (
+                $sheet, $highestRow, $headerRowIndex, $colMap, $classrooms, $defaultClassroom,
+                $request, $activeAcademicYear, $parseDate, $parseTime, &$successCount, &$updatedCount,
+                &$skippedCount, &$errors, &$targetClassroomIds, &$existingByKey
+            ) {
+                $startDataRow = $headerRowIndex + 1;
 
-            for ($r = $startDataRow; $r <= $highestRow; $r++) {
-                $rawKelas = $colMap['kelas'] ? trim((string)$sheet->getCell($colMap['kelas'] . $r)->getFormattedValue()) : '';
-                $rawTanggal = $colMap['tanggal'] ? $sheet->getCell($colMap['tanggal'] . $r) : null;
-                $rawJamMulai = $colMap['jam_mulai'] ? $sheet->getCell($colMap['jam_mulai'] . $r) : null;
-                $rawJamSelesai = $colMap['jam_selesai'] ? $sheet->getCell($colMap['jam_selesai'] . $r) : null;
-                $rawTopik = $colMap['topik'] ? trim((string)$sheet->getCell($colMap['topik'] . $r)->getFormattedValue()) : null;
-                $rawUraian = $colMap['uraian'] ? trim((string)$sheet->getCell($colMap['uraian'] . $r)->getFormattedValue()) : '';
+                for ($r = $startDataRow; $r <= $highestRow; $r++) {
+                    $rawKelas = $colMap['kelas'] ? trim((string)$sheet->getCell($colMap['kelas'] . $r)->getFormattedValue()) : '';
+                    $rawTanggal = $colMap['tanggal'] ? $sheet->getCell($colMap['tanggal'] . $r) : null;
+                    $rawJamMulai = $colMap['jam_mulai'] ? $sheet->getCell($colMap['jam_mulai'] . $r) : null;
+                    $rawJamSelesai = $colMap['jam_selesai'] ? $sheet->getCell($colMap['jam_selesai'] . $r) : null;
+                    $rawTopik = $colMap['topik'] ? trim((string)$sheet->getCell($colMap['topik'] . $r)->getFormattedValue()) : null;
+                    $rawUraian = $colMap['uraian'] ? trim((string)$sheet->getCell($colMap['uraian'] . $r)->getFormattedValue()) : '';
 
-                // Skip if entire row or vital fields are empty
-                if ($rawKelas === '' && (!$rawTanggal || trim((string)$rawTanggal->getValue()) === '') && $rawUraian === '') {
-                    continue;
+                    // Skip if entire row or vital fields are empty
+                    if ($rawKelas === '' && (!$rawTanggal || trim((string)$rawTanggal->getValue()) === '') && $rawUraian === '') {
+                        continue;
+                    }
+
+                    if ($rawUraian === '') {
+                        $skippedCount++;
+                        continue;
+                    }
+
+                    // Match Classroom
+                    $targetClass = null;
+                    if ($rawKelas !== '') {
+                        $normalizedKelas = preg_replace('/\s+/', ' ', strtolower($rawKelas));
+                        $targetClass = $classrooms->first(function ($c) use ($rawKelas, $normalizedKelas) {
+                            $normName = preg_replace('/\s+/', ' ', strtolower($c->name));
+                            return $normName === $normalizedKelas || str_contains($normName, $normalizedKelas);
+                        });
+                    }
+                    if (!$targetClass) {
+                        $targetClass = $defaultClassroom;
+                    }
+
+                    if (!$targetClass) {
+                        $errors[] = "Baris {$r}: Rombel/Kelas '{$rawKelas}' tidak ditemukan dalam sistem.";
+                        $skippedCount++;
+                        continue;
+                    }
+
+                    $targetClassroomIds[$targetClass->id] = true;
+
+                    // Parse Date
+                    $dateFormatted = $parseDate($rawTanggal);
+                    if (!$dateFormatted) {
+                        $errors[] = "Baris {$r}: Format tanggal tidak valid.";
+                        $skippedCount++;
+                        continue;
+                    }
+
+                    // Parse Start & End Time
+                    $startTime = $parseTime($rawJamMulai);
+                    $endTime = $parseTime($rawJamSelesai);
+
+                    // Academic Year
+                    $academicYearId = $request->academic_year_id ?: ($targetClass->academic_year_id ?: $activeAcademicYear?->id);
+
+                    // Teacher: homeroom teacher or auth user employee_id
+                    $teacherId = $targetClass->homeroom_teacher_id ?: (auth()->user()?->employee_id ?? null);
+
+                    // In-memory key check for duplicates (instant performance)
+                    $timeKey = substr($startTime ?? '', 0, 5);
+                    $k1 = $targetClass->id . '_' . $dateFormatted . '_' . $timeKey;
+                    $k2 = $targetClass->id . '_' . $dateFormatted . '_' . md5($rawUraian);
+
+                    $existing = ($startTime && isset($existingByKey[$k1])) ? $existingByKey[$k1] : ($existingByKey[$k2] ?? null);
+
+                    if ($existing) {
+                        $existing->update([
+                            'academic_year_id' => $academicYearId,
+                            'teacher_id' => $teacherId ?: $existing->teacher_id,
+                            'start_time' => $startTime ?: $existing->start_time,
+                            'end_time' => $endTime ?: $existing->end_time,
+                            'topic' => $rawTopik ?: $existing->topic,
+                            'class_condition' => $rawUraian,
+                        ]);
+                        $updatedCount++;
+                    } else {
+                        $created = ClassroomJournal::create([
+                            'classroom_id' => $targetClass->id,
+                            'academic_year_id' => $academicYearId,
+                            'teacher_id' => $teacherId,
+                            'date' => $dateFormatted,
+                            'start_time' => $startTime,
+                            'end_time' => $endTime,
+                            'topic' => $rawTopik ?: null,
+                            'class_condition' => $rawUraian,
+                            'recorded_by' => auth()->id(),
+                        ]);
+                        $existingByKey[$k1] = $created;
+                        $existingByKey[$k2] = $created;
+                        $successCount++;
+                    }
                 }
-
-                if ($rawUraian === '') {
-                    $skippedCount++;
-                    continue;
-                }
-
-                // Match Classroom
-                $targetClass = null;
-                if ($rawKelas !== '') {
-                    $normalizedKelas = preg_replace('/\s+/', ' ', strtolower($rawKelas));
-                    $targetClass = $classrooms->first(function ($c) use ($rawKelas, $normalizedKelas) {
-                        $normName = preg_replace('/\s+/', ' ', strtolower($c->name));
-                        return $normName === $normalizedKelas || str_contains($normName, $normalizedKelas);
-                    });
-                }
-                if (!$targetClass) {
-                    $targetClass = $defaultClassroom;
-                }
-
-                if (!$targetClass) {
-                    $errors[] = "Baris {$r}: Rombel/Kelas '{$rawKelas}' tidak ditemukan dalam sistem.";
-                    $skippedCount++;
-                    continue;
-                }
-
-                $targetClassroomIds[$targetClass->id] = true;
-
-                // Parse Date
-                $dateFormatted = $parseDate($rawTanggal);
-                if (!$dateFormatted) {
-                    $errors[] = "Baris {$r}: Format tanggal tidak valid.";
-                    $skippedCount++;
-                    continue;
-                }
-
-                // Parse Start & End Time
-                $startTime = $parseTime($rawJamMulai);
-                $endTime = $parseTime($rawJamSelesai);
-
-                // Academic Year
-                $academicYearId = $request->academic_year_id ?: ($targetClass->academic_year_id ?: $activeAcademicYear?->id);
-
-                // Teacher: homeroom teacher or auth user employee_id
-                $teacherId = $targetClass->homeroom_teacher_id ?: (auth()->user()?->employee_id ?? null);
-
-                // Check existing entry to avoid duplication
-                $existing = ClassroomJournal::where('classroom_id', $targetClass->id)
-                    ->where('date', $dateFormatted)
-                    ->where(function($q) use ($startTime, $rawUraian) {
-                        if ($startTime) {
-                            $q->where('start_time', 'like', substr($startTime, 0, 5) . '%');
-                        } else {
-                            $q->where('class_condition', $rawUraian);
-                        }
-                    })
-                    ->first();
-
-                if ($existing) {
-                    $existing->update([
-                        'academic_year_id' => $academicYearId,
-                        'teacher_id' => $teacherId ?: $existing->teacher_id,
-                        'start_time' => $startTime ?: $existing->start_time,
-                        'end_time' => $endTime ?: $existing->end_time,
-                        'topic' => $rawTopik ?: $existing->topic,
-                        'class_condition' => $rawUraian,
-                    ]);
-                    $updatedCount++;
-                } else {
-                    ClassroomJournal::create([
-                        'classroom_id' => $targetClass->id,
-                        'academic_year_id' => $academicYearId,
-                        'teacher_id' => $teacherId,
-                        'date' => $dateFormatted,
-                        'start_time' => $startTime,
-                        'end_time' => $endTime,
-                        'topic' => $rawTopik ?: null,
-                        'class_condition' => $rawUraian,
-                        'recorded_by' => auth()->id(),
-                    ]);
-                    $successCount++;
-                }
-            }
+            });
 
             $totalProcessed = $successCount + $updatedCount;
             $msg = "Proses import selesai: {$totalProcessed} entri jurnal kelas berhasil diproses ({$successCount} baru, {$updatedCount} diperbarui).";
@@ -633,7 +651,7 @@ class ClassroomJournalController extends Controller
                 $msg .= " Sebanyak {$skippedCount} baris dilewati karena format tidak lengkap.";
             }
 
-            $redirectClassroomId = $defaultClassroom?->id ?? (count($targetClassroomIds) === 1 ? array_key_first($targetClassroomIds) : $request->get('classroom_id'));
+            $redirectClassroomId = $defaultClassroom?->id ?? (count($targetClassroomIds) === 1 ? array_key_first($targetClassroomIds) : 'all');
 
             return redirect()->route('classroom-journals.index', array_filter([
                 'classroom_id' => $redirectClassroomId,
@@ -663,10 +681,15 @@ class ClassroomJournalController extends Controller
         $calculatedYear = ($month >= 7) ? $startYear : $endYear;
         $year = (int) $request->get('year', $calculatedYear);
 
-        $classroom = Classroom::with(['homeroomTeacher', 'classLevel'])->findOrFail($classroomId);
+        $classroomId = $request->get('classroom_id');
+        $isAll = ($classroomId === 'all' || empty($classroomId));
+        $classroom = $isAll ? null : Classroom::with(['homeroomTeacher', 'classLevel'])->find($classroomId);
+        $className = $classroom ? $classroom->name : 'Semua Rombel';
 
-        $journals = ClassroomJournal::with(['teacher'])
-            ->where('classroom_id', $classroom->id)
+        $journals = ClassroomJournal::with(['teacher', 'classroom'])
+            ->when(!$isAll && $classroom, function($q) use ($classroom) {
+                $q->where('classroom_id', $classroom->id);
+            })
             ->where(function($q) use ($selectedYearId, $year, $month) {
                 $q->where(function($q1) use ($selectedYearId, $month) {
                     if ($selectedYearId) {
@@ -705,15 +728,18 @@ class ClassroomJournalController extends Controller
         $sheet->setTitle('Jurnal ' . substr($monthName, 0, 3));
 
         // Header Title
+        $classroomLabel = $classroom ? "{$classroom->name} ({$classroom->sub_unit})" : "Semua Rombel";
         $sheet->setCellValue('A1', 'AGENDA / JURNAL PEMBELAJARAN KELAS');
         $sheet->setCellValue('A2', strtoupper($appName));
-        $sheet->setCellValue('A3', "Kelas / Rombel: {$classroom->name} ({$classroom->sub_unit}) | T.A: {$taName} | Bulan: {$monthName} {$year} | Dicetak: " . date('d/m/Y H:i'));
+        $sheet->setCellValue('A3', "Kelas / Rombel: {$classroomLabel} | T.A: {$taName} | Bulan: {$monthName} {$year} | Dicetak: " . date('d/m/Y H:i'));
 
         $sheet->getStyle('A1:A2')->getFont()->setBold(true)->setSize(12);
         $sheet->getStyle('A3')->getFont()->setItalic(true)->setSize(9.5)->getColor()->setARGB('FF475569');
 
         // Table Headers
-        $headers = ['No', 'Hari & Tanggal', 'Waktu KBM', 'Guru / Pendidik', 'Topik / Tema Pembelajaran', 'Uraian Kegiatan & Kondisi Kelas'];
+        $headers = $classroom
+            ? ['No', 'Hari & Tanggal', 'Waktu KBM', 'Guru / Pendidik', 'Topik / Tema Pembelajaran', 'Uraian Kegiatan & Kondisi Kelas']
+            : ['No', 'Rombel', 'Hari & Tanggal', 'Waktu KBM', 'Guru / Pendidik', 'Topik / Tema Pembelajaran', 'Uraian Kegiatan & Kondisi Kelas'];
         $startRow = 5;
 
         foreach ($headers as $colIndex => $h) {
@@ -734,19 +760,35 @@ class ClassroomJournalController extends Controller
         foreach ($journals as $j) {
             $dateFormatted = Carbon::parse($j->date)->translatedFormat('l, d/m/Y');
             $timeFormatted = $j->formatted_time;
-            $teacherName = $j->teacher?->name ?? ($classroom->homeroomTeacher?->name ?? '-');
+            $teacherName = $j->teacher?->name ?? ($j->classroom?->homeroomTeacher?->name ?? ($classroom?->homeroomTeacher?->name ?? '-'));
 
-            $sheet->setCellValue("A{$currentRow}", $no++);
-            $sheet->setCellValue("B{$currentRow}", $dateFormatted);
-            $sheet->setCellValue("C{$currentRow}", $timeFormatted);
-            $sheet->setCellValue("D{$currentRow}", $teacherName);
-            $sheet->setCellValue("E{$currentRow}", $j->topic ?: '-');
-            $sheet->setCellValue("F{$currentRow}", $j->class_condition);
+            if ($classroom) {
+                $sheet->setCellValue("A{$currentRow}", $no++);
+                $sheet->setCellValue("B{$currentRow}", $dateFormatted);
+                $sheet->setCellValue("C{$currentRow}", $timeFormatted);
+                $sheet->setCellValue("D{$currentRow}", $teacherName);
+                $sheet->setCellValue("E{$currentRow}", $j->topic ?: '-');
+                $sheet->setCellValue("F{$currentRow}", $j->class_condition);
 
-            $sheet->getStyle("A{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("B{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("C{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("F{$currentRow}")->getAlignment()->setWrapText(true);
+                $sheet->getStyle("A{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle("B{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle("C{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle("F{$currentRow}")->getAlignment()->setWrapText(true);
+            } else {
+                $sheet->setCellValue("A{$currentRow}", $no++);
+                $sheet->setCellValue("B{$currentRow}", $j->classroom?->name ?? '-');
+                $sheet->setCellValue("C{$currentRow}", $dateFormatted);
+                $sheet->setCellValue("D{$currentRow}", $timeFormatted);
+                $sheet->setCellValue("E{$currentRow}", $teacherName);
+                $sheet->setCellValue("F{$currentRow}", $j->topic ?: '-');
+                $sheet->setCellValue("G{$currentRow}", $j->class_condition);
+
+                $sheet->getStyle("A{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle("B{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle("C{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle("D{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle("G{$currentRow}")->getAlignment()->setWrapText(true);
+            }
 
             if ($no % 2 === 0) {
                 $sheet->getStyle("A{$currentRow}:{$lastCol}{$currentRow}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF8FAFC');
@@ -758,12 +800,22 @@ class ClassroomJournalController extends Controller
         // Borders
         $sheet->getStyle("A{$startRow}:{$lastCol}" . ($currentRow - 1))->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFCBD5E1'));
 
-        $sheet->getColumnDimension('A')->setWidth(6);
-        $sheet->getColumnDimension('B')->setWidth(20);
-        $sheet->getColumnDimension('C')->setWidth(18);
-        $sheet->getColumnDimension('D')->setWidth(24);
-        $sheet->getColumnDimension('E')->setWidth(28);
-        $sheet->getColumnDimension('F')->setWidth(45);
+        if ($classroom) {
+            $sheet->getColumnDimension('A')->setWidth(6);
+            $sheet->getColumnDimension('B')->setWidth(20);
+            $sheet->getColumnDimension('C')->setWidth(18);
+            $sheet->getColumnDimension('D')->setWidth(24);
+            $sheet->getColumnDimension('E')->setWidth(28);
+            $sheet->getColumnDimension('F')->setWidth(45);
+        } else {
+            $sheet->getColumnDimension('A')->setWidth(6);
+            $sheet->getColumnDimension('B')->setWidth(16);
+            $sheet->getColumnDimension('C')->setWidth(20);
+            $sheet->getColumnDimension('D')->setWidth(18);
+            $sheet->getColumnDimension('E')->setWidth(24);
+            $sheet->getColumnDimension('F')->setWidth(28);
+            $sheet->getColumnDimension('G')->setWidth(45);
+        }
 
         // Signatures
         $signRow = $currentRow + 2;
@@ -781,17 +833,17 @@ class ClassroomJournalController extends Controller
         $sheet->getStyle("B" . ($signRow + 5))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         // Homeroom Teacher Name & NIP
-        $teacherName = $classroom->homeroomTeacher?->name ?? '( ................................ )';
-        $teacherNip = $classroom->homeroomTeacher?->nip ?? $classroom->homeroomTeacher?->niy ?? '-';
-        $sheet->setCellValue("E" . ($signRow + 4), $teacherName);
+        $tName = $classroom?->homeroomTeacher?->name ?? 'Wali Kelas';
+        $tNip = $classroom?->homeroomTeacher?->nip ?? ($classroom?->homeroomTeacher?->niy ?? '-');
+        $sheet->setCellValue("E" . ($signRow + 4), $tName);
         $sheet->getStyle("E" . ($signRow + 4))->getFont()->setBold(true)->setUnderline(true);
         $sheet->getStyle("E" . ($signRow + 4))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->setCellValue("E" . ($signRow + 5), "NIP/NIY: " . $teacherNip);
+        $sheet->setCellValue("E" . ($signRow + 5), "NIP/NIY: " . $tNip);
         $sheet->getStyle("E" . ($signRow + 5))->getFont()->setSize(9);
         $sheet->getStyle("E" . ($signRow + 5))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         $writer = new Xlsx($spreadsheet);
-        $cleanClassName = preg_replace('/[^A-Za-z0-9_-]/', '_', $classroom->name);
+        $cleanClassName = preg_replace('/[^A-Za-z0-9_-]/', '_', $className);
         $cleanTaName = preg_replace('/[^A-Za-z0-9_-]/', '_', $taName);
         $filename = "Jurnal_Kelas_{$cleanClassName}_{$cleanTaName}_{$monthName}_{$year}.xlsx";
 
@@ -822,6 +874,7 @@ class ClassroomJournalController extends Controller
     public function downloadPdf(Request $request)
     {
         $classroomId = $request->get('classroom_id');
+        $isAll = ($classroomId === 'all' || empty($classroomId));
         $month = (int) $request->get('month', Carbon::now()->month);
 
         $academicYears = AcademicYear::all();
@@ -834,10 +887,13 @@ class ClassroomJournalController extends Controller
         $calculatedYear = ($month >= 7) ? $startYear : $endYear;
         $year = (int) $request->get('year', $calculatedYear);
 
-        $classroom = Classroom::with(['homeroomTeacher', 'classLevel'])->findOrFail($classroomId);
+        $classroom = $isAll ? null : Classroom::with(['homeroomTeacher', 'classLevel'])->find($classroomId);
+        $className = $classroom ? $classroom->name : 'Semua Rombel';
 
-        $journals = ClassroomJournal::with(['teacher', 'recordedBy'])
-            ->where('classroom_id', $classroom->id)
+        $journals = ClassroomJournal::with(['teacher', 'classroom', 'recordedBy'])
+            ->when(!$isAll && $classroom, function($q) use ($classroom) {
+                $q->where('classroom_id', $classroom->id);
+            })
             ->where(function($q) use ($selectedYearId, $year, $month) {
                 $q->where(function($q1) use ($selectedYearId, $month) {
                     if ($selectedYearId) {
@@ -871,7 +927,7 @@ class ClassroomJournalController extends Controller
         $appName = setting('unit_name', setting('app_name', 'PAUD ANAK SALEH MALANG'));
         $taName = $selectedAcademicYear?->name ?? "{$year}";
 
-        $cleanClassName = preg_replace('/[^A-Za-z0-9_-]/', '_', $classroom->name);
+        $cleanClassName = preg_replace('/[^A-Za-z0-9_-]/', '_', $className);
         $cleanTaName = preg_replace('/[^A-Za-z0-9_-]/', '_', $taName);
         $fileName = "Jurnal_Kelas_{$cleanClassName}_{$cleanTaName}_{$monthName}_{$year}.pdf";
 
@@ -910,6 +966,7 @@ class ClassroomJournalController extends Controller
     public function print(Request $request)
     {
         $classroomId = $request->get('classroom_id');
+        $isAll = ($classroomId === 'all' || empty($classroomId));
         $month = (int) $request->get('month', Carbon::now()->month);
 
         $academicYears = AcademicYear::all();
@@ -922,10 +979,13 @@ class ClassroomJournalController extends Controller
         $calculatedYear = ($month >= 7) ? $startYear : $endYear;
         $year = (int) $request->get('year', $calculatedYear);
 
-        $classroom = Classroom::with(['homeroomTeacher', 'classLevel'])->findOrFail($classroomId);
+        $classroom = $isAll ? null : Classroom::with(['homeroomTeacher', 'classLevel'])->find($classroomId);
+        $className = $classroom ? $classroom->name : 'Semua Rombel';
 
-        $journals = ClassroomJournal::with(['teacher', 'recordedBy'])
-            ->where('classroom_id', $classroom->id)
+        $journals = ClassroomJournal::with(['teacher', 'classroom', 'recordedBy'])
+            ->when(!$isAll && $classroom, function($q) use ($classroom) {
+                $q->where('classroom_id', $classroom->id);
+            })
             ->where(function($q) use ($selectedYearId, $year, $month) {
                 $q->where(function($q1) use ($selectedYearId, $month) {
                     if ($selectedYearId) {
