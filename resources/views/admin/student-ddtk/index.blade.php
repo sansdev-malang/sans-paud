@@ -1375,7 +1375,7 @@
                                 <li><strong>Mendukung Multi-Periode:</strong> Kolom <em>Periode (Bulan Tahun)</em> di Excel dapat diisi/disalin untuk beberapa bulan sekaligus (contoh: <code>Juli 2026</code>, <code>Agustus 2026</code>, <code>Desember 2026</code>) sehingga Anda dapat mengimpor data lintas periode dalam 1 file.</li>
                                 <li>Data fisik DDTK (TB, BB, LK, LiLA) yang diimpor akan langsung memperbarui profil pengukuran murid.</li>
                                 <li>Jika baris data untuk murid dan periode tersebut sudah ada sebelumnya, data akan otomatis diperbarui (update).</li>
-                                <li>Gunakan titik (.) untuk angka desimal, contoh: <span class="font-mono font-semibold">102.5</span> atau <span class="font-mono font-semibold">16.3</span>.</li>
+                                <li>Format angka desimal: gunakan koma (,) atau titik (.), contoh: <span class="font-mono font-semibold">102,5</span> atau <span class="font-mono font-semibold">16,3</span> (sistem otomatis mengenali keduanya).</li>
                             </ul>
                         </template>
                         <template x-if="importType === 'sdidtk'">

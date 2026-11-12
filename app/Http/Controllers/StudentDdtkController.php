@@ -679,7 +679,7 @@ class StudentDdtkController extends Controller
             $sheet->setCellValue('A1', 'TEMPLATE IMPORT ANTROPOMETRI DDTK');
             $sheet->setCellValue('A2', strtoupper(setting('unit_name', setting('app_name', 'PAUD ANAK SALEH'))));
             $sheet->setCellValue('A3', "Periode: {$periodLabel} ({$period}) | Rombel: " . ($classroom ? "{$classroom->name} ({$classroom->sub_unit})" : 'Semua Rombel'));
-            $sheet->setCellValue('A4', 'Petunjuk: Kolom Periode bisa diisi nama bulan & tahun (contoh: "Desember 2026"). Anda bisa menyalin atau menambah baris lintas beberapa bulan sekaligus dalam satu berkas. Ukuran: gunakan angka dengan titik (.) desimal, contoh: 102.5 atau 16.3.');
+            $sheet->setCellValue('A4', 'Petunjuk: Kolom Periode: nama bulan & tahun (contoh: "Desember 2026"). Ukuran: gunakan angka desimal (contoh: 102,5 atau 16,3; format koma maupun titik didukung otomatis).');
 
             $headers = [
                 'No', 'NIS', 'Nama Murid', 'Rombel', 'Periode (Bulan Tahun)',
