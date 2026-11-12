@@ -53,27 +53,27 @@
         <!-- TAB NAVIGATION -->
         <div class="border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
             <nav class="flex space-x-1 sm:space-x-2" aria-label="Tabs">
-                <!-- Tab 1: Input DDTK -->
+                <!-- Tab 1: DDTK (Antropometri) -->
                 <button type="button" @click="setTab('inputDDTK')"
                     :class="activeTab === 'inputDDTK' 
                         ? 'border-sky-600 text-sky-600 dark:text-sky-400 dark:border-sky-400 bg-sky-50/40 dark:bg-sky-950/20' 
                         : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:border-slate-300'"
                     class="group inline-flex items-center gap-2 py-2.5 px-3 sm:px-4 border-b-2 font-semibold text-xs sm:text-sm rounded-t-lg transition-colors cursor-pointer">
                     <i data-lucide="ruler" class="w-4 h-4"></i>
-                    <span>Input DDTK (Antropometri)</span>
+                    <span>DDTK (Antropometri)</span>
                     <span class="ml-1.5 px-1.5 py-0.5 text-[10px] rounded-full bg-sky-100 text-sky-700 dark:bg-sky-900/60 dark:text-sky-300 font-bold">
                         {{ $ddtkCount }}/{{ $totalStudents }}
                     </span>
                 </button>
 
-                <!-- Tab 2: Input SDIDTK -->
+                <!-- Tab 2: SDIDTK (Skrining) -->
                 <button type="button" @click="setTab('inputSDIDTK')"
                     :class="activeTab === 'inputSDIDTK' 
                         ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400 dark:border-emerald-400 bg-emerald-50/40 dark:bg-emerald-950/20' 
                         : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:border-slate-300'"
                     class="group inline-flex items-center gap-2 py-2.5 px-3 sm:px-4 border-b-2 font-semibold text-xs sm:text-sm rounded-t-lg transition-colors cursor-pointer">
                     <i data-lucide="stethoscope" class="w-4 h-4"></i>
-                    <span>Input SDIDTK (Skrining)</span>
+                    <span>SDIDTK (Skrining)</span>
                     <span class="ml-1.5 px-1.5 py-0.5 text-[10px] rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 font-bold">
                         {{ $sdidtkCount }}/{{ $totalStudents }}
                     </span>
