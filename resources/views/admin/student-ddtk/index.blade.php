@@ -1129,7 +1129,8 @@
         <!-- MODAL IMPORT EXCEL DDTK & SDIDTK                                          -->
         <!-- ========================================================================= -->
         <div x-show="isImportModalOpen" x-cloak
-            class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-xs"
+            @keydown.window.escape="isImportModalOpen = false"
+            class="fixed inset-0 z-[100] overflow-y-auto flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-sm"
             x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0"
             x-transition:enter-end="opacity-100"
