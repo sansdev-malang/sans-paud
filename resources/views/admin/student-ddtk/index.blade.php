@@ -126,7 +126,7 @@
                 <form method="GET" action="{{ route('student-ddtk.index') }}" id="ddtkFilterForm">
                     <input type="hidden" name="tab" value="inputDDTK">
 
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
                         <!-- Filter Kelas -->
                         <div>
                             <label for="ddtk_classroom_id" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
@@ -145,7 +145,7 @@
                         <!-- Filter Periode -->
                         <div>
                             <label for="ddtk_period" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                                Periode Pemeriksaan <span class="text-rose-500">*</span>
+                                Periode Bulan & Tahun <span class="text-rose-500">*</span>
                             </label>
                             <select name="period" id="ddtk_period" onchange="document.getElementById('ddtkFilterForm').submit()"
                                 class="w-full pl-3 pr-8 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors cursor-pointer">
@@ -155,15 +155,6 @@
                                     </option>
                                 @endforeach
                             </select>
-                        </div>
-
-                        <!-- Filter Tanggal Pemeriksaan -->
-                        <div>
-                            <label for="ddtk_date" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                                Tanggal Ukur <span class="text-slate-400 font-normal">(Default)</span>
-                            </label>
-                            <input type="date" name="date" id="ddtk_date" value="{{ $selectedDate }}" onchange="document.getElementById('ddtkFilterForm').submit()"
-                                class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors cursor-pointer">
                         </div>
                     </div>
                 </form>
@@ -418,7 +409,7 @@
                 <form method="GET" action="{{ route('student-ddtk.index') }}" id="sdidtkFilterForm">
                     <input type="hidden" name="tab" value="inputSDIDTK">
 
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
                         <!-- Filter Kelas -->
                         <div>
                             <label for="sdidtk_classroom_id" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
@@ -437,7 +428,7 @@
                         <!-- Filter Periode -->
                         <div>
                             <label for="sdidtk_period" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                                Periode Pemeriksaan <span class="text-rose-500">*</span>
+                                Periode Bulan & Tahun <span class="text-rose-500">*</span>
                             </label>
                             <select name="period" id="sdidtk_period" onchange="document.getElementById('sdidtkFilterForm').submit()"
                                 class="w-full pl-3 pr-8 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors cursor-pointer">
@@ -447,15 +438,6 @@
                                     </option>
                                 @endforeach
                             </select>
-                        </div>
-
-                        <!-- Filter Tanggal Pemeriksaan -->
-                        <div>
-                            <label for="sdidtk_date" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                                Tanggal Ukur <span class="text-slate-400 font-normal">(Default)</span>
-                            </label>
-                            <input type="date" name="date" id="sdidtk_date" value="{{ $selectedDate }}" onchange="document.getElementById('sdidtkFilterForm').submit()"
-                                class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors cursor-pointer">
                         </div>
                     </div>
                 </form>
@@ -1320,7 +1302,6 @@
                     params.set('type', this.importType);
                     if (this.importClassroomId) params.set('classroom_id', this.importClassroomId);
                     if (this.importPeriod) params.set('period', this.importPeriod);
-                    params.set('date', this.selectedDate);
                     return `${base}?${params.toString()}`;
                 },
 

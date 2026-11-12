@@ -220,13 +220,13 @@ class StudentDdtkController extends Controller
         $validated = $request->validate([
             'classroom_id' => 'required|exists:classrooms,id',
             'period' => 'required|string|max:20',
-            'date' => 'required|date',
+            'date' => 'nullable|date',
             'ddtk' => 'required|array',
         ]);
 
         $classroomId = $validated['classroom_id'];
         $period = $validated['period'];
-        $date = $validated['date'];
+        $date = !empty($validated['date']) ? $validated['date'] : (Carbon::hasFormat($period, 'Y-m') ? Carbon::createFromFormat('Y-m', $period)->startOfMonth()->format('Y-m-d') : Carbon::today()->format('Y-m-d'));
         $ddtkData = $request->input('ddtk', []);
 
         $classroom = Classroom::find($classroomId);
@@ -298,7 +298,6 @@ class StudentDdtkController extends Controller
         return redirect()->route('student-ddtk.index', [
             'classroom_id' => $classroomId,
             'period' => $period,
-            'date' => $date,
             'tab' => 'inputDDTK',
         ])->with($msgKey, $message);
     }
@@ -311,13 +310,13 @@ class StudentDdtkController extends Controller
         $validated = $request->validate([
             'classroom_id' => 'required|exists:classrooms,id',
             'period' => 'required|string|max:20',
-            'date' => 'required|date',
+            'date' => 'nullable|date',
             'sdidtk' => 'required|array',
         ]);
 
         $classroomId = $validated['classroom_id'];
         $period = $validated['period'];
-        $date = $validated['date'];
+        $date = !empty($validated['date']) ? $validated['date'] : (Carbon::hasFormat($period, 'Y-m') ? Carbon::createFromFormat('Y-m', $period)->startOfMonth()->format('Y-m-d') : Carbon::today()->format('Y-m-d'));
         $sdidtkData = $request->input('sdidtk', []);
 
         $classroom = Classroom::find($classroomId);
@@ -386,7 +385,6 @@ class StudentDdtkController extends Controller
         return redirect()->route('student-ddtk.index', [
             'classroom_id' => $classroomId,
             'period' => $period,
-            'date' => $date,
             'tab' => 'inputSDIDTK',
         ])->with($msgKey, $message);
     }
@@ -656,7 +654,7 @@ class StudentDdtkController extends Controller
             $sheet->setCellValue('A4', 'Petunjuk: Isi hasil skrining sesuai opsi. Visus: Normal/6/6. KPSP: Sesuai/Meragukan/Penyimpangan. Gigi: Bersih/Karies/Berlubang. Kusta/Frambusia: Ya/Tidak.');
 
             $headers = [
-                'No', 'NIS', 'Nama Murid', 'Rombel', 'Tanggal Periksa (YYYY-MM-DD)',
+                'No', 'NIS', 'Nama Murid', 'Rombel',
                 'Mata Kanan', 'Mata Kiri', 'KPSP', 'Kesehatan Gigi', 'Gula Darah / Hb',
                 'Kusta (Ya/Tidak)', 'Frambusia (Ya/Tidak)', 'Catatan / Keterangan'
             ];
@@ -669,7 +667,7 @@ class StudentDdtkController extends Controller
             $sheet->setCellValue('A4', 'Petunjuk: Isi data antropometri fisik (DDTK) dan skrining tumbuh kembang (SDIDTK). Kosongkan kolom yang tidak diuji.');
 
             $headers = [
-                'No', 'NIS', 'Nama Murid', 'Rombel', 'Tanggal Periksa (YYYY-MM-DD)',
+                'No', 'NIS', 'Nama Murid', 'Rombel',
                 'Tinggi Badan (cm)', 'Berat Badan (kg)', 'Lingkar Kepala (cm)', 'Lingkar Lengan (cm)',
                 'Mata Kanan', 'Mata Kiri', 'KPSP', 'Kesehatan Gigi', 'Gula Darah / Hb',
                 'Kusta (Ya/Tidak)', 'Frambusia (Ya/Tidak)', 'Catatan / Keterangan'
@@ -684,7 +682,7 @@ class StudentDdtkController extends Controller
             $sheet->setCellValue('A4', 'Petunjuk: Isi pengukuran angka dalam satuan centimeter (cm) dan kilogram (kg). Gunakan titik (.) untuk desimal, contoh: 102.5 atau 16.3.');
 
             $headers = [
-                'No', 'NIS', 'Nama Murid', 'Rombel', 'Tanggal Ukur (YYYY-MM-DD)',
+                'No', 'NIS', 'Nama Murid', 'Rombel',
                 'Tinggi Badan (cm)', 'Berat Badan (kg)', 'Lingkar Kepala (cm)', 'Lingkar Lengan (cm)'
             ];
             $themeColor = '0284C7'; // Sky-600
@@ -718,35 +716,34 @@ class StudentDdtkController extends Controller
                 $sheet->setCellValueExplicit("B{$currentRow}", $st->nis ?: '', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
                 $sheet->setCellValue("C{$currentRow}", $st->full_name);
                 $sheet->setCellValue("D{$currentRow}", $classroom ? $classroom->name : '');
-                $sheet->setCellValueExplicit("E{$currentRow}", $date, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
 
                 if ($type === 'ddtk') {
+                    $sheet->setCellValue("E{$currentRow}", '');
                     $sheet->setCellValue("F{$currentRow}", '');
                     $sheet->setCellValue("G{$currentRow}", '');
                     $sheet->setCellValue("H{$currentRow}", '');
-                    $sheet->setCellValue("I{$currentRow}", '');
                 } elseif ($type === 'sdidtk') {
+                    $sheet->setCellValue("E{$currentRow}", 'Normal');
                     $sheet->setCellValue("F{$currentRow}", 'Normal');
-                    $sheet->setCellValue("G{$currentRow}", 'Normal');
-                    $sheet->setCellValue("H{$currentRow}", 'Sesuai');
-                    $sheet->setCellValue("I{$currentRow}", 'Bersih');
-                    $sheet->setCellValue("J{$currentRow}", '');
+                    $sheet->setCellValue("G{$currentRow}", 'Sesuai');
+                    $sheet->setCellValue("H{$currentRow}", 'Bersih');
+                    $sheet->setCellValue("I{$currentRow}", '');
+                    $sheet->setCellValue("J{$currentRow}", 'Tidak');
                     $sheet->setCellValue("K{$currentRow}", 'Tidak');
-                    $sheet->setCellValue("L{$currentRow}", 'Tidak');
-                    $sheet->setCellValue("M{$currentRow}", '');
+                    $sheet->setCellValue("L{$currentRow}", '');
                 } elseif ($type === 'all') {
+                    $sheet->setCellValue("E{$currentRow}", '');
                     $sheet->setCellValue("F{$currentRow}", '');
                     $sheet->setCellValue("G{$currentRow}", '');
                     $sheet->setCellValue("H{$currentRow}", '');
-                    $sheet->setCellValue("I{$currentRow}", '');
+                    $sheet->setCellValue("I{$currentRow}", 'Normal');
                     $sheet->setCellValue("J{$currentRow}", 'Normal');
-                    $sheet->setCellValue("K{$currentRow}", 'Normal');
-                    $sheet->setCellValue("L{$currentRow}", 'Sesuai');
-                    $sheet->setCellValue("M{$currentRow}", 'Bersih');
-                    $sheet->setCellValue("N{$currentRow}", '');
+                    $sheet->setCellValue("K{$currentRow}", 'Sesuai');
+                    $sheet->setCellValue("L{$currentRow}", 'Bersih');
+                    $sheet->setCellValue("M{$currentRow}", '');
+                    $sheet->setCellValue("N{$currentRow}", 'Tidak');
                     $sheet->setCellValue("O{$currentRow}", 'Tidak');
-                    $sheet->setCellValue("P{$currentRow}", 'Tidak');
-                    $sheet->setCellValue("Q{$currentRow}", '');
+                    $sheet->setCellValue("P{$currentRow}", '');
                 }
 
                 $currentRow++;
@@ -759,34 +756,33 @@ class StudentDdtkController extends Controller
                 $sheet->setCellValueExplicit("B{$currentRow}", (string)(12345 + $idx), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
                 $sheet->setCellValue("C{$currentRow}", $sName);
                 $sheet->setCellValue("D{$currentRow}", 'Kelompok A1');
-                $sheet->setCellValueExplicit("E{$currentRow}", $date, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
                 if ($type === 'ddtk') {
-                    $sheet->setCellValue("F{$currentRow}", 102.5);
-                    $sheet->setCellValue("G{$currentRow}", 16.3);
-                    $sheet->setCellValue("H{$currentRow}", 49.0);
-                    $sheet->setCellValue("I{$currentRow}", 15.5);
+                    $sheet->setCellValue("E{$currentRow}", 102.5);
+                    $sheet->setCellValue("F{$currentRow}", 16.3);
+                    $sheet->setCellValue("G{$currentRow}", 49.0);
+                    $sheet->setCellValue("H{$currentRow}", 15.5);
                 } elseif ($type === 'sdidtk') {
+                    $sheet->setCellValue("E{$currentRow}", 'Normal');
                     $sheet->setCellValue("F{$currentRow}", 'Normal');
-                    $sheet->setCellValue("G{$currentRow}", 'Normal');
-                    $sheet->setCellValue("H{$currentRow}", 'Sesuai');
-                    $sheet->setCellValue("I{$currentRow}", 'Bersih');
-                    $sheet->setCellValue("J{$currentRow}", '');
+                    $sheet->setCellValue("G{$currentRow}", 'Sesuai');
+                    $sheet->setCellValue("H{$currentRow}", 'Bersih');
+                    $sheet->setCellValue("I{$currentRow}", '');
+                    $sheet->setCellValue("J{$currentRow}", 'Tidak');
                     $sheet->setCellValue("K{$currentRow}", 'Tidak');
-                    $sheet->setCellValue("L{$currentRow}", 'Tidak');
-                    $sheet->setCellValue("M{$currentRow}", '');
+                    $sheet->setCellValue("L{$currentRow}", '');
                 } else {
-                    $sheet->setCellValue("F{$currentRow}", 102.5);
-                    $sheet->setCellValue("G{$currentRow}", 16.3);
-                    $sheet->setCellValue("H{$currentRow}", 49.0);
-                    $sheet->setCellValue("I{$currentRow}", 15.5);
+                    $sheet->setCellValue("E{$currentRow}", 102.5);
+                    $sheet->setCellValue("F{$currentRow}", 16.3);
+                    $sheet->setCellValue("G{$currentRow}", 49.0);
+                    $sheet->setCellValue("H{$currentRow}", 15.5);
+                    $sheet->setCellValue("I{$currentRow}", 'Normal');
                     $sheet->setCellValue("J{$currentRow}", 'Normal');
-                    $sheet->setCellValue("K{$currentRow}", 'Normal');
-                    $sheet->setCellValue("L{$currentRow}", 'Sesuai');
-                    $sheet->setCellValue("M{$currentRow}", 'Bersih');
-                    $sheet->setCellValue("N{$currentRow}", '');
+                    $sheet->setCellValue("K{$currentRow}", 'Sesuai');
+                    $sheet->setCellValue("L{$currentRow}", 'Bersih');
+                    $sheet->setCellValue("M{$currentRow}", '');
+                    $sheet->setCellValue("N{$currentRow}", 'Tidak');
                     $sheet->setCellValue("O{$currentRow}", 'Tidak');
-                    $sheet->setCellValue("P{$currentRow}", 'Tidak');
-                    $sheet->setCellValue("Q{$currentRow}", '');
+                    $sheet->setCellValue("P{$currentRow}", '');
                 }
                 $currentRow++;
             }
@@ -1067,7 +1063,6 @@ class StudentDdtkController extends Controller
         return redirect()->route('student-ddtk.index', [
             'classroom_id' => $defaultClassroomId,
             'period' => $detectedPeriod,
-            'date' => $defaultDate,
             'tab' => $request->input('target_tab', 'inputDDTK'),
         ])->with('success', $message)->with('import_errors', array_slice($errors, 0, 10));
     }
