@@ -294,10 +294,10 @@
                                     @foreach($students as $st)
                                         @php
                                             $rec = $existingRecords[$st->id] ?? null;
-                                            $hVal = $rec?->height ?? ($st->height ?: '');
-                                            $wVal = $rec?->weight ?? ($st->weight ?: '');
-                                            $lkVal = $rec?->head_circumference ?? ($st->head_circumference ?: '');
-                                            $lilaVal = $rec?->arm_circumference ?? ($st->arm_circumference ?: '');
+                                            $hVal = $rec?->height ?? '';
+                                            $wVal = $rec?->weight ?? '';
+                                            $lkVal = $rec?->head_circumference ?? '';
+                                            $lilaVal = $rec?->arm_circumference ?? '';
                                             $isBoy = ($st->gender === 'L' || $st->gender === 'Laki-laki');
                                         @endphp
                                         <tr x-data="{

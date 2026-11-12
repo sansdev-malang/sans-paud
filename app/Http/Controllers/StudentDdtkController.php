@@ -707,10 +707,10 @@ class StudentDdtkController extends Controller
                 $sheet->setCellValueExplicit("E{$currentRow}", $date, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
 
                 if ($type === 'ddtk') {
-                    $sheet->setCellValue("F{$currentRow}", $st->height ?: '');
-                    $sheet->setCellValue("G{$currentRow}", $st->weight ?: '');
-                    $sheet->setCellValue("H{$currentRow}", $st->head_circumference ?: '');
-                    $sheet->setCellValue("I{$currentRow}", $st->arm_circumference ?: '');
+                    $sheet->setCellValue("F{$currentRow}", '');
+                    $sheet->setCellValue("G{$currentRow}", '');
+                    $sheet->setCellValue("H{$currentRow}", '');
+                    $sheet->setCellValue("I{$currentRow}", '');
                 } elseif ($type === 'sdidtk') {
                     $sheet->setCellValue("F{$currentRow}", 'Normal');
                     $sheet->setCellValue("G{$currentRow}", 'Normal');
@@ -721,10 +721,10 @@ class StudentDdtkController extends Controller
                     $sheet->setCellValue("L{$currentRow}", 'Tidak');
                     $sheet->setCellValue("M{$currentRow}", '');
                 } elseif ($type === 'all') {
-                    $sheet->setCellValue("F{$currentRow}", $st->height ?: '');
-                    $sheet->setCellValue("G{$currentRow}", $st->weight ?: '');
-                    $sheet->setCellValue("H{$currentRow}", $st->head_circumference ?: '');
-                    $sheet->setCellValue("I{$currentRow}", $st->arm_circumference ?: '');
+                    $sheet->setCellValue("F{$currentRow}", '');
+                    $sheet->setCellValue("G{$currentRow}", '');
+                    $sheet->setCellValue("H{$currentRow}", '');
+                    $sheet->setCellValue("I{$currentRow}", '');
                     $sheet->setCellValue("J{$currentRow}", 'Normal');
                     $sheet->setCellValue("K{$currentRow}", 'Normal');
                     $sheet->setCellValue("L{$currentRow}", 'Sesuai');
