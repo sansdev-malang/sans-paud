@@ -110,10 +110,13 @@
              1. KATEGORI: AKADEMIK
              ========================================== -->
         @php
-            $isAcademicActive = Request::routeIs(
-                'academic-years.*', 'semesters.*', 'jenjangs.*', 'class-levels.*', 
-                'classrooms.*', 'academic-summary.*', 'rekap-rapor.*'
+            $isMasterAcademicActive = Request::routeIs(
+                'academic-years.*', 'semesters.*', 'jenjangs.*', 'class-levels.*', 'classrooms.*'
             );
+            $isAcademicActive = Request::routeIs(
+                'classroom-journals.*', 'student-ddtk.*', 'rekap-rapor.*', 
+                'promotions.*', 'academic-summary.*'
+            ) || $isMasterAcademicActive;
         @endphp
         <div x-data="{ openAcademic: {{ $isAcademicActive ? 'true' : 'false' }} }">
             <button @click="openAcademic = !openAcademic"
@@ -132,35 +135,26 @@
             <div x-show="openAcademic" x-collapse
                 @if(!$isAcademicActive) style="display: none;" x-cloak @endif
                 class="sidebar-dropdown-content mt-1 ml-4 pl-2.5 border-l border-slate-200 dark:border-slate-800 space-y-0.5">
-                @if(!$isExecutive)
-                <a href="{{ route('academic-years.index') }}"
-                    class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('academic-years.*', 'semesters.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
-                    <span>Tahun Ajaran & Semester</span>
+                
+                <!-- 1. Jurnal Kelas -->
+                <a href="{{ route('classroom-journals.index') }}"
+                    class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('classroom-journals.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
+                    <span>Jurnal Kelas</span>
                 </a>
-                @endif
-                <a href="{{ route('jenjangs.index') }}"
-                    class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('jenjangs.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
-                    <span>Jenjang Pendidikan</span>
+
+                <!-- 2. DDTK & SDIDTK -->
+                <a href="{{ route('student-ddtk.index') }}"
+                    class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('student-ddtk.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
+                    <span>DDTK & SDIDTK</span>
                 </a>
-                @if(!$isExecutive)
-                <a href="{{ route('class-levels.index') }}"
-                    class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('class-levels.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
-                    <span>Tingkat Kelas</span>
-                </a>
-                @endif
-                <a href="{{ route('classrooms.index') }}"
-                    class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('classrooms.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
-                    <span>Kelompok Belajar</span>
-                </a>
-                <a href="{{ route('academic-summary.index') }}"
-                    class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('academic-summary.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
-                    <span>Rekapitulasi Rombel</span>
-                </a>
+
+                <!-- 3. Data Rapor -->
                 <a href="{{ route('rekap-rapor.index') }}"
                     class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('rekap-rapor.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
                     <span>Data Rapor</span>
                 </a>
 
+                <!-- 4. E-Rapor (SSO) -->
                 @if($canAccessRapor)
                 <a href="{{ $raporLink }}" target="_blank"
                     class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-colors group/link">
@@ -170,6 +164,57 @@
                     </span>
                 </a>
                 @endif
+
+                <!-- 5. Kenaikan & Kelulusan -->
+                <a href="{{ route('promotions.index') }}"
+                    class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('promotions.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
+                    <span>Kenaikan & Kelulusan</span>
+                </a>
+
+                <!-- 6. Rekapitulasi Rombel -->
+                <a href="{{ route('academic-summary.index') }}"
+                    class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('academic-summary.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
+                    <span>Rekapitulasi Rombel</span>
+                </a>
+
+                <!-- 7. SUB-DROPDOWN: MASTER AKADEMIK -->
+                <div x-data="{ openMasterAcademic: {{ $isMasterAcademicActive ? 'true' : 'false' }} }" class="pt-0.5">
+                    <button type="button" @click="openMasterAcademic = !openMasterAcademic"
+                        class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer {{ $isMasterAcademicActive ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/30 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
+                        <span class="flex items-center gap-1.5">
+                            <i data-lucide="layers" class="w-3.5 h-3.5 text-slate-400"></i>
+                            <span>Master Akademik</span>
+                        </span>
+                        <i data-lucide="chevron-right" class="w-3 h-3 transition-transform duration-200 shrink-0"
+                            :style="openMasterAcademic ? 'transform: rotate(90deg);' : ''" @if($isMasterAcademicActive) style="transform: rotate(90deg);" @endif></i>
+                    </button>
+
+                    <div x-show="openMasterAcademic" x-collapse
+                        @if(!$isMasterAcademicActive) style="display: none;" x-cloak @endif
+                        class="mt-0.5 ml-3 pl-2.5 border-l border-slate-200 dark:border-slate-800 space-y-0.5">
+                        @if(!$isExecutive)
+                        <a href="{{ route('academic-years.index') }}"
+                            class="flex items-center justify-between gap-2 px-2 py-1 rounded-md text-[11.5px] font-medium transition-colors {{ Request::routeIs('academic-years.*', 'semesters.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
+                            <span>Tahun Ajaran & Semester</span>
+                        </a>
+                        @endif
+                        <a href="{{ route('jenjangs.index') }}"
+                            class="flex items-center justify-between gap-2 px-2 py-1 rounded-md text-[11.5px] font-medium transition-colors {{ Request::routeIs('jenjangs.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
+                            <span>Jenjang Pendidikan</span>
+                        </a>
+                        @if(!$isExecutive)
+                        <a href="{{ route('class-levels.index') }}"
+                            class="flex items-center justify-between gap-2 px-2 py-1 rounded-md text-[11.5px] font-medium transition-colors {{ Request::routeIs('class-levels.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
+                            <span>Tingkat Kelas</span>
+                        </a>
+                        @endif
+                        <a href="{{ route('classrooms.index') }}"
+                            class="flex items-center justify-between gap-2 px-2 py-1 rounded-md text-[11.5px] font-medium transition-colors {{ Request::routeIs('classrooms.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
+                            <span>Kelompok Belajar</span>
+                        </a>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -178,9 +223,8 @@
              ========================================== -->
         @php
             $isStudentActive = Request::routeIs(
-                'students.*', 'student-attendances.*', 'classroom-journals.*', 
-                'student-ddtk.*', 'promotions.*', 'alumni.*', 'student-archives.*', 
-                'spmb.candidates.*'
+                'students.*', 'student-attendances.*', 'alumni.*', 
+                'student-archives.*', 'spmb.candidates.*'
             );
         @endphp
         <div x-data="{ openStudent: {{ $isStudentActive ? 'true' : 'false' }} }">
@@ -200,36 +244,8 @@
             <div x-show="openStudent" x-collapse
                 @if(!$isStudentActive) style="display: none;" x-cloak @endif
                 class="sidebar-dropdown-content mt-1 ml-4 pl-2.5 border-l border-slate-200 dark:border-slate-800 space-y-0.5">
-                <a href="{{ route('students.index') }}"
-                    class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('students.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
-                    <span>Data Murid</span>
-                </a>
-                <a href="{{ route('student-attendances.index') }}"
-                    class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('student-attendances.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
-                    <span>Absensi Murid</span>
-                </a>
-                <a href="{{ route('classroom-journals.index') }}"
-                    class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('classroom-journals.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
-                    <span>Jurnal Kelas</span>
-                </a>
-                <a href="{{ route('student-ddtk.index') }}"
-                    class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('student-ddtk.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
-                    <span>DDTK & SDIDTK</span>
-                </a>
-                <a href="{{ route('promotions.index') }}"
-                    class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('promotions.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
-                    <span>Kenaikan & Kelulusan</span>
-                </a>
-                <a href="{{ route('alumni.index') }}"
-                    class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('alumni.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
-                    <span>Buku Induk Alumni</span>
-                </a>
-                @if(!$isExecutive)
-                <a href="{{ route('student-archives.index') }}"
-                    class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('student-archives.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
-                    <span>Arsip Dokumen Murid</span>
-                </a>
-                @endif
+                
+                <!-- 1. Pendaftar SPMB (Penerimaan) -->
                 <a href="{{ route('spmb.candidates.index') }}"
                     class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('spmb.candidates.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
                     <span class="flex items-center gap-1.5">
@@ -237,6 +253,32 @@
                     </span>
                     <span class="text-[9px] uppercase tracking-wider font-semibold px-1 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 leading-none">Baru</span>
                 </a>
+
+                <!-- 2. Data Murid (Buku Induk) -->
+                <a href="{{ route('students.index') }}"
+                    class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('students.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
+                    <span>Data Murid</span>
+                </a>
+
+                <!-- 3. Absensi Murid -->
+                <a href="{{ route('student-attendances.index') }}"
+                    class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('student-attendances.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
+                    <span>Absensi Murid</span>
+                </a>
+
+                <!-- 4. Buku Induk Alumni (Lulusan) -->
+                <a href="{{ route('alumni.index') }}"
+                    class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('alumni.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
+                    <span>Buku Induk Alumni</span>
+                </a>
+
+                <!-- 5. Arsip Dokumen Murid -->
+                @if(!$isExecutive)
+                <a href="{{ route('student-archives.index') }}"
+                    class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('student-archives.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
+                    <span>Arsip Dokumen Murid</span>
+                </a>
+                @endif
             </div>
         </div>
 
