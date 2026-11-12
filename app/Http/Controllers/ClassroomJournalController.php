@@ -6,6 +6,7 @@ use App\Models\AcademicYear;
 use App\Models\Classroom;
 use App\Models\ClassroomJournal;
 use App\Models\Employee;
+use App\Models\StudentAttendance;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -122,6 +123,38 @@ class ClassroomJournalController extends Controller
         } else {
             $perPage = is_numeric($perPageParam) ? (int)$perPageParam : 25;
             $journals = $journalsQuery->paginate($perPage)->withQueryString();
+        }
+
+        // Pre-load attendance summaries in a single batch query to prevent N+1 queries & latency
+        $displayedJournals = ($journals instanceof \Illuminate\Pagination\LengthAwarePaginator) ? $journals->items() : $journals;
+        if (!empty($displayedJournals)) {
+            $classroomIds = collect($displayedJournals)->pluck('classroom_id')->unique()->filter()->values()->all();
+            $dates = collect($displayedJournals)->pluck('date')->map(fn($d) => Carbon::parse($d)->format('Y-m-d'))->unique()->values()->all();
+
+            if (!empty($classroomIds) && !empty($dates)) {
+                $attendances = StudentAttendance::whereIn('classroom_id', $classroomIds)
+                    ->whereIn('date', $dates)
+                    ->get()
+                    ->groupBy(function($item) {
+                        return $item->classroom_id . '_' . Carbon::parse($item->date)->format('Y-m-d');
+                    });
+
+                foreach ($displayedJournals as $journal) {
+                    $key = $journal->classroom_id . '_' . Carbon::parse($journal->date)->format('Y-m-d');
+                    $records = $attendances->get($key);
+                    if ($records && $records->isNotEmpty()) {
+                        $journal->setAttendanceSummary([
+                            'h' => $records->where('status', 'H')->count(),
+                            's' => $records->where('status', 'S')->count(),
+                            'i' => $records->where('status', 'I')->count(),
+                            'a' => $records->where('status', 'A')->count(),
+                            'total' => $records->count(),
+                        ]);
+                    } else {
+                        $journal->setAttendanceSummary(null);
+                    }
+                }
+            }
         }
 
         // Dynamic School & Principal Information

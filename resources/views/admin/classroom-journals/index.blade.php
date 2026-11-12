@@ -146,14 +146,8 @@
                     </div>
                 </div>
 
-                <!-- ACTIONS: FILTER, EXCEL, UNDUH PDF & CETAK PDF -->
+                <!-- ACTIONS: EXCEL, UNDUH PDF & CETAK PDF -->
                 <div class="flex flex-wrap items-center gap-1.5 pt-1 lg:pt-0 shrink-0">
-                    <button type="submit"
-                        class="inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer shadow-2xs">
-                        <i data-lucide="filter" class="w-3.5 h-3.5"></i>
-                        <span>Filter</span>
-                    </button>
-
                     <!-- Ekspor Excel dengan Animasi Tombol Mandiri (Tanpa Top Progress Bar) -->
                     <button type="button"
                         @click="downloadFile('{{ route('classroom-journals.export.excel', ['classroom_id' => $selectedClassroomId, 'academic_year_id' => $selectedAcademicYearId, 'month' => $selectedMonth, 'year' => $selectedYear]) }}', 'excel', 'Jurnal_Kelas.xlsx')"

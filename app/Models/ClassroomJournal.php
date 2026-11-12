@@ -66,10 +66,27 @@ class ClassroomJournal extends Model
     }
 
     /**
+     * Preloaded attendance summary to prevent N+1 queries.
+     */
+    protected ?array $preloadedAttendanceSummary = null;
+    protected bool $attendanceSummaryLoaded = false;
+
+    public function setAttendanceSummary(?array $summary): self
+    {
+        $this->preloadedAttendanceSummary = $summary;
+        $this->attendanceSummaryLoaded = true;
+        return $this;
+    }
+
+    /**
      * Summary of student attendance on this date for this classroom.
      */
     public function getAttendanceSummaryAttribute(): ?array
     {
+        if ($this->attendanceSummaryLoaded) {
+            return $this->preloadedAttendanceSummary;
+        }
+
         $records = StudentAttendance::where('classroom_id', $this->classroom_id)
             ->whereDate('date', $this->date)
             ->get();
