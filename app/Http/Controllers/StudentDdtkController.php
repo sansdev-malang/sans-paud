@@ -651,10 +651,10 @@ class StudentDdtkController extends Controller
             $sheet->setCellValue('A1', 'TEMPLATE IMPORT SKRINING SDIDTK');
             $sheet->setCellValue('A2', strtoupper(setting('unit_name', setting('app_name', 'PAUD ANAK SALEH'))));
             $sheet->setCellValue('A3', "Periode: {$periodLabel} ({$period}) | Rombel: " . ($classroom ? "{$classroom->name} ({$classroom->sub_unit})" : 'Semua Rombel'));
-            $sheet->setCellValue('A4', 'Petunjuk: Isi hasil skrining sesuai opsi. Visus: Normal/6/6. KPSP: Sesuai/Meragukan/Penyimpangan. Gigi: Bersih/Karies/Berlubang. Kusta/Frambusia: Ya/Tidak.');
+            $sheet->setCellValue('A4', 'Petunjuk: Kolom Periode bisa diisi nama bulan & tahun (contoh: "Desember 2026"). Anda bisa mengisi lintas beberapa bulan sekaligus dalam satu berkas. Opsi skrining: Visus: Normal/6/6. KPSP: Sesuai/Meragukan/Penyimpangan. Gigi: Bersih/Karies. Kusta/Frambusia: Ya/Tidak.');
 
             $headers = [
-                'No', 'NIS', 'Nama Murid', 'Rombel',
+                'No', 'NIS', 'Nama Murid', 'Rombel', 'Periode (Bulan Tahun)',
                 'Mata Kanan', 'Mata Kiri', 'KPSP', 'Kesehatan Gigi', 'Gula Darah / Hb',
                 'Kusta (Ya/Tidak)', 'Frambusia (Ya/Tidak)', 'Catatan / Keterangan'
             ];
@@ -664,10 +664,10 @@ class StudentDdtkController extends Controller
             $sheet->setCellValue('A1', 'TEMPLATE IMPORT DDTK & SDIDTK (LENGKAP)');
             $sheet->setCellValue('A2', strtoupper(setting('unit_name', setting('app_name', 'PAUD ANAK SALEH'))));
             $sheet->setCellValue('A3', "Periode: {$periodLabel} ({$period}) | Rombel: " . ($classroom ? "{$classroom->name} ({$classroom->sub_unit})" : 'Semua Rombel'));
-            $sheet->setCellValue('A4', 'Petunjuk: Isi data antropometri fisik (DDTK) dan skrining tumbuh kembang (SDIDTK). Kosongkan kolom yang tidak diuji.');
+            $sheet->setCellValue('A4', 'Petunjuk: Kolom Periode bisa diisi nama bulan & tahun (contoh: "Desember 2026"). Anda bisa mengisi lintas beberapa bulan sekaligus dalam satu berkas. Kosongkan kolom yang tidak diuji.');
 
             $headers = [
-                'No', 'NIS', 'Nama Murid', 'Rombel',
+                'No', 'NIS', 'Nama Murid', 'Rombel', 'Periode (Bulan Tahun)',
                 'Tinggi Badan (cm)', 'Berat Badan (kg)', 'Lingkar Kepala (cm)', 'Lingkar Lengan (cm)',
                 'Mata Kanan', 'Mata Kiri', 'KPSP', 'Kesehatan Gigi', 'Gula Darah / Hb',
                 'Kusta (Ya/Tidak)', 'Frambusia (Ya/Tidak)', 'Catatan / Keterangan'
@@ -679,10 +679,10 @@ class StudentDdtkController extends Controller
             $sheet->setCellValue('A1', 'TEMPLATE IMPORT ANTROPOMETRI DDTK');
             $sheet->setCellValue('A2', strtoupper(setting('unit_name', setting('app_name', 'PAUD ANAK SALEH'))));
             $sheet->setCellValue('A3', "Periode: {$periodLabel} ({$period}) | Rombel: " . ($classroom ? "{$classroom->name} ({$classroom->sub_unit})" : 'Semua Rombel'));
-            $sheet->setCellValue('A4', 'Petunjuk: Isi pengukuran angka dalam satuan centimeter (cm) dan kilogram (kg). Gunakan titik (.) untuk desimal, contoh: 102.5 atau 16.3.');
+            $sheet->setCellValue('A4', 'Petunjuk: Kolom Periode bisa diisi nama bulan & tahun (contoh: "Desember 2026"). Anda bisa menyalin atau menambah baris lintas beberapa bulan sekaligus dalam satu berkas. Ukuran: gunakan angka dengan titik (.) desimal, contoh: 102.5 atau 16.3.');
 
             $headers = [
-                'No', 'NIS', 'Nama Murid', 'Rombel',
+                'No', 'NIS', 'Nama Murid', 'Rombel', 'Periode (Bulan Tahun)',
                 'Tinggi Badan (cm)', 'Berat Badan (kg)', 'Lingkar Kepala (cm)', 'Lingkar Lengan (cm)'
             ];
             $themeColor = '0284C7'; // Sky-600
@@ -716,34 +716,35 @@ class StudentDdtkController extends Controller
                 $sheet->setCellValueExplicit("B{$currentRow}", $st->nis ?: '', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
                 $sheet->setCellValue("C{$currentRow}", $st->full_name);
                 $sheet->setCellValue("D{$currentRow}", $classroom ? $classroom->name : '');
+                $sheet->setCellValue("E{$currentRow}", $periodLabel);
 
                 if ($type === 'ddtk') {
-                    $sheet->setCellValue("E{$currentRow}", '');
                     $sheet->setCellValue("F{$currentRow}", '');
                     $sheet->setCellValue("G{$currentRow}", '');
                     $sheet->setCellValue("H{$currentRow}", '');
-                } elseif ($type === 'sdidtk') {
-                    $sheet->setCellValue("E{$currentRow}", 'Normal');
-                    $sheet->setCellValue("F{$currentRow}", 'Normal');
-                    $sheet->setCellValue("G{$currentRow}", 'Sesuai');
-                    $sheet->setCellValue("H{$currentRow}", 'Bersih');
                     $sheet->setCellValue("I{$currentRow}", '');
-                    $sheet->setCellValue("J{$currentRow}", 'Tidak');
+                } elseif ($type === 'sdidtk') {
+                    $sheet->setCellValue("F{$currentRow}", 'Normal');
+                    $sheet->setCellValue("G{$currentRow}", 'Normal');
+                    $sheet->setCellValue("H{$currentRow}", 'Sesuai');
+                    $sheet->setCellValue("I{$currentRow}", 'Bersih');
+                    $sheet->setCellValue("J{$currentRow}", '');
                     $sheet->setCellValue("K{$currentRow}", 'Tidak');
-                    $sheet->setCellValue("L{$currentRow}", '');
+                    $sheet->setCellValue("L{$currentRow}", 'Tidak');
+                    $sheet->setCellValue("M{$currentRow}", '');
                 } elseif ($type === 'all') {
-                    $sheet->setCellValue("E{$currentRow}", '');
                     $sheet->setCellValue("F{$currentRow}", '');
                     $sheet->setCellValue("G{$currentRow}", '');
                     $sheet->setCellValue("H{$currentRow}", '');
-                    $sheet->setCellValue("I{$currentRow}", 'Normal');
+                    $sheet->setCellValue("I{$currentRow}", '');
                     $sheet->setCellValue("J{$currentRow}", 'Normal');
-                    $sheet->setCellValue("K{$currentRow}", 'Sesuai');
-                    $sheet->setCellValue("L{$currentRow}", 'Bersih');
-                    $sheet->setCellValue("M{$currentRow}", '');
-                    $sheet->setCellValue("N{$currentRow}", 'Tidak');
+                    $sheet->setCellValue("K{$currentRow}", 'Normal');
+                    $sheet->setCellValue("L{$currentRow}", 'Sesuai');
+                    $sheet->setCellValue("M{$currentRow}", 'Bersih');
+                    $sheet->setCellValue("N{$currentRow}", '');
                     $sheet->setCellValue("O{$currentRow}", 'Tidak');
-                    $sheet->setCellValue("P{$currentRow}", '');
+                    $sheet->setCellValue("P{$currentRow}", 'Tidak');
+                    $sheet->setCellValue("Q{$currentRow}", '');
                 }
 
                 $currentRow++;
@@ -756,33 +757,34 @@ class StudentDdtkController extends Controller
                 $sheet->setCellValueExplicit("B{$currentRow}", (string)(12345 + $idx), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
                 $sheet->setCellValue("C{$currentRow}", $sName);
                 $sheet->setCellValue("D{$currentRow}", 'Kelompok A1');
+                $sheet->setCellValue("E{$currentRow}", $periodLabel);
                 if ($type === 'ddtk') {
-                    $sheet->setCellValue("E{$currentRow}", 102.5);
-                    $sheet->setCellValue("F{$currentRow}", 16.3);
-                    $sheet->setCellValue("G{$currentRow}", 49.0);
-                    $sheet->setCellValue("H{$currentRow}", 15.5);
+                    $sheet->setCellValue("F{$currentRow}", 102.5);
+                    $sheet->setCellValue("G{$currentRow}", 16.3);
+                    $sheet->setCellValue("H{$currentRow}", 49.0);
+                    $sheet->setCellValue("I{$currentRow}", 15.5);
                 } elseif ($type === 'sdidtk') {
-                    $sheet->setCellValue("E{$currentRow}", 'Normal');
                     $sheet->setCellValue("F{$currentRow}", 'Normal');
-                    $sheet->setCellValue("G{$currentRow}", 'Sesuai');
-                    $sheet->setCellValue("H{$currentRow}", 'Bersih');
-                    $sheet->setCellValue("I{$currentRow}", '');
-                    $sheet->setCellValue("J{$currentRow}", 'Tidak');
+                    $sheet->setCellValue("G{$currentRow}", 'Normal');
+                    $sheet->setCellValue("H{$currentRow}", 'Sesuai');
+                    $sheet->setCellValue("I{$currentRow}", 'Bersih');
+                    $sheet->setCellValue("J{$currentRow}", '');
                     $sheet->setCellValue("K{$currentRow}", 'Tidak');
-                    $sheet->setCellValue("L{$currentRow}", '');
-                } else {
-                    $sheet->setCellValue("E{$currentRow}", 102.5);
-                    $sheet->setCellValue("F{$currentRow}", 16.3);
-                    $sheet->setCellValue("G{$currentRow}", 49.0);
-                    $sheet->setCellValue("H{$currentRow}", 15.5);
-                    $sheet->setCellValue("I{$currentRow}", 'Normal');
-                    $sheet->setCellValue("J{$currentRow}", 'Normal');
-                    $sheet->setCellValue("K{$currentRow}", 'Sesuai');
-                    $sheet->setCellValue("L{$currentRow}", 'Bersih');
+                    $sheet->setCellValue("L{$currentRow}", 'Tidak');
                     $sheet->setCellValue("M{$currentRow}", '');
-                    $sheet->setCellValue("N{$currentRow}", 'Tidak');
+                } else {
+                    $sheet->setCellValue("F{$currentRow}", 102.5);
+                    $sheet->setCellValue("G{$currentRow}", 16.3);
+                    $sheet->setCellValue("H{$currentRow}", 49.0);
+                    $sheet->setCellValue("I{$currentRow}", 15.5);
+                    $sheet->setCellValue("J{$currentRow}", 'Normal');
+                    $sheet->setCellValue("K{$currentRow}", 'Normal');
+                    $sheet->setCellValue("L{$currentRow}", 'Sesuai');
+                    $sheet->setCellValue("M{$currentRow}", 'Bersih');
+                    $sheet->setCellValue("N{$currentRow}", '');
                     $sheet->setCellValue("O{$currentRow}", 'Tidak');
-                    $sheet->setCellValue("P{$currentRow}", '');
+                    $sheet->setCellValue("P{$currentRow}", 'Tidak');
+                    $sheet->setCellValue("Q{$currentRow}", '');
                 }
                 $currentRow++;
             }
@@ -883,6 +885,7 @@ class StudentDdtkController extends Controller
                 if (str_contains($val, 'nis')) { $colMap['nis'] = $colKey; $hasStudent = true; }
                 elseif (str_contains($val, 'nama')) { $colMap['name'] = $colKey; $hasStudent = true; }
                 elseif (str_contains($val, 'rombel') || str_contains($val, 'kelas')) { $colMap['classroom'] = $colKey; }
+                elseif (str_contains($val, 'periode') || str_contains($val, 'bulan') || str_contains($val, 'period')) { $colMap['period'] = $colKey; }
                 elseif (str_contains($val, 'tanggal') || str_contains($val, 'tgl') || str_contains($val, 'date')) { $colMap['date'] = $colKey; }
                 elseif (str_contains($val, 'tinggi') || str_contains($val, 'tb') || str_contains($val, 'height')) { $colMap['height'] = $colKey; $hasMetrics = true; }
                 elseif (str_contains($val, 'berat') || str_contains($val, 'bb') || str_contains($val, 'weight')) { $colMap['weight'] = $colKey; $hasMetrics = true; }
@@ -910,6 +913,7 @@ class StudentDdtkController extends Controller
 
         $successCount = 0;
         $skippedCount = 0;
+        $importedPeriods = [];
         $errors = [];
 
         DB::beginTransaction();
@@ -920,6 +924,7 @@ class StudentDdtkController extends Controller
                 $rawNis = isset($colMap['nis']) ? trim((string)($row[$colMap['nis']] ?? '')) : (isset($row['B']) ? trim((string)$row['B']) : '');
                 $rawName = isset($colMap['name']) ? trim((string)($row[$colMap['name']] ?? '')) : (isset($row['C']) ? trim((string)$row['C']) : '');
                 $rawClass = isset($colMap['classroom']) ? trim((string)($row[$colMap['classroom']] ?? '')) : (isset($row['D']) ? trim((string)$row['D']) : '');
+                $rawPeriod = isset($colMap['period']) ? trim((string)($row[$colMap['period']] ?? '')) : (isset($row['E']) ? trim((string)$row['E']) : '');
                 $rawDate = isset($colMap['date']) ? trim((string)($row[$colMap['date']] ?? '')) : '';
 
                 if (empty($rawNis) && empty($rawName)) continue;
@@ -954,6 +959,9 @@ class StudentDdtkController extends Controller
                 } elseif ($student->tpq_classroom_id) {
                     $classroomId = $student->tpq_classroom_id;
                 }
+
+                // Resolve row period (supports Indonesian month-year or standard YYYY-MM)
+                $rowPeriod = $this->parsePeriodString($rawPeriod) ?? $detectedPeriod ?? $defaultPeriod;
 
                 // Resolve date
                 $parsedDate = $defaultDate;
@@ -1011,7 +1019,7 @@ class StudentDdtkController extends Controller
 
                 $record = StudentDdtkRecord::firstOrNew([
                     'student_id' => $student->id,
-                    'period' => $detectedPeriod,
+                    'period' => $rowPeriod,
                 ]);
 
                 $record->classroom_id = $classroomId;
@@ -1045,6 +1053,7 @@ class StudentDdtkController extends Controller
                     $student->update($studentUpdates);
                 }
 
+                $importedPeriods[$rowPeriod] = true;
                 $successCount++;
             }
 
@@ -1054,16 +1063,89 @@ class StudentDdtkController extends Controller
             return back()->with('error', 'Terjadi kesalahan saat memproses data import: ' . $e->getMessage());
         }
 
-        $periodLabel = Carbon::hasFormat($detectedPeriod, 'Y-m') ? Carbon::createFromFormat('Y-m', $detectedPeriod)->translatedFormat('F Y') : $detectedPeriod;
-        $message = "Berhasil mengimpor {$successCount} data pemeriksaan DDTK/SDIDTK murid (Periode: {$periodLabel}).";
+        $importedCount = count($importedPeriods);
+        if ($importedCount > 1) {
+            $periodList = collect(array_keys($importedPeriods))->sort()->map(function($p) {
+                return Carbon::hasFormat($p, 'Y-m') ? Carbon::createFromFormat('Y-m', $p)->translatedFormat('F Y') : $p;
+            })->implode(', ');
+            $message = "Berhasil mengimpor {$successCount} data pemeriksaan DDTK/SDIDTK murid lintas {$importedCount} periode ({$periodList}).";
+        } else {
+            $singleP = !empty($importedPeriods) ? array_key_first($importedPeriods) : $detectedPeriod;
+            $pLabel = Carbon::hasFormat($singleP, 'Y-m') ? Carbon::createFromFormat('Y-m', $singleP)->translatedFormat('F Y') : $singleP;
+            $message = "Berhasil mengimpor {$successCount} data pemeriksaan DDTK/SDIDTK murid (Periode: {$pLabel}).";
+        }
+
         if ($skippedCount > 0) {
             $message .= " ({$skippedCount} baris dilewati karena siswa tidak ditemukan).";
         }
 
         return redirect()->route('student-ddtk.index', [
             'classroom_id' => $defaultClassroomId,
-            'period' => $detectedPeriod,
+            'period' => (!empty($importedPeriods) && isset($importedPeriods[$defaultPeriod])) ? $defaultPeriod : (array_key_first($importedPeriods) ?? $detectedPeriod),
             'tab' => $request->input('target_tab', 'inputDDTK'),
         ])->with('success', $message)->with('import_errors', array_slice($errors, 0, 10));
+    }
+
+    /**
+     * Parse period string from various formats (Indonesian month names, YYYY-MM, MM/YYYY, Excel serial date)
+     * into standard 'YYYY-MM' format.
+     */
+    private function parsePeriodString(?string $val): ?string
+    {
+        if ($val === null) return null;
+        $raw = trim((string)$val);
+        if ($raw === '') return null;
+
+        // Check Excel date serial number (> 10000)
+        if (is_numeric($raw) && (float)$raw > 10000) {
+            try {
+                return Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($raw))->format('Y-m');
+            } catch (\Throwable $e) {}
+        }
+
+        $clean = strtolower($raw);
+
+        // Format: YYYY-MM or YYYY/MM (e.g. 2026-12, 2026/12)
+        if (preg_match('/^(20\d{2})[-\/](0?[1-9]|1[0-2])$/', $clean, $m)) {
+            return sprintf('%04d-%02d', (int)$m[1], (int)$m[2]);
+        }
+
+        // Format: MM-YYYY or MM/YYYY (e.g. 12/2026, 12-2026)
+        if (preg_match('/^(0?[1-9]|1[0-2])[-\/](20\d{2})$/', $clean, $m)) {
+            return sprintf('%04d-%02d', (int)$m[2], (int)$m[1]);
+        }
+
+        // Indonesian & English month map
+        $monthMap = [
+            'januari' => '01', 'january' => '01', 'jan' => '01',
+            'februari' => '02', 'pebruari' => '02', 'february' => '02', 'feb' => '02',
+            'maret' => '03', 'march' => '03', 'mar' => '03',
+            'april' => '04', 'apr' => '04',
+            'mei' => '05', 'may' => '05',
+            'juni' => '06', 'june' => '06', 'jun' => '06',
+            'juli' => '07', 'july' => '07', 'jul' => '07',
+            'agustus' => '08', 'august' => '08', 'ags' => '08', 'agu' => '08', 'agt' => '08', 'aug' => '08',
+            'september' => '09', 'sep' => '09', 'sept' => '09',
+            'oktober' => '10', 'october' => '10', 'okt' => '10', 'oct' => '10',
+            'november' => '11', 'nopember' => '11', 'nov' => '11', 'nop' => '11',
+            'desember' => '12', 'december' => '12', 'des' => '12', 'dec' => '12',
+        ];
+
+        // Find 4 digit year 20xx
+        if (preg_match('/\b(20\d{2})\b/', $clean, $yMatch)) {
+            $year = $yMatch[1];
+            foreach ($monthMap as $mName => $mNum) {
+                if (preg_match('/\b' . preg_quote($mName, '/') . '\b/i', $clean)) {
+                    return "{$year}-{$mNum}";
+                }
+            }
+        }
+
+        // Try general Carbon parse as fallback
+        try {
+            return Carbon::parse($raw)->format('Y-m');
+        } catch (\Throwable $e) {}
+
+        return null;
     }
 }

@@ -1231,6 +1231,7 @@
                         </div>
                         <template x-if="importType === 'ddtk'">
                             <ul class="list-disc list-inside space-y-0.5 text-[10px] text-amber-700 dark:text-amber-400">
+                                <li><strong>Mendukung Multi-Periode:</strong> Kolom <em>Periode (Bulan Tahun)</em> di Excel dapat diisi/disalin untuk beberapa bulan sekaligus (contoh: <code>Juli 2026</code>, <code>Agustus 2026</code>, <code>Desember 2026</code>) sehingga Anda dapat mengimpor data lintas periode dalam 1 file.</li>
                                 <li>Data fisik DDTK (TB, BB, LK, LiLA) yang diimpor akan langsung memperbarui profil pengukuran murid.</li>
                                 <li>Jika baris data untuk murid dan periode tersebut sudah ada sebelumnya, data akan otomatis diperbarui (update).</li>
                                 <li>Gunakan titik (.) untuk angka desimal, contoh: <span class="font-mono font-semibold">102.5</span> atau <span class="font-mono font-semibold">16.3</span>.</li>
@@ -1238,6 +1239,7 @@
                         </template>
                         <template x-if="importType === 'sdidtk'">
                             <ul class="list-disc list-inside space-y-0.5 text-[10px] text-amber-700 dark:text-amber-400">
+                                <li><strong>Mendukung Multi-Periode:</strong> Kolom <em>Periode (Bulan Tahun)</em> di Excel dapat diisi/disalin untuk beberapa bulan sekaligus (contoh: <code>Juli 2026</code>, <code>Agustus 2026</code>, <code>Desember 2026</code>).</li>
                                 <li>Data SDIDTK mencakup: Mata Kanan/Kiri (Normal/Curiga), KPSP (Sesuai/Meragukan/Penyimpangan), Gigi (Bersih/Karies), Gula Darah/Hb, Kusta & Frambusia (Ya/Tidak).</li>
                                 <li>Jika baris data untuk murid dan periode tersebut sudah ada sebelumnya, data akan otomatis diperbarui (update).</li>
                             </ul>
