@@ -165,10 +165,13 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,adm
     // Berkas Guru (Arsip & Administrasi Perangkat Pembelajaran Guru)
     Route::get('teacher-documents', [\App\Http\Controllers\TeacherDocumentController::class, 'index'])->name('teacher-documents.index');
     Route::post('teacher-documents', [\App\Http\Controllers\TeacherDocumentController::class, 'store'])->name('teacher-documents.store');
+    Route::post('teacher-documents/import/excel', [\App\Http\Controllers\TeacherDocumentController::class, 'importExcel'])->name('teacher-documents.import.excel');
+    Route::get('teacher-documents/template/excel', [\App\Http\Controllers\TeacherDocumentController::class, 'downloadTemplate'])->name('teacher-documents.template.excel');
     Route::put('teacher-documents/{id}', [\App\Http\Controllers\TeacherDocumentController::class, 'update'])->name('teacher-documents.update');
     Route::patch('teacher-documents/{id}/status', [\App\Http\Controllers\TeacherDocumentController::class, 'updateStatus'])->name('teacher-documents.update-status');
     Route::delete('teacher-documents/{id}', [\App\Http\Controllers\TeacherDocumentController::class, 'destroy'])->name('teacher-documents.destroy');
     Route::get('teacher-documents/{id}/download', [\App\Http\Controllers\TeacherDocumentController::class, 'download'])->name('teacher-documents.download');
+    Route::get('teacher-documents/{id}/preview', [\App\Http\Controllers\TeacherDocumentController::class, 'preview'])->name('teacher-documents.preview');
     Route::get('teacher-documents/export/excel', [\App\Http\Controllers\TeacherDocumentController::class, 'exportMatrixExcel'])->name('teacher-documents.export.excel');
     Route::get('teacher-documents/print', [\App\Http\Controllers\TeacherDocumentController::class, 'printMatrix'])->name('teacher-documents.print');
     Route::get('/berkas-guru', fn() => redirect()->route('teacher-documents.index'))->name('berkas-guru');

@@ -29,6 +29,14 @@
                     <i data-lucide="printer" class="w-3.5 h-3.5"></i>
                     <span>Cetak Matriks</span>
                 </a>
+
+                <!-- Import Excel -->
+                <button type="button" @click="openImportModal()"
+                    class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] sm:text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer"
+                    title="Import data berkas guru dari file Excel">
+                    <i data-lucide="file-up" class="w-3.5 h-3.5"></i>
+                    <span>Import Excel</span>
+                </button>
                 @endif
 
                 <!-- Upload New Document -->
@@ -269,21 +277,35 @@
                                                 <div class="font-bold text-slate-900 dark:text-slate-100 text-xs mb-1">
                                                     {{ $doc->title }}
                                                 </div>
-                                                <div>
+                                                <div class="flex items-center gap-1.5">
+                                                    <button type="button"
+                                                        @click="openPreviewModal({{ json_encode($f) }}, '{{ addslashes($doc->title) }}')"
+                                                        class="inline-flex items-center gap-1.5 text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 font-medium text-xs hover:underline transition-colors text-left cursor-pointer group"
+                                                        title="Klik untuk pratinjau / buka berkas">
+                                                        <i data-lucide="{{ $f['icon'] }}" class="w-3.5 h-3.5 shrink-0 text-purple-500"></i>
+                                                        <span class="truncate max-w-[220px]">{{ $f['title'] }}</span>
+                                                        <i data-lucide="eye" class="w-3 h-3 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                                                    </button>
                                                     <a href="{{ route('teacher-documents.download', ['id' => $doc->id, 'file' => 0]) }}"
-                                                        class="inline-flex items-center gap-1.5 text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 font-medium text-xs hover:underline transition-colors"
-                                                        title="Unduh {{ $f['file_name'] }}">
-                                                        <i data-lucide="{{ $f['icon'] }}" class="w-3.5 h-3.5 shrink-0"></i>
-                                                        <span class="truncate max-w-[260px]">{{ $f['title'] }}</span>
+                                                        class="w-5 h-5 flex items-center justify-center rounded text-slate-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/40 transition-colors"
+                                                        title="Unduh {{ $f['file_name'] }} langsung">
+                                                        <i data-lucide="download" class="w-3 h-3"></i>
                                                     </a>
                                                 </div>
                                             @else
-                                                <div>
+                                                <div class="flex items-center gap-1.5">
+                                                    <button type="button"
+                                                        @click="openPreviewModal({{ json_encode($f) }}, '{{ addslashes($doc->title) }}')"
+                                                        class="inline-flex items-center gap-1.5 text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 font-bold text-xs hover:underline transition-colors text-left cursor-pointer group"
+                                                        title="Klik untuk pratinjau / buka berkas">
+                                                        <i data-lucide="{{ $f['icon'] }}" class="w-3.5 h-3.5 shrink-0 text-purple-500"></i>
+                                                        <span class="truncate max-w-[220px]">{{ $doc->title ?: $f['title'] }}</span>
+                                                        <i data-lucide="eye" class="w-3 h-3 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                                                    </button>
                                                     <a href="{{ route('teacher-documents.download', ['id' => $doc->id, 'file' => 0]) }}"
-                                                        class="inline-flex items-center gap-1.5 text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 font-bold text-xs hover:underline transition-colors"
-                                                        title="Unduh {{ $f['file_name'] }}">
-                                                        <i data-lucide="{{ $f['icon'] }}" class="w-3.5 h-3.5 shrink-0"></i>
-                                                        <span class="truncate max-w-[260px]">{{ $doc->title ?: $f['title'] }}</span>
+                                                        class="w-5 h-5 flex items-center justify-center rounded text-slate-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/40 transition-colors"
+                                                        title="Unduh {{ $f['file_name'] }} langsung">
+                                                        <i data-lucide="download" class="w-3 h-3"></i>
                                                     </a>
                                                 </div>
                                             @endif
@@ -293,18 +315,37 @@
                                             </div>
                                             <div class="space-y-1">
                                                 @foreach($files as $fIdx => $f)
-                                                    <div>
+                                                    <div class="flex items-center gap-1.5">
+                                                        <button type="button"
+                                                            @click="openPreviewModal({{ json_encode($f) }}, '{{ addslashes($doc->title) }}')"
+                                                            class="inline-flex items-center gap-1.5 text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 font-medium text-xs hover:underline transition-colors text-left cursor-pointer group"
+                                                            title="Klik untuk pratinjau {{ $f['title'] }}">
+                                                            <i data-lucide="{{ $f['icon'] }}" class="w-3.5 h-3.5 shrink-0 text-purple-500"></i>
+                                                            <span class="truncate max-w-[220px]">{{ $f['title'] }}</span>
+                                                            <i data-lucide="eye" class="w-3 h-3 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                                                        </button>
                                                         <a href="{{ route('teacher-documents.download', ['id' => $doc->id, 'file' => $fIdx]) }}"
-                                                            class="inline-flex items-center gap-1.5 text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 font-medium text-xs hover:underline transition-colors"
-                                                            title="Unduh {{ $f['file_name'] }}">
-                                                            <i data-lucide="{{ $f['icon'] }}" class="w-3.5 h-3.5 shrink-0"></i>
-                                                            <span class="truncate max-w-[260px]">{{ $f['title'] }}</span>
+                                                            class="w-5 h-5 flex items-center justify-center rounded text-slate-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/40 transition-colors"
+                                                            title="Unduh {{ $f['file_name'] }} langsung">
+                                                            <i data-lucide="download" class="w-3 h-3"></i>
                                                         </a>
                                                     </div>
                                                 @endforeach
                                             </div>
                                         @else
-                                            <span class="font-bold text-slate-900 dark:text-slate-100 text-xs">{{ $doc->title ?: '-' }}</span>
+                                            <div>
+                                                <span class="font-bold text-slate-900 dark:text-slate-100 text-xs block mb-1">{{ $doc->title ?: '-' }}</span>
+                                                @if($isAdmin || $doc->uploaded_by == auth()->id())
+                                                <button type="button" @click="openEditModal({{ json_encode($doc) }})"
+                                                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 dark:text-amber-300 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 transition-colors cursor-pointer"
+                                                    title="Unggah file fisik dokumen melalui form edit">
+                                                    <i data-lucide="upload" class="w-3 h-3 text-amber-600 dark:text-amber-400"></i>
+                                                    <span>+ Unggah File</span>
+                                                </button>
+                                                @else
+                                                <span class="text-[10.5px] text-slate-400 italic">Belum ada file</span>
+                                                @endif
+                                            </div>
                                         @endif
                                     </td>
 
@@ -561,6 +602,7 @@
         <!-- ========================================================================= -->
         <!-- MODAL 1: UNGGAH / EDIT BERKAS GURU (SUPPORTS DYNAMIC MULTI-DOCUMENTS)     -->
         <!-- ========================================================================= -->
+        <template x-teleport="body">
         <div x-show="modalOpen" x-cloak
             class="fixed inset-0 z-[99999] overflow-y-auto flex items-center justify-center p-3 sm:p-4"
             style="top: 0px !important; left: 0px !important; right: 0px !important; bottom: 0px !important; margin: 0px !important; z-index: 99999 !important; background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);">
@@ -837,11 +879,13 @@
                 </form>
             </div>
         </div>
+        </template>
 
         @if($isAdmin)
         <!-- ========================================================================= -->
         <!-- MODAL 2: VERIFIKASI / SUPERVISI STATUS (ADMIN / KEPALA SEKOLAH)           -->
         <!-- ========================================================================= -->
+        <template x-teleport="body">
         <div x-show="reviewModalOpen" x-cloak
             class="fixed inset-0 z-[99999] overflow-y-auto flex items-center justify-center p-3 sm:p-4"
             style="top: 0px !important; left: 0px !important; right: 0px !important; bottom: 0px !important; margin: 0px !important; z-index: 99999 !important; background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);">
@@ -913,11 +957,13 @@
                 </form>
             </div>
         </div>
+        </template>
         @endif
 
         <!-- ========================================================================= -->
         <!-- MODAL 3: LIHAT DETAIL BERKAS                                              -->
         <!-- ========================================================================= -->
+        <template x-teleport="body">
         <div x-show="viewModalOpen" x-cloak
             class="fixed inset-0 z-[99999] overflow-y-auto flex items-center justify-center p-3 sm:p-4"
             style="top: 0px !important; left: 0px !important; right: 0px !important; bottom: 0px !important; margin: 0px !important; z-index: 99999 !important; background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);">
@@ -986,43 +1032,52 @@
                                             <span class="text-[10px] text-slate-400 font-mono block truncate" x-text="fileItem.file_name + ' • ' + (fileItem.formatted_size || '-')"></span>
                                         </div>
                                     </div>
-                                    <button type="button"
-                                        @click="downloadModalFile(viewData.id, fIdx)"
-                                        :disabled="downloadingIndices[fIdx]"
-                                        class="shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all inline-flex items-center gap-1.5 shadow-2xs cursor-pointer select-none"
-                                        :class="downloadingIndices[fIdx] 
-                                            ? 'bg-purple-600 text-white border-purple-600 pointer-events-none opacity-90' 
-                                            : (downloadSuccessIndices[fIdx]
-                                                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
-                                                : 'bg-purple-50 hover:bg-purple-600 hover:text-white dark:bg-purple-950/60 dark:hover:bg-purple-600 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800')">
-                                        <template x-if="downloadingIndices[fIdx]">
-                                            <span class="inline-flex items-center gap-1.5">
-                                                <svg class="animate-spin w-3.5 h-3.5 text-white shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                                                </svg>
-                                                <span>Mengunduh...</span>
-                                            </span>
-                                        </template>
-                                        <template x-if="!downloadingIndices[fIdx] && downloadSuccessIndices[fIdx]">
-                                            <span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-                                                <svg class="w-3.5 h-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                                    <polyline points="20 6 9 17 4 12"></polyline>
-                                                </svg>
-                                                <span>Terunduh</span>
-                                            </span>
-                                        </template>
-                                        <template x-if="!downloadingIndices[fIdx] && !downloadSuccessIndices[fIdx]">
-                                            <span class="inline-flex items-center gap-1.5">
-                                                <svg class="w-3.5 h-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                                    <polyline points="7 10 12 15 17 10"></polyline>
-                                                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                                                </svg>
-                                                <span>Unduh</span>
-                                            </span>
-                                        </template>
-                                    </button>
+                                    <div class="flex items-center gap-1.5 shrink-0">
+                                        <button type="button"
+                                            @click="openPreviewModal(fileItem, viewData?.title)"
+                                            class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 inline-flex items-center gap-1 cursor-pointer transition-colors"
+                                            title="Pratinjau berkas">
+                                            <i data-lucide="eye" class="w-3.5 h-3.5 text-purple-600 dark:text-purple-400"></i>
+                                            <span class="hidden sm:inline">Preview</span>
+                                        </button>
+                                        <button type="button"
+                                            @click="downloadModalFile(viewData.id, fIdx)"
+                                            :disabled="downloadingIndices[fIdx]"
+                                            class="shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all inline-flex items-center gap-1.5 shadow-2xs cursor-pointer select-none"
+                                            :class="downloadingIndices[fIdx] 
+                                                ? 'bg-purple-600 text-white border-purple-600 pointer-events-none opacity-90' 
+                                                : (downloadSuccessIndices[fIdx]
+                                                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
+                                                    : 'bg-purple-50 hover:bg-purple-600 hover:text-white dark:bg-purple-950/60 dark:hover:bg-purple-600 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800')">
+                                            <template x-if="downloadingIndices[fIdx]">
+                                                <span class="inline-flex items-center gap-1.5">
+                                                    <svg class="animate-spin w-3.5 h-3.5 text-white shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                                    </svg>
+                                                    <span>Mengunduh...</span>
+                                                </span>
+                                            </template>
+                                            <template x-if="!downloadingIndices[fIdx] && downloadSuccessIndices[fIdx]">
+                                                <span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                                                    <svg class="w-3.5 h-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                                    </svg>
+                                                    <span>Terunduh</span>
+                                                </span>
+                                            </template>
+                                            <template x-if="!downloadingIndices[fIdx] && !downloadSuccessIndices[fIdx]">
+                                                <span class="inline-flex items-center gap-1.5">
+                                                    <svg class="w-3.5 h-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                        <polyline points="7 10 12 15 17 10"></polyline>
+                                                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                                                    </svg>
+                                                    <span>Unduh</span>
+                                                </span>
+                                            </template>
+                                        </button>
+                                    </div>
                                 </div>
                             </template>
                         </div>
@@ -1051,6 +1106,277 @@
                 </div>
             </div>
         </div>
+        </template>
+
+        @if($isAdmin)
+        <!-- ========================================================================= -->
+        <!-- MODAL 4: IMPORT DATA BERKAS GURU DARI EXCEL                              -->
+        <!-- ========================================================================= -->
+        <template x-teleport="body">
+            <div x-show="importModalOpen" x-cloak
+                class="fixed inset-0 z-[99999] overflow-y-auto flex items-center justify-center p-3 sm:p-4"
+                style="top: 0px !important; left: 0px !important; right: 0px !important; bottom: 0px !important; margin: 0px !important; z-index: 99999 !important; background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);">
+                
+                <div @click.outside="importModalOpen = false"
+                    class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl max-w-lg w-full p-5 sm:p-6 text-left space-y-4">
+                    
+                    <!-- Header -->
+                    <div class="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center ring-1 ring-emerald-100 dark:ring-emerald-900/40">
+                                <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+                            </span>
+                            <div>
+                                <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">
+                                    Import Berkas Guru dari Excel
+                                </h3>
+                                <p class="text-[11px] text-slate-400">
+                                    Unggah daftar berkas atau arsip administrasi lama secara massal.
+                                </p>
+                            </div>
+                        </div>
+                        <button type="button" @click="importModalOpen = false"
+                            class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <form action="{{ route('teacher-documents.import.excel') }}" method="POST" enctype="multipart/form-data" class="space-y-4" @submit="isImporting = true">
+                        @csrf
+
+                        <!-- Download Template Banner -->
+                        <div class="p-3 rounded-xl bg-purple-50/70 dark:bg-purple-950/30 border border-purple-200/70 dark:border-purple-800/40 flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-2.5">
+                                <i data-lucide="download" class="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0"></i>
+                                <div class="text-[11px] text-slate-600 dark:text-slate-400">
+                                    <span>Belum memiliki format? </span>
+                                    <span class="font-semibold text-slate-700 dark:text-slate-300">Unduh template Excel</span>
+                                </div>
+                            </div>
+                            <a href="{{ route('teacher-documents.template.excel') }}"
+                                class="inline-flex items-center gap-1 px-2.5 py-1 bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-semibold rounded-lg shrink-0 transition-colors">
+                                <i data-lucide="download" class="w-3 h-3"></i>
+                                <span>Template</span>
+                            </a>
+                        </div>
+
+                        <!-- Target Academic Year -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                Target Tahun Ajaran <span class="text-rose-500">*</span>
+                            </label>
+                            <select name="academic_year_id" required
+                                class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-purple-500">
+                                @foreach($academicYears as $ay)
+                                    <option value="{{ $ay->id }}" {{ $selectedYearId == $ay->id ? 'selected' : '' }}>
+                                        T.A {{ $ay->name }} {{ $ay->is_active ? '(Aktif)' : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Semester & Status Default -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    Semester Default
+                                </label>
+                                <select name="default_semester"
+                                    class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-purple-500">
+                                    <option value="Tahunan" selected>Tahunan</option>
+                                    <option value="Ganjil">Semester Ganjil</option>
+                                    <option value="Genap">Semester Genap</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    Status Awal
+                                </label>
+                                <select name="default_status"
+                                    class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-purple-500">
+                                    <option value="Disetujui" selected>Disetujui (Arsip)</option>
+                                    <option value="Menunggu Review">Menunggu Review</option>
+                                    <option value="Perlu Revisi">Perlu Revisi</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Info Tanggal Arsip Bulan 10 -->
+                        <div class="p-2.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-800/40 text-[11px] text-amber-800 dark:text-amber-300 space-y-1">
+                            <div class="flex items-center gap-1.5 font-bold">
+                                <i data-lucide="info" class="w-3.5 h-3.5 shrink-0 text-amber-600"></i>
+                                <span>Pengaturan Tanggal Arsip Lama</span>
+                            </div>
+                            <p class="leading-relaxed text-slate-600 dark:text-slate-400">
+                                Berkas yang diimpor akan diberi tanggal arsip <strong>Oktober 2026</strong> secara otomatis, agar urutan posisinya berada di bawah data baru bulan November.
+                            </p>
+                            <input type="hidden" name="import_month" value="10">
+                            <input type="hidden" name="import_year" value="2026">
+                        </div>
+
+                        <!-- File Upload Input -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                Pilih Berkas Excel (.xlsx / .xls) <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="file" name="file" accept=".xlsx,.xls,.csv" required
+                                class="w-full text-xs text-slate-600 dark:text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-purple-50 file:text-purple-700 dark:file:bg-purple-950/60 dark:file:text-purple-300 hover:file:bg-purple-100 border border-slate-200 dark:border-slate-700 rounded-xl p-1 bg-slate-50/50 dark:bg-slate-800/50 cursor-pointer">
+                            <p class="text-[10px] text-slate-400 mt-1">
+                                Mendukung berkas <code>BERKAS-GURU.xlsx</code> atau template standar. Nilai berkas fisik dapat diunggah kemudian via tombol Edit Berkas.
+                            </p>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+                            <button type="button" @click="importModalOpen = false" :disabled="isImporting"
+                                class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl transition-colors cursor-pointer">
+                                Batal
+                            </button>
+                            <button type="submit" :disabled="isImporting"
+                                class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-75 disabled:cursor-wait">
+                                <template x-if="!isImporting">
+                                    <span class="inline-flex items-center gap-1.5">
+                                        <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                                        <span>Mulai Import Data</span>
+                                    </span>
+                                </template>
+                                <template x-if="isImporting">
+                                    <span class="inline-flex items-center gap-1.5">
+                                        <svg class="animate-spin w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        <span>Mengimpor Data...</span>
+                                    </span>
+                                </template>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </template>
+        @endif
+
+        <!-- ========================================================================= -->
+        <!-- MODAL 5: PRATINJAU BERKAS DOKUMEN (IMAGE, PDF, OFFICE)                    -->
+        <!-- ========================================================================= -->
+        <template x-teleport="body">
+            <div x-show="previewModalOpen" x-cloak
+                class="fixed inset-0 z-[99999] overflow-y-auto flex items-center justify-center p-3 sm:p-5"
+                style="top: 0px !important; left: 0px !important; right: 0px !important; bottom: 0px !important; margin: 0px !important; z-index: 99999 !important; background-color: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px);">
+                
+                <div @click.outside="previewModalOpen = false"
+                    class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl w-full text-left flex flex-col transition-all overflow-hidden"
+                    :class="previewData.isPdf || previewData.isImage ? 'max-w-4xl max-h-[92vh]' : 'max-w-lg'">
+                    
+                    <!-- Header -->
+                    <div class="flex items-center justify-between p-4 sm:px-5 sm:py-3.5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 shrink-0">
+                        <div class="flex items-center gap-2.5 truncate pr-3">
+                            <span class="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                                <i data-lucide="file-text" class="w-4 h-4"></i>
+                            </span>
+                            <div class="truncate">
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 truncate" x-text="previewData.title"></h3>
+                                    <span class="text-[9.5px] uppercase font-bold px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 shrink-0" x-text="previewData.extension"></span>
+                                </div>
+                                <p class="text-[10.5px] text-slate-400 font-mono truncate" x-text="previewData.fileName + (previewData.size ? ' • ' + previewData.size : '')"></p>
+                            </div>
+                        </div>
+
+                        <!-- Header Action Controls -->
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <a :href="previewData.downloadUrl"
+                                class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-semibold rounded-lg shadow-2xs transition-colors"
+                                title="Unduh berkas ke komputer">
+                                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                <span class="hidden sm:inline">Unduh</span>
+                            </a>
+                            <a :href="previewData.url" target="_blank"
+                                class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 transition-colors"
+                                title="Buka berkas di tab browser baru">
+                                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                            </a>
+                            <button type="button" @click="previewModalOpen = false"
+                                class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Modal Body / Content -->
+                    <div class="p-4 sm:p-5 overflow-y-auto flex-1 flex flex-col items-center justify-center min-h-[220px]">
+                        <!-- 1. IMAGE PREVIEW -->
+                        <template x-if="previewData.isImage">
+                            <div class="w-full flex items-center justify-center bg-slate-100/60 dark:bg-slate-950/60 rounded-xl p-2">
+                                <img :src="previewData.url" :alt="previewData.fileName"
+                                    class="max-h-[72vh] max-w-full object-contain rounded-lg shadow-xs">
+                            </div>
+                        </template>
+
+                        <!-- 2. PDF VIEWER -->
+                        <template x-if="previewData.isPdf">
+                            <div class="w-full h-[72vh] bg-slate-100 dark:bg-slate-950 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800">
+                                <iframe :src="previewData.url" class="w-full h-full border-0" frameborder="0"></iframe>
+                            </div>
+                        </template>
+
+                        <!-- 3. OFFICE FILES (WORD / EXCEL / PPT) -->
+                        <template x-if="previewData.isOffice">
+                            <div class="text-center py-6 px-4 max-w-md mx-auto space-y-4">
+                                <div class="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center shadow-inner"
+                                    :class="['xls', 'xlsx', 'csv'].includes(previewData.extension.toLowerCase()) ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200/80' : 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200/80'">
+                                    <i data-lucide="file-spreadsheet" class="w-8 h-8" x-show="['xls', 'xlsx', 'csv'].includes(previewData.extension.toLowerCase())"></i>
+                                    <i data-lucide="file-text" class="w-8 h-8" x-show="!['xls', 'xlsx', 'csv'].includes(previewData.extension.toLowerCase())"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100" x-text="previewData.fileName"></h4>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" x-text="'Dokumen Microsoft ' + (['xls', 'xlsx', 'csv'].includes(previewData.extension.toLowerCase()) ? 'Excel' : 'Word') + ' • ' + previewData.size"></p>
+                                </div>
+                                <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200/80 dark:border-slate-700/80 text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed text-left">
+                                    <p class="flex items-start gap-2">
+                                        <i data-lucide="info" class="w-4 h-4 text-slate-400 shrink-0 mt-0.5"></i>
+                                        <span>Format berkas Microsoft Office dapat diunduh langsung untuk diedit atau ditinjau menggunakan aplikasi Office di komputer / HP Anda.</span>
+                                    </p>
+                                </div>
+                                <div>
+                                    <a :href="previewData.downloadUrl"
+                                        class="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all hover:shadow-md">
+                                        <i data-lucide="download" class="w-4 h-4"></i>
+                                        <span>Unduh & Buka Berkas</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- 4. OTHER ARCHIVE / UNKNOWN -->
+                        <template x-if="previewData.isOther">
+                            <div class="text-center py-6 px-4 max-w-md mx-auto space-y-3">
+                                <div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 mx-auto flex items-center justify-center">
+                                    <i data-lucide="archive" class="w-7 h-7"></i>
+                                </div>
+                                <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100" x-text="previewData.fileName"></h4>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Berkas arsip / tipe lainnya dapat diunduh langsung ke komputer.</p>
+                                <a :href="previewData.downloadUrl"
+                                    class="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl shadow-sm">
+                                    <i data-lucide="download" class="w-4 h-4"></i>
+                                    <span>Unduh Berkas</span>
+                                </a>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="flex items-center justify-between p-3.5 sm:px-5 sm:py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 shrink-0">
+                        <span class="text-[11px] text-slate-400">Pratinjau Berkas Administrasi PAUD</span>
+                        <button type="button" @click="previewModalOpen = false"
+                            class="px-4 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg transition-colors cursor-pointer">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </template>
 
     </div>
 
@@ -1061,6 +1387,22 @@
                 modalOpen: false,
                 reviewModalOpen: false,
                 viewModalOpen: false,
+                importModalOpen: false,
+                isImporting: false,
+                previewModalOpen: false,
+                previewData: {
+                    title: '',
+                    fileName: '',
+                    extension: '',
+                    size: '',
+                    url: '',
+                    downloadUrl: '',
+                    icon: 'file',
+                    isImage: false,
+                    isPdf: false,
+                    isOffice: false,
+                    isOther: false
+                },
                 isEdit: false,
                 formAction: "{{ route('teacher-documents.store') }}",
                 reviewAction: "",
@@ -1316,6 +1658,44 @@
                     setTimeout(() => {
                         finish(false);
                     }, 10000);
+                },
+
+                openImportModal() {
+                    this.importModalOpen = true;
+                    this.isImporting = false;
+                    this.$nextTick(() => {
+                        if (window.lucide) {
+                            window.lucide.createIcons();
+                        }
+                    });
+                },
+
+                openPreviewModal(fileItem, docTitle = '') {
+                    if (!fileItem) return;
+                    const ext = (fileItem.file_extension || '').toLowerCase();
+                    const isImg = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'].includes(ext);
+                    const isPdf = ext === 'pdf';
+                    const isOffice = ['doc', 'docx', 'xls', 'xlsx', 'csv', 'ppt', 'pptx'].includes(ext);
+
+                    this.previewData = {
+                        title: fileItem.title || docTitle || fileItem.file_name || 'Pratinjau Berkas',
+                        fileName: fileItem.file_name || 'dokumen',
+                        extension: (fileItem.file_extension || ext).toUpperCase(),
+                        size: fileItem.formatted_size || '',
+                        url: fileItem.url || ('/teacher-documents/' + (fileItem.doc_id || '') + '/preview?file=' + (fileItem.file_index ?? 0)),
+                        downloadUrl: fileItem.download_url || fileItem.url || ('/teacher-documents/' + (fileItem.doc_id || '') + '/download?file=' + (fileItem.file_index ?? 0)),
+                        icon: fileItem.icon || 'file',
+                        isImage: isImg,
+                        isPdf: isPdf,
+                        isOffice: isOffice,
+                        isOther: !isImg && !isPdf && !isOffice
+                    };
+                    this.previewModalOpen = true;
+                    this.$nextTick(() => {
+                        if (window.lucide) {
+                            window.lucide.createIcons();
+                        }
+                    });
                 }
             };
         }

@@ -148,7 +148,8 @@ class TeacherDocument extends Model
     public function getFilesListAttribute(): array
     {
         if (!empty($this->files) && is_array($this->files)) {
-            return array_values(array_map(function ($f) {
+            $docId = $this->id;
+            return array_values(array_map(function ($f, $idx) use ($docId) {
                 $filePath = $f['file_path'] ?? '';
                 $fileName = $f['file_name'] ?? basename($filePath);
                 $ext = strtolower($f['file_extension'] ?? pathinfo($fileName, PATHINFO_EXTENSION));
@@ -171,6 +172,8 @@ class TeacherDocument extends Model
                 };
 
                 return [
+                    'doc_id' => $docId,
+                    'file_index' => $idx,
                     'title' => $f['title'] ?? $fileName,
                     'file_name' => $fileName,
                     'file_path' => $filePath,
@@ -178,13 +181,16 @@ class TeacherDocument extends Model
                     'file_extension' => $ext,
                     'formatted_size' => $formattedSize,
                     'icon' => $icon,
-                    'url' => !empty($filePath) ? asset('storage/' . $filePath) : '#',
+                    'url' => !empty($filePath) ? route('teacher-documents.preview', ['id' => $docId, 'file' => $idx]) : '#',
+                    'download_url' => !empty($filePath) ? route('teacher-documents.download', ['id' => $docId, 'file' => $idx]) : '#',
                 ];
-            }, $this->files));
+            }, $this->files, array_keys($this->files)));
         }
 
         if (!empty($this->file_path)) {
             return [[
+                'doc_id' => $this->id,
+                'file_index' => 0,
                 'title' => $this->title,
                 'file_name' => $this->file_name ?? basename($this->file_path),
                 'file_path' => $this->file_path,
@@ -192,7 +198,8 @@ class TeacherDocument extends Model
                 'file_extension' => strtolower($this->file_extension ?: pathinfo($this->file_path, PATHINFO_EXTENSION)),
                 'formatted_size' => $this->formatted_file_size,
                 'icon' => $this->file_icon,
-                'url' => $this->file_url,
+                'url' => route('teacher-documents.preview', ['id' => $this->id, 'file' => 0]),
+                'download_url' => route('teacher-documents.download', ['id' => $this->id, 'file' => 0]),
             ]];
         }
 

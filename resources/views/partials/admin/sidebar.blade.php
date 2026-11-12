@@ -251,7 +251,6 @@
                     <span class="flex items-center gap-1.5">
                         <span>Pendaftar SPMB</span>
                     </span>
-                    <span class="text-[9px] uppercase tracking-wider font-semibold px-1 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 leading-none">Baru</span>
                 </a>
 
                 <!-- 2. Data Murid (Buku Induk) -->
@@ -276,7 +275,7 @@
                 @if(!$isExecutive)
                 <a href="{{ route('student-archives.index') }}"
                     class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('student-archives.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
-                    <span>Arsip Dokumen Murid</span>
+                    <span>Arsip Murid</span>
                 </a>
                 @endif
             </div>
@@ -317,7 +316,7 @@
                 </a>
                 <a href="{{ route('teacher-documents.index') }}"
                     class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('teacher-documents.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
-                    <span>Berkas Dokumen Guru</span>
+                    <span>Berkas Guru</span>
                 </a>
                 <a href="{{ route('picket-schedules.admin') }}"
                     class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('picket-schedules.admin') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
@@ -484,7 +483,7 @@
 
                 <a href="{{ route('teacher-documents.index') }}"
                     class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('teacher-documents.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
-                    <span>Berkas Dokumen Guru</span>
+                    <span>Berkas Guru</span>
                 </a>
             </div>
         </div>
