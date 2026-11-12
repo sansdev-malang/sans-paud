@@ -154,24 +154,62 @@
                         <span>Filter</span>
                     </button>
 
-                    <!-- Ekspor Excel dengan Sinkronisasi Token Otomatis -->
-                    <a href="{{ route('classroom-journals.export.excel', ['classroom_id' => $selectedClassroomId, 'academic_year_id' => $selectedAcademicYearId, 'month' => $selectedMonth, 'year' => $selectedYear]) }}"
-                        class="inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer">
-                        <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
-                        <span>Ekspor Excel</span>
-                    </a>
+                    <!-- Ekspor Excel dengan Animasi Tombol Mandiri (Tanpa Top Progress Bar) -->
+                    <button type="button"
+                        @click="downloadFile('{{ route('classroom-journals.export.excel', ['classroom_id' => $selectedClassroomId, 'academic_year_id' => $selectedAcademicYearId, 'month' => $selectedMonth, 'year' => $selectedYear]) }}', 'excel', 'Jurnal_Kelas.xlsx')"
+                        :disabled="isDownloadingExcel || isDownloadingPdf"
+                        :class="isDownloadingExcel ? 'opacity-80 cursor-wait pointer-events-none' : ''"
+                        data-no-progress="true"
+                        data-no-loader="true"
+                        class="inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold rounded-lg shadow-2xs transition-all cursor-pointer">
+                        <template x-if="!isDownloadingExcel">
+                            <span class="inline-flex items-center gap-1">
+                                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
+                                <span>Ekspor Excel</span>
+                            </span>
+                        </template>
+                        <template x-if="isDownloadingExcel">
+                            <span class="inline-flex items-center gap-1.5">
+                                <svg class="animate-spin w-3.5 h-3.5 text-white shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span>Mengunduh Excel...</span>
+                            </span>
+                        </template>
+                    </button>
 
-                    <!-- Unduh Langsung Berkas PDF -->
-                    <a href="{{ route('classroom-journals.download.pdf', ['classroom_id' => $selectedClassroomId, 'academic_year_id' => $selectedAcademicYearId, 'month' => $selectedMonth, 'year' => $selectedYear]) }}"
-                        class="inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer"
+                    <!-- Unduh Langsung Berkas PDF dengan Animasi Tombol Mandiri (Tanpa Top Progress Bar) -->
+                    <button type="button"
+                        @click="downloadFile('{{ route('classroom-journals.download.pdf', ['classroom_id' => $selectedClassroomId, 'academic_year_id' => $selectedAcademicYearId, 'month' => $selectedMonth, 'year' => $selectedYear]) }}', 'pdf', 'Jurnal_Kelas.pdf')"
+                        :disabled="isDownloadingExcel || isDownloadingPdf"
+                        :class="isDownloadingPdf ? 'opacity-80 cursor-wait pointer-events-none' : ''"
+                        data-no-progress="true"
+                        data-no-loader="true"
+                        class="inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs font-semibold rounded-lg shadow-2xs transition-all cursor-pointer"
                         title="Download file dokumen PDF langsung ke komputer">
-                        <i data-lucide="file-down" class="w-3.5 h-3.5"></i>
-                        <span>Unduh PDF</span>
-                    </a>
+                        <template x-if="!isDownloadingPdf">
+                            <span class="inline-flex items-center gap-1">
+                                <i data-lucide="file-down" class="w-3.5 h-3.5"></i>
+                                <span>Unduh PDF</span>
+                            </span>
+                        </template>
+                        <template x-if="isDownloadingPdf">
+                            <span class="inline-flex items-center gap-1.5">
+                                <svg class="animate-spin w-3.5 h-3.5 text-white shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span>Mengunduh PDF...</span>
+                            </span>
+                        </template>
+                    </button>
 
                     <!-- Cetak Dokumen / Print Dialog -->
                     <a href="{{ route('classroom-journals.print', ['classroom_id' => $selectedClassroomId, 'academic_year_id' => $selectedAcademicYearId, 'month' => $selectedMonth, 'year' => $selectedYear]) }}"
                         target="_blank"
+                        data-no-progress="true"
+                        data-no-loader="true"
                         class="inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 shadow-2xs transition-colors cursor-pointer"
                         title="Buka pratinjau cetak browser">
                         <i data-lucide="printer" class="w-3.5 h-3.5 text-slate-500"></i>
@@ -744,11 +782,29 @@
                             </div>
                             <div class="pt-1 flex items-center justify-between">
                                 <span class="text-[11px] font-semibold text-sky-700 dark:text-sky-300">Belum punya formatnya?</span>
-                                <a href="{{ route('classroom-journals.template', ['classroom_id' => $selectedClassroomId]) }}"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-bold transition-all shadow-2xs cursor-pointer">
-                                    <i data-lucide="download" class="w-3.5 h-3.5"></i>
-                                    <span>Unduh Template Excel</span>
-                                </a>
+                                <button type="button"
+                                    @click="downloadFile('{{ route('classroom-journals.template', ['classroom_id' => $selectedClassroomId]) }}', 'template', 'Template_Import_Jurnal_Kelas.xlsx')"
+                                    :disabled="isDownloadingTemplate"
+                                    :class="isDownloadingTemplate ? 'opacity-80 cursor-wait pointer-events-none' : ''"
+                                    data-no-progress="true"
+                                    data-no-loader="true"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white rounded-lg text-xs font-bold transition-all shadow-2xs cursor-pointer">
+                                    <template x-if="!isDownloadingTemplate">
+                                        <span class="inline-flex items-center gap-1.5">
+                                            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                            <span>Unduh Template Excel</span>
+                                        </span>
+                                    </template>
+                                    <template x-if="isDownloadingTemplate">
+                                        <span class="inline-flex items-center gap-1.5">
+                                            <svg class="animate-spin w-3.5 h-3.5 text-white shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            <span>Mengunduh Template...</span>
+                                        </span>
+                                    </template>
+                                </button>
                             </div>
                         </div>
 
@@ -920,6 +976,9 @@
                 isEdit: false,
                 isImportModalOpen: false,
                 isImporting: false,
+                isDownloadingExcel: false,
+                isDownloadingPdf: false,
+                isDownloadingTemplate: false,
                 selectedFileName: '',
                 viewMode: 'table', // Default Tampilan: 'table', alternatif: 'cards'
                 formAction: "{{ route('classroom-journals.store') }}",
@@ -1056,6 +1115,67 @@
                     this.$nextTick(() => {
                         if (typeof lucide !== 'undefined') lucide.createIcons();
                     });
+                },
+
+                async downloadFile(url, type, defaultFilename) {
+                    if (this.isDownloadingExcel || this.isDownloadingPdf || this.isDownloadingTemplate) return;
+
+                    if (type === 'excel') this.isDownloadingExcel = true;
+                    if (type === 'pdf') this.isDownloadingPdf = true;
+                    if (type === 'template') this.isDownloadingTemplate = true;
+
+                    try {
+                        const response = await fetch(url, {
+                            method: 'GET',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Gagal mengunduh berkas (' + response.status + ' ' + response.statusText + ')');
+                        }
+
+                        // Determine filename from Content-Disposition header
+                        let filename = defaultFilename || 'download';
+                        const disposition = response.headers.get('content-disposition');
+                        if (disposition && disposition.indexOf('filename=') !== -1) {
+                            const filenameMatch = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                            if (filenameMatch && filenameMatch[1]) {
+                                filename = filenameMatch[1].replace(/['"]/g, '').trim();
+                            }
+                        }
+
+                        const blob = await response.blob();
+                        const blobUrl = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.style.display = 'none';
+                        link.href = blobUrl;
+                        link.download = filename;
+                        link.setAttribute('data-no-progress', 'true');
+                        link.setAttribute('data-no-loader', 'true');
+                        document.body.appendChild(link);
+                        link.click();
+                        
+                        setTimeout(() => {
+                            window.URL.revokeObjectURL(blobUrl);
+                            link.remove();
+                        }, 300);
+
+                        if (typeof window.showToast === 'function') {
+                            window.showToast('Sukses!', 'Berkas berhasil diunduh.', 'success');
+                        }
+                    } catch (err) {
+                        console.error('Download error:', err);
+                        alert('Terjadi kesalahan saat mengunduh: ' + err.message);
+                    } finally {
+                        if (type === 'excel') this.isDownloadingExcel = false;
+                        if (type === 'pdf') this.isDownloadingPdf = false;
+                        if (type === 'template') this.isDownloadingTemplate = false;
+                        this.$nextTick(() => {
+                            if (typeof lucide !== 'undefined') lucide.createIcons();
+                        });
+                    }
                 }
             };
         }
