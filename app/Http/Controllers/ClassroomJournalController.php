@@ -88,8 +88,8 @@ class ClassroomJournalController extends Controller
             ->orderBy('name', 'asc')
             ->get();
 
-        // Fetch Journals
-        $journals = ClassroomJournal::with(['teacher', 'classroom', 'recordedBy'])
+        // Fetch Journals Query
+        $journalsQuery = ClassroomJournal::with(['teacher', 'classroom', 'recordedBy'])
             ->when(!$isAllClassrooms && $selectedClassroom, function($q) use ($selectedClassroom) {
                 $q->where('classroom_id', $selectedClassroom->id);
             }, function($q) use ($classrooms) {
@@ -107,13 +107,22 @@ class ClassroomJournalController extends Controller
                 });
             })
             ->orderBy('date', 'desc')
-            ->orderBy('start_time', 'desc')
-            ->get();
+            ->orderBy('start_time', 'desc');
 
-        // Summary Stats
-        $totalEntries = $journals->count();
-        $distinctDays = $journals->pluck('date')->map(fn($d) => Carbon::parse($d)->format('Y-m-d'))->unique()->count();
-        $involvedTeachers = $journals->pluck('teacher_id')->filter()->unique()->count();
+        // Summary Stats across the full filtered dataset (sebelum dipaginasi)
+        $allFilteredJournals = (clone $journalsQuery)->get();
+        $totalEntries = $allFilteredJournals->count();
+        $distinctDays = $allFilteredJournals->pluck('date')->map(fn($d) => Carbon::parse($d)->format('Y-m-d'))->unique()->count();
+        $involvedTeachers = $allFilteredJournals->pluck('teacher_id')->filter()->unique()->count();
+
+        // Pagination & Per-Page Selection
+        $perPageParam = $request->get('per_page', '25');
+        if ($perPageParam === 'all') {
+            $journals = $allFilteredJournals;
+        } else {
+            $perPage = is_numeric($perPageParam) ? (int)$perPageParam : 25;
+            $journals = $journalsQuery->paginate($perPage)->withQueryString();
+        }
 
         // Dynamic School & Principal Information
         $principal = Employee::where(function($q) {
@@ -150,7 +159,8 @@ class ClassroomJournalController extends Controller
             'monthNames',
             'principalName',
             'principalNip',
-            'schoolCity'
+            'schoolCity',
+            'perPageParam'
         ));
     }
 

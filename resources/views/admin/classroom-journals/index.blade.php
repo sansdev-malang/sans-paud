@@ -73,7 +73,7 @@
         <!-- ========================================================================= -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-3.5 shadow-2xs">
             <form method="GET" action="{{ route('classroom-journals.index') }}" id="journalFilterForm" class="flex flex-col lg:flex-row lg:items-end justify-between gap-2.5">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 flex-1">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 flex-1">
                     <!-- Filter Kelas (Kata Sub-Unit Dihilangkan) -->
                     <div>
                         <label for="classroom_id" class="block text-[10.5px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
@@ -126,6 +126,22 @@
                                     {{ $ay->name }} {{ $ay->is_active ? '(Aktif)' : '' }}
                                 </option>
                             @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Filter Tampilkan Baris (Pagination Limit) -->
+                    <div>
+                        <label for="per_page" class="block text-[10.5px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
+                            Tampilkan <span class="text-slate-400 font-normal">(Baris)</span>
+                        </label>
+                        <select name="per_page" id="per_page" onchange="document.getElementById('journalFilterForm').submit()"
+                            class="w-full pl-2.5 pr-8 py-1.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors cursor-pointer"
+                            title="Jumlah baris jurnal yang ditampilkan per halaman">
+                            <option value="15" {{ request('per_page') == '15' ? 'selected' : '' }}>15 baris</option>
+                            <option value="25" {{ request('per_page', '25') == '25' ? 'selected' : '' }}>25 baris</option>
+                            <option value="50" {{ request('per_page') == '50' ? 'selected' : '' }}>50 baris</option>
+                            <option value="100" {{ request('per_page') == '100' ? 'selected' : '' }}>100 baris</option>
+                            <option value="all" {{ request('per_page') === 'all' ? 'selected' : '' }}>Semua Data</option>
                         </select>
                     </div>
                 </div>
@@ -243,21 +259,23 @@
             </div>
         @else
             <!-- VIEW MODE 1: TABEL DATA JURNAL (DEFAULT) -->
-            <div x-show="viewMode === 'table'" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xs overflow-hidden">
-                <div class="overflow-x-auto">
+            <div x-show="viewMode === 'table'" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xs overflow-hidden flex flex-col">
+                <!-- Independent Scrollable Table Container with Sticky Header -->
+                <div class="overflow-x-auto overflow-y-auto max-h-[calc(100vh-270px)] sm:max-h-[calc(100vh-250px)] min-h-[350px] relative scrollbar-thin"
+                    @scroll="hideJournalTooltip()">
                     <table class="w-full text-left border-collapse text-xs">
-                        <thead>
-                            <tr class="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 font-bold uppercase text-[10.5px] tracking-wider">
-                                <th class="py-2.5 px-3 text-center w-10">No</th>
-                                <th class="py-2.5 px-3 w-28 text-center">Rombel</th>
-                                <th class="py-2.5 px-3 w-40">Hari & Tanggal</th>
-                                <th class="py-2.5 px-3 w-28 text-center">Waktu KBM</th>
-                                <th class="py-2.5 px-3 w-44">Guru Pendidik</th>
-                                <th class="py-2.5 px-3 w-56">Topik / Tema</th>
-                                <th class="py-2.5 px-4 min-w-[280px]">Uraian & Kondisi Kelas</th>
-                                <th class="py-2.5 px-3 w-36 text-center">Presensi Murid</th>
-                                <th class="py-2.5 px-3 w-24 text-center">Dokumen</th>
-                                <th class="py-2.5 px-3 w-20 text-center">Aksi</th>
+                        <thead class="sticky top-0 z-20 bg-slate-50 dark:bg-slate-800 shadow-xs border-b border-slate-200 dark:border-slate-700">
+                            <tr class="text-slate-600 dark:text-slate-300 font-bold uppercase text-[10.5px] tracking-wider">
+                                <th class="py-2.5 px-3 text-center w-10 bg-slate-50 dark:bg-slate-800">No</th>
+                                <th class="py-2.5 px-3 w-28 text-center bg-slate-50 dark:bg-slate-800">Rombel</th>
+                                <th class="py-2.5 px-3 w-40 bg-slate-50 dark:bg-slate-800">Hari & Tanggal</th>
+                                <th class="py-2.5 px-3 w-28 text-center bg-slate-50 dark:bg-slate-800">Waktu KBM</th>
+                                <th class="py-2.5 px-3 w-44 bg-slate-50 dark:bg-slate-800">Guru Pendidik</th>
+                                <th class="py-2.5 px-3 w-56 bg-slate-50 dark:bg-slate-800">Topik / Tema</th>
+                                <th class="py-2.5 px-4 min-w-[280px] bg-slate-50 dark:bg-slate-800">Uraian & Kondisi Kelas</th>
+                                <th class="py-2.5 px-3 w-36 text-center bg-slate-50 dark:bg-slate-800">Presensi Murid</th>
+                                <th class="py-2.5 px-3 w-24 text-center bg-slate-50 dark:bg-slate-800">Dokumen</th>
+                                <th class="py-2.5 px-3 w-20 text-center bg-slate-50 dark:bg-slate-800">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
@@ -278,7 +296,7 @@
                                 <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
                                     <!-- No -->
                                     <td class="py-3 px-3 text-center font-mono text-slate-400 font-medium">
-                                        {{ $loop->iteration }}
+                                        {{ $journals instanceof \Illuminate\Pagination\LengthAwarePaginator ? (($journals->currentPage() - 1) * $journals->perPage() + $loop->iteration) : $loop->iteration }}
                                     </td>
 
                                     <!-- Rombel -->
@@ -384,6 +402,23 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- TABLE FOOTER & PAGINATION -->
+                <div class="px-4 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
+                    <div>
+                        @if($journals instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                            Menampilkan <span class="font-bold text-slate-700 dark:text-slate-200">{{ $journals->firstItem() ?? 0 }}</span> - <span class="font-bold text-slate-700 dark:text-slate-200">{{ $journals->lastItem() ?? 0 }}</span> dari <span class="font-bold text-slate-700 dark:text-slate-200">{{ $journals->total() }}</span> catatan jurnal
+                        @else
+                            Menampilkan <span class="font-bold text-slate-700 dark:text-slate-200">{{ $journals->count() }}</span> dari <span class="font-bold text-slate-700 dark:text-slate-200">{{ $totalEntries }}</span> catatan jurnal
+                            <span class="ml-1 text-indigo-600 dark:text-indigo-400 font-medium">(Semua ditampilkan)</span>
+                        @endif
+                    </div>
+                    @if($journals instanceof \Illuminate\Pagination\LengthAwarePaginator && $journals->hasPages())
+                        <div class="overflow-x-auto max-w-full">
+                            {{ $journals->links() }}
+                        </div>
+                    @endif
+                </div>
             </div>
 
             <!-- VIEW MODE 2: KARTU FEED JURNAL (ALTERNATIF) -->
@@ -479,6 +514,18 @@
                         </div>
                     </div>
                 @endforeach
+
+                <!-- CARDS FOOTER & PAGINATION -->
+                @if($journals instanceof \Illuminate\Pagination\LengthAwarePaginator && $journals->hasPages())
+                    <div class="p-3.5 sm:p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400 shadow-2xs">
+                        <div>
+                            Menampilkan <span class="font-bold text-slate-700 dark:text-slate-200">{{ $journals->firstItem() ?? 0 }}</span> - <span class="font-bold text-slate-700 dark:text-slate-200">{{ $journals->lastItem() ?? 0 }}</span> dari <span class="font-bold text-slate-700 dark:text-slate-200">{{ $journals->total() }}</span> catatan jurnal
+                        </div>
+                        <div class="overflow-x-auto max-w-full">
+                            {{ $journals->links() }}
+                        </div>
+                    </div>
+                @endif
             </div>
         @endif
 
