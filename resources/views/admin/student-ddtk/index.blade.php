@@ -1121,24 +1121,26 @@
         <!-- ========================================================================= -->
         <!-- MODAL IMPORT EXCEL DDTK & SDIDTK                                          -->
         <!-- ========================================================================= -->
-        <div x-show="isImportModalOpen" x-cloak
-            @keydown.window.escape="isImportModalOpen = false"
-            class="fixed inset-0 z-[100] overflow-y-auto flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-sm"
-            x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0"
-            x-transition:enter-end="opacity-100"
-            x-transition:leave="transition ease-in duration-150"
-            x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0">
-
-            <div class="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden text-left"
-                @click.outside="isImportModalOpen = false"
+        <template x-teleport="body">
+            <div x-show="isImportModalOpen" x-cloak
+                @keydown.window.escape="isImportModalOpen = false"
+                style="z-index: 99999;"
+                class="fixed inset-0 overflow-y-auto flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-sm"
                 x-transition:enter="transition ease-out duration-200"
-                x-transition:enter-start="opacity-0 scale-95"
-                x-transition:enter-end="opacity-100 scale-100"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
                 x-transition:leave="transition ease-in duration-150"
-                x-transition:leave-start="opacity-100 scale-100"
-                x-transition:leave-end="opacity-0 scale-95">
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0">
+
+                <div class="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden text-left"
+                    @click.outside="isImportModalOpen = false"
+                    x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0 scale-95"
+                    x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-150"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-95">
 
                 <!-- Header -->
                 <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-800/40">
@@ -1276,6 +1278,7 @@
                 </form>
             </div>
         </div>
+        </template>
 
     </div>
 

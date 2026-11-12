@@ -278,11 +278,18 @@ class StudentDdtkController extends Controller
         });
 
         $periodLabel = Carbon::hasFormat($period, 'Y-m') ? Carbon::createFromFormat('Y-m', $period)->translatedFormat('F Y') : $period;
-        $message = "Berhasil menyimpan data DDTK untuk {$savedCount} murid pada periode {$periodLabel}.";
+
+        if ($savedCount === 0) {
+            $message = "Tidak ada data pengukuran fisik DDTK yang diisi (kolom masih kosong). Silakan masukkan angka ukuran (TB/BB) terlebih dahulu.";
+            $msgKey = 'warning';
+        } else {
+            $message = "Berhasil menyimpan data DDTK untuk {$savedCount} murid pada periode {$periodLabel}.";
+            $msgKey = 'success';
+        }
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
-                'success' => true,
+                'success' => $savedCount > 0,
                 'message' => $message,
                 'saved_count' => $savedCount,
             ]);
@@ -293,7 +300,7 @@ class StudentDdtkController extends Controller
             'period' => $period,
             'date' => $date,
             'tab' => 'inputDDTK',
-        ])->with('success', $message);
+        ])->with($msgKey, $message);
     }
 
     /**
@@ -359,11 +366,18 @@ class StudentDdtkController extends Controller
         });
 
         $periodLabel = Carbon::hasFormat($period, 'Y-m') ? Carbon::createFromFormat('Y-m', $period)->translatedFormat('F Y') : $period;
-        $message = "Berhasil menyimpan data skrining SDIDTK untuk {$savedCount} murid pada periode {$periodLabel}.";
+
+        if ($savedCount === 0) {
+            $message = "Tidak ada data skrining SDIDTK yang diisi (semua isian masih kosong).";
+            $msgKey = 'warning';
+        } else {
+            $message = "Berhasil menyimpan data skrining SDIDTK untuk {$savedCount} murid pada periode {$periodLabel}.";
+            $msgKey = 'success';
+        }
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
-                'success' => true,
+                'success' => $savedCount > 0,
                 'message' => $message,
                 'saved_count' => $savedCount,
             ]);
@@ -374,7 +388,7 @@ class StudentDdtkController extends Controller
             'period' => $period,
             'date' => $date,
             'tab' => 'inputSDIDTK',
-        ])->with('success', $message);
+        ])->with($msgKey, $message);
     }
 
     /**

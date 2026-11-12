@@ -661,6 +661,20 @@
                 });
             </script>
         @endif
+        @if(session('warning'))
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    showToast('Peringatan!', @json(session('warning')), 'warning');
+                });
+            </script>
+        @endif
+        @if(session('info'))
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    showToast('Informasi', @json(session('info')), 'info');
+                });
+            </script>
+        @endif
 
         <!-- Custom Isolated Dashboard Animations Script -->
         <script src="{{ asset('js/dashboard.js') }}?v={{ time() }}"></script>
