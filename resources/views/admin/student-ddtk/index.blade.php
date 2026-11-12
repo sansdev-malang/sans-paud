@@ -184,14 +184,14 @@
                 <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 shadow-2xs">
                     <i data-lucide="arrow-up-narrow-wide" class="w-3.5 h-3.5 text-sky-500 shrink-0"></i>
                     <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Rerata TB:</span>
-                    <span class="font-bold font-mono text-sky-700 dark:text-sky-300">{{ $avgHeight }} cm</span>
+                    <span class="font-bold font-mono text-sky-700 dark:text-sky-300">{{ str_replace('.', ',', (string)$avgHeight) }} cm</span>
                 </div>
 
                 <!-- Rata-rata BB -->
                 <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 shadow-2xs">
                     <i data-lucide="scale" class="w-3.5 h-3.5 text-amber-500 shrink-0"></i>
                     <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Rerata BB:</span>
-                    <span class="font-bold font-mono text-amber-700 dark:text-amber-300">{{ $avgWeight }} kg</span>
+                    <span class="font-bold font-mono text-amber-700 dark:text-amber-300">{{ str_replace('.', ',', (string)$avgWeight) }} kg</span>
                 </div>
 
                 <!-- Periode Aktif -->
@@ -292,7 +292,7 @@
                                                     const weight = parseFloat(this.w);
                                                     if (height > 0 && weight > 0) {
                                                         const m = height / 100;
-                                                        return (weight / (m * m)).toFixed(1);
+                                                        return (weight / (m * m)).toFixed(1).replace('.', ',');
                                                     }
                                                     return null;
                                                 }
@@ -345,7 +345,7 @@
                                                         name="ddtk[{{ $st->id }}][height]" 
                                                         x-model="h"
                                                         value="{{ $hVal }}"
-                                                        placeholder="0.0"
+                                                        placeholder="0,0"
                                                         class="w-full text-center px-2 py-1.5 text-xs font-mono font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
                                                 </div>
                                             </td>
@@ -357,7 +357,7 @@
                                                         name="ddtk[{{ $st->id }}][weight]" 
                                                         x-model="w"
                                                         value="{{ $wVal }}"
-                                                        placeholder="0.0"
+                                                        placeholder="0,0"
                                                         class="w-full text-center px-2 py-1.5 text-xs font-mono font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
                                                 </div>
                                             </td>
@@ -368,7 +368,7 @@
                                                     <input type="number" step="0.1" min="0" max="100"
                                                         name="ddtk[{{ $st->id }}][head_circumference]" 
                                                         value="{{ $lkVal }}"
-                                                        placeholder="0.0"
+                                                        placeholder="0,0"
                                                         class="w-full text-center px-2 py-1.5 text-xs font-mono font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
                                                 </div>
                                             </td>
@@ -379,7 +379,7 @@
                                                     <input type="number" step="0.1" min="0" max="60"
                                                         name="ddtk[{{ $st->id }}][arm_circumference]" 
                                                         value="{{ $lilaVal }}"
-                                                        placeholder="0.0"
+                                                        placeholder="0,0"
                                                         class="w-full text-center px-2 py-1.5 text-xs font-mono font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
                                                 </div>
                                             </td>
