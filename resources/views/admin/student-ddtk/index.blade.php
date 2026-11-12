@@ -1288,7 +1288,7 @@
                 </div>
 
                 <!-- Form -->
-                <form action="{{ route('student-ddtk.import') }}" method="POST" enctype="multipart/form-data" class="p-5 space-y-4">
+                <form action="{{ route('student-ddtk.import') }}" method="POST" enctype="multipart/form-data" @submit="isImporting = true" class="p-5 space-y-4">
                     @csrf
                     <input type="hidden" name="target_tab" :value="targetTab">
                     <input type="hidden" name="period" :value="importPeriod">
@@ -1390,14 +1390,33 @@
                     <!-- Footer Action Buttons -->
                     <div class="pt-2 flex items-center justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
                         <button type="button" @click="isImportModalOpen = false"
+                            :disabled="isImporting"
+                            :class="isImporting ? 'opacity-40 pointer-events-none' : ''"
                             class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
                             Batal
                         </button>
                         <button type="submit"
-                            :class="importType === 'sdidtk' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-sky-600 hover:bg-sky-700'"
-                            class="inline-flex items-center gap-1.5 px-4 py-2 text-white rounded-lg text-xs font-bold shadow-xs hover:shadow transition-all cursor-pointer">
-                            <i data-lucide="upload" class="w-3.5 h-3.5"></i>
-                            <span>Mulai Import Data (<span x-text="importType === 'sdidtk' ? 'SDIDTK' : 'DDTK'"></span>)</span>
+                            :disabled="isImporting"
+                            :class="[
+                                isImporting ? 'opacity-80 cursor-wait pointer-events-none' : '',
+                                importType === 'sdidtk' ? 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800' : 'bg-sky-600 hover:bg-sky-700 active:bg-sky-800'
+                            ]"
+                            class="inline-flex items-center justify-center gap-2 px-4 py-2 text-white rounded-lg text-xs font-bold shadow-xs hover:shadow transition-all cursor-pointer">
+                            <template x-if="!isImporting">
+                                <span class="inline-flex items-center gap-1.5">
+                                    <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                                    <span>Mulai Import Data (<span x-text="importType === 'sdidtk' ? 'SDIDTK' : 'DDTK'"></span>)</span>
+                                </span>
+                            </template>
+                            <template x-if="isImporting">
+                                <span class="inline-flex items-center gap-2">
+                                    <svg class="animate-spin w-3.5 h-3.5 text-white shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span>Sedang Mengimpor Data...</span>
+                                </span>
+                            </template>
                         </button>
                     </div>
                 </form>
@@ -1449,6 +1468,7 @@
                 chartInstance: null,
                 isImportModalOpen: false,
                 isDownloadingTemplate: false,
+                isImporting: false,
                 importType: 'ddtk',
                 importClassroomId: config.classroomId || '',
                 importPeriod: config.selectedPeriod,
@@ -1459,6 +1479,7 @@
                     this.targetTab = (type === 'sdidtk') ? 'inputSDIDTK' : 'inputDDTK';
                     this.importClassroomId = config.classroomId || '';
                     this.importPeriod = config.selectedPeriod;
+                    this.isImporting = false;
                     this.isImportModalOpen = true;
                     this.$nextTick(() => {
                         if (typeof lucide !== 'undefined') lucide.createIcons();
