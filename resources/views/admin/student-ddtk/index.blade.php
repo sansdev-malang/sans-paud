@@ -311,7 +311,22 @@
                                                     </div>
                                                     <div class="min-w-0">
                                                         <div class="truncate font-semibold text-slate-900 dark:text-slate-100">{{ $st->full_name }}</div>
-                                                        <div class="text-[10px] text-slate-400 dark:text-slate-500 font-mono">NIS: {{ $st->nis ?: '-' }}</div>
+                                                        <div class="text-[10px] text-slate-400 dark:text-slate-500 flex flex-wrap items-center gap-1.5 mt-0.5">
+                                                            <span class="font-mono">NIS: {{ $st->nis ?: '-' }}</span>
+                                                            @if($st->birth_date)
+                                                                @php
+                                                                    $bDate = \Carbon\Carbon::parse($st->birth_date);
+                                                                    $ageY = (int)$bDate->diffInYears(\Carbon\Carbon::now());
+                                                                    $ageM = (int)$bDate->diffInMonths(\Carbon\Carbon::now()) % 12;
+                                                                    $ageLabel = $ageY > 0 ? "{$ageY} thn {$ageM} bln" : "{$ageM} bln";
+                                                                @endphp
+                                                                <span class="text-slate-300 dark:text-slate-600">&bull;</span>
+                                                                <span title="Lahir: {{ $bDate->format('d/m/Y') }}">Lahir: {{ $bDate->format('d/m/Y') }}</span>
+                                                                <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[9.5px] font-semibold text-slate-600 dark:text-slate-300">
+                                                                    {{ $ageLabel }}
+                                                                </span>
+                                                            @endif
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </td>
@@ -568,7 +583,22 @@
                                                     </div>
                                                     <div class="min-w-0">
                                                         <div class="truncate font-semibold">{{ $st->full_name }}</div>
-                                                        <div class="text-[10px] text-slate-400 dark:text-slate-500 font-mono">NIS: {{ $st->nis ?: '-' }}</div>
+                                                        <div class="text-[10px] text-slate-400 dark:text-slate-500 flex flex-wrap items-center gap-1.5 mt-0.5">
+                                                            <span class="font-mono">NIS: {{ $st->nis ?: '-' }}</span>
+                                                            @if($st->birth_date)
+                                                                @php
+                                                                    $bDate = \Carbon\Carbon::parse($st->birth_date);
+                                                                    $ageY = (int)$bDate->diffInYears(\Carbon\Carbon::now());
+                                                                    $ageM = (int)$bDate->diffInMonths(\Carbon\Carbon::now()) % 12;
+                                                                    $ageLabel = $ageY > 0 ? "{$ageY} thn {$ageM} bln" : "{$ageM} bln";
+                                                                @endphp
+                                                                <span class="text-slate-300 dark:text-slate-600">&bull;</span>
+                                                                <span title="Lahir: {{ $bDate->format('d/m/Y') }}">Lahir: {{ $bDate->format('d/m/Y') }}</span>
+                                                                <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[9.5px] font-semibold text-slate-600 dark:text-slate-300">
+                                                                    {{ $ageLabel }}
+                                                                </span>
+                                                            @endif
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </td>
@@ -581,45 +611,47 @@
                                             </td>
 
                                             <!-- VISUS MATA: KANAN -->
-                                            <td class="py-2 px-2 border-r border-slate-100 dark:border-slate-800">
+                                            <td class="py-2 px-2 border-r border-slate-100 dark:border-slate-800 min-w-[95px]">
                                                 <input type="text"
                                                     name="sdidtk[{{ $st->id }}][visus_right]"
+                                                    list="visus_suggestions"
                                                     value="{{ $rec?->visus_right ?? '' }}"
-                                                    placeholder="Normal / 6/6"
+                                                    placeholder="1/4, 1/3, -"
                                                     class="w-full text-center px-2 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
                                             </td>
 
                                             <!-- VISUS MATA: KIRI -->
-                                            <td class="py-2 px-2 border-r border-slate-100 dark:border-slate-800">
+                                            <td class="py-2 px-2 border-r border-slate-100 dark:border-slate-800 min-w-[95px]">
                                                 <input type="text"
                                                     name="sdidtk[{{ $st->id }}][visus_left]"
+                                                    list="visus_suggestions"
                                                     value="{{ $rec?->visus_left ?? '' }}"
-                                                    placeholder="Normal / 6/6"
+                                                    placeholder="1/4, 1/3, -"
                                                     class="w-full text-center px-2 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
                                             </td>
 
-                                            <!-- KPSP -->
-                                            <td class="py-2 px-2 border-r border-slate-100 dark:border-slate-800">
-                                                <select name="sdidtk[{{ $st->id }}][kpsp_result]"
-                                                    class="w-full px-2 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors cursor-pointer">
-                                                    <option value="">- Pilih KPSP -</option>
-                                                    <option value="Sesuai" {{ ($rec?->kpsp_result ?? '') === 'Sesuai' ? 'selected' : '' }}>Sesuai (S)</option>
-                                                    <option value="Meragukan" {{ ($rec?->kpsp_result ?? '') === 'Meragukan' ? 'selected' : '' }}>Meragukan (M)</option>
-                                                    <option value="Penyimpangan" {{ ($rec?->kpsp_result ?? '') === 'Penyimpangan' ? 'selected' : '' }}>Penyimpangan (P)</option>
-                                                </select>
+                                            <!-- KPSP (INPUT BEBAS DENGAN SUGGESTION DATALIST) -->
+                                            <td class="py-2 px-2 border-r border-slate-100 dark:border-slate-800 min-w-[130px]">
+                                                <input type="text"
+                                                    name="sdidtk[{{ $st->id }}][kpsp_result]"
+                                                    list="kpsp_suggestions"
+                                                    value="{{ $rec?->kpsp_result ?? '' }}"
+                                                    placeholder="Sesuai / ABK"
+                                                    class="w-full px-2 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
                                             </td>
 
-                                            <!-- GIGI -->
-                                            <td class="py-2 px-2 border-r border-slate-100 dark:border-slate-800">
+                                            <!-- GIGI (INPUT BEBAS DENGAN SUGGESTION DATALIST) -->
+                                            <td class="py-2 px-2 border-r border-slate-100 dark:border-slate-800 min-w-[135px]">
                                                 <input type="text"
                                                     name="sdidtk[{{ $st->id }}][dental_health]"
+                                                    list="dental_suggestions"
                                                     value="{{ $rec?->dental_health ?? '' }}"
-                                                    placeholder="Sehat / Karies"
+                                                    placeholder="Normal / Caries"
                                                     class="w-full px-2 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
                                             </td>
 
                                             <!-- GDA (Gula Darah Acak) -->
-                                            <td class="py-2 px-2 border-r border-slate-100 dark:border-slate-800 text-center">
+                                            <td class="py-2 px-2 border-r border-slate-100 dark:border-slate-800 text-center min-w-[90px]">
                                                 <input type="number" step="0.1" min="0" max="600"
                                                     name="sdidtk[{{ $st->id }}][blood_sugar]"
                                                     value="{{ $rec?->blood_sugar !== null ? $rec->blood_sugar : '' }}"
@@ -651,22 +683,131 @@
                                                 </label>
                                             </td>
 
-                                            <!-- CATATAN -->
-                                            <td class="py-2 px-4" x-data="{ note: '{{ addslashes($rec?->notes ?? '') }}' }">
-                                                <div class="relative w-full flex items-center">
-                                                    <input type="text"
-                                                        name="sdidtk[{{ $st->id }}][notes]"
-                                                        x-model="note"
-                                                        placeholder="Catatan hasil skrining..."
-                                                        class="w-full pl-3 pr-8 py-1.5 text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-800 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
-                                                    
-                                                    <!-- Clear note button (x) -->
-                                                    <button type="button" @click="note = ''" title="Hapus catatan"
-                                                        x-show="note && note.length > 0"
-                                                        x-cloak
-                                                        class="absolute right-1.5 p-1 text-slate-400 hover:text-rose-500 transition-colors rounded cursor-pointer">
-                                                        <i data-lucide="x-circle" class="w-3.5 h-3.5"></i>
+                                            <!-- CATATAN (DENGAN POPUP PILIHAN TEMPLATE) -->
+                                            <td class="py-2 px-3 min-w-[280px]" x-data="{
+                                                note: '{{ addslashes($rec?->notes ?? '') }}',
+                                                showTemplates: false,
+                                                applyTemplate(text) {
+                                                    if (this.note && this.note.trim() !== '') {
+                                                        this.note = this.note.trim() + ' • ' + text;
+                                                    } else {
+                                                        this.note = text;
+                                                    }
+                                                    this.showTemplates = false;
+                                                },
+                                                replaceTemplate(text) {
+                                                    this.note = text;
+                                                    this.showTemplates = false;
+                                                }
+                                            }">
+                                                <div class="relative w-full flex items-center gap-1.5">
+                                                    <!-- Text Input -->
+                                                    <div class="relative flex-1 flex items-center">
+                                                        <input type="text"
+                                                            name="sdidtk[{{ $st->id }}][notes]"
+                                                            x-model="note"
+                                                            placeholder="Ketik catatan / pilih template..."
+                                                            class="w-full pl-2.5 pr-7 py-1.5 text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-800 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
+                                                        
+                                                        <!-- Clear button -->
+                                                        <button type="button" @click="note = ''" title="Hapus catatan"
+                                                            x-show="note && note.length > 0"
+                                                            x-cloak
+                                                            class="absolute right-1.5 p-0.5 text-slate-400 hover:text-rose-500 transition-colors rounded cursor-pointer">
+                                                            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                                                        </button>
+                                                    </div>
+
+                                                    <!-- Template Trigger Button -->
+                                                    <button type="button"
+                                                        @click="showTemplates = !showTemplates"
+                                                        title="Pilih Template Catatan"
+                                                        class="shrink-0 inline-flex items-center gap-1 px-2 py-1.5 rounded-lg border text-[11px] font-semibold transition-all cursor-pointer bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 shadow-2xs">
+                                                        <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+                                                        <span class="hidden xl:inline text-[10px]">Template</span>
+                                                        <i data-lucide="chevron-down" class="w-3 h-3 opacity-60"></i>
                                                     </button>
+
+                                                    <!-- Dropdown Popup Pilihan Template -->
+                                                    <div x-show="showTemplates"
+                                                        @click.outside="showTemplates = false"
+                                                        x-cloak
+                                                        x-transition:enter="transition ease-out duration-100"
+                                                        x-transition:enter-start="transform opacity-0 scale-95"
+                                                        x-transition:enter-end="transform opacity-100 scale-100"
+                                                        x-transition:leave="transition ease-in duration-75"
+                                                        x-transition:leave-start="transform opacity-100 scale-100"
+                                                        x-transition:leave-end="transform opacity-0 scale-95"
+                                                        class="absolute right-0 top-full mt-1.5 w-80 sm:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-50 p-2.5 space-y-1.5 text-left">
+                                                        
+                                                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-slate-800 text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                                                            <span class="flex items-center gap-1.5">
+                                                                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-emerald-500"></i>
+                                                                Pilih Template Catatan:
+                                                            </span>
+                                                            <button type="button" @click="showTemplates = false" class="text-slate-400 hover:text-slate-600">
+                                                                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                                                            </button>
+                                                        </div>
+
+                                                        <div class="max-h-64 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                                                            <!-- Template 1: Normal Lengkap -->
+                                                            <button type="button" @click="replaceTemplate('• Visus mata kanan dan kiri 1/4: normal • Gigi (N): normal • GDA Normal: < 200 (dibawah 200)')"
+                                                                class="w-full text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-100 dark:border-slate-800 hover:border-emerald-300 transition-colors group cursor-pointer">
+                                                                <div class="font-bold text-[11px] text-emerald-700 dark:text-emerald-400 group-hover:underline">Semua Normal</div>
+                                                                <div class="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-2">Visus 1/4 normal, Gigi normal, GDA Normal < 200</div>
+                                                            </button>
+
+                                                            <!-- Template 2: Usia < 3 Tahun -->
+                                                            <button type="button" @click="replaceTemplate('• Pemeriksaan visus mata tidak dilakukan pada anak usia dibawah 3 tahun • Gigi (N): normal • GDA Normal: < 200 (dibawah 200)')"
+                                                                class="w-full text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-100 dark:border-slate-800 hover:border-emerald-300 transition-colors group cursor-pointer">
+                                                                <div class="font-bold text-[11px] text-sky-700 dark:text-sky-400 group-hover:underline">Usia < 3 Tahun (Visus Belum)</div>
+                                                                <div class="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-2">Pemeriksaan visus tidak dilakukan (< 3 thn), Gigi normal, GDA normal</div>
+                                                            </button>
+
+                                                            <!-- Template 3: Karies / Caries -->
+                                                            <button type="button" @click="applyTemplate('• Gigi (C): terdapat caries atau gigi berlubang. Disarankan pemeriksaan ke dokter gigi dan membatasi makanan manis.')"
+                                                                class="w-full text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 hover:bg-amber-50 dark:hover:bg-amber-950/40 border border-slate-100 dark:border-slate-800 hover:border-amber-300 transition-colors group cursor-pointer">
+                                                                <div class="font-bold text-[11px] text-amber-700 dark:text-amber-400 group-hover:underline">+ Karies Gigi (Disarankan Dokter Gigi)</div>
+                                                                <div class="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-2">Gigi (C): terdapat caries. Saran ke dokter gigi & kurangi manis.</div>
+                                                            </button>
+
+                                                            <!-- Template 4: Visus 1/3 (Daya Lihat) -->
+                                                            <button type="button" @click="applyTemplate('• Visus mata kanan dan kiri 1/3: ananda tidak dapat melihat baris ke-3 pada papan E tes daya lihat. Disarankan membatasi menatap layar gawai, laptop, komputer dan televisi terlalu dekat dan terlalu lama.')"
+                                                                class="w-full text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 hover:bg-purple-50 dark:hover:bg-purple-950/40 border border-slate-100 dark:border-slate-800 hover:border-purple-300 transition-colors group cursor-pointer">
+                                                                <div class="font-bold text-[11px] text-purple-700 dark:text-purple-400 group-hover:underline">+ Visus 1/3 (Batasi Layar HP/TV)</div>
+                                                                <div class="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-2">Tidak dapat melihat baris 3 E-chart. Saran batasi menatap layar gawai.</div>
+                                                            </button>
+
+                                                            <!-- Template 5: Belum Tumbuh Gigi -->
+                                                            <button type="button" @click="applyTemplate('• Gigi belum tumbuh: dianjurkan untuk stimulasi dan makan keras untuk merangsang tumbuhnya gigi.')"
+                                                                class="w-full text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-100 dark:border-slate-800 hover:border-blue-300 transition-colors group cursor-pointer">
+                                                                <div class="font-bold text-[11px] text-blue-700 dark:text-blue-400 group-hover:underline">+ Belum Tumbuh Gigi</div>
+                                                                <div class="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-2">Gigi belum tumbuh: stimulasi makanan padat/keras.</div>
+                                                            </button>
+
+                                                            <!-- Template 6: Gigi Tumpuk / Persistensi -->
+                                                            <button type="button" @click="applyTemplate('• Persistensi (gigi tumpuk): disarankan kontrol ke dokter gigi spesialis anak.')"
+                                                                class="w-full text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-slate-100 dark:border-slate-800 hover:border-rose-300 transition-colors group cursor-pointer">
+                                                                <div class="font-bold text-[11px] text-rose-700 dark:text-rose-400 group-hover:underline">+ Gigi Tumpuk (Persistensi)</div>
+                                                                <div class="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-2">Gigi tumpuk: disarankan konsultasi dokter gigi.</div>
+                                                            </button>
+
+                                                            <!-- Template 7: Tidak Masuk -->
+                                                            <button type="button" @click="replaceTemplate('Tidak masuk saat pemeriksaan')"
+                                                                class="w-full text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 hover:border-slate-300 transition-colors group cursor-pointer">
+                                                                <div class="font-bold text-[11px] text-slate-700 dark:text-slate-300 group-hover:underline">Tidak Masuk</div>
+                                                                <div class="text-[10px] text-slate-500 dark:text-slate-400">Ananda tidak masuk saat jadwal pemeriksaan.</div>
+                                                            </button>
+
+                                                            <!-- Template 8: Menolak Pemeriksaan -->
+                                                            <button type="button" @click="applyTemplate('Ananda menolak pemeriksaan visus mata')"
+                                                                class="w-full text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 hover:border-slate-300 transition-colors group cursor-pointer">
+                                                                <div class="font-bold text-[11px] text-slate-700 dark:text-slate-300 group-hover:underline">Menolak Pemeriksaan</div>
+                                                                <div class="text-[10px] text-slate-500 dark:text-slate-400">Ananda menolak saat diperiksa visus mata.</div>
+                                                            </button>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </td>
                                         </tr>
@@ -1265,6 +1406,32 @@
         </template>
 
     </div>
+
+    <!-- SUGGESTION DATALISTS UNTUK INPUT SDIDTK -->
+    <datalist id="visus_suggestions">
+        <option value="1/4">1/4 (Normal)</option>
+        <option value="1/3">1/3 (Curiga Gangguan Daya Lihat)</option>
+        <option value="-">- (Usia < 3 Thn / Belum Diperiksa)</option>
+        <option value="ABK">ABK (Anak Berkebutuhan Khusus)</option>
+        <option value="Sakit">Sakit / Izin</option>
+    </datalist>
+
+    <datalist id="kpsp_suggestions">
+        <option value="Sesuai">Sesuai (Normal)</option>
+        <option value="Meragukan">Meragukan</option>
+        <option value="Penyimpangan">Penyimpangan</option>
+        <option value="ABK">ABK (Anak Berkebutuhan Khusus)</option>
+        <option value="PDBK">PDBK (Peserta Didik Berkebutuhan Khusus)</option>
+        <option value="-">- (Belum Diperiksa)</option>
+    </datalist>
+
+    <datalist id="dental_suggestions">
+        <option value="Normal">Normal</option>
+        <option value="Caries">Caries (Gigi Berlubang)</option>
+        <option value="Belum Timbul Gigi">Belum Timbul Gigi</option>
+        <option value="Persitensi (gigi tumpuk)">Persitensi (Gigi Tumpuk)</option>
+        <option value="-">- (Belum Diperiksa)</option>
+    </datalist>
 
     <!-- Chart.js CDN for Interactive Growth Graph -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

@@ -651,7 +651,7 @@ class StudentDdtkController extends Controller
             $sheet->setCellValue('A1', 'TEMPLATE IMPORT SKRINING SDIDTK');
             $sheet->setCellValue('A2', strtoupper(setting('unit_name', setting('app_name', 'PAUD ANAK SALEH'))));
             $sheet->setCellValue('A3', "Periode: {$periodLabel} ({$period}) | Rombel: " . ($classroom ? "{$classroom->name} ({$classroom->sub_unit})" : 'Semua Rombel'));
-            $sheet->setCellValue('A4', 'Petunjuk: Kolom Periode bisa diisi nama bulan & tahun (contoh: "Desember 2026"). Anda bisa mengisi lintas beberapa bulan sekaligus dalam satu berkas. Opsi skrining: Visus: Normal/6/6. KPSP: Sesuai/Meragukan/Penyimpangan. Gigi: Bersih/Karies. Kusta/Frambusia: Ya/Tidak.');
+            $sheet->setCellValue('A4', 'Petunjuk: Kolom Periode: nama bulan & tahun (contoh: "Desember 2026"). Visus: 1/4 (normal), 1/3, - (usia < 3 thn). KPSP: Sesuai, Meragukan, Penyimpangan, ABK, dll. Gigi: Normal, Caries, Belum Timbul Gigi, Persitensi (gigi tumpuk), dll. GDA: angka mg/dL atau - (< 2 thn). Kusta/Frambusia: Ya/Tidak.');
 
             $headers = [
                 'No', 'NIS', 'Nama Murid', 'Rombel', 'Periode (Bulan Tahun)',
@@ -724,10 +724,10 @@ class StudentDdtkController extends Controller
                     $sheet->setCellValue("H{$currentRow}", '');
                     $sheet->setCellValue("I{$currentRow}", '');
                 } elseif ($type === 'sdidtk') {
-                    $sheet->setCellValue("F{$currentRow}", 'Normal');
-                    $sheet->setCellValue("G{$currentRow}", 'Normal');
+                    $sheet->setCellValue("F{$currentRow}", '1/4');
+                    $sheet->setCellValue("G{$currentRow}", '1/4');
                     $sheet->setCellValue("H{$currentRow}", 'Sesuai');
-                    $sheet->setCellValue("I{$currentRow}", 'Bersih');
+                    $sheet->setCellValue("I{$currentRow}", 'Normal');
                     $sheet->setCellValue("J{$currentRow}", '');
                     $sheet->setCellValue("K{$currentRow}", 'Tidak');
                     $sheet->setCellValue("L{$currentRow}", 'Tidak');
@@ -737,10 +737,10 @@ class StudentDdtkController extends Controller
                     $sheet->setCellValue("G{$currentRow}", '');
                     $sheet->setCellValue("H{$currentRow}", '');
                     $sheet->setCellValue("I{$currentRow}", '');
-                    $sheet->setCellValue("J{$currentRow}", 'Normal');
-                    $sheet->setCellValue("K{$currentRow}", 'Normal');
+                    $sheet->setCellValue("J{$currentRow}", '1/4');
+                    $sheet->setCellValue("K{$currentRow}", '1/4');
                     $sheet->setCellValue("L{$currentRow}", 'Sesuai');
-                    $sheet->setCellValue("M{$currentRow}", 'Bersih');
+                    $sheet->setCellValue("M{$currentRow}", 'Normal');
                     $sheet->setCellValue("N{$currentRow}", '');
                     $sheet->setCellValue("O{$currentRow}", 'Tidak');
                     $sheet->setCellValue("P{$currentRow}", 'Tidak');
@@ -764,10 +764,10 @@ class StudentDdtkController extends Controller
                     $sheet->setCellValue("H{$currentRow}", 49.0);
                     $sheet->setCellValue("I{$currentRow}", 15.5);
                 } elseif ($type === 'sdidtk') {
-                    $sheet->setCellValue("F{$currentRow}", 'Normal');
-                    $sheet->setCellValue("G{$currentRow}", 'Normal');
+                    $sheet->setCellValue("F{$currentRow}", '1/4');
+                    $sheet->setCellValue("G{$currentRow}", '1/4');
                     $sheet->setCellValue("H{$currentRow}", 'Sesuai');
-                    $sheet->setCellValue("I{$currentRow}", 'Bersih');
+                    $sheet->setCellValue("I{$currentRow}", 'Normal');
                     $sheet->setCellValue("J{$currentRow}", '');
                     $sheet->setCellValue("K{$currentRow}", 'Tidak');
                     $sheet->setCellValue("L{$currentRow}", 'Tidak');
@@ -777,10 +777,10 @@ class StudentDdtkController extends Controller
                     $sheet->setCellValue("G{$currentRow}", 16.3);
                     $sheet->setCellValue("H{$currentRow}", 49.0);
                     $sheet->setCellValue("I{$currentRow}", 15.5);
-                    $sheet->setCellValue("J{$currentRow}", 'Normal');
-                    $sheet->setCellValue("K{$currentRow}", 'Normal');
+                    $sheet->setCellValue("J{$currentRow}", '1/4');
+                    $sheet->setCellValue("K{$currentRow}", '1/4');
                     $sheet->setCellValue("L{$currentRow}", 'Sesuai');
-                    $sheet->setCellValue("M{$currentRow}", 'Bersih');
+                    $sheet->setCellValue("M{$currentRow}", 'Normal');
                     $sheet->setCellValue("N{$currentRow}", '');
                     $sheet->setCellValue("O{$currentRow}", 'Tidak');
                     $sheet->setCellValue("P{$currentRow}", 'Tidak');
