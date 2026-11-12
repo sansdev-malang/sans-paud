@@ -23,13 +23,6 @@
 
             <!-- T.A. & Action Buttons -->
             <div class="flex flex-wrap items-center gap-2 shrink-0">
-                <!-- Import Excel -->
-                <button type="button" @click="openImportModal('ddtk')"
-                    class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-white dark:bg-slate-900 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 hover:text-sky-700 dark:hover:text-sky-400 text-[11px] sm:text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-colors cursor-pointer">
-                    <i data-lucide="file-up" class="w-3.5 h-3.5 text-sky-600 dark:text-sky-400"></i>
-                    <span>Import Excel</span>
-                </button>
-
                 <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/60 rounded-xl text-[11px] sm:text-xs shadow-xs">
                     <span class="flex h-2 w-2 relative">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -1150,12 +1143,17 @@
                 <!-- Header -->
                 <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-800/40">
                     <div class="flex items-center gap-2.5">
-                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 border border-sky-200/80 dark:border-sky-800/60">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg border transition-colors"
+                            :class="importType === 'sdidtk' 
+                                ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-200/80 dark:border-emerald-800/60' 
+                                : 'bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 border-sky-200/80 dark:border-sky-800/60'">
                             <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
                         </span>
                         <div>
-                            <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100">Import Data DDTK / SDIDTK</h3>
-                            <p class="text-[11px] text-slate-500 dark:text-slate-400">Unggah berkas Excel antropometri atau skrining tumbuh kembang</p>
+                            <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100"
+                                x-text="importType === 'sdidtk' ? 'Import Data SDIDTK (Skrining Perkembangan)' : 'Import Data DDTK (Antropometri Fisik)'"></h3>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400"
+                                x-text="importType === 'sdidtk' ? 'Unggah berkas Excel hasil skrining stimulasi & deteksi tumbuh kembang' : 'Unggah berkas Excel pengukuran fisik (TB, BB, LK, LiLA) murid'"></p>
                         </div>
                     </div>
                     <button type="button" @click="isImportModalOpen = false"
@@ -1170,31 +1168,17 @@
                     <input type="hidden" name="target_tab" :value="targetTab">
                     <input type="hidden" name="period" :value="importPeriod">
                     <input type="hidden" name="classroom_id" :value="importClassroomId">
+                    <input type="hidden" name="date" value="{{ $selectedDate }}">
 
-                    <!-- Step 1: Pilihan Format & Unduh Template -->
+                    <!-- Step 1: Format & Unduh Template -->
                     <div class="p-4 bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 rounded-xl space-y-3">
                         <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200">1. Format & Unduh Template Excel</span>
-                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 font-semibold">Otomatis Pre-fill</span>
-                        </div>
-
-                        <!-- Type Selector Pills -->
-                        <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-200/60 dark:bg-slate-800 rounded-xl">
-                            <button type="button" @click="importType = 'ddtk'; targetTab = 'inputDDTK'"
-                                class="py-1.5 text-center text-xs font-bold rounded-lg transition-all cursor-pointer"
-                                :class="importType === 'ddtk' ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'">
-                                DDTK Fisik
-                            </button>
-                            <button type="button" @click="importType = 'sdidtk'; targetTab = 'inputSDIDTK'"
-                                class="py-1.5 text-center text-xs font-bold rounded-lg transition-all cursor-pointer"
-                                :class="importType === 'sdidtk' ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-300 shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'">
-                                SDIDTK Skrining
-                            </button>
-                            <button type="button" @click="importType = 'all'; targetTab = 'inputDDTK'"
-                                class="py-1.5 text-center text-xs font-bold rounded-lg transition-all cursor-pointer"
-                                :class="importType === 'all' ? 'bg-white dark:bg-slate-900 text-indigo-700 dark:text-indigo-300 shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'">
-                                Lengkap (Semua)
-                            </button>
+                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200"
+                                x-text="importType === 'sdidtk' ? '1. Unduh Template Excel SDIDTK' : '1. Unduh Template Excel DDTK'"></span>
+                            <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+                                :class="importType === 'sdidtk' ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300' : 'bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300'">
+                                Template Resmi
+                            </span>
                         </div>
 
                         <!-- Filter Rombel & Periode for Template -->
@@ -1218,16 +1202,19 @@
                             </div>
                         </div>
 
-                        <!-- Download Button with Exact Timing Loading Animation -->
+                        <!-- Download Button with Loading Animation -->
                         <button type="button"
                             @click="downloadTemplate()"
                             :disabled="isDownloadingTemplate"
-                            :class="isDownloadingTemplate ? 'opacity-80 cursor-wait pointer-events-none' : ''"
-                            class="inline-flex items-center justify-center gap-2 w-full px-3 py-2 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white rounded-lg text-xs font-semibold shadow-xs transition-all cursor-pointer">
+                            :class="[
+                                isDownloadingTemplate ? 'opacity-80 cursor-wait pointer-events-none' : '',
+                                importType === 'sdidtk' ? 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800' : 'bg-sky-600 hover:bg-sky-700 active:bg-sky-800'
+                            ]"
+                            class="inline-flex items-center justify-center gap-2 w-full px-3 py-2 text-white rounded-lg text-xs font-semibold shadow-xs transition-all cursor-pointer">
                             <template x-if="!isDownloadingTemplate">
                                 <span class="inline-flex items-center gap-2">
                                     <i data-lucide="download" class="w-3.5 h-3.5"></i>
-                                    <span>Unduh Template Excel (<span x-text="importType === 'all' ? 'Lengkap' : importType.toUpperCase()"></span>)</span>
+                                    <span>Unduh Template Excel (<span x-text="importType === 'sdidtk' ? 'SDIDTK' : 'DDTK'"></span>)</span>
                                 </span>
                             </template>
                             <template x-if="isDownloadingTemplate">
@@ -1245,7 +1232,7 @@
                     <!-- Step 2: Upload File -->
                     <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                            2. Pilih Berkas Excel Terisi (.xlsx, .xls, .csv)
+                            2. Pilih Berkas Excel Terisi (<span x-text="importType === 'sdidtk' ? 'SDIDTK' : 'DDTK'"></span>)
                         </label>
                         <input type="file" name="file" required accept=".xlsx,.xls,.csv"
                             class="block w-full text-xs text-slate-700 dark:text-slate-300 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-50 file:text-sky-700 dark:file:bg-sky-950/60 dark:file:text-sky-300 hover:file:bg-sky-100 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer bg-slate-50/50 dark:bg-slate-800/30">
@@ -1258,11 +1245,19 @@
                             <i data-lucide="info" class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0"></i>
                             <span>Catatan Import:</span>
                         </div>
-                        <ul class="list-disc list-inside space-y-0.5 text-[10px] text-amber-700 dark:text-amber-400">
-                            <li>Data fisik DDTK (TB, BB, LK, LiLA) yang diimpor akan otomatis memperbarui profil pengukuran terakhir murid.</li>
-                            <li>Jika baris data untuk murid dan periode tersebut sudah ada sebelumnya, data akan otomatis diperbarui (update).</li>
-                            <li>Gunakan titik (.) untuk angka desimal, contoh: <span class="font-mono font-semibold">102.5</span> atau <span class="font-mono font-semibold">16.3</span>.</li>
-                        </ul>
+                        <template x-if="importType === 'ddtk'">
+                            <ul class="list-disc list-inside space-y-0.5 text-[10px] text-amber-700 dark:text-amber-400">
+                                <li>Data fisik DDTK (TB, BB, LK, LiLA) yang diimpor akan langsung memperbarui profil pengukuran murid.</li>
+                                <li>Jika baris data untuk murid dan periode tersebut sudah ada sebelumnya, data akan otomatis diperbarui (update).</li>
+                                <li>Gunakan titik (.) untuk angka desimal, contoh: <span class="font-mono font-semibold">102.5</span> atau <span class="font-mono font-semibold">16.3</span>.</li>
+                            </ul>
+                        </template>
+                        <template x-if="importType === 'sdidtk'">
+                            <ul class="list-disc list-inside space-y-0.5 text-[10px] text-amber-700 dark:text-amber-400">
+                                <li>Data SDIDTK mencakup: Mata Kanan/Kiri (Normal/Curiga), KPSP (Sesuai/Meragukan/Penyimpangan), Gigi (Bersih/Karies), Gula Darah/Hb, Kusta & Frambusia (Ya/Tidak).</li>
+                                <li>Jika baris data untuk murid dan periode tersebut sudah ada sebelumnya, data akan otomatis diperbarui (update).</li>
+                            </ul>
+                        </template>
                     </div>
 
                     <!-- Footer Action Buttons -->
@@ -1272,9 +1267,10 @@
                             Batal
                         </button>
                         <button type="submit"
-                            class="inline-flex items-center gap-1.5 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-bold shadow-xs hover:shadow transition-all cursor-pointer">
+                            :class="importType === 'sdidtk' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-sky-600 hover:bg-sky-700'"
+                            class="inline-flex items-center gap-1.5 px-4 py-2 text-white rounded-lg text-xs font-bold shadow-xs hover:shadow transition-all cursor-pointer">
                             <i data-lucide="upload" class="w-3.5 h-3.5"></i>
-                            <span>Mulai Import Data</span>
+                            <span>Mulai Import Data (<span x-text="importType === 'sdidtk' ? 'SDIDTK' : 'DDTK'"></span>)</span>
                         </button>
                     </div>
                 </form>
@@ -1307,6 +1303,8 @@
                 openImportModal(type = 'ddtk') {
                     this.importType = type;
                     this.targetTab = (type === 'sdidtk') ? 'inputSDIDTK' : 'inputDDTK';
+                    this.importClassroomId = config.classroomId || '';
+                    this.importPeriod = config.selectedPeriod;
                     this.isImportModalOpen = true;
                     this.$nextTick(() => {
                         if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -1327,7 +1325,8 @@
                     if (this.isDownloadingTemplate) return;
                     this.isDownloadingTemplate = true;
                     try {
-                        await window.downloadTemplateBlob(this.getTemplateUrl(), `Template_${this.importType}.xlsx`);
+                        const fileLabel = (this.importType === 'sdidtk') ? 'SDIDTK' : 'DDTK';
+                        await window.downloadTemplateBlob(this.getTemplateUrl(), `Template_${fileLabel}_${this.importPeriod}.xlsx`);
                     } catch (e) {
                         console.error('Download error:', e);
                         if (typeof window.showToast === 'function') {

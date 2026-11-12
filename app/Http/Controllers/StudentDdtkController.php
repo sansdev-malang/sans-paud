@@ -1053,6 +1053,7 @@ class StudentDdtkController extends Controller
         return redirect()->route('student-ddtk.index', [
             'classroom_id' => $defaultClassroomId,
             'period' => $detectedPeriod,
+            'date' => $defaultDate,
             'tab' => $request->input('target_tab', 'inputDDTK'),
         ])->with('success', $message)->with('import_errors', array_slice($errors, 0, 10));
     }
