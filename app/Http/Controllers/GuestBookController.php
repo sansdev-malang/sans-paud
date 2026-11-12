@@ -847,24 +847,32 @@ class GuestBookController extends Controller
                         }
                     } elseif (str_contains($val, 'jam') || str_contains($val, 'waktu') || str_contains($val, 'time')) {
                         $colMap['time'] = $cKey;
-                    } elseif (str_contains($val, 'murid') || str_contains($val, 'calon') || str_contains($val, 'anak')) {
+                    } elseif (str_contains($val, 'murid') || str_contains($val, 'calon') || str_contains($val, 'anak') || str_contains($val, 'cpd')) {
                         $colMap['student_name'] = $cKey;
+                    } elseif (str_contains($val, 'ortu') || str_contains($val, 'orangtua')) {
+                        $colMap['parent_name'] = $cKey;
                     } elseif (str_contains($val, 'nama') || str_contains($val, 'tamu')) {
                         if (!isset($colMap['name'])) $colMap['name'] = $cKey;
                     } elseif (str_contains($val, 'hp') || str_contains($val, 'wa') || str_contains($val, 'telepon') || str_contains($val, 'telp') || str_contains($val, 'phone')) {
                         $colMap['phone'] = $cKey;
                     } elseif (str_contains($val, 'kategori') || str_contains($val, 'category')) {
                         $colMap['category'] = $cKey;
-                    } elseif (str_contains($val, 'instansi') || str_contains($val, 'lembaga') || str_contains($val, 'perusahaan') || str_contains($val, 'institution')) {
+                    } elseif (str_contains($val, 'instansi') || str_contains($val, 'lembaga') || str_contains($val, 'perusahaan') || str_contains($val, 'institution') || str_contains($val, 'institusi')) {
                         $colMap['institution'] = $cKey;
-                    } elseif (str_contains($val, 'jabatan') || str_contains($val, 'pekerjaan') || str_contains($val, 'position') || str_contains($val, 'profesi')) {
+                    } elseif (str_contains($val, 'pekerjaan') || str_contains($val, 'occupation')) {
+                        $colMap['occupation'] = $cKey;
+                    } elseif (str_contains($val, 'jabatan') || str_contains($val, 'position') || str_contains($val, 'profesi')) {
                         $colMap['position'] = $cKey;
+                    } elseif (str_contains($val, 'provinsi') || str_contains($val, 'province')) {
+                        $colMap['province'] = $cKey;
                     } elseif (str_contains($val, 'kota') || str_contains($val, 'kab') || str_contains($val, 'city')) {
                         $colMap['city'] = $cKey;
                     } elseif (str_contains($val, 'alamat') || str_contains($val, 'address')) {
                         $colMap['address'] = $cKey;
                     } elseif (str_contains($val, 'keperluan') || str_contains($val, 'agenda') || str_contains($val, 'tujuan') || str_contains($val, 'purpose')) {
                         $colMap['purpose'] = $cKey;
+                    } elseif (str_contains($val, 'kegiatan') || str_contains($val, 'layanan') || str_contains($val, 'aktivitas')) {
+                        $colMap['kegiatan'] = $cKey;
                     } elseif (str_contains($val, 'penerima') || str_contains($val, 'host') || str_contains($val, 'pejabat')) {
                         $colMap['host_recipient'] = $cKey;
                     } elseif (str_contains($val, 'diagnosa') || str_contains($val, 'diagnosis')) {
@@ -893,6 +901,15 @@ class GuestBookController extends Controller
                 if ($rIdx <= $headerRowIdx) continue;
 
                 $name = trim((string)($row[$colMap['name']] ?? ''));
+                if (empty($name) && isset($colMap['parent_name'])) {
+                    $name = trim((string)($row[$colMap['parent_name']] ?? ''));
+                }
+                if (empty($name) && isset($colMap['student_name'])) {
+                    $sName = trim((string)($row[$colMap['student_name']] ?? ''));
+                    if (!empty($sName)) {
+                        $name = 'Orang Tua (' . $sName . ')';
+                    }
+                }
                 if (empty($name)) {
                     continue; // Skip empty row
                 }
@@ -944,6 +961,8 @@ class GuestBookController extends Controller
 
                 $institution = trim((string)($row[$colMap['institution'] ?? ''] ?? '')) ?: null;
                 $position = trim((string)($row[$colMap['position'] ?? ''] ?? '')) ?: null;
+                $occupation = trim((string)($row[$colMap['occupation'] ?? ''] ?? '')) ?: null;
+                $province = trim((string)($row[$colMap['province'] ?? ''] ?? '')) ?: null;
                 $city = trim((string)($row[$colMap['city'] ?? ''] ?? '')) ?: null;
                 $address = trim((string)($row[$colMap['address'] ?? ''] ?? '')) ?: null;
                 $host = trim((string)($row[$colMap['host_recipient'] ?? ''] ?? '')) ?: null;
@@ -970,6 +989,9 @@ class GuestBookController extends Controller
                 $therapyDiagnosis = trim((string)($row[$colMap['therapy_diagnosis'] ?? ''] ?? '')) ?: null;
 
                 $purpose = trim((string)($row[$colMap['purpose'] ?? ''] ?? ''));
+                if (empty($purpose) && isset($colMap['kegiatan'])) {
+                    $purpose = trim((string)($row[$colMap['kegiatan']] ?? ''));
+                }
                 if (empty($purpose)) {
                     if ($category === 'SPMB') {
                         $purpose = 'Konsultasi SPMB / Calon Murid' . ($studentName ? " ({$studentName})" : '');
@@ -982,6 +1004,19 @@ class GuestBookController extends Controller
                     }
                 }
 
+                // Skip exact duplicate entry
+                $isDuplicate = GuestBook::where('date', $parsedDate)
+                    ->where('name', $name)
+                    ->where(function ($q) use ($phone, $purpose) {
+                        $q->where('phone', $phone)
+                          ->orWhere('purpose', $purpose);
+                    })
+                    ->exists();
+
+                if ($isDuplicate) {
+                    continue;
+                }
+
                 GuestBook::create([
                     'date' => $parsedDate,
                     'time' => $parsedTime,
@@ -990,7 +1025,9 @@ class GuestBookController extends Controller
                     'category' => $category,
                     'institution' => $institution,
                     'position' => $position,
+                    'occupation' => $occupation,
                     'city' => $city,
+                    'province' => $province,
                     'address' => $address,
                     'purpose' => $purpose,
                     'host_recipient' => $host,

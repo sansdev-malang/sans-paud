@@ -893,6 +893,7 @@
         <!-- ========================================================================= -->
         <!-- MODAL FORM: TAMBAH / EDIT TAMU                                            -->
         <!-- ========================================================================= -->
+        <template x-teleport="body">
         <div x-show="modalOpen" x-cloak
             style="margin: 0px !important; margin-top: 0px !important; top: 0px !important; left: 0px !important; right: 0px !important; bottom: 0px !important; z-index: 99999 !important; background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);"
             class="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4">
@@ -1328,10 +1329,12 @@
                 </form>
             </div>
         </div>
+        </template>
 
         <!-- ========================================================================= -->
         <!-- MODAL DETAIL: LIHAT RINCIAN DETAIL INFORMASI TAMU                          -->
         <!-- ========================================================================= -->
+        <template x-teleport="body">
         <div x-show="viewModalOpen" x-cloak
             style="margin: 0px !important; margin-top: 0px !important; top: 0px !important; left: 0px !important; right: 0px !important; bottom: 0px !important; z-index: 99999 !important; background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);"
             class="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4">
@@ -1581,12 +1584,15 @@
                 </div>
             </div>
         </div>
+        </template>
 
         <!-- ========================================================================= -->
         <!-- MODAL IMPORT EXCEL BUKU TAMU                                              -->
         <!-- ========================================================================= -->
+        <template x-teleport="body">
         <div x-show="isImportModalOpen" x-cloak
-            class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-xs"
+            style="margin: 0px !important; margin-top: 0px !important; top: 0px !important; left: 0px !important; right: 0px !important; bottom: 0px !important; z-index: 99999 !important; background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);"
+            class="fixed inset-0 z-[99999] overflow-y-auto flex items-center justify-center p-3 sm:p-4"
             x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0"
             x-transition:enter-end="opacity-100"
@@ -1695,6 +1701,7 @@
                 </form>
             </div>
         </div>
+        </template>
 
     </div>
 
