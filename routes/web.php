@@ -119,6 +119,8 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,adm
     // Jurnal Kelas (Classroom Journals)
     Route::get('classroom-journals', [\App\Http\Controllers\ClassroomJournalController::class, 'index'])->name('classroom-journals.index');
     Route::post('classroom-journals', [\App\Http\Controllers\ClassroomJournalController::class, 'store'])->name('classroom-journals.store');
+    Route::get('classroom-journals/template', [\App\Http\Controllers\ClassroomJournalController::class, 'downloadTemplate'])->name('classroom-journals.template');
+    Route::post('classroom-journals/import', [\App\Http\Controllers\ClassroomJournalController::class, 'importExcel'])->name('classroom-journals.import');
     Route::put('classroom-journals/{id}', [\App\Http\Controllers\ClassroomJournalController::class, 'update'])->name('classroom-journals.update');
     Route::delete('classroom-journals/{id}', [\App\Http\Controllers\ClassroomJournalController::class, 'destroy'])->name('classroom-journals.destroy');
     Route::get('classroom-journals/export/excel', [\App\Http\Controllers\ClassroomJournalController::class, 'exportExcel'])->name('classroom-journals.export.excel');

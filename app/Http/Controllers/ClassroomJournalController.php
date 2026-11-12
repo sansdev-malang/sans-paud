@@ -16,6 +16,9 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 class ClassroomJournalController extends Controller
 {
@@ -273,6 +276,373 @@ class ClassroomJournalController extends Controller
             'academic_year_id' => $academicYearId,
             'month' => $month,
         ])->with('success', 'Entri jurnal kelas berhasil dihapus.');
+    }
+
+    /**
+     * Download Excel template for importing Classroom Journals.
+     */
+    public function downloadTemplate(Request $request)
+    {
+        $classroomId = $request->get('classroom_id');
+        $classroom = $classroomId ? Classroom::find($classroomId) : null;
+        $className = $classroom ? $classroom->name : 'Semua Rombel';
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Template Jurnal');
+        $sheet->setShowGridLines(true);
+
+        // Header Titles
+        $sheet->setCellValue('A1', 'TEMPLATE IMPORT JURNAL KELAS');
+        $sheet->setCellValue('A2', 'PAUD TERPADU ANAK SALEH MALANG');
+        $sheet->setCellValue('A3', 'Target Rombel: ' . $className . ' | Petunjuk: Kolom Rombel, Tanggal, Jam Mulai, Jam Selesai, dan Uraian wajib diisi. Topik opsional. Gunakan format tanggal YYYY-MM-DD.');
+
+        // Merge Title
+        $sheet->mergeCells('A1:G1');
+        $sheet->mergeCells('A2:G2');
+        $sheet->mergeCells('A3:G3');
+
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(13)->setName('Arial')->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FF1E3A8A'));
+        $sheet->getStyle('A2')->getFont()->setBold(true)->setSize(11)->setName('Arial')->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FF334155'));
+        $sheet->getStyle('A3')->getFont()->setItalic(true)->setSize(9)->setName('Arial')->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FF64748B'));
+
+        // Table Header
+        $headers = [
+            'A5' => 'No',
+            'B5' => 'Rombel / Kelas',
+            'C5' => 'Tanggal (YYYY-MM-DD)',
+            'D5' => 'Jam Mulai (HH:MM)',
+            'E5' => 'Jam Selesai (HH:MM)',
+            'F5' => 'Topik / Tema Pembelajaran',
+            'G5' => 'Uraian Kegiatan & Kondisi Kelas'
+        ];
+
+        foreach ($headers as $cell => $text) {
+            $sheet->setCellValue($cell, $text);
+        }
+
+        $headerStyle = [
+            'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF'], 'size' => 10, 'name' => 'Arial'],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF0284C7']], // Sky-600
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['argb' => 'FF94A3B8']]]
+        ];
+        $sheet->getStyle('A5:G5')->applyFromArray($headerStyle);
+        $sheet->getRowDimension(5)->setRowHeight(28);
+
+        // Sample Data Rows
+        $sampleClass = $classroom ? $classroom->name : 'KB B1';
+        $sampleData = [
+            [1, $sampleClass, '2026-07-27', '07:30', '10:30', 'Pengenalan Motorik Halus', "Hari ini {$sampleClass} melaksanakan KBM sesuai rencana: latihan memegang krayon dengan benar, dilanjutkan bermain balok lego."],
+            [2, $sampleClass, '2026-07-28', '07:30', '10:45', 'Karakter & Bermain Peran', "Bermain meronce sedotan, membaca ikrar, panca karakter, jurnal pagi menggambar bebas sesuai ide masing-masing anak."],
+            [3, $sampleClass, '2026-07-29', '07:30', '10:45', 'Sensori Motor', "Bermain playdough: menguatkan otot jari dengan teknik meremas, mencubit, dan memilin."],
+        ];
+
+        $rowIdx = 6;
+        foreach ($sampleData as $row) {
+            $sheet->setCellValue('A' . $rowIdx, $row[0]);
+            $sheet->setCellValue('B' . $rowIdx, $row[1]);
+            $sheet->setCellValueExplicit('C' . $rowIdx, $row[2], DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit('D' . $rowIdx, $row[3], DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit('E' . $rowIdx, $row[4], DataType::TYPE_STRING);
+            $sheet->setCellValue('F' . $rowIdx, $row[5]);
+            $sheet->setCellValue('G' . $rowIdx, $row[6]);
+
+            $sheet->getStyle('A' . $rowIdx . ':G' . $rowIdx)->applyFromArray([
+                'font' => ['size' => 9.5, 'name' => 'Arial'],
+                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['argb' => 'FFE2E8F0']]],
+                'alignment' => ['vertical' => Alignment::VERTICAL_TOP]
+            ]);
+
+            $sheet->getStyle('A' . $rowIdx)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('B' . $rowIdx)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('C' . $rowIdx)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('D' . $rowIdx)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('E' . $rowIdx)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('G' . $rowIdx)->getAlignment()->setWrapText(true);
+
+            $sheet->getRowDimension($rowIdx)->setRowHeight(45);
+            $rowIdx++;
+        }
+
+        // Set column widths
+        $sheet->getColumnDimension('A')->setWidth(6);
+        $sheet->getColumnDimension('B')->setWidth(16);
+        $sheet->getColumnDimension('C')->setWidth(18);
+        $sheet->getColumnDimension('D')->setWidth(14);
+        $sheet->getColumnDimension('E')->setWidth(14);
+        $sheet->getColumnDimension('F')->setWidth(26);
+        $sheet->getColumnDimension('G')->setWidth(65);
+
+        $filename = 'Template_Import_Jurnal_Kelas_' . preg_replace('/[^A-Za-z0-9_-]/', '_', $className) . '.xlsx';
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'max-age=0, no-cache, must-revalidate',
+            'Pragma' => 'public',
+        ]);
+    }
+
+    /**
+     * Import Classroom Journals from uploaded Excel file.
+     */
+    public function importExcel(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:15360',
+            'default_classroom_id' => 'nullable|exists:classrooms,id',
+            'academic_year_id' => 'nullable|exists:academic_years,id',
+        ], [
+            'file.required' => 'Silakan pilih berkas Excel (.xlsx / .xls) untuk diimpor.',
+            'file.mimes' => 'Format berkas harus berupa Excel (.xlsx atau .xls).',
+            'file.max' => 'Ukuran berkas tidak boleh lebih dari 15 MB.',
+        ]);
+
+        try {
+            $uploadedFile = $request->file('file');
+            $spreadsheet = IOFactory::load($uploadedFile->getRealPath());
+            $sheet = $spreadsheet->getActiveSheet();
+            $highestRow = $sheet->getHighestRow();
+            $highestCol = $sheet->getHighestColumn();
+
+            if ($highestRow < 2) {
+                return back()->withErrors(['file' => 'Berkas Excel kosong atau tidak memiliki baris data.']);
+            }
+
+            // Cache classrooms and academic years
+            $classrooms = Classroom::with(['homeroomTeacher'])->get();
+            $academicYears = AcademicYear::all();
+            $activeAcademicYear = $academicYears->firstWhere('is_active', true) ?? $academicYears->first();
+            $defaultClassroom = $request->default_classroom_id ? $classrooms->firstWhere('id', $request->default_classroom_id) : null;
+
+            // Step 1: Detect Header Row and Column Mapping
+            $headerRowIndex = 1;
+            $colMap = [
+                'kelas' => null,
+                'tanggal' => null,
+                'jam_mulai' => null,
+                'jam_selesai' => null,
+                'topik' => null,
+                'uraian' => null,
+            ];
+
+            // Scan rows 1 through 10 to find header
+            for ($r = 1; $r <= min(10, $highestRow); $r++) {
+                $rowLetters = range('A', $highestCol);
+                $rowMap = [
+                    'kelas' => null,
+                    'tanggal' => null,
+                    'jam_mulai' => null,
+                    'jam_selesai' => null,
+                    'topik' => null,
+                    'uraian' => null,
+                ];
+
+                foreach ($rowLetters as $col) {
+                    $val = strtolower(trim((string)$sheet->getCell($col . $r)->getValue()));
+                    if (strlen($val) > 40) continue;
+
+                    if (str_contains($val, 'uraian') || (str_contains($val, 'kegiatan') && !str_contains($val, 'agenda')) || str_contains($val, 'kondisi') || $val === 'class_condition') {
+                        $rowMap['uraian'] = $col;
+                    } elseif (str_contains($val, 'kelas') || str_contains($val, 'rombel')) {
+                        $rowMap['kelas'] = $col;
+                    } elseif (str_contains($val, 'tanggal') || str_contains($val, 'tgl') || $val === 'date') {
+                        $rowMap['tanggal'] = $col;
+                    } elseif (str_contains($val, 'jam_mulai') || (str_contains($val, 'mulai') && !str_contains($val, 'selesai')) || $val === 'start_time') {
+                        $rowMap['jam_mulai'] = $col;
+                    } elseif (str_contains($val, 'jam_selesai') || str_contains($val, 'selesai') || $val === 'end_time') {
+                        $rowMap['jam_selesai'] = $col;
+                    } elseif (str_contains($val, 'topik') || str_contains($val, 'tema') || $val === 'topic') {
+                        $rowMap['topik'] = $col;
+                    }
+                }
+
+                if ($rowMap['tanggal'] !== null && ($rowMap['uraian'] !== null || $rowMap['kelas'] !== null)) {
+                    $colMap = $rowMap;
+                    $headerRowIndex = $r;
+                    break;
+                }
+            }
+
+            // Fallback column map if headers weren't found cleanly
+            if ($colMap['tanggal'] === null && $colMap['uraian'] === null) {
+                if ($highestCol >= 'G') {
+                    $colMap = [
+                        'kelas' => 'B',
+                        'tanggal' => 'C',
+                        'jam_mulai' => 'D',
+                        'jam_selesai' => 'E',
+                        'topik' => 'F',
+                        'uraian' => 'G',
+                    ];
+                } else {
+                    $colMap = [
+                        'kelas' => 'A',
+                        'tanggal' => 'B',
+                        'jam_mulai' => 'C',
+                        'jam_selesai' => 'D',
+                        'topik' => null,
+                        'uraian' => 'E',
+                    ];
+                }
+                $headerRowIndex = 1;
+            }
+
+            // Helpers for parsing time & date
+            $parseTime = function($cell) {
+                if (!$cell) return null;
+                $val = $cell->getValue();
+                if (is_numeric($val) && $val >= 0 && $val < 1) {
+                    return ExcelDate::excelToDateTimeObject($val)->format('H:i');
+                }
+                $fmt = trim((string)$cell->getFormattedValue());
+                if (preg_match('/^(\d{1,2}):(\d{2})/', $fmt, $m)) {
+                    return sprintf('%02d:%02d', (int)$m[1], (int)$m[2]);
+                }
+                return null;
+            };
+
+            $parseDate = function($cell) {
+                if (!$cell) return null;
+                $val = $cell->getValue();
+                if (is_numeric($val) && $val > 1000) {
+                    return ExcelDate::excelToDateTimeObject((float)$val)->format('Y-m-d');
+                }
+                $fmt = trim((string)$cell->getFormattedValue());
+                if ($fmt !== '') {
+                    try {
+                        return Carbon::parse($fmt)->format('Y-m-d');
+                    } catch (\Exception $e) {
+                        if (preg_match('/^(\d{4})-(\d{1,2})-(\d{1,2})/', $fmt, $m)) {
+                            return sprintf('%04d-%02d-%02d', $m[1], $m[2], $m[3]);
+                        }
+                    }
+                }
+                return null;
+            };
+
+            $successCount = 0;
+            $updatedCount = 0;
+            $skippedCount = 0;
+            $errors = [];
+            $targetClassroomIds = [];
+
+            $startDataRow = $headerRowIndex + 1;
+
+            for ($r = $startDataRow; $r <= $highestRow; $r++) {
+                $rawKelas = $colMap['kelas'] ? trim((string)$sheet->getCell($colMap['kelas'] . $r)->getFormattedValue()) : '';
+                $rawTanggal = $colMap['tanggal'] ? $sheet->getCell($colMap['tanggal'] . $r) : null;
+                $rawJamMulai = $colMap['jam_mulai'] ? $sheet->getCell($colMap['jam_mulai'] . $r) : null;
+                $rawJamSelesai = $colMap['jam_selesai'] ? $sheet->getCell($colMap['jam_selesai'] . $r) : null;
+                $rawTopik = $colMap['topik'] ? trim((string)$sheet->getCell($colMap['topik'] . $r)->getFormattedValue()) : null;
+                $rawUraian = $colMap['uraian'] ? trim((string)$sheet->getCell($colMap['uraian'] . $r)->getFormattedValue()) : '';
+
+                // Skip if entire row or vital fields are empty
+                if ($rawKelas === '' && (!$rawTanggal || trim((string)$rawTanggal->getValue()) === '') && $rawUraian === '') {
+                    continue;
+                }
+
+                if ($rawUraian === '') {
+                    $skippedCount++;
+                    continue;
+                }
+
+                // Match Classroom
+                $targetClass = null;
+                if ($rawKelas !== '') {
+                    $normalizedKelas = preg_replace('/\s+/', ' ', strtolower($rawKelas));
+                    $targetClass = $classrooms->first(function ($c) use ($rawKelas, $normalizedKelas) {
+                        $normName = preg_replace('/\s+/', ' ', strtolower($c->name));
+                        return $normName === $normalizedKelas || str_contains($normName, $normalizedKelas);
+                    });
+                }
+                if (!$targetClass) {
+                    $targetClass = $defaultClassroom;
+                }
+
+                if (!$targetClass) {
+                    $errors[] = "Baris {$r}: Rombel/Kelas '{$rawKelas}' tidak ditemukan dalam sistem.";
+                    $skippedCount++;
+                    continue;
+                }
+
+                $targetClassroomIds[$targetClass->id] = true;
+
+                // Parse Date
+                $dateFormatted = $parseDate($rawTanggal);
+                if (!$dateFormatted) {
+                    $errors[] = "Baris {$r}: Format tanggal tidak valid.";
+                    $skippedCount++;
+                    continue;
+                }
+
+                // Parse Start & End Time
+                $startTime = $parseTime($rawJamMulai);
+                $endTime = $parseTime($rawJamSelesai);
+
+                // Academic Year
+                $academicYearId = $request->academic_year_id ?: ($targetClass->academic_year_id ?: $activeAcademicYear?->id);
+
+                // Teacher: homeroom teacher or auth user employee_id
+                $teacherId = $targetClass->homeroom_teacher_id ?: (auth()->user()?->employee_id ?? null);
+
+                // Check existing entry to avoid duplication
+                $existing = ClassroomJournal::where('classroom_id', $targetClass->id)
+                    ->where('date', $dateFormatted)
+                    ->where(function($q) use ($startTime, $rawUraian) {
+                        if ($startTime) {
+                            $q->where('start_time', 'like', substr($startTime, 0, 5) . '%');
+                        } else {
+                            $q->where('class_condition', $rawUraian);
+                        }
+                    })
+                    ->first();
+
+                if ($existing) {
+                    $existing->update([
+                        'academic_year_id' => $academicYearId,
+                        'teacher_id' => $teacherId ?: $existing->teacher_id,
+                        'start_time' => $startTime ?: $existing->start_time,
+                        'end_time' => $endTime ?: $existing->end_time,
+                        'topic' => $rawTopik ?: $existing->topic,
+                        'class_condition' => $rawUraian,
+                    ]);
+                    $updatedCount++;
+                } else {
+                    ClassroomJournal::create([
+                        'classroom_id' => $targetClass->id,
+                        'academic_year_id' => $academicYearId,
+                        'teacher_id' => $teacherId,
+                        'date' => $dateFormatted,
+                        'start_time' => $startTime,
+                        'end_time' => $endTime,
+                        'topic' => $rawTopik ?: null,
+                        'class_condition' => $rawUraian,
+                        'recorded_by' => auth()->id(),
+                    ]);
+                    $successCount++;
+                }
+            }
+
+            $totalProcessed = $successCount + $updatedCount;
+            $msg = "Proses import selesai: {$totalProcessed} entri jurnal kelas berhasil diproses ({$successCount} baru, {$updatedCount} diperbarui).";
+            if ($skippedCount > 0) {
+                $msg .= " Sebanyak {$skippedCount} baris dilewati karena format tidak lengkap.";
+            }
+
+            $redirectClassroomId = $defaultClassroom?->id ?? (count($targetClassroomIds) === 1 ? array_key_first($targetClassroomIds) : $request->get('classroom_id'));
+
+            return redirect()->route('classroom-journals.index', array_filter([
+                'classroom_id' => $redirectClassroomId,
+                'academic_year_id' => $request->academic_year_id,
+            ]))->with('success', $msg);
+
+        } catch (\Exception $e) {
+            return back()->withErrors(['file' => 'Gagal membaca berkas Excel: ' . $e->getMessage()]);
+        }
     }
 
     /**

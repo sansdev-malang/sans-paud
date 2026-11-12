@@ -25,6 +25,13 @@
                     </span>
                 </div>
 
+                <!-- Import Excel Button -->
+                <button type="button" @click="openImportModal()"
+                    class="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer">
+                    <i data-lucide="file-up" class="w-3.5 h-3.5"></i>
+                    <span>Import Excel</span>
+                </button>
+
                 <!-- Tambah Jurnal Button -->
                 <button type="button" @click="openCreateModal()"
                     class="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer">
@@ -126,6 +133,14 @@
                         class="inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer shadow-2xs">
                         <i data-lucide="filter" class="w-3.5 h-3.5"></i>
                         <span>Filter</span>
+                    </button>
+
+                    <!-- Import Excel -->
+                    <button type="button" @click="openImportModal()"
+                        class="inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer"
+                        title="Import rekap data agenda kegiatan jurnal kelas dari berkas Excel">
+                        <i data-lucide="file-up" class="w-3.5 h-3.5"></i>
+                        <span>Import Excel</span>
                     </button>
 
                     <!-- Ekspor Excel dengan Sinkronisasi Token Otomatis -->
@@ -451,141 +466,300 @@
         <!-- ========================================================================= -->
         <!-- MODAL FORM: TAMBAH & EDIT JURNAL KELAS                                   -->
         <!-- ========================================================================= -->
-        <div x-show="modalOpen" x-cloak
-            class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-            
-            <div @click.outside="modalOpen = false"
-                class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-xl w-full p-4 sm:p-5 text-left space-y-3.5">
+        <template x-teleport="body">
+            <div x-show="modalOpen" x-cloak
+                @keydown.window.escape="modalOpen = false"
+                style="z-index: 99999;"
+                class="fixed inset-0 overflow-y-auto flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-sm"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0">
                 
-                <!-- Modal Header -->
-                <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-slate-800">
-                    <div class="flex items-center gap-2">
-                        <span class="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
-                            <i data-lucide="notebook-pen" class="w-4 h-4"></i>
-                        </span>
-                        <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100"
-                            x-text="isEdit ? 'Edit Jurnal Kelas' : 'Tulis Jurnal Kelas Baru'">
-                        </h3>
+                <div @click.outside="modalOpen = false"
+                    x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0 scale-95"
+                    x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-150"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-95"
+                    class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-xl w-full p-4 sm:p-5 text-left space-y-3.5">
+                    
+                    <!-- Modal Header -->
+                    <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center gap-2">
+                            <span class="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
+                                <i data-lucide="notebook-pen" class="w-4 h-4"></i>
+                            </span>
+                            <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100"
+                                x-text="isEdit ? 'Edit Jurnal Kelas' : 'Tulis Jurnal Kelas Baru'">
+                            </h3>
+                        </div>
+                        <button type="button" @click="modalOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
                     </div>
-                    <button type="button" @click="modalOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
-                        <i data-lucide="x" class="w-5 h-5"></i>
-                    </button>
+
+                    <!-- Modal Form -->
+                    <form :action="formAction" method="POST" enctype="multipart/form-data" class="space-y-3">
+                        @csrf
+                        <template x-if="isEdit">
+                            <input type="hidden" name="_method" value="PUT">
+                        </template>
+                        <input type="hidden" name="academic_year_id" :value="formData.academic_year_id">
+
+                        <!-- Classroom Selection (Tanpa Kata Sub-Unit) -->
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
+                                Rombel / Kelas <span class="text-rose-500">*</span>
+                            </label>
+                            <select name="classroom_id" x-model="formData.classroom_id" required
+                                class="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer">
+                                @foreach($groupedClasses as $unit => $classes)
+                                    <optgroup label="{{ $unit }}">
+                                        @foreach($classes as $c)
+                                            <option value="{{ $c->id }}">{{ $c->name }}</option>
+                                        @endforeach
+                                    </optgroup>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Date & Time Row -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                            <!-- Tanggal -->
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
+                                    Tanggal <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="date" name="date" x-model="formData.date" required
+                                    class="w-full px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer">
+                            </div>
+
+                            <!-- Jam Mulai -->
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
+                                    Jam Mulai
+                                </label>
+                                <input type="time" name="start_time" x-model="formData.start_time"
+                                    class="w-full px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer">
+                            </div>
+
+                            <!-- Jam Selesai -->
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
+                                    Jam Selesai
+                                </label>
+                                <input type="time" name="end_time" x-model="formData.end_time"
+                                    class="w-full px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer">
+                            </div>
+                        </div>
+
+                        <!-- Guru Pengajar -->
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
+                                Guru / Pendidik Yang Mengajar
+                            </label>
+                            <select name="teacher_id" x-model="formData.teacher_id"
+                                class="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer">
+                                <option value="">- Default (Wali Kelas) -</option>
+                                @foreach($teachers as $t)
+                                    <option value="{{ $t->id }}">{{ $t->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Topik / Tema Pembelajaran -->
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
+                                Topik / Tema Pembelajaran <span class="text-slate-400 font-normal">(Opsional)</span>
+                            </label>
+                            <input type="text" name="topic" x-model="formData.topic"
+                                placeholder="Contoh: Tanaman Ciptaan Allah - Sentra Bahan Alam"
+                                class="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+
+                        <!-- Uraian / Kondisi Kelas -->
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
+                                Uraian Kegiatan & Kondisi Kelas <span class="text-rose-500">*</span>
+                            </label>
+                            <textarea name="class_condition" x-model="formData.class_condition" rows="4" required
+                                placeholder="Tuliskan jalannya kegiatan bermain, dinamika anak, hafalan, kejadian khusus, atau pembiasaan makan bersama..."
+                                class="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 leading-relaxed"></textarea>
+                        </div>
+
+                        <!-- Dokumentasi Foto (Opsional) -->
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
+                                Foto Dokumentasi Kegiatan <span class="text-slate-400 font-normal">(Opsional)</span>
+                            </label>
+                            <input type="file" name="attachment_photo" accept="image/*"
+                                class="w-full text-xs text-slate-500 dark:text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+                        </div>
+
+                        <!-- Modal Actions -->
+                        <div class="flex items-center justify-end gap-2 pt-2.5 border-t border-slate-100 dark:border-slate-800">
+                            <button type="button" @click="modalOpen = false"
+                                class="px-3.5 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
+                                Batal
+                            </button>
+                            <button type="submit"
+                                class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all cursor-pointer">
+                                <i data-lucide="save" class="w-3.5 h-3.5"></i>
+                                <span x-text="isEdit ? 'Perbarui Jurnal' : 'Simpan Jurnal'"></span>
+                            </button>
+                        </div>
+                    </form>
+
                 </div>
-
-                <!-- Modal Form -->
-                <form :action="formAction" method="POST" enctype="multipart/form-data" class="space-y-3">
-                    @csrf
-                    <template x-if="isEdit">
-                        <input type="hidden" name="_method" value="PUT">
-                    </template>
-                    <input type="hidden" name="academic_year_id" :value="formData.academic_year_id">
-
-                    <!-- Classroom Selection (Tanpa Kata Sub-Unit) -->
-                    <div>
-                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                            Rombel / Kelas <span class="text-rose-500">*</span>
-                        </label>
-                        <select name="classroom_id" x-model="formData.classroom_id" required
-                            class="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer">
-                            @foreach($groupedClasses as $unit => $classes)
-                                <optgroup label="{{ $unit }}">
-                                    @foreach($classes as $c)
-                                        <option value="{{ $c->id }}">{{ $c->name }}</option>
-                                    @endforeach
-                                </optgroup>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <!-- Date & Time Row -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                        <!-- Tanggal -->
-                        <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                                Tanggal <span class="text-rose-500">*</span>
-                            </label>
-                            <input type="date" name="date" x-model="formData.date" required
-                                class="w-full px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer">
-                        </div>
-
-                        <!-- Jam Mulai -->
-                        <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                                Jam Mulai
-                            </label>
-                            <input type="time" name="start_time" x-model="formData.start_time"
-                                class="w-full px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer">
-                        </div>
-
-                        <!-- Jam Selesai -->
-                        <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                                Jam Selesai
-                            </label>
-                            <input type="time" name="end_time" x-model="formData.end_time"
-                                class="w-full px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer">
-                        </div>
-                    </div>
-
-                    <!-- Guru Pengajar -->
-                    <div>
-                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                            Guru / Pendidik Yang Mengajar
-                        </label>
-                        <select name="teacher_id" x-model="formData.teacher_id"
-                            class="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer">
-                            <option value="">- Default (Wali Kelas) -</option>
-                            @foreach($teachers as $t)
-                                <option value="{{ $t->id }}">{{ $t->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <!-- Topik / Tema Pembelajaran -->
-                    <div>
-                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                            Topik / Tema Pembelajaran <span class="text-slate-400 font-normal">(Opsional)</span>
-                        </label>
-                        <input type="text" name="topic" x-model="formData.topic"
-                            placeholder="Contoh: Tanaman Ciptaan Allah - Sentra Bahan Alam"
-                            class="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-
-                    <!-- Uraian / Kondisi Kelas -->
-                    <div>
-                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                            Uraian Kegiatan & Kondisi Kelas <span class="text-rose-500">*</span>
-                        </label>
-                        <textarea name="class_condition" x-model="formData.class_condition" rows="4" required
-                            placeholder="Tuliskan jalannya kegiatan bermain, dinamika anak, hafalan, kejadian khusus, atau pembiasaan makan bersama..."
-                            class="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 leading-relaxed"></textarea>
-                    </div>
-
-                    <!-- Dokumentasi Foto (Opsional) -->
-                    <div>
-                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                            Foto Dokumentasi Kegiatan <span class="text-slate-400 font-normal">(Opsional)</span>
-                        </label>
-                        <input type="file" name="attachment_photo" accept="image/*"
-                            class="w-full text-xs text-slate-500 dark:text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
-                    </div>
-
-                    <!-- Modal Actions -->
-                    <div class="flex items-center justify-end gap-2 pt-2.5 border-t border-slate-100 dark:border-slate-800">
-                        <button type="button" @click="modalOpen = false"
-                            class="px-3.5 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
-                            Batal
-                        </button>
-                        <button type="submit"
-                            class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all cursor-pointer">
-                            <i data-lucide="save" class="w-3.5 h-3.5"></i>
-                            <span x-text="isEdit ? 'Perbarui Jurnal' : 'Simpan Jurnal'"></span>
-                        </button>
-                    </div>
-                </form>
-
             </div>
-        </div>
+        </template>
+
+        <!-- ========================================================================= -->
+        <!-- MODAL IMPORT EXCEL JURNAL KELAS                                          -->
+        <!-- ========================================================================= -->
+        <template x-teleport="body">
+            <div x-show="isImportModalOpen" x-cloak
+                @keydown.window.escape="if (!isImporting) isImportModalOpen = false"
+                style="z-index: 99999;"
+                class="fixed inset-0 overflow-y-auto flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-sm"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0">
+
+                <div @click.outside="if (!isImporting) isImportModalOpen = false"
+                    x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0 scale-95"
+                    x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-150"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-95"
+                    class="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden text-left">
+
+                    <!-- Modal Header -->
+                    <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/40">
+                        <div class="flex items-center gap-3">
+                            <span class="p-2 rounded-xl bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400">
+                                <i data-lucide="file-up" class="w-5 h-5"></i>
+                            </span>
+                            <div>
+                                <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">
+                                    Import Jurnal Kelas (Excel)
+                                </h3>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                                    Unggah berkas rekap agenda harian untuk rombel kelas Anda.
+                                </p>
+                            </div>
+                        </div>
+                        <button type="button" @click="isImportModalOpen = false" :disabled="isImporting"
+                            class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-40">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Form -->
+                    <form action="{{ route('classroom-journals.import') }}" method="POST" enctype="multipart/form-data" @submit="isImporting = true" class="p-5 space-y-4">
+                        @csrf
+                        <input type="hidden" name="academic_year_id" value="{{ $selectedAcademicYearId }}">
+
+                        <!-- Template Download Card -->
+                        <div class="p-3.5 rounded-xl bg-sky-50/60 dark:bg-sky-950/30 border border-sky-200/80 dark:border-sky-800/60 space-y-2">
+                            <div class="flex items-start gap-2.5">
+                                <i data-lucide="info" class="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0 mt-0.5"></i>
+                                <div class="text-[11.5px] text-sky-900 dark:text-sky-200 leading-relaxed">
+                                    Format file mendukung berkas output dari sistem maupun template standar. Pastikan kolom memuat <strong>kelas, tanggal, jam mulai, jam selesai,</strong> dan <strong>uraian</strong> kegiatan.
+                                </div>
+                            </div>
+                            <div class="pt-1 flex items-center justify-between">
+                                <span class="text-[11px] font-semibold text-sky-700 dark:text-sky-300">Belum punya formatnya?</span>
+                                <a href="{{ route('classroom-journals.template', ['classroom_id' => $selectedClassroomId]) }}"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-bold transition-all shadow-2xs cursor-pointer">
+                                    <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                    <span>Unduh Template Excel</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Classroom Target / Default -->
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+                                Rombel / Kelas Default <span class="text-slate-400 font-normal">(Digunakan jika kolom kelas pada file kosong)</span>
+                            </label>
+                            <select name="default_classroom_id"
+                                class="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 cursor-pointer">
+                                @foreach($groupedClasses as $unit => $classes)
+                                    <optgroup label="{{ $unit }}">
+                                        @foreach($classes as $c)
+                                            <option value="{{ $c->id }}" {{ $selectedClassroomId == $c->id ? 'selected' : '' }}>
+                                                {{ $c->name }} ({{ $c->active_students_count }} Murid)
+                                            </option>
+                                        @endforeach
+                                    </optgroup>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- File Input Drag-and-drop style -->
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+                                Pilih Berkas Excel (.xlsx / .xls) <span class="text-rose-500">*</span>
+                            </label>
+                            <div class="relative border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-sky-400 dark:hover:border-sky-500 rounded-xl p-4 text-center transition-colors">
+                                <input type="file" name="file" accept=".xlsx,.xls,.csv" required
+                                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                    @change="selectedFileName = $event.target.files[0]?.name || ''">
+                                <div class="space-y-1">
+                                    <i data-lucide="cloud-upload" class="w-7 h-7 mx-auto text-sky-500 dark:text-sky-400"></i>
+                                    <div class="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                        <span class="text-sky-600 dark:text-sky-400 font-bold">Klik untuk memilih</span> atau seret berkas ke sini
+                                    </div>
+                                    <p class="text-[11px] text-slate-400">Maksimum ukuran 15 MB</p>
+                                </div>
+                            </div>
+                            <template x-if="selectedFileName">
+                                <div class="mt-2 flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-800 dark:text-slate-200">
+                                    <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600 shrink-0"></i>
+                                    <span class="truncate" x-text="selectedFileName"></span>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Modal Actions -->
+                        <div class="pt-3 flex items-center justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
+                            <button type="button" @click="isImportModalOpen = false" :disabled="isImporting"
+                                class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-40">
+                                Batal
+                            </button>
+                            <button type="submit" :disabled="isImporting"
+                                :class="isImporting ? 'opacity-80 cursor-wait pointer-events-none' : 'hover:bg-sky-700 active:bg-sky-800'"
+                                class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-sky-600 text-white rounded-lg text-xs font-bold shadow-xs hover:shadow transition-all cursor-pointer">
+                                <template x-if="!isImporting">
+                                    <span class="inline-flex items-center gap-1.5">
+                                        <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                                        <span>Mulai Import Jurnal</span>
+                                    </span>
+                                </template>
+                                <template x-if="isImporting">
+                                    <span class="inline-flex items-center gap-2">
+                                        <svg class="animate-spin w-3.5 h-3.5 text-white shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        <span>Sedang Mengimpor Data...</span>
+                                    </span>
+                                </template>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </template>
 
     </div>
 
@@ -595,6 +769,9 @@
             return {
                 modalOpen: false,
                 isEdit: false,
+                isImportModalOpen: false,
+                isImporting: false,
+                selectedFileName: '',
                 viewMode: 'table', // Default Tampilan: 'table', alternatif: 'cards'
                 formAction: "{{ route('classroom-journals.store') }}",
                 formData: {
@@ -624,6 +801,9 @@
                         class_condition: "",
                     };
                     this.modalOpen = true;
+                    this.$nextTick(() => {
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    });
                 },
 
                 openEditModal(journal) {
@@ -641,6 +821,18 @@
                         class_condition: journal.class_condition || "",
                     };
                     this.modalOpen = true;
+                    this.$nextTick(() => {
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    });
+                },
+
+                openImportModal() {
+                    this.isImporting = false;
+                    this.selectedFileName = '';
+                    this.isImportModalOpen = true;
+                    this.$nextTick(() => {
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    });
                 }
             };
         }
