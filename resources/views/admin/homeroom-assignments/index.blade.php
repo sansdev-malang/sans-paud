@@ -4,8 +4,8 @@
         <!-- GREETING / PAGE TITLE -->
         <section class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 w-full text-left">
             <div class="flex flex-col gap-0.5">
-                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Penugasan Guru (Formasi)</h2>
-                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Penugasan wali kelas dan formasi guru per kelompok belajar tersimpan per tahun ajaran.</p>
+                <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Penugasan Guru</h2>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Penugasan pendidik dan guru per kelompok belajar tersimpan per tahun ajaran.</p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
                 <a href="{{ route('teachers.index') }}"
@@ -16,7 +16,7 @@
                 <button type="button" @click="openCreateModal()"
                     class="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer">
                     <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                    Tugaskan Guru / Formasi
+                    Tugaskan Guru
                 </button>
             </div>
         </section>
@@ -177,12 +177,12 @@
             </form>
         </section>
 
-        <!-- TABLE LIST PENUGASAN GURU (FORMASI) -->
+        <!-- TABLE LIST PENUGASAN GURU -->
         <section id="assignments-table-container" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden w-full">
             <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/30">
                 <h3 class="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                     <i data-lucide="user-check" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400"></i>
-                    Daftar Penugasan Guru (Formasi)
+                    Daftar Penugasan Guru
                 </h3>
                 <span class="text-[11px] text-slate-500 dark:text-slate-400">
                     Menampilkan <span class="font-semibold text-slate-700 dark:text-slate-300">{{ $assignments->count() }}</span> dari <span class="font-semibold text-slate-700 dark:text-slate-300">{{ $assignments->total() }}</span> data
@@ -366,7 +366,7 @@
                                             <i data-lucide="users" class="w-6 h-6"></i>
                                         </div>
                                         <p class="font-semibold text-xs text-slate-600 dark:text-slate-400">Belum ada penugasan pendidik pada filter ini</p>
-                                        <p class="text-[11px] text-slate-400">Klik tombol "Tugaskan Guru / Formasi" untuk menambahkan alokasi baru.</p>
+                                        <p class="text-[11px] text-slate-400">Klik tombol "Tugaskan Guru" untuk menambahkan alokasi baru.</p>
                                     </div>
                                 </td>
                             </tr>
