@@ -1,4 +1,7 @@
 <x-admin-layout>
+    @php
+        $isExecutive = auth()->user()?->isExecutive() ?? false;
+    @endphp
     <div class="p-3.5 sm:p-5 lg:p-6 space-y-3.5 sm:space-y-4" x-data="journalApp()" @scroll.window="hideJournalTooltip()">
 
         <!-- ========================================================================= -->
@@ -25,6 +28,7 @@
                     </span>
                 </div>
 
+                @if(!$isExecutive)
                 <!-- Import Excel Button -->
                 <button type="button" @click="openImportModal()"
                     class="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer">
@@ -38,6 +42,7 @@
                     <i data-lucide="plus" class="w-3.5 h-3.5"></i>
                     <span>Tulis Jurnal Baru</span>
                 </button>
+                @endif
             </div>
         </section>
 
@@ -414,6 +419,7 @@
                                     <!-- Aksi -->
                                     <td class="py-3 px-3 text-center whitespace-nowrap">
                                         <div class="inline-flex items-center gap-1">
+                                            @if(!$isExecutive)
                                             <button type="button" @click="openEditModal({{ json_encode($j) }})" title="Edit Jurnal"
                                                 class="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded transition-colors cursor-pointer">
                                                 <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
@@ -427,6 +433,12 @@
                                                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                                                 </button>
                                             </form>
+                                            @else
+                                            <button type="button" @click.stop="toggleJournalTooltip($event, @js($journalTooltipData))" title="Lihat Rincian Jurnal"
+                                                class="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded transition-colors cursor-pointer">
+                                                <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                                            </button>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

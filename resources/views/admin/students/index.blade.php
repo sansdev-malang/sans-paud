@@ -1,4 +1,7 @@
 <x-admin-layout>
+    @php
+        $isExecutive = auth()->user()?->isExecutive() ?? false;
+    @endphp
     <!-- Alpine.js Application Logic (Loaded before DOM element for seamless initialization) -->
     <script>
         function studentApp() {
@@ -174,11 +177,13 @@
 
             <!-- ACTION CONTROLS: ACTION BUTTONS -->
             <div class="flex flex-wrap items-center gap-2 shrink-0">
+                @if(!$isExecutive)
                 <button type="button" @click="importModalOpen = true"
                     class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-colors cursor-pointer shrink-0">
                     <i data-lucide="upload" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0"></i>
                     <span>Impor Excel</span>
                 </button>
+                @endif
 
                 <!-- DROPDOWN EKSPOR -->
                 <div class="relative shrink-0" @click.outside="exportDropdownOpen = false">
@@ -226,11 +231,13 @@
                     </div>
                 </div>
 
+                @if(!$isExecutive)
                 <a href="{{ route('students.create') }}"
                     class="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer shrink-0">
                     <i data-lucide="plus" class="w-3.5 h-3.5 shrink-0"></i>
                     <span>Tambah Murid</span>
                 </a>
+                @endif
             </div>
         </section>
 
@@ -598,6 +605,7 @@
                                             title="Lihat Detail Murid (Dossier)">
                                             <i data-lucide="eye" class="w-4 h-4 shrink-0"></i>
                                         </a>
+                                        @if(!$isExecutive)
                                         <a href="{{ route('students.edit', $s->id) }}"
                                             class="w-7 h-7 inline-flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-amber-600 dark:hover:text-amber-400 rounded-lg transition-colors cursor-pointer shrink-0"
                                             title="Edit Data Murid">
@@ -608,6 +616,7 @@
                                             title="Hapus Data Murid">
                                             <i data-lucide="trash-2" class="w-4 h-4 shrink-0"></i>
                                         </button>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>

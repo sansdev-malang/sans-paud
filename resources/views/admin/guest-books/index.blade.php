@@ -1,4 +1,7 @@
 <x-admin-layout>
+    @php
+        $isExecutive = auth()->user()?->isExecutive() ?? false;
+    @endphp
     <div class="p-3.5 sm:p-5 lg:p-6 space-y-3.5 sm:space-y-4" x-data="guestBookApp()" x-init="if (modalOpen) { $nextTick(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }); }">
 
         <!-- ========================================================================= -->
@@ -60,6 +63,7 @@
                     <span>Cetak</span>
                 </a>
 
+                @if(!$isExecutive)
                 <!-- Import Excel -->
                 <button type="button" @click="openImportModal()"
                     class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-white dark:bg-slate-900 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 text-[11px] sm:text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs transition-colors cursor-pointer">
@@ -73,6 +77,7 @@
                     <i data-lucide="plus" class="w-3.5 h-3.5"></i>
                     <span>Catat Tamu Baru</span>
                 </button>
+                @endif
             </div>
         </section>
 
@@ -313,6 +318,7 @@
                                                 class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
                                                 <i data-lucide="eye" class="w-4 h-4"></i>
                                             </button>
+                                            @if(!$isExecutive)
                                             <button type="button" @click="openEditModal({{ json_encode($g) }})" title="Edit Data Tamu"
                                                 class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
                                                 <i data-lucide="edit-3" class="w-4 h-4"></i>
@@ -327,6 +333,7 @@
                                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                                 </button>
                                             </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -336,9 +343,11 @@
                                         <div class="flex flex-col items-center justify-center gap-2">
                                             <i data-lucide="baby" class="w-8 h-8 text-amber-300 dark:text-amber-600"></i>
                                             <p class="font-medium text-xs">Belum ada kunjungan calon wali murid SPMB pada filter ini.</p>
+                                            @if(!$isExecutive)
                                             <button type="button" @click="openCreateModal()" class="mt-2 text-teal-600 dark:text-teal-400 text-xs font-semibold hover:underline">
                                                 + Catat Tamu Baru
                                             </button>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -438,6 +447,7 @@
                                                 class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
                                                 <i data-lucide="eye" class="w-4 h-4"></i>
                                             </button>
+                                            @if(!$isExecutive)
                                             <button type="button" @click="openEditModal({{ json_encode($g) }})" title="Edit Data Tamu"
                                                 class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
                                                 <i data-lucide="edit-3" class="w-4 h-4"></i>
@@ -452,6 +462,7 @@
                                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                                 </button>
                                             </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -461,9 +472,11 @@
                                         <div class="flex flex-col items-center justify-center gap-2">
                                             <i data-lucide="building-2" class="w-8 h-8 text-indigo-300 dark:text-indigo-600"></i>
                                             <p class="font-medium text-xs">Belum ada kunjungan tamu kedinasan pada filter ini.</p>
+                                            @if(!$isExecutive)
                                             <button type="button" @click="openCreateModal()" class="mt-2 text-teal-600 dark:text-teal-400 text-xs font-semibold hover:underline">
                                                 + Catat Tamu Baru
                                             </button>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -552,6 +565,7 @@
                                                 class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
                                                 <i data-lucide="eye" class="w-4 h-4"></i>
                                             </button>
+                                            @if(!$isExecutive)
                                             <button type="button" @click="openEditModal({{ json_encode($g) }})" title="Edit Data Tamu"
                                                 class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
                                                 <i data-lucide="edit-3" class="w-4 h-4"></i>
@@ -566,6 +580,7 @@
                                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                                 </button>
                                             </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -575,9 +590,11 @@
                                         <div class="flex flex-col items-center justify-center gap-2">
                                             <i data-lucide="stethoscope" class="w-8 h-8 text-emerald-300 dark:text-emerald-600"></i>
                                             <p class="font-medium text-xs">Belum ada kunjungan petugas Puskesmas/Dinkes pada filter ini.</p>
+                                            @if(!$isExecutive)
                                             <button type="button" @click="openCreateModal()" class="mt-2 text-teal-600 dark:text-teal-400 text-xs font-semibold hover:underline">
                                                 + Catat Tamu Baru
                                             </button>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -672,6 +689,7 @@
                                                 class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
                                                 <i data-lucide="eye" class="w-4 h-4"></i>
                                             </button>
+                                            @if(!$isExecutive)
                                             <button type="button" @click="openEditModal({{ json_encode($g) }})" title="Edit Data Tamu"
                                                 class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
                                                 <i data-lucide="edit-3" class="w-4 h-4"></i>
@@ -686,6 +704,7 @@
                                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                                 </button>
                                             </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -695,9 +714,11 @@
                                         <div class="flex flex-col items-center justify-center gap-2">
                                             <i data-lucide="users" class="w-8 h-8 text-slate-300 dark:text-slate-600"></i>
                                             <p class="font-medium text-xs">Belum ada kunjungan tamu umum pada filter ini.</p>
+                                            @if(!$isExecutive)
                                             <button type="button" @click="openCreateModal()" class="mt-2 text-teal-600 dark:text-teal-400 text-xs font-semibold hover:underline">
                                                 + Catat Tamu Baru
                                             </button>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -818,6 +839,7 @@
                                                 class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
                                                 <i data-lucide="eye" class="w-4 h-4"></i>
                                             </button>
+                                            @if(!$isExecutive)
                                             <button type="button" @click="openEditModal({{ json_encode($g) }})" title="Edit Data Tamu"
                                                 class="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
                                                 <i data-lucide="edit-3" class="w-4 h-4"></i>
@@ -832,6 +854,7 @@
                                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                                 </button>
                                             </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -841,9 +864,11 @@
                                         <div class="flex flex-col items-center justify-center gap-2">
                                             <i data-lucide="inbox" class="w-8 h-8 text-slate-300 dark:text-slate-600"></i>
                                             <p class="font-medium text-xs">Belum ada kunjungan tamu tercatat pada filter ini.</p>
+                                            @if(!$isExecutive)
                                             <button type="button" @click="openCreateModal()" class="mt-2 text-teal-600 dark:text-teal-400 text-xs font-semibold hover:underline">
                                                 + Catat Tamu Baru
                                             </button>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

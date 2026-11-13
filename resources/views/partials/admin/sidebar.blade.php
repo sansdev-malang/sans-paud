@@ -430,7 +430,7 @@
         @php
             $isTeacherPortalActive = Request::routeIs(
                 'students.*', 'student-attendances.*', 'classroom-journals.*', 
-                'student-ddtk.*', 'rekap-rapor.*', 'teacher-documents.*'
+                'student-ddtk.*', 'rekap-rapor.*', 'teacher-documents.*', 'promotions.*'
             );
         @endphp
         <div x-data="{ openTeacherPortal: {{ $isTeacherPortalActive ? 'true' : 'false' }} }">
@@ -478,6 +478,14 @@
                         <span>E-Rapor</span>
                         <i data-lucide="external-link" class="w-3 h-3 text-slate-400 opacity-60 group-hover/link:opacity-100 transition-opacity"></i>
                     </span>
+                </a>
+                @endif
+
+                @if($isHomeroom)
+                <!-- Kenaikan & Kelulusan (Khusus Wali Kelas) -->
+                <a href="{{ route('promotions.index') }}"
+                    class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('promotions.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
+                    <span>Kenaikan & Kelulusan</span>
                 </a>
                 @endif
 

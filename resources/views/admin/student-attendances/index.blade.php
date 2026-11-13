@@ -1,5 +1,6 @@
 <x-admin-layout>
     @php
+        $isExecutive = auth()->user()?->isExecutive() ?? false;
         $initStatuses = [];
         $initNotes = [];
         foreach ($students as $st) {
@@ -256,6 +257,7 @@
                     @endforeach
 
                     <!-- FORM ACTION TOOLBAR (Desktop: Kiri berdampingan, Kanan Simpan | Mobile: 1 Baris Sejajar) -->
+                    @if(!$isExecutive)
                     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-2 sm:p-2.5 shadow-xs flex items-center justify-between gap-2 mb-3">
                         <!-- Group Kiri: Semua Hadir & Kosongkan berdampingan -->
                         <div class="flex items-center gap-1.5 sm:gap-2 flex-1 sm:flex-none">
@@ -290,6 +292,7 @@
                             </button>
                         </div>
                     </div>
+                    @endif
 
                     <!-- 1. DESKTOP ATTENDANCE TABLE (Visible on md and up) -->
                     <div class="hidden md:block bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs">

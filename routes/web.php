@@ -90,17 +90,19 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,adm
     Route::get('student-reports/print', [\App\Http\Controllers\StudentReportController::class, 'print'])->name('student-reports.print');
     Route::get('student-reports/export/excel', [\App\Http\Controllers\StudentReportController::class, 'exportExcel'])->name('student-reports.export.excel');
 
-    // Class Promotions & Graduation (Kenaikan Kelas & Kelulusan)
-    Route::get('class-promotions', [\App\Http\Controllers\ClassPromotionController::class, 'index'])->name('promotions.index');
-    Route::get('class-promotions/students', [\App\Http\Controllers\ClassPromotionController::class, 'getStudents'])->name('promotions.students');
-    Route::post('class-promotions/process', [\App\Http\Controllers\ClassPromotionController::class, 'promote'])->name('promotions.process');
-    Route::post('class-promotions/graduate', [\App\Http\Controllers\ClassPromotionController::class, 'graduate'])->name('promotions.graduate');
-
     // Alumni (Buku Induk Alumni KB & TK)
     Route::get('alumni/export/excel', [\App\Http\Controllers\AlumniController::class, 'exportExcel'])->name('alumni.export.excel');
     Route::post('alumni/{id}/restore', [\App\Http\Controllers\AlumniController::class, 'restoreToActive'])->name('alumni.restore');
     Route::resource('alumni', \App\Http\Controllers\AlumniController::class);
 
+});
+
+// Class Promotions & Graduation (Kenaikan Kelas & Kelulusan: Admin, Kepala Sekolah, dan Wali Kelas)
+Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,admin_smp,kepala_sekolah,waka,wali_kelas,guru,employee'])->group(function () {
+    Route::get('class-promotions', [\App\Http\Controllers\ClassPromotionController::class, 'index'])->name('promotions.index');
+    Route::get('class-promotions/students', [\App\Http\Controllers\ClassPromotionController::class, 'getStudents'])->name('promotions.students');
+    Route::post('class-promotions/process', [\App\Http\Controllers\ClassPromotionController::class, 'promote'])->name('promotions.process');
+    Route::post('class-promotions/graduate', [\App\Http\Controllers\ClassPromotionController::class, 'graduate'])->name('promotions.graduate');
 });
 
 // Modul Khusus: DDTK & SDIDTK, Jurnal Kelas, Buku Tamu, Berkas Guru

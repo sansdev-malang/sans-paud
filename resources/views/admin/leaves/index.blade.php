@@ -11,6 +11,7 @@
     }">
 
         @php
+            $isExecutive = auth()->user()?->isExecutive() ?? false;
             if (!function_exists('getInitials')) {
                 function getInitials($name) {
                     if (empty($name)) return '?';
@@ -30,12 +31,14 @@
                 <h2 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-200 font-nasalization">Riwayat Izin Pegawai</h2>
                 <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium">Daftar riwayat izin, sakit, dan cuti pegawai di unit sekolah.</p>
             </div>
+            @if(!$isExecutive)
             <div>
                 <button @click="showAddModal = true" class="h-9 px-3.5 sm:px-4 bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-slate-200 text-white dark:text-slate-900 text-[11px] sm:text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer flex items-center gap-1.5 sm:gap-2">
                     <i data-lucide="plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
                     Input Izin / Cuti
                 </button>
             </div>
+            @endif
         </header>
 
         <!-- STATS SECTION -->

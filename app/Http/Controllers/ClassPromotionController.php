@@ -14,10 +14,57 @@ use Illuminate\Support\Facades\DB;
 class ClassPromotionController extends Controller
 {
     /**
+     * Authorize user access to Class Promotion & Graduation.
+     */
+    private function checkAccess(): void
+    {
+        $user = auth()->user();
+        if (!$user) {
+            abort(401);
+        }
+        if ($user->isAdmin() || $user->isExecutive() || $user->hasRole('kepala_sekolah') || $user->hasRole('waka')) {
+            return;
+        }
+        if (!$user->isActiveHomeroomTeacher()) {
+            abort(403, 'Akses menu Kenaikan & Kelulusan hanya untuk Kepala Sekolah, Administrator, dan Wali Kelas aktif.');
+        }
+    }
+
+    /**
+     * Get authorized classroom IDs for current user.
+     * Returns null if user has full access across all classrooms (Kepala Sekolah / Admin).
+     */
+    private function getAuthorizedClassroomIds(): ?array
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return [];
+        }
+        if ($user->isAdmin() || $user->isExecutive() || $user->hasRole('kepala_sekolah') || $user->hasRole('waka')) {
+            return null; // Full access
+        }
+
+        $myClassIds = \App\Models\HomeroomAssignment::where('employee_id', $user->employee_id)
+            ->where('is_active', true)
+            ->pluck('classroom_id')
+            ->toArray();
+
+        if ($user->employee_id) {
+            $directClassIds = Classroom::where('homeroom_teacher_id', $user->employee_id)->pluck('id')->toArray();
+            $myClassIds = array_unique(array_merge($myClassIds, $directClassIds));
+        }
+
+        return $myClassIds;
+    }
+
+    /**
      * Display Class Promotion & Graduation management page for PG - TK - DAYCARE.
      */
     public function index(Request $request)
     {
+        $this->checkAccess();
+        $authClassIds = $this->getAuthorizedClassroomIds();
+
         $academicYears = AcademicYear::orderBy('name', 'desc')->get();
         $activeAcademicYear = $academicYears->firstWhere('is_active', true) ?? $academicYears->first();
 
@@ -25,14 +72,19 @@ class ClassPromotionController extends Controller
         $sourceYear = $academicYears->firstWhere('id', $sourceYearId) ?? $activeAcademicYear;
 
         // Classrooms in source academic year
-        $sourceClassrooms = Classroom::with(['classLevel', 'academicYear', 'homeroomTeacher'])
+        $sourceClassroomsQuery = Classroom::with(['classLevel', 'academicYear', 'homeroomTeacher'])
             ->where('classrooms.is_active', true)
             ->where('classrooms.academic_year_id', $sourceYear?->id)
             ->join('class_levels', 'classrooms.class_level_id', '=', 'class_levels.id')
             ->orderBy('class_levels.order', 'asc')
             ->orderBy('classrooms.name', 'asc')
-            ->select('classrooms.*')
-            ->get();
+            ->select('classrooms.*');
+
+        if ($authClassIds !== null) {
+            $sourceClassroomsQuery->whereIn('classrooms.id', $authClassIds);
+        }
+
+        $sourceClassrooms = $sourceClassroomsQuery->get();
 
         // All active classrooms across all academic years for target selection
         $allClassrooms = Classroom::with(['classLevel', 'academicYear', 'homeroomTeacher'])
@@ -77,9 +129,16 @@ class ClassPromotionController extends Controller
      */
     public function getStudents(Request $request): JsonResponse
     {
+        $this->checkAccess();
+        $authClassIds = $this->getAuthorizedClassroomIds();
+
         $classroomId = $request->get('classroom_id');
         if (!$classroomId) {
             return response()->json(['success' => false, 'message' => 'Kelompok belum dipilih.', 'students' => []]);
+        }
+
+        if ($authClassIds !== null && !in_array($classroomId, $authClassIds)) {
+            return response()->json(['success' => false, 'message' => 'Anda tidak memiliki hak akses ke kelompok belajar ini.'], 403);
         }
 
         $classroom = Classroom::with(['classLevel', 'academicYear', 'homeroomTeacher'])->find($classroomId);
@@ -104,6 +163,9 @@ class ClassPromotionController extends Controller
      */
     public function promote(Request $request): JsonResponse
     {
+        $this->checkAccess();
+        $authClassIds = $this->getAuthorizedClassroomIds();
+
         $validated = $request->validate([
             'source_classroom_id' => 'required|exists:classrooms,id',
             'target_classroom_id' => 'required|exists:classrooms,id',
@@ -114,6 +176,10 @@ class ClassPromotionController extends Controller
             'students.*.action' => 'required|in:promote,stay,transfer_out',
             'students.*.custom_classroom_id' => 'nullable|exists:classrooms,id',
         ]);
+
+        if ($authClassIds !== null && !in_array($validated['source_classroom_id'], $authClassIds)) {
+            return response()->json(['success' => false, 'message' => 'Anda tidak memiliki hak akses memproses kenaikan kelompok ini.'], 403);
+        }
 
         $sourceClassroom = Classroom::with(['classLevel', 'academicYear', 'homeroomTeacher'])->findOrFail($validated['source_classroom_id']);
         $targetClassroom = Classroom::with(['classLevel', 'academicYear', 'homeroomTeacher'])->findOrFail($validated['target_classroom_id']);
@@ -236,6 +302,9 @@ class ClassPromotionController extends Controller
      */
     public function graduate(Request $request): JsonResponse
     {
+        $this->checkAccess();
+        $authClassIds = $this->getAuthorizedClassroomIds();
+
         $validated = $request->validate([
             'classroom_id' => 'required|exists:classrooms,id',
             'graduation_date' => 'nullable|date',
@@ -243,6 +312,10 @@ class ClassPromotionController extends Controller
             'students.*.id' => 'required|exists:students,id',
             'students.*.is_graduated' => 'required|boolean',
         ]);
+
+        if ($authClassIds !== null && !in_array($validated['classroom_id'], $authClassIds)) {
+            return response()->json(['success' => false, 'message' => 'Anda tidak memiliki hak akses memproses kelulusan kelompok ini.'], 403);
+        }
 
         $classroom = Classroom::with(['classLevel', 'academicYear', 'homeroomTeacher'])->findOrFail($validated['classroom_id']);
         $gradDate = $validated['graduation_date'] ?: now()->toDateString();

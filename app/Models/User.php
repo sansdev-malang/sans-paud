@@ -100,6 +100,23 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user has an executive role (Kepala Sekolah or Waka).
+     */
+    public function isExecutive(): bool
+    {
+        return in_array($this->role, ['kepala_sekolah', 'waka']);
+    }
+
+    /**
+     * Check if user can perform raw data imports and administrative data additions.
+     * True for Super Admin, Admin PAUD/SD/SMP. False for Kepala Sekolah/Waka.
+     */
+    public function canManageDataEntry(): bool
+    {
+        return in_array($this->role, ['super_admin', 'admin_paud', 'admin_sd', 'admin_smp']);
+    }
+
+    /**
      * Check if the user is currently assigned as an active homeroom teacher in the active academic year.
      */
     public function isActiveHomeroomTeacher(): bool

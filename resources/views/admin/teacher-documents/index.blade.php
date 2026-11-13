@@ -1,4 +1,7 @@
 <x-admin-layout>
+    @php
+        $isExecutive = auth()->user()?->isExecutive() ?? false;
+    @endphp
     <div class="p-3.5 sm:p-5 lg:p-6 space-y-3 sm:space-y-3.5" x-data="teacherDocsApp()">
 
         <!-- ========================================================================= -->
@@ -30,6 +33,7 @@
                     <span>Cetak Matriks</span>
                 </a>
 
+                @if(!$isExecutive)
                 <!-- Import Excel -->
                 <button type="button" @click="openImportModal()"
                     class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] sm:text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer"
@@ -38,13 +42,16 @@
                     <span>Import Excel</span>
                 </button>
                 @endif
+                @endif
 
+                @if(!$isExecutive)
                 <!-- Upload New Document -->
                 <button type="button" @click="openCreateModal()"
                     class="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 bg-purple-600 hover:bg-purple-700 text-white text-[11px] sm:text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer">
                     <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i>
                     <span>Unggah Berkas Baru</span>
                 </button>
+                @endif
             </div>
         </section>
 
@@ -396,7 +403,7 @@
                                             @endif
 
                                             <!-- Edit Modal -->
-                                            @if($isAdmin || $doc->uploaded_by == auth()->id())
+                                            @if(!$isExecutive && ($isAdmin || $doc->uploaded_by == auth()->id()))
                                                 <button type="button" @click="openEditModal({{ json_encode($doc) }})" title="Edit Berkas"
                                                     class="w-8 h-8 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">
                                                     <i data-lucide="edit-3" class="w-4 h-4"></i>
@@ -421,9 +428,11 @@
                                         <div class="flex flex-col items-center justify-center gap-2">
                                             <i data-lucide="folder-x" class="w-8 h-8 text-slate-300 dark:text-slate-600"></i>
                                             <p class="font-medium text-xs">Belum ada berkas guru yang ditemukan sesuai filter.</p>
+                                            @if(!$isExecutive)
                                             <button type="button" @click="openCreateModal()" class="mt-2 text-purple-600 dark:text-purple-400 text-xs font-semibold hover:underline">
                                                 + Unggah Berkas Baru
                                             </button>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

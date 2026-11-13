@@ -1,5 +1,6 @@
 <x-admin-layout>
     @php
+        $isExecutive = auth()->user()?->isExecutive() ?? false;
         $ddtkPct = $totalStudents > 0 ? round(($ddtkCount / $totalStudents) * 100) : 0;
         $sdidtkPct = $totalStudents > 0 ? round(($sdidtkCount / $totalStudents) * 100) : 0;
     @endphp
@@ -228,6 +229,7 @@
                                 </p>
                             </div>
                         </div>
+                        @if(!$isExecutive)
                         <div class="flex items-center gap-2">
                             <!-- Tombol Import DDTK -->
                             <button type="button" @click="openImportModal('ddtk')"
@@ -243,6 +245,7 @@
                                 <span>Simpan Data DDTK</span>
                             </button>
                         </div>
+                        @endif
                     </div>
 
                     <!-- INLINE TABLE DDTK -->
@@ -509,6 +512,7 @@
                                 </p>
                             </div>
                         </div>
+                        @if(!$isExecutive)
                         <div class="flex items-center gap-2">
                             <!-- Tombol Import SDIDTK -->
                             <button type="button" @click="openImportModal('sdidtk')"
@@ -524,6 +528,7 @@
                                 <span>Simpan Data SDIDTK</span>
                             </button>
                         </div>
+                        @endif
                     </div>
 
                     <!-- INLINE TABLE SDIDTK -->
