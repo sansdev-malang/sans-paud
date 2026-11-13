@@ -271,13 +271,11 @@
                     <span>Buku Induk Alumni</span>
                 </a>
 
-                <!-- 5. Arsip Dokumen Murid -->
-                @if(!$isExecutive)
+                <!-- 5. Arsip Murid -->
                 <a href="{{ route('student-archives.index') }}"
                     class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('student-archives.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
                     <span>Arsip Murid</span>
                 </a>
-                @endif
             </div>
         </div>
 
