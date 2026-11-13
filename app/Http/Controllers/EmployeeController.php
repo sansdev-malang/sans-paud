@@ -27,7 +27,12 @@ class EmployeeController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('nik', 'like', "%{$search}%")->orWhere('nuptk', 'like', "%{$search}%");
+                  ->orWhere('nik', 'like', "%{$search}%")
+                  ->orWhere('niy', 'like', "%{$search}%")
+                  ->orWhere('nuptk', 'like', "%{$search}%")
+                  ->orWhere('position', 'like', "%{$search}%")
+                  ->orWhere('additional_position', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
@@ -70,7 +75,7 @@ class EmployeeController extends Controller
         $employeeTypes = \App\Models\EmployeeType::all();
         $positions = Employee::select('position')->whereNotNull('position')->where('position', '!=', '')->distinct()->pluck('position');
 
-        if ($request->wantsJson() || $request->ajax()) {
+        if ($request->wantsJson() && !$request->hasHeader('X-Live-Search')) {
             return response()->json([
                 'success' => true,
                 'data' => $employees,
@@ -195,7 +200,7 @@ class EmployeeController extends Controller
 
         $employee = Employee::create($validated);
 
-        if ($request->wantsJson() || $request->ajax()) {
+        if ($request->wantsJson() && !$request->hasHeader('X-Live-Search')) {
             return response()->json([
                 'success' => true,
                 'message' => 'Employee created successfully.',
@@ -307,7 +312,7 @@ class EmployeeController extends Controller
 
         $employee->update($validated);
 
-        if ($request->wantsJson() || $request->ajax()) {
+        if ($request->wantsJson() && !$request->hasHeader('X-Live-Search')) {
             return response()->json([
                 'success' => true,
                 'message' => 'Employee updated successfully.',
