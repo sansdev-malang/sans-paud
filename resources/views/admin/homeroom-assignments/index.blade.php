@@ -13,7 +13,7 @@
                     <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400"></i>
                     Data Guru
                 </a>
-                <form action="{{ route('homeroom-assignments.sync-classrooms') }}" method="POST" class="inline" onsubmit="return confirm('Sinkronkan penugasan wali kelas secara otomatis dari data rombel?')">
+                <form action="{{ route('homeroom-assignments.sync-classrooms') }}" method="POST" class="inline">
                     @csrf
                     <input type="hidden" name="academic_year_id" value="{{ $selectedYearId }}">
                     <button type="submit"
