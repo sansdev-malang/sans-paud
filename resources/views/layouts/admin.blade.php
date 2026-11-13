@@ -514,7 +514,7 @@
         </div>
 
         <!-- TOAST NOTIFICATION CONTAINER -->
-        <div id="toast-notification" class="fixed bottom-5 right-5 z-[99999] hidden bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-50 px-4 py-3 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 flex items-center gap-3 max-w-sm transition-all duration-200 transform translate-y-4 opacity-0 pointer-events-auto">
+        <div id="toast-notification" class="fixed top-5 right-5 z-[99999] hidden bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-50 px-4 py-3 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 flex items-center gap-3 max-w-sm transition-all duration-200 transform -translate-y-4 opacity-0 pointer-events-auto">
             <div id="toast-icon-bg" class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0">
                 <i id="toast-icon" data-lucide="check" class="w-4 h-4"></i>
             </div>
@@ -543,7 +543,7 @@
                 if (_toastTimeout) clearTimeout(_toastTimeout);
 
                 toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-4', 'opacity-0');
+                toast.classList.add('-translate-y-4', 'opacity-0');
                 setTimeout(() => {
                     toast.classList.add('hidden');
                 }, 200);
@@ -606,7 +606,7 @@
 
                 toast.classList.remove('hidden');
                 requestAnimationFrame(() => {
-                    toast.classList.remove('translate-y-4', 'opacity-0');
+                    toast.classList.remove('-translate-y-4', 'opacity-0');
                     toast.classList.add('translate-y-0', 'opacity-100');
                 });
 
