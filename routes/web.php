@@ -72,6 +72,7 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,adm
 Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,admin_smp,kepala_sekolah,waka'])->group(function () {
 
     // Wali Kelas (Penugasan Wali Kelas)
+    Route::post('homeroom-assignments/sync-classrooms', [\App\Http\Controllers\HomeroomAssignmentController::class, 'syncFromClassrooms'])->name('homeroom-assignments.sync-classrooms');
     Route::post('homeroom-assignments/{id}/toggle-status', [\App\Http\Controllers\HomeroomAssignmentController::class, 'toggleStatus'])->name('homeroom-assignments.toggle-status');
     Route::match(['post', 'put', 'patch'], 'homeroom-assignments/{id}', [\App\Http\Controllers\HomeroomAssignmentController::class, 'update'])->name('homeroom-assignments.update-custom');
     Route::match(['post', 'delete'], 'homeroom-assignments/{id}/delete', [\App\Http\Controllers\HomeroomAssignmentController::class, 'destroy'])->name('homeroom-assignments.destroy-custom');

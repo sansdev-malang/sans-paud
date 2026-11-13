@@ -220,10 +220,17 @@ class HomeroomAssignmentController extends Controller
             $assignment = HomeroomAssignment::create($validated);
         }
 
-        // Synchronize classroom's current homeroom teacher if active tapel and role is wali_kelas
-        $activeTapel = AcademicYear::where('is_active', true)->first();
-        if ($assignment->role === 'wali_kelas' && $assignment->classroom_id && $activeTapel && $activeTapel->id == $assignment->academic_year_id && $assignment->is_active) {
-            Classroom::where('id', $assignment->classroom_id)->update(['homeroom_teacher_id' => $assignment->employee_id]);
+        // Synchronize classroom's current homeroom teacher if role is wali_kelas
+        if ($assignment->role === 'wali_kelas' && $assignment->classroom_id && $assignment->is_active) {
+            HomeroomAssignment::where('academic_year_id', $assignment->academic_year_id)
+                ->where('classroom_id', $assignment->classroom_id)
+                ->where('role', 'wali_kelas')
+                ->where('id', '!=', $assignment->id)
+                ->update(['is_active' => false]);
+
+            Classroom::where('id', $assignment->classroom_id)
+                ->where('academic_year_id', $assignment->academic_year_id)
+                ->update(['homeroom_teacher_id' => $assignment->employee_id]);
         }
 
         if ($request->wantsJson()) {
@@ -273,13 +280,21 @@ class HomeroomAssignmentController extends Controller
 
         $assignment->update($validated);
 
-        // Synchronize classroom's current homeroom teacher if active tapel
-        $activeTapel = AcademicYear::where('is_active', true)->first();
-        if ($assignment->classroom_id && $activeTapel && $activeTapel->id == $assignment->academic_year_id) {
-            if ($assignment->role === 'wali_kelas' && $assignment->is_active) {
-                Classroom::where('id', $assignment->classroom_id)->update(['homeroom_teacher_id' => $assignment->employee_id]);
+        // Synchronize classroom's current homeroom teacher if role is wali_kelas
+        if ($assignment->classroom_id && $assignment->role === 'wali_kelas') {
+            if ($assignment->is_active) {
+                HomeroomAssignment::where('academic_year_id', $assignment->academic_year_id)
+                    ->where('classroom_id', $assignment->classroom_id)
+                    ->where('role', 'wali_kelas')
+                    ->where('id', '!=', $assignment->id)
+                    ->update(['is_active' => false]);
+
+                Classroom::where('id', $assignment->classroom_id)
+                    ->where('academic_year_id', $assignment->academic_year_id)
+                    ->update(['homeroom_teacher_id' => $assignment->employee_id]);
             } else {
                 Classroom::where('id', $assignment->classroom_id)
+                    ->where('academic_year_id', $assignment->academic_year_id)
                     ->where('homeroom_teacher_id', $assignment->employee_id)
                     ->update(['homeroom_teacher_id' => null]);
             }
@@ -312,16 +327,17 @@ class HomeroomAssignmentController extends Controller
         $jenjangId = $assignment->jenjang_id ?? $assignment->classroom?->jenjang_id;
         $classroomId = $assignment->classroom_id;
         $employeeId = $assignment->employee_id;
+        $role = $assignment->role;
 
         $assignment->delete();
 
-        // If active tapel and classroom had this teacher, reset or assign next active teacher
-        $activeTapel = AcademicYear::where('is_active', true)->first();
-        if ($activeTapel && $activeTapel->id == $tapelId) {
+        // If wali_kelas, update classroom homeroom_teacher_id
+        if ($role === 'wali_kelas' && $classroomId) {
             $classroom = Classroom::find($classroomId);
-            if ($classroom && $classroom->homeroom_teacher_id == $employeeId) {
+            if ($classroom && $classroom->academic_year_id == $tapelId && $classroom->homeroom_teacher_id == $employeeId) {
                 $nextAssignment = HomeroomAssignment::where('academic_year_id', $tapelId)
                     ->where('classroom_id', $classroomId)
+                    ->where('role', 'wali_kelas')
                     ->where('is_active', true)
                     ->first();
                 $classroom->update(['homeroom_teacher_id' => $nextAssignment?->employee_id]);
@@ -352,11 +368,16 @@ class HomeroomAssignmentController extends Controller
         $assignment->is_active = !$assignment->is_active;
         $assignment->save();
 
-        $activeTapel = AcademicYear::where('is_active', true)->first();
-        if ($activeTapel && $activeTapel->id == $assignment->academic_year_id) {
+        if ($assignment->classroom_id && $assignment->role === 'wali_kelas') {
             $classroom = Classroom::find($assignment->classroom_id);
-            if ($classroom) {
+            if ($classroom && $classroom->academic_year_id == $assignment->academic_year_id) {
                 if ($assignment->is_active) {
+                    HomeroomAssignment::where('academic_year_id', $assignment->academic_year_id)
+                        ->where('classroom_id', $assignment->classroom_id)
+                        ->where('role', 'wali_kelas')
+                        ->where('id', '!=', $assignment->id)
+                        ->update(['is_active' => false]);
+
                     $classroom->update(['homeroom_teacher_id' => $assignment->employee_id]);
                 } else if ($classroom->homeroom_teacher_id == $assignment->employee_id) {
                     $classroom->update(['homeroom_teacher_id' => null]);
@@ -365,5 +386,56 @@ class HomeroomAssignmentController extends Controller
         }
 
         return redirect()->back()->with('success', 'Status penugasan wali kelas berhasil diubah.');
+    }
+
+    /**
+     * Synchronize wali kelas assignments from existing active classrooms.
+     */
+    public function syncFromClassrooms(Request $request)
+    {
+        $selectedYearId = $request->get('academic_year_id');
+
+        $query = Classroom::whereNotNull('homeroom_teacher_id');
+        if ($selectedYearId && $selectedYearId !== 'all') {
+            $query->where('academic_year_id', $selectedYearId);
+        }
+
+        $classrooms = $query->get();
+        $syncedCount = 0;
+
+        foreach ($classrooms as $c) {
+            $assignment = HomeroomAssignment::updateOrCreate(
+                [
+                    'academic_year_id' => $c->academic_year_id,
+                    'classroom_id' => $c->id,
+                    'role' => 'wali_kelas',
+                ],
+                [
+                    'jenjang_id' => $c->jenjang_id,
+                    'class_level_id' => $c->class_level_id,
+                    'employee_id' => $c->homeroom_teacher_id,
+                    'is_active' => true,
+                ]
+            );
+
+            // Deactivate other wali_kelas assignments for the same classroom
+            HomeroomAssignment::where('academic_year_id', $c->academic_year_id)
+                ->where('classroom_id', $c->id)
+                ->where('role', 'wali_kelas')
+                ->where('id', '!=', $assignment->id)
+                ->update(['is_active' => false]);
+
+            $syncedCount++;
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Berhasil menyinkronkan {$syncedCount} penugasan wali kelas dari data rombel.",
+                'count' => $syncedCount,
+            ]);
+        }
+
+        return redirect()->back()->with('success', "Berhasil menyinkronkan {$syncedCount} penugasan wali kelas dari data rombel.");
     }
 }
