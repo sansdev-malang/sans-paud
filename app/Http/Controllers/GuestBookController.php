@@ -816,7 +816,7 @@ class GuestBookController extends Controller
             return back()->with('error', 'Gagal membaca file Excel: ' . $e->getMessage());
         }
 
-        // Find header row
+        // Find header row (must contain both a name column and a date/time/category column)
         $headerRowIdx = null;
         $colMap = [];
 
@@ -828,15 +828,26 @@ class GuestBookController extends Controller
                 $normalized[$colKey] = $cleaned;
             }
 
-            $hasName = false;
+            $hasNameCol = false;
+            $hasDateOrContextCol = false;
+
             foreach ($normalized as $cKey => $val) {
-                if (str_contains($val, 'nama') || str_contains($val, 'tamu') || $val === 'name') {
-                    $hasName = true;
-                    break;
+                if (
+                    $val === 'nama' || $val === 'name' || $val === 'namatamu' || $val === 'namatamuorangtua' ||
+                    $val === 'namaortu' || $val === 'namacpd' || $val === 'tamu'
+                ) {
+                    $hasNameCol = true;
+                }
+                if (
+                    str_contains($val, 'tanggal') || str_contains($val, 'tgl') || $val === 'date' ||
+                    str_contains($val, 'waktu') || str_contains($val, 'jam') || $val === 'time' ||
+                    str_contains($val, 'kategori') || str_contains($val, 'keperluan') || str_contains($val, 'agenda')
+                ) {
+                    $hasDateOrContextCol = true;
                 }
             }
 
-            if ($hasName) {
+            if ($hasNameCol && $hasDateOrContextCol) {
                 $headerRowIdx = $rIdx;
                 foreach ($normalized as $cKey => $val) {
                     if (str_contains($val, 'tgl') || str_contains($val, 'tanggal') || str_contains($val, 'date')) {
@@ -847,11 +858,13 @@ class GuestBookController extends Controller
                         }
                     } elseif (str_contains($val, 'jam') || str_contains($val, 'waktu') || str_contains($val, 'time')) {
                         $colMap['time'] = $cKey;
-                    } elseif (str_contains($val, 'murid') || str_contains($val, 'calon') || str_contains($val, 'anak') || str_contains($val, 'cpd')) {
+                    } elseif (str_contains($val, 'namatamu') || $val === 'nama' || $val === 'tamu' || $val === 'namalengkap') {
+                        $colMap['name'] = $cKey;
+                    } elseif (str_contains($val, 'calon') || str_contains($val, 'cpd') || (str_contains($val, 'murid') && !str_contains($val, 'tamu'))) {
                         $colMap['student_name'] = $cKey;
                     } elseif (str_contains($val, 'ortu') || str_contains($val, 'orangtua')) {
                         $colMap['parent_name'] = $cKey;
-                    } elseif (str_contains($val, 'nama') || str_contains($val, 'tamu')) {
+                    } elseif (str_contains($val, 'nama')) {
                         if (!isset($colMap['name'])) $colMap['name'] = $cKey;
                     } elseif (str_contains($val, 'hp') || str_contains($val, 'wa') || str_contains($val, 'telepon') || str_contains($val, 'telp') || str_contains($val, 'phone')) {
                         $colMap['phone'] = $cKey;
@@ -887,6 +900,10 @@ class GuestBookController extends Controller
             }
         }
 
+        if (!isset($colMap['name']) && isset($colMap['parent_name'])) {
+            $colMap['name'] = $colMap['parent_name'];
+        }
+
         if (!$headerRowIdx || !isset($colMap['name'])) {
             return back()->with('error', 'Format header file Excel tidak dikenali. Pastikan terdapat kolom "Nama Tamu" dan kolom lainnya sesuai template.');
         }
@@ -910,8 +927,18 @@ class GuestBookController extends Controller
                         $name = 'Orang Tua (' . $sName . ')';
                     }
                 }
-                if (empty($name)) {
-                    continue; // Skip empty row
+                
+                // Skip if name is invalid (empty, purely numeric, or header words)
+                $lowerName = strtolower($name);
+                if (
+                    empty($name) ||
+                    is_numeric($name) ||
+                    in_array($lowerName, ['no', 'nomor', 'nama', 'nama tamu', 'nama tamu / orang tua', 'tamu', 'nama cpd', 'nama ortu']) ||
+                    str_starts_with($lowerName, 'data buku tamu') ||
+                    str_starts_with($lowerName, 'paud terpadu') ||
+                    str_starts_with($lowerName, 'file ini telah')
+                ) {
+                    continue; // Skip invalid row
                 }
 
                 $rawDate = trim((string)($row[$colMap['date'] ?? ''] ?? ''));
