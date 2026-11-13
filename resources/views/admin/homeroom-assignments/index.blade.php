@@ -360,16 +360,13 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-6 py-12 text-center text-slate-400">
+                                <td colspan="8" class="px-4 py-12 text-center text-slate-400 dark:text-slate-500">
                                     <div class="flex flex-col items-center justify-center gap-2">
-                                        <div class="p-3 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400">
-                                            <i data-lucide="user-x" class="w-6 h-6"></i>
+                                        <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800/60 flex items-center justify-center text-slate-400">
+                                            <i data-lucide="users" class="w-6 h-6"></i>
                                         </div>
-                                        <p class="font-medium text-xs text-slate-600 dark:text-slate-400">Belum ada penugasan wali kelas pada periode / filter ini.</p>
-                                        <button type="button" @click="openCreateModal()" class="mt-1 inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer">
-                                            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                                            Tugaskan Wali Kelas Sekarang
-                                        </button>
+                                        <p class="font-semibold text-xs text-slate-600 dark:text-slate-400">Belum ada penugasan pendidik pada filter ini</p>
+                                        <p class="text-[11px] text-slate-400">Klik tombol "Tugaskan Guru / Formasi" untuk menambahkan alokasi baru.</p>
                                     </div>
                                 </td>
                             </tr>
@@ -647,7 +644,7 @@
                         if (res.success) {
                             this.modalOpen = false;
                             if (typeof window.setPendingToast === 'function') {
-                                window.setPendingToast(res.message || 'Wali kelas berhasil disimpan!', 'success');
+                                window.setPendingToast(res.message || 'Penugasan guru berhasil disimpan!', 'success');
                             }
                             const targetJenjang = res.jenjang_id || this.formData.jenjang_id || '{{ $selectedJenjangId }}';
                             const targetTapel = res.academic_year_id || this.formData.academic_year_id || '{{ $selectedYearId }}';
@@ -704,8 +701,8 @@
                     };
 
                     if (typeof showGlobalConfirmModal === 'function') {
-                        showGlobalConfirmModal(`Apakah Anda yakin ingin menghapus penugasan wali kelas "${teacherName}" di kelompok "${kelompokName}"?`, action, true);
-                    } else if (confirm(`Apakah Anda yakin ingin menghapus penugasan wali kelas "${teacherName}" di kelompok "${kelompokName}"?`)) {
+                        showGlobalConfirmModal(`Apakah Anda yakin ingin menghapus penugasan guru "${teacherName}" di kelompok "${kelompokName}"?`, action, true);
+                    } else if (confirm(`Apakah Anda yakin ingin menghapus penugasan guru "${teacherName}" di kelompok "${kelompokName}"?`)) {
                         action();
                     }
                 }
