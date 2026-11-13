@@ -55,6 +55,33 @@ class TeacherDocumentController extends Controller
     }
 
     /**
+     * Get list of active teachers and staff who contribute to teacher documents (including Nuki Maya Sulistiyowati).
+     */
+    private function getActiveTeachers()
+    {
+        $teacherTypeId = EmployeeType::where('code', 'teacher')->value('id');
+        $teachers = Employee::where('status', 'Active')
+            ->where(function ($sq) use ($teacherTypeId) {
+                if ($teacherTypeId) {
+                    $sq->where('employee_type_id', $teacherTypeId);
+                }
+                $sq->orWhere('position', 'like', '%guru%')
+                   ->orWhere('position', 'like', '%wali%')
+                   ->orWhere('position', 'like', '%pendidik%')
+                   ->orWhereHas('teacherDocuments')
+                   ->orWhere('id', 22);
+            })
+            ->orderBy('name', 'asc')
+            ->get();
+
+        if ($teachers->isEmpty()) {
+            $teachers = Employee::where('status', 'Active')->orderBy('name', 'asc')->get();
+        }
+
+        return $teachers;
+    }
+
+    /**
      * Display a listing of Teacher Documents (Tab 1) or Completeness Matrix (Tab 2).
      */
     public function index(Request $request)
@@ -82,21 +109,7 @@ class TeacherDocumentController extends Controller
         }
 
         // Active Teachers
-        $teacherTypeId = EmployeeType::where('code', 'teacher')->value('id');
-        $teachers = Employee::where('status', 'Active')
-            ->when($teacherTypeId, function ($q) use ($teacherTypeId) {
-                $q->where(function ($sq) use ($teacherTypeId) {
-                    $sq->where('employee_type_id', $teacherTypeId)
-                       ->orWhere('position', 'like', '%guru%')
-                       ->orWhere('position', 'like', '%wali%');
-                });
-            })
-            ->orderBy('name', 'asc')
-            ->get();
-
-        if ($teachers->isEmpty()) {
-            $teachers = Employee::where('status', 'Active')->orderBy('name', 'asc')->get();
-        }
+        $teachers = $this->getActiveTeachers();
 
         // Filter variables: Guru hanya bisa melihat berkas miliknya sendiri
         $selectedTeacherId = $isAdmin ? $request->get('teacher_id', 'all') : ($myEmployeeId ?: -1);
@@ -1013,21 +1026,7 @@ class TeacherDocumentController extends Controller
         $selectedYear = AcademicYear::find($selectedYearId);
         $yearName = $selectedYear ? $selectedYear->name : 'Aktif';
 
-        $teacherTypeId = EmployeeType::where('code', 'teacher')->value('id');
-        $teachers = Employee::where('status', 'Active')
-            ->when($teacherTypeId, function ($q) use ($teacherTypeId) {
-                $q->where(function ($sq) use ($teacherTypeId) {
-                    $sq->where('employee_type_id', $teacherTypeId)
-                       ->orWhere('position', 'like', '%guru%')
-                       ->orWhere('position', 'like', '%wali%');
-                });
-            })
-            ->orderBy('name', 'asc')
-            ->get();
-
-        if ($teachers->isEmpty()) {
-            $teachers = Employee::where('status', 'Active')->orderBy('name', 'asc')->get();
-        }
+        $teachers = $this->getActiveTeachers();
 
         $allYearDocs = TeacherDocument::when($selectedYearId, function ($q) use ($selectedYearId) {
             $q->where('academic_year_id', $selectedYearId);
@@ -1146,21 +1145,7 @@ class TeacherDocumentController extends Controller
         $selectedYear = AcademicYear::find($selectedYearId);
         $yearName = $selectedYear ? $selectedYear->name : 'Aktif';
 
-        $teacherTypeId = EmployeeType::where('code', 'teacher')->value('id');
-        $teachers = Employee::where('status', 'Active')
-            ->when($teacherTypeId, function ($q) use ($teacherTypeId) {
-                $q->where(function ($sq) use ($teacherTypeId) {
-                    $sq->where('employee_type_id', $teacherTypeId)
-                       ->orWhere('position', 'like', '%guru%')
-                       ->orWhere('position', 'like', '%wali%');
-                });
-            })
-            ->orderBy('name', 'asc')
-            ->get();
-
-        if ($teachers->isEmpty()) {
-            $teachers = Employee::where('status', 'Active')->orderBy('name', 'asc')->get();
-        }
+        $teachers = $this->getActiveTeachers();
 
         $allYearDocs = TeacherDocument::when($selectedYearId, function ($q) use ($selectedYearId) {
             $q->where('academic_year_id', $selectedYearId);

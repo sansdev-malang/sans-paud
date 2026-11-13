@@ -237,6 +237,11 @@ class User extends Authenticatable
             return true;
         }
 
+        // Pegawai / Staf yang berhak mengisi berkas administrasi/perangkat (misal: Nuki Maya Sulistiyowati)
+        if ($emp->id === 22 || $emp->teacherDocuments()->exists()) {
+            return true;
+        }
+
         return false;
     }
 
