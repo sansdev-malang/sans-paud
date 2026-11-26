@@ -21,6 +21,7 @@
     $canAccessRapor = auth()->user()?->canAccessRapor();
     $isTeacher = auth()->user()?->isTeacher() ?? false;
     $isHomeroom = auth()->user()?->isActiveHomeroomTeacher() ?? false;
+    $isExtraCoordinator = auth()->user()?->isExtraCoordinator() ?? false;
 
     // Integrasi SSO E-Rapor
     $raporLink = '#';
@@ -114,7 +115,7 @@
                 'academic-years.*', 'semesters.*', 'jenjangs.*', 'class-levels.*', 'classrooms.*'
             );
             $isAcademicActive = Request::routeIs(
-                'classroom-journals.*', 'student-ddtk.*', 'rekap-rapor.*', 
+                'classroom-journals.*', 'student-ddtk.*', 'rekap-rapor.*', 'rekap-rapor-ekstra.*',
                 'promotions.*', 'academic-summary.*'
             ) || $isMasterAcademicActive;
         @endphp
@@ -152,6 +153,12 @@
                 <a href="{{ route('rekap-rapor.index') }}"
                     class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('rekap-rapor.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
                     <span>Data Rapor</span>
+                </a>
+
+                <!-- 4. Data Rapor Ekstra -->
+                <a href="{{ route('rekap-rapor-ekstra.index') }}"
+                    class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('rekap-rapor-ekstra.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
+                    <span>Data Rapor Ekstra</span>
                 </a>
 
                 <!-- 4. E-Rapor (SSO) -->
@@ -421,14 +428,14 @@
             </div>
         </div>
 
-        @elseif($curUser && ($isTeacher || $isHomeroom))
+        @elseif($curUser && ($isTeacher || $isHomeroom || $isExtraCoordinator))
         <!-- ==========================================
-             PORTAL PEMBELAJARAN (NON-ADMIN GURU / WALI KELAS)
+             PORTAL PEMBELAJARAN (NON-ADMIN GURU / WALI KELAS / KOORDINATOR)
              ========================================== -->
         @php
             $isTeacherPortalActive = Request::routeIs(
                 'students.*', 'student-attendances.*', 'classroom-journals.*', 
-                'student-ddtk.*', 'rekap-rapor.*', 'teacher-documents.*', 'promotions.*'
+                'student-ddtk.*', 'rekap-rapor.*', 'rekap-rapor-ekstra.*', 'teacher-documents.*', 'promotions.*'
             );
         @endphp
         <div x-data="{ openTeacherPortal: {{ $isTeacherPortalActive ? 'true' : 'false' }} }">
@@ -464,10 +471,19 @@
                     class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('student-ddtk.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
                     <span>DDTK & SDIDTK</span>
                 </a>
+                @if($isHomeroom)
                 <a href="{{ route('rekap-rapor.index') }}"
                     class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('rekap-rapor.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
                     <span>Data Rapor</span>
                 </a>
+                @endif
+
+                @if($isHomeroom || $isExtraCoordinator)
+                <a href="{{ route('rekap-rapor-ekstra.index') }}"
+                    class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors {{ Request::routeIs('rekap-rapor-ekstra.*') ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900/40' }}">
+                    <span>Data Rapor Ekstra</span>
+                </a>
+                @endif
 
                 @if($canAccessRapor)
                 <a href="{{ $raporLink }}" target="_blank"

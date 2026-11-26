@@ -183,6 +183,7 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_sd,admin_paud,adm
 // Rekap & Hasil Rapor (Read-Only from SAANS Rapor)
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/rekap-rapor', [\App\Http\Controllers\RaporSummaryController::class, 'index'])->name('rekap-rapor.index');
+    Route::get('/rekap-rapor-ekstra', [\App\Http\Controllers\RaporEkstraSummaryController::class, 'index'])->name('rekap-rapor-ekstra.index');
 
     Route::get('/rapor', function () {
         $curUser = auth()->user();

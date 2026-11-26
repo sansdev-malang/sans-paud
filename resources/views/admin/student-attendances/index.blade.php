@@ -253,7 +253,7 @@
                     <!-- Hidden Inputs for Form Submission (Zero DOM Radio Name Collisions) -->
                     @foreach($students as $st)
                         <input type="hidden" name="attendances[{{ $st->id }}][status]" :value="statuses[{{ $st->id }}] || ''">
-                        <input type="hidden"  :value="notes[{{ $st->id }}] || ''">
+                        <input type="hidden" name="attendances[{{ $st->id }}][notes]" :value="notes[{{ $st->id }}] || ''">
                     @endforeach
 
                     <!-- FORM ACTION TOOLBAR (Desktop: Kiri berdampingan, Kanan Simpan | Mobile: 1 Baris Sejajar) -->
@@ -569,12 +569,6 @@
                 <form method="GET" action="{{ route('student-attendances.index') }}" id="monthlyFilterForm" class="flex flex-col lg:flex-row lg:items-end justify-between gap-3">
                     <input type="hidden" name="tab" value="monthly">
                     <input type="hidden" name="date" value="{{ $selectedDate }}">
-
-                    <!-- Hidden Inputs for Form Submission (Zero DOM Radio Name Collisions) -->
-                    @foreach($students as $st)
-                        <input type="hidden" name="attendances[{{ $st->id }}][status]" :value="statuses[{{ $st->id }}] || ''">
-                        <input type="hidden"  :value="notes[{{ $st->id }}] || ''">
-                    @endforeach
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
                         <!-- Filter Kelas -->

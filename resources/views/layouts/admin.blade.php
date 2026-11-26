@@ -52,6 +52,7 @@
                     'academic-summary.index' => 'Rekapitulasi Rombel',
                     'spmb.candidates.index' => 'SPMB',
                     'rekap-rapor.index' => 'Data Rapor',
+                    'rekap-rapor-ekstra.index' => 'Data Rapor Ekstra',
                 ];
                 $title = $routeTitles[$routeName] ?? 'Dashboard';
             }

@@ -272,10 +272,10 @@ class StudentAttendanceController extends Controller
                     StudentAttendance::updateOrCreate(
                         [
                             'student_id' => $studentId,
+                            'classroom_id' => $classroomId,
                             'date' => $date,
                         ],
                         [
-                            'classroom_id' => $classroomId,
                             'academic_year_id' => $academicYearId,
                             'status' => $status,
                             'notes' => $notes,
@@ -284,8 +284,9 @@ class StudentAttendanceController extends Controller
                     );
                     $savedCount++;
                 } else {
-                    // If status was cleared, remove the attendance record for this day
+                    // If status was cleared, remove the attendance record for this day and classroom
                     StudentAttendance::where('student_id', $studentId)
+                        ->where('classroom_id', $classroomId)
                         ->whereDate('date', $date)
                         ->delete();
                 }
@@ -1151,10 +1152,10 @@ class StudentAttendanceController extends Controller
                         StudentAttendance::updateOrCreate(
                             [
                                 'student_id' => $student->id,
+                                'classroom_id' => $classroomId,
                                 'date' => $targetDate,
                             ],
                             [
-                                'classroom_id' => $classroomId,
                                 'academic_year_id' => $academicYearId,
                                 'status' => $status,
                                 'notes' => null,
@@ -1239,10 +1240,10 @@ class StudentAttendanceController extends Controller
                     StudentAttendance::updateOrCreate(
                         [
                             'student_id' => $student->id,
+                            'classroom_id' => $classroomId,
                             'date' => $parsedDate,
                         ],
                         [
-                            'classroom_id' => $classroomId,
                             'academic_year_id' => $academicYearId,
                             'status' => $status,
                             'notes' => !empty($rawNotes) ? $rawNotes : null,
