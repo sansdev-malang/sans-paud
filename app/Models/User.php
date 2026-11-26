@@ -194,11 +194,11 @@ class User extends Authenticatable
      */
     public function canAccessRapor(): bool
     {
-        if (in_array($this->role, ['super_admin', 'kepala_sekolah', 'admin_paud', 'admin_sd', 'admin_smp', 'waka', 'wali_kelas', 'koordinator_ekstra'])) {
+        if (in_array($this->role, ['super_admin', 'kepala_sekolah', 'admin_paud', 'admin_sd', 'admin_smp', 'waka', 'wali_kelas', 'koordinator_ekstra', 'guru'])) {
             return true;
         }
 
-        if ($this->isActiveHomeroomTeacher()) {
+        if ($this->isActiveHomeroomTeacher() || $this->isTeacher()) {
             return true;
         }
 

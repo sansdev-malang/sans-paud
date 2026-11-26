@@ -282,7 +282,26 @@
 
                             <!-- 4. Catatan / Saran -->
                             <td class="px-4 py-3 max-w-[280px]">
-                                @if(!empty($item->teacher_advice))
+                                @if($item->is_robotic)
+                                    @if($item->pdf_path)
+                                    <div class="space-y-1">
+                                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                                            <i data-lucide="file-check" class="w-3.5 h-3.5 shrink-0 text-indigo-600 dark:text-indigo-400"></i>
+                                            <span>PDF Vendor Terlampir</span>
+                                        </span>
+                                        @if($item->pdf_original_name)
+                                            <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate max-w-[240px]" title="{{ $item->pdf_original_name }}">
+                                                {{ $item->pdf_original_name }}
+                                            </p>
+                                        @endif
+                                    </div>
+                                    @else
+                                    <span class="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 italic">
+                                        <i data-lucide="alert-circle" class="w-3.5 h-3.5 shrink-0"></i>
+                                        <span>PDF Vendor belum diunggah</span>
+                                    </span>
+                                    @endif
+                                @elseif(!empty($item->teacher_advice))
                                     <p class="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed" title="{{ $item->teacher_advice }}">
                                         "{{ $item->teacher_advice }}"
                                     </p>
@@ -293,7 +312,19 @@
 
                             <!-- 5. Status Nilai -->
                             <td class="px-4 py-3 text-center">
-                                @if($item->status === 'lengkap')
+                                @if($item->is_robotic)
+                                    @if($item->pdf_path)
+                                    <div class="inline-flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400 text-xs whitespace-nowrap">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                                        <span>PDF Terunggah</span>
+                                    </div>
+                                    @else
+                                    <div class="inline-flex items-center gap-1.5 font-medium text-amber-600 dark:text-amber-400 text-xs whitespace-nowrap">
+                                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
+                                        <span>Belum Diunggah</span>
+                                    </div>
+                                    @endif
+                                @elseif($item->status === 'lengkap')
                                 <div class="inline-flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400 text-xs whitespace-nowrap">
                                     <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
                                     <span>Lengkap</span>
@@ -446,67 +477,118 @@
                         </div>
                     </div>
 
-                    <!-- Tabel Daftar Indikator Capaian -->
-                    <div>
-                        <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide mb-2">
-                            Daftar Capaian Indikator
-                        </h4>
-                        <div class="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-                            <table class="w-full text-left text-xs">
-                                <thead class="bg-slate-50 dark:bg-slate-950/60 border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase">
-                                    <tr>
-                                        <th class="w-8 px-3 py-2 text-center">No</th>
-                                        <th class="px-3 py-2">Indikator Pembelajaran</th>
-                                        <th class="w-24 px-3 py-2 text-center">Predikat</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
-                                    <template x-for="(ind, idx) in (selectedItem?.indicators || [])" :key="ind.id || idx">
-                                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
-                                            <td class="px-3 py-2 text-center text-slate-400" x-text="idx + 1"></td>
-                                            <td class="px-3 py-2">
-                                                <span class="font-medium text-slate-800 dark:text-slate-200" x-text="ind.text"></span>
-                                                <template x-if="ind.category">
-                                                    <span class="block text-[10px] text-slate-400 font-semibold" x-text="ind.category"></span>
-                                                </template>
-                                            </td>
-                                            <td class="px-3 py-2 text-center">
-                                                <template x-if="selectedItem?.indicator_grades?.[ind.id]">
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold"
-                                                        :class="{
-                                                            'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200': selectedItem.indicator_grades[ind.id] === 'BSB',
-                                                            'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 border border-blue-200': selectedItem.indicator_grades[ind.id] === 'BSH',
-                                                            'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200': selectedItem.indicator_grades[ind.id] === 'MB',
-                                                            'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200': selectedItem.indicator_grades[ind.id] === 'BB'
-                                                        }"
-                                                        x-text="selectedItem.indicator_grades[ind.id]">
-                                                    </span>
-                                                </template>
-                                                <template x-if="!selectedItem?.indicator_grades?.[ind.id]">
-                                                    <span class="text-slate-400 italic text-[11px]">-</span>
-                                                </template>
-                                            </td>
-                                        </tr>
-                                    </template>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                    <!-- KASUS ROBOTIK: Berkas Rapor PDF dari Vendor -->
+                    <template x-if="selectedItem?.is_robotic">
+                        <div class="space-y-3">
+                            <div class="rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50/60 dark:bg-indigo-950/30 p-4">
+                                <div class="flex items-start gap-3">
+                                    <div class="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 shrink-0">
+                                        <i data-lucide="file-text" class="w-5 h-5"></i>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <h4 class="text-xs font-bold text-indigo-950 dark:text-indigo-200">
+                                            Penilaian Ekstrakurikuler Robotik (Berkas PDF Vendor)
+                                        </h4>
+                                        <p class="text-xs text-indigo-800 dark:text-indigo-300/90 leading-relaxed">
+                                            Kegiatan Robotik dinilai langsung oleh lembaga mitra / vendor pelatihan dan diterbitkan dalam bentuk lembar rapor PDF resmi terlampir (bukan pengisian rubrik indikator per item).
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
 
-                    <!-- Catatan & Saran -->
-                    <div class="space-y-1">
-                        <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
-                            Catatan & Saran Perkembangan
-                        </h4>
-                        <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 text-xs leading-relaxed text-slate-700 dark:text-slate-300">
-                            <template x-if="selectedItem?.teacher_advice">
-                                <p x-text="selectedItem.teacher_advice"></p>
-                            </template>
-                            <template x-if="!selectedItem?.teacher_advice">
-                                <p class="text-slate-400 italic">Belum ada saran atau catatan perkembangan.</p>
-                            </template>
+                            <div class="rounded-xl border border-slate-200 dark:border-slate-800 p-4 space-y-2.5 bg-slate-50/50 dark:bg-slate-900/50">
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="text-slate-500 dark:text-slate-400 font-medium">Status Berkas:</span>
+                                    <template x-if="selectedItem?.pdf_path">
+                                        <span class="inline-flex items-center gap-1.5 font-bold text-emerald-600 dark:text-emerald-400">
+                                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                            File PDF Tersedia
+                                        </span>
+                                    </template>
+                                    <template x-if="!selectedItem?.pdf_path">
+                                        <span class="inline-flex items-center gap-1.5 font-bold text-amber-600 dark:text-amber-400">
+                                            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                                            File PDF Belum Diunggah
+                                        </span>
+                                    </template>
+                                </div>
+
+                                <template x-if="selectedItem?.pdf_original_name">
+                                    <div class="flex items-center justify-between text-xs pt-2 border-t border-slate-200 dark:border-slate-800">
+                                        <span class="text-slate-500 dark:text-slate-400 font-medium">Nama File Lampiran:</span>
+                                        <span class="font-mono text-slate-800 dark:text-slate-200 font-semibold truncate max-w-[280px]" x-text="selectedItem.pdf_original_name"></span>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
-                    </div>
+                    </template>
+
+                    <!-- KASUS NON-ROBOTIK: Tabel Capaian Indikator & Saran Guru -->
+                    <template x-if="!selectedItem?.is_robotic">
+                        <div class="space-y-4">
+                            <!-- Tabel Daftar Indikator Capaian -->
+                            <div>
+                                <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide mb-2">
+                                    Daftar Capaian Indikator
+                                </h4>
+                                <div class="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                                    <table class="w-full text-left text-xs">
+                                        <thead class="bg-slate-50 dark:bg-slate-950/60 border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase">
+                                            <tr>
+                                                <th class="w-8 px-3 py-2 text-center">No</th>
+                                                <th class="px-3 py-2">Indikator Pembelajaran</th>
+                                                <th class="w-24 px-3 py-2 text-center">Predikat</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
+                                            <template x-for="(ind, idx) in (selectedItem?.indicators || [])" :key="ind.id || idx">
+                                                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                                                    <td class="px-3 py-2 text-center text-slate-400" x-text="idx + 1"></td>
+                                                    <td class="px-3 py-2">
+                                                        <span class="font-medium text-slate-800 dark:text-slate-200" x-text="ind.text"></span>
+                                                        <template x-if="ind.category">
+                                                            <span class="block text-[10px] text-slate-400 font-semibold" x-text="ind.category"></span>
+                                                        </template>
+                                                    </td>
+                                                    <td class="px-3 py-2 text-center">
+                                                        <template x-if="selectedItem?.indicator_grades?.[ind.id]">
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold"
+                                                                :class="{
+                                                                    'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200': selectedItem.indicator_grades[ind.id] === 'BSB',
+                                                                    'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 border border-blue-200': selectedItem.indicator_grades[ind.id] === 'BSH',
+                                                                    'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200': selectedItem.indicator_grades[ind.id] === 'MB',
+                                                                    'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200': selectedItem.indicator_grades[ind.id] === 'BB'
+                                                                }"
+                                                                x-text="selectedItem.indicator_grades[ind.id]">
+                                                            </span>
+                                                        </template>
+                                                        <template x-if="!selectedItem?.indicator_grades?.[ind.id]">
+                                                            <span class="text-slate-400 italic text-[11px]">-</span>
+                                                        </template>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Catatan & Saran -->
+                            <div class="space-y-1">
+                                <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
+                                    Catatan & Saran Perkembangan
+                                </h4>
+                                <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 text-xs leading-relaxed text-slate-700 dark:text-slate-300">
+                                    <template x-if="selectedItem?.teacher_advice">
+                                        <p x-text="selectedItem.teacher_advice"></p>
+                                    </template>
+                                    <template x-if="!selectedItem?.teacher_advice">
+                                        <p class="text-slate-400 italic">Belum ada saran atau catatan perkembangan.</p>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
                 </div>
 
                 <!-- Modal Footer -->

@@ -532,13 +532,13 @@
                                                 {{ $s->classroom ? $s->classroom->name : ($s->daycareClassroom ? $s->daycareClassroom->name : 'Belum Ditentukan') }}
                                             </span>
                                             @if($s->daycareClassroom && $s->classroom_id)
-                                                <span class="text-[9.5px] px-1.5 py-0.2 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 font-medium border border-amber-200 dark:border-amber-800/50">
-                                                    Daycare
+                                                <span class="text-[9.5px] px-1.5 py-0.2 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 font-medium border border-amber-200 dark:border-amber-800/50" title="Kelompok Daycare (TPA)">
+                                                    {{ $s->daycareClassroom->name }}
                                                 </span>
                                             @endif
-                                            @if($s->is_tpq || $s->tpq_classroom_id)
-                                                <span class="text-[9.5px] px-1.5 py-0.2 rounded bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-400 font-medium border border-teal-200 dark:border-teal-800/50">
-                                                    TPQ
+                                            @if(($s->is_tpq || $s->tpq_classroom_id) && $s->classroom_id)
+                                                <span class="text-[9.5px] px-1.5 py-0.2 rounded bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-400 font-medium border border-teal-200 dark:border-teal-800/50" title="Kelompok TPQ">
+                                                    {{ $s->tpqClassroom ? $s->tpqClassroom->name : 'TPQ' }}
                                                 </span>
                                             @endif
                                         </div>
